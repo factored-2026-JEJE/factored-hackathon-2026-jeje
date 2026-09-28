@@ -8,8 +8,10 @@ no banco, como nos testes de pré-caso, sem tocar no código sob teste.
 import logging
 import re
 
+import pytest
 from conftest import abrir_conversa, autenticar, cliente, conexao, dizer
 from sqlalchemy import text
+from sqlalchemy.exc import DataError
 
 from jeje.config import Settings
 
@@ -73,6 +75,22 @@ def test_sonda_de_saude_ok_nao_aparece_no_nivel_info_mas_a_que_falha_aparece(cap
     assert "rota=/health/ready status=503" in falha.getMessage()
 
 
+def test_banco_fora_rota_protegida_responde_503_json_e_um_aviso_sem_traceback(caplog):
+    fora = Settings(database_url=BANCO_FORA, db_connect_timeout_s=1)
+    with cliente(fora) as http:
+        resposta = http.get("/minhas/transacoes", headers={"Authorization": "Bearer qualquer"})
+    assert resposta.status_code == 503
+    assert resposta.headers["Retry-After"] == "5"
+    assert resposta.json() == {
+        "detail": "Serviço temporariamente indisponível. Tente de novo em instantes."
+    }
+    [aviso] = registros(caplog, "jeje.db")
+    assert aviso.levelno == logging.WARNING and aviso.exc_info is None
+    assert aviso.getMessage() == (
+        "banco indisponivel erro=ConnectionTimeout motivo='connection timeout expired'"
+    )
+
+
 def test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback(cenario_conversa, caplog):
     falhar = (
         "create function app.falhar() returns trigger language plpgsql as"
@@ -121,6 +139,15 @@ def test_logs_nunca_trazem_mensagem_do_cliente_token_nem_cliente(cenario_convers
     assert "turno conversa=" in texto and f"efeito={protocolo}" in texto
     for proibido in (marca, token, "token-errado-9911", "CLI-A", "Streaming Plus"):
         assert proibido not in texto
+
+
+def test_erro_de_sql_nao_carrega_os_valores_dos_parametros(cenario_conversa):
+    # O erro (divisão por zero) não cita o valor; só o SQLAlchemy o anexaria à mensagem.
+    consulta = text("SELECT 1 / 0 WHERE CAST(:valor AS text) IS NOT NULL")
+    with pytest.raises(DataError) as erro, conexao(cenario_conversa) as con:
+        con.execute(consulta, {"valor": "ZEBRAXQ"})
+    assert "division by zero" in str(erro.value)
+    assert "ZEBRAXQ" not in str(erro.value)
 
 
 def test_efeitos_confirmados_pela_api_aparecem_no_log_depois_do_commit(cenario_conversa, caplog):

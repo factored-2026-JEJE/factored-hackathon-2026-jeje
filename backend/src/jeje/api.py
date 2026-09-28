@@ -20,7 +20,7 @@ from jeje import (
     transacoes_api,
 )
 from jeje.config import Settings
-from jeje.db import create_db_engine
+from jeje.db import INDISPONIVEL, banco_indisponivel, create_db_engine
 
 log = logging.getLogger("jeje.api")
 
@@ -56,5 +56,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(conversa_api.router)
     app.include_router(metricas_api.router)
     app.include_router(atendimento_api.router)
+    for erro in INDISPONIVEL:
+        app.add_exception_handler(erro, banco_indisponivel)
     app.middleware("http")(logs.por_requisicao)
     return app

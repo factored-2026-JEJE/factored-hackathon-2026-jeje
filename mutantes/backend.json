@@ -4132,6 +4132,36 @@
       ]
     },
     {
+      "id": "M-LOG-13",
+      "requisito": "R06",
+      "descricao": "Banco fora volta a virar 500 com traceback em toda rota protegida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "    for erro in INDISPONIVEL:\n        app.add_exception_handler(erro, banco_indisponivel)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_banco_fora_rota_protegida_responde_503_json_e_um_aviso_sem_traceback"
+      ]
+    },
+    {
+      "id": "M-LOG-14",
+      "requisito": "R08",
+      "descricao": "Erro de SQL volta a anexar os valores dos parâmetros",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/db.py",
+          "de": "        hide_parameters=True,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_erro_de_sql_nao_carrega_os_valores_dos_parametros"
+      ]
+    },
+    {
       "id": "M-LOG-15",
       "requisito": "R06",
       "descricao": "Fallback do modelo some do log",
