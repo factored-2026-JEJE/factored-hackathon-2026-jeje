@@ -3,78 +3,272 @@
   "executor": "vitest",
   "diretorio": "/app",
   "timeout_s": 60,
-  "comando_teste": ["npx", "vitest", "run"],
-  "comando_coleta": ["npx", "vitest", "list", "--json"],
+  "comando_teste": [
+    "npx",
+    "vitest",
+    "run"
+  ],
+  "comando_coleta": [
+    "npx",
+    "vitest",
+    "list",
+    "--json"
+  ],
   "mutantes": [
     {
       "id": "CONTROLE-web",
       "espera": "sobrevive",
       "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",
-      "trocas": [{"arquivo": "src/App.tsx", "de": "import { StatusDoSistema } from \"./StatusDoSistema\";", "para": "import { StatusDoSistema } from \"./StatusDoSistema\"; // controle"}],
-      "testes": ["src"]
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "import { StatusDoSistema } from \"./StatusDoSistema\";",
+          "para": "import { StatusDoSistema } from \"./StatusDoSistema\"; // controle"
+        }
+      ],
+      "testes": [
+        "src"
+      ]
     },
     {
       "id": "M-WEB-01",
       "requisito": "R06",
       "descricao": "Página declara pronto sem olhar o status da API",
-      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "{status === \"ready\" ? \"Pronto para atender\" : \"Indisponível\"}", "para": "{\"Pronto para atender\"}"}],
-      "testes": ["src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"]
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": "{status === \"ready\" ? \"Pronto para atender\" : \"Indisponível\"}",
+          "para": "{\"Pronto para atender\"}"
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"
+      ]
     },
     {
       "id": "M-WEB-02",
       "requisito": "R06",
       "descricao": "Banco sem migrations exibido como inacessível (diagnóstico errado)",
-      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "not_migrated: \"sem migrations aplicadas\"", "para": "not_migrated: \"inacessível\""}],
-      "testes": ["src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"]
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": "not_migrated: \"sem migrations aplicadas\"",
+          "para": "not_migrated: \"inacessível\""
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"
+      ]
     },
     {
       "id": "M-WEB-03",
       "requisito": "R06",
       "descricao": "Ausência de dataset exibida como se os dados estivessem chegando",
-      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": ": \"nenhum dataset carregado\"}", "para": ": \"carregando dados\"}"}],
-      "testes": ["src/StatusDoSistema.test.tsx > mostra nenhum dataset quando o banco está ok mas sem carga"]
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": ": \"nenhum dataset carregado\"}",
+          "para": ": \"carregando dados\"}"
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra nenhum dataset quando o banco está ok mas sem carga"
+      ]
     },
     {
       "id": "M-WEB-04",
       "requisito": "R06",
       "descricao": "Falha de rede engolida: a página fica eternamente verificando",
-      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "        if (!controle.signal.aborted) setEstado({ tipo: \"erro\", detalhe: String(erro) });\n", "para": "        void erro;\n"}],
-      "testes": ["src/StatusDoSistema.test.tsx > mostra API inacessível quando a requisição falha na rede"]
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": "        if (!controle.signal.aborted) setEstado({ tipo: \"erro\", detalhe: String(erro) });\n",
+          "para": "        void erro;\n"
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra API inacessível quando a requisição falha na rede"
+      ]
     },
     {
       "id": "M-WEB-05",
       "requisito": "R06",
       "descricao": "Cliente aceita status HTTP fora do contrato como se fosse readiness",
-      "trocas": [{"arquivo": "src/api/cliente.ts", "de": "  if (resposta.status !== 200 && resposta.status !== 503) {\n    throw new Error(`HTTP ${resposta.status}`);\n  }\n", "para": ""}],
-      "testes": ["src/StatusDoSistema.test.tsx > trata status HTTP fora do contrato como erro"]
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "  if (resposta.status !== 200 && resposta.status !== 503) {\n    throw new Error(`HTTP ${resposta.status}`);\n  }\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > trata status HTTP fora do contrato como erro"
+      ]
     },
     {
       "id": "M-WEB-06",
       "requisito": "R06",
       "descricao": "Versão exibida vem do campo errado",
-      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "dataset.version.slice(0, 12)", "para": "dataset.source.slice(0, 12)"}],
-      "testes": ["src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"]
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": "dataset.version.slice(0, 12)",
+          "para": "dataset.source.slice(0, 12)"
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"
+      ]
     },
     {
       "id": "M-WEB-07",
       "requisito": "R06",
       "descricao": "Estado inicial não indica que a verificação está em andamento",
-      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "useState<Estado>({ tipo: \"carregando\" })", "para": "useState<Estado>({ tipo: \"erro\", detalhe: \"\" })"}],
-      "testes": ["src/StatusDoSistema.test.tsx > mostra verificando enquanto a API não responde"]
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": "useState<Estado>({ tipo: \"carregando\" })",
+          "para": "useState<Estado>({ tipo: \"erro\", detalhe: \"\" })"
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra verificando enquanto a API não responde"
+      ]
     },
     {
       "id": "M-WEB-08",
       "requisito": "R06",
       "descricao": "Cliente consulta a rota errada (liveness no lugar da readiness)",
-      "trocas": [{"arquivo": "src/api/cliente.ts", "de": "fetch(\"/api/health/ready\"", "para": "fetch(\"/api/health\""}],
-      "testes": ["src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"]
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "fetch(\"/api/health/ready\"",
+          "para": "fetch(\"/api/health\""
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"
+      ]
     },
     {
       "id": "M-WEB-09",
       "requisito": "R06",
       "descricao": "Tipos do contrato editados à mão divergem do OpenAPI versionado",
-      "trocas": [{"arquivo": "src/api/schema.d.ts", "de": "\"ok\" | \"unreachable\" | \"not_migrated\"", "para": "\"ok\" | \"unreachable\""}],
-      "testes": ["src/api/contrato.test.ts > tipos gerados coincidem com o contrato versionado"]
+      "trocas": [
+        {
+          "arquivo": "src/api/schema.d.ts",
+          "de": "\"ok\" | \"unreachable\" | \"not_migrated\"",
+          "para": "\"ok\" | \"unreachable\""
+        }
+      ],
+      "testes": [
+        "src/api/contrato.test.ts > tipos gerados coincidem com o contrato versionado"
+      ]
+    },
+    {
+      "id": "M-WEB-10",
+      "requisito": "R04",
+      "descricao": "Anulações mostram só a primeira regra, não a soma",
+      "trocas": [
+        {
+          "arquivo": "src/QualidadeDosDados.tsx",
+          "de": "Object.values(contagens).reduce((total, n) => total + n, 0)",
+          "para": "(Object.values(contagens)[0] ?? 0)"
+        }
+      ],
+      "testes": [
+        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
+      ]
+    },
+    {
+      "id": "M-WEB-11",
+      "requisito": "R04",
+      "descricao": "Painel nunca alerta contagens inconsistentes",
+      "trocas": [
+        {
+          "arquivo": "src/QualidadeDosDados.tsx",
+          "de": "estado.tabelas.filter((t) => !fecha(t))",
+          "para": "estado.tabelas.filter(() => false)"
+        }
+      ],
+      "testes": [
+        "src/QualidadeDosDados.test.tsx > alerta quando raw não fecha com curado, quarentena e cópias"
+      ]
+    },
+    {
+      "id": "M-WEB-12",
+      "requisito": "R04",
+      "descricao": "Invariante esquece as cópias descartadas (alarme falso)",
+      "trocas": [
+        {
+          "arquivo": "src/QualidadeDosDados.tsx",
+          "de": "t.raw === t.curado + t.quarentena + t.copias_descartadas",
+          "para": "t.raw === t.curado + t.quarentena"
+        }
+      ],
+      "testes": [
+        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
+      ]
+    },
+    {
+      "id": "M-WEB-13",
+      "requisito": "R04",
+      "descricao": "Relatório vazio vira tabela vazia sem aviso",
+      "trocas": [
+        {
+          "arquivo": "src/QualidadeDosDados.tsx",
+          "de": "  if (estado.tabelas.length === 0) return <p>Nenhuma carga registrada ainda.</p>;\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/QualidadeDosDados.test.tsx > informa quando ainda não houve carga"
+      ]
+    },
+    {
+      "id": "M-WEB-14",
+      "requisito": "R04",
+      "descricao": "Cliente aceita qualquer status HTTP do relatório",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/QualidadeDosDados.test.tsx > mostra erro quando o relatório não pode ser obtido"
+      ]
+    },
+    {
+      "id": "M-WEB-15",
+      "requisito": "R04",
+      "descricao": "Cliente consulta a rota errada do relatório",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "fetch(\"/api/dados/qualidade\"",
+          "para": "fetch(\"/api/qualidade\""
+        }
+      ],
+      "testes": [
+        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
+      ]
+    },
+    {
+      "id": "M-WEB-16",
+      "requisito": "R04",
+      "descricao": "Números sem formatação pt-BR",
+      "trocas": [
+        {
+          "arquivo": "src/QualidadeDosDados.tsx",
+          "de": "const numero = (n: number) => n.toLocaleString(\"pt-BR\");",
+          "para": "const numero = (n: number) => String(n);"
+        }
+      ],
+      "testes": [
+        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
+      ]
     }
   ]
 }

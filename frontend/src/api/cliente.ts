@@ -11,3 +11,12 @@ export async function buscarProntidao(sinal?: AbortSignal): Promise<Prontidao> {
   }
   return (await resposta.json()) as Prontidao;
 }
+
+export type QualidadeTabela = components["schemas"]["QualidadeTabela"];
+
+/** Relatório da curadoria da última carga (uma linha por tabela curada). */
+export async function buscarQualidade(sinal?: AbortSignal): Promise<QualidadeTabela[]> {
+  const resposta = await fetch("/api/dados/qualidade", { signal: sinal });
+  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);
+  return (await resposta.json()) as QualidadeTabela[];
+}
