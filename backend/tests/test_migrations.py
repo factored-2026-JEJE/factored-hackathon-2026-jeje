@@ -6,7 +6,7 @@ from conftest import alembic_config, conexao
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-SCHEMAS_DO_PRODUTO = ("meta", "raw", "curated", "quality")
+SCHEMAS_DO_PRODUTO = ("meta", "raw", "curated", "quality", "app")
 
 
 def tabelas_do_produto(settings) -> set[str]:

@@ -18,3 +18,7 @@ class Settings(BaseSettings):
     database_url: str
     # Limite para abrir conexão; evita que readiness e requisições fiquem presas num banco mudo.
     db_connect_timeout_s: int = Field(gt=0)
+    # Validade da sessão de teste, em minutos.
+    sessao_ttl_minutos: int = Field(gt=0)
+    # Liga a abertura de sessão por persona de demonstração (DEV-008); desligado, só 404.
+    modo_demo: bool

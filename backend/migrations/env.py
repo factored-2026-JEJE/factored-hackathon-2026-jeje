@@ -9,7 +9,7 @@ from jeje.db import create_db_engine
 from jeje.models import Base
 
 # Schemas do produto; o restante do banco (ex.: public) não é gerenciado aqui.
-SCHEMAS = {"meta", "raw", "curated", "quality"}
+SCHEMAS = {"meta", "raw", "curated", "quality", "app"}
 
 
 def incluir(nome, tipo, pais) -> bool:

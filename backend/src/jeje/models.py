@@ -33,3 +33,28 @@ class DatasetVersion(Base):
     # sha256 do código do pipeline de dados que produziu raw/curated: mudar contrato recarrega.
     pipeline: Mapped[str] = mapped_column(Text, server_default="")
     loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Persona(Base):
+    """Cliente de demonstração provisionado pelo servidor a partir da base curada (DEV-008).
+
+    Só personas podem abrir sessão de teste; identidade nunca vem do chat nem do navegador."""
+
+    __tablename__ = "personas"
+    __table_args__ = ({"schema": "app"},)
+
+    customer_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    nome: Mapped[str] = mapped_column(Text)
+    ordem: Mapped[int] = mapped_column(SmallInteger, unique=True)
+
+
+class Sessao(Base):
+    """Sessão de teste: o token só existe no cliente; aqui fica o sha256 dele."""
+
+    __tablename__ = "sessoes"
+    __table_args__ = ({"schema": "app"},)
+
+    token_hash: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text, index=True)
+    criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))

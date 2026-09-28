@@ -11,6 +11,9 @@ x-app-env: &app-env
   API_ROOT_PATH: /api
   DATABASE_URL: postgresql+psycopg://jeje:jeje@db:5432/jeje
   DB_CONNECT_TIMEOUT_S: "3"
+  SESSAO_TTL_MINUTOS: "60"
+  # Sessões por persona de demonstração (acesso de teste explícito, sem senha).
+  MODO_DEMO: "true"
 
 # Testes do backend: imagem com dependências de desenvolvimento, banco efêmero db-test.
 x-backend-test: &backend-test
