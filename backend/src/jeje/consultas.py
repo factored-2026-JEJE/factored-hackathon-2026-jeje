@@ -11,6 +11,8 @@ from decimal import Decimal
 from pydantic import BaseModel
 from sqlalchemy import Connection, text
 
+from jeje.politica import Fatos
+
 
 class Transacao(BaseModel):
     transaction_id: str
@@ -56,3 +58,24 @@ def transacao_do_cliente(
         .first()
     )
     return None if linha is None else Transacao(**linha)
+
+
+def fatos_da_transacao(conexao: Connection, customer_id: str, transaction_id: str) -> Fatos | None:
+    """Fatos verificados para a política; `amount_usd` vem normalizado da curada (N-USD) e fica
+    None quando não há conversão confiável — nunca usa o valor em moeda local como dólar."""
+    linha = conexao.execute(
+        text(
+            "SELECT transaction_id, transaction_status, response_code, amount_usd"
+            " FROM curated.transactions"
+            " WHERE customer_id = :cliente AND transaction_id = :transacao"
+        ),
+        {"cliente": customer_id, "transacao": transaction_id},
+    ).first()
+    if linha is None:
+        return None
+    return Fatos(
+        transaction_id=linha.transaction_id,
+        status=linha.transaction_status,
+        response_code=linha.response_code,
+        amount_usd=linha.amount_usd,
+    )

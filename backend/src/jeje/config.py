@@ -5,6 +5,8 @@ Os valores vêm do ambiente montado pelo `compose.yaml` versionado (ENG-003); se
 inicialização, em vez de o código assumir um valor que diverge do compose.
 """
 
+from decimal import Decimal
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -22,3 +24,5 @@ class Settings(BaseSettings):
     sessao_ttl_minutos: int = Field(gt=0)
     # Liga a abertura de sessão por persona de demonstração (DEV-008); desligado, só 404.
     modo_demo: bool
+    # Valor máximo (USD) de contestação que vira pré-caso automático (POL-HUM-02, simulado).
+    limite_pre_caso_usd: Decimal = Field(gt=0)

@@ -299,6 +299,110 @@
           }
         }
       }
+    },
+    "/minhas/transacoes/{transaction_id}/situacao": {
+      "get": {
+        "summary": "Situacao",
+        "description": "Fatos da transação e a decisão da política para uma consulta sobre ela (POL-CON-*).",
+        "operationId": "situacao_minhas_transacoes__transaction_id__situacao_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]{1,64}$",
+              "title": "Transaction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Situacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "404": {
+            "description": "Transação não encontrada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/minhas/transacoes/{transaction_id}/contestacao": {
+      "get": {
+        "summary": "Avaliar Contestacao",
+        "description": "Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso.",
+        "operationId": "avaliar_contestacao_minhas_transacoes__transaction_id__contestacao_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]{1,64}$",
+              "title": "Transaction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisaoDaPolitica"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "404": {
+            "description": "Transação não encontrada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -326,6 +430,36 @@
           "loaded_at"
         ],
         "title": "DatasetInfo"
+      },
+      "DecisaoDaPolitica": {
+        "properties": {
+          "regra": {
+            "type": "string",
+            "title": "Regra"
+          },
+          "acao": {
+            "type": "string",
+            "title": "Acao"
+          },
+          "detalhe": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detalhe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "regra",
+          "acao",
+          "detalhe"
+        ],
+        "title": "DecisaoDaPolitica"
       },
       "HTTPValidationError": {
         "properties": {
@@ -619,6 +753,22 @@
           "cliente"
         ],
         "title": "SessaoAberta"
+      },
+      "Situacao": {
+        "properties": {
+          "transacao": {
+            "$ref": "#/components/schemas/Transacao"
+          },
+          "decisao": {
+            "$ref": "#/components/schemas/DecisaoDaPolitica"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transacao",
+          "decisao"
+        ],
+        "title": "Situacao"
       },
       "Transacao": {
         "properties": {

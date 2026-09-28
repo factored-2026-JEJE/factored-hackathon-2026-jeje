@@ -2273,6 +2273,76 @@
       "testes": [
         "tests/test_politica.py::test_propriedade_so_propoe_pre_caso_quando_toda_a_regra_permite"
       ]
+    },
+    {
+      "id": "M-PAPI-01",
+      "requisito": "R08",
+      "descricao": "Fatos da política sem filtro de dono",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "            \" WHERE customer_id = :cliente AND transaction_id = :transacao\"\n        ),\n        {\"cliente\": customer_id, \"transacao\": transaction_id},\n    ).first()",
+          "para": "            \" WHERE :cliente = :cliente AND transaction_id = :transacao\"\n        ),\n        {\"cliente\": customer_id, \"transacao\": transaction_id},\n    ).first()"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_transacao_de_outro_cliente_nao_e_avaliada"
+      ]
+    },
+    {
+      "id": "M-PAPI-02",
+      "requisito": "R02",
+      "descricao": "Valor em moeda local tratado como dólar no limite",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "            \"SELECT transaction_id, transaction_status, response_code, amount_usd\"",
+          "para": "            \"SELECT transaction_id, transaction_status, response_code, amount AS amount_usd\""
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_contestacao_avaliada_pelos_fatos_da_curada"
+      ]
+    },
+    {
+      "id": "M-PAPI-03",
+      "requisito": "R03",
+      "descricao": "Limite fixo no código, ignorando a configuração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "    limite = request.app.state.settings.limite_pre_caso_usd",
+          "para": "    limite = Decimal(\"1000\")"
+        },
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "from fastapi import APIRouter, HTTPException, Path, Query, Request\n",
+          "para": "from decimal import Decimal\n\nfrom fastapi import APIRouter, HTTPException, Path, Query, Request\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_limite_vem_da_configuracao"
+      ]
+    },
+    {
+      "id": "M-PAPI-04",
+      "requisito": "R02",
+      "descricao": "Situação devolve a decisão de contestação no lugar da de consulta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "    return Situacao(transacao=transacao, decisao=_saida(politica.decidir_consulta(fatos)))",
+          "para": "    return Situacao(transacao=transacao, decisao=_saida(politica.decidir_contestacao(fatos, request_limite(), None)))"
+        },
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "def _saida(decisao: politica.Decisao) -> DecisaoDaPolitica:",
+          "para": "def request_limite():\n    from decimal import Decimal\n\n    return Decimal(\"1000\")\n\n\ndef _saida(decisao: politica.Decisao) -> DecisaoDaPolitica:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_situacao_de_recusa_com_codigo_catalogado_explica_o_codigo"
+      ]
     }
   ]
 }

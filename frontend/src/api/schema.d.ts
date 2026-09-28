@@ -167,6 +167,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/minhas/transacoes/{transaction_id}/situacao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Situacao
+         * @description Fatos da transação e a decisão da política para uma consulta sobre ela (POL-CON-*).
+         */
+        get: operations["situacao_minhas_transacoes__transaction_id__situacao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/minhas/transacoes/{transaction_id}/contestacao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Avaliar Contestacao
+         * @description Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso.
+         */
+        get: operations["avaliar_contestacao_minhas_transacoes__transaction_id__contestacao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -182,6 +222,15 @@ export interface components {
              * Format: date-time
              */
             loaded_at: string;
+        };
+        /** DecisaoDaPolitica */
+        DecisaoDaPolitica: {
+            /** Regra */
+            regra: string;
+            /** Acao */
+            acao: string;
+            /** Detalhe */
+            detalhe: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -292,6 +341,11 @@ export interface components {
              */
             expira_em: string;
             cliente: components["schemas"]["Persona"];
+        };
+        /** Situacao */
+        Situacao: {
+            transacao: components["schemas"]["Transacao"];
+            decisao: components["schemas"]["DecisaoDaPolitica"];
         };
         /** Transacao */
         Transacao: {
@@ -585,6 +639,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Transacao"];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Transação não encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    situacao_minhas_transacoes__transaction_id__situacao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Situacao"];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Transação não encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    avaliar_contestacao_minhas_transacoes__transaction_id__contestacao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisaoDaPolitica"];
                 };
             };
             /** @description Sessão ausente, inválida ou expirada */
