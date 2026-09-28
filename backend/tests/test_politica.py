@@ -5,7 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 import pytest
-from hypothesis import given
+from hypothesis import example, given
 from hypothesis import strategies as st
 
 from jeje.politica import (
@@ -80,6 +80,8 @@ def test_pre_caso_existente_devolve_o_protocolo_sem_propor_outro():
     valor=st.none() | st.decimals(min_value=0, max_value=10**7, places=2),
     existente=st.none() | st.text(min_size=1, max_size=12),
 )
+# Caso que a busca aleatória pode não sortear: tudo permitiria, menos o pré-caso já aberto.
+@example(status="Approved", valor=Decimal("50.00"), existente="PC-1")
 def test_propriedade_so_propoe_pre_caso_quando_toda_a_regra_permite(status, valor, existente):
     decisao = decidir_contestacao(Fatos("T", status, None, valor), LIMITE, existente)
     assert decisao.regra.startswith("POL-")
