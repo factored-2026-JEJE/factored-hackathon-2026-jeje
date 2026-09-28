@@ -368,6 +368,22 @@
       "testes": [
         "politica.spec.ts > situação de cada transação das personas segue a matriz e contestação só avança para Approved"
       ]
+    },
+    {
+      "id": "M-E2E-22",
+      "requisito": "R08",
+      "descricao": "Proxy sem a proteção contra clickjacking (página pode ser embutida em outro site)",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\t\tX-Frame-Options DENY\n\t\tContent-Security-Policy \"frame-ancestors 'none'\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "seguranca.spec.ts > cabeçalhos de segurança em /",
+        "seguranca.spec.ts > cabeçalhos de segurança em /api/health"
+      ]
     }
   ]
 }

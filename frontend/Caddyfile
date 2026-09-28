@@ -7,6 +7,14 @@
 
 :8080 {
 	encode gzip
+	# Toda resposta (página e API): sem adivinhar tipo, sem ser embutida em outro site
+	# (clickjacking) e sem vazar o endereço como referer.
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Content-Security-Policy "frame-ancestors 'none'"
+		Referrer-Policy no-referrer
+	}
 	handle_path /api/* {
 		reverse_proxy {$API_UPSTREAM}
 	}
