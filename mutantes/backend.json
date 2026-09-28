@@ -1083,6 +1083,231 @@
       "testes": [
         "tests/test_curado_esquema.py::test_transacao_com_produto_do_proprio_cliente_e_aceita"
       ]
+    },
+    {
+      "id": "M-QUAL-01",
+      "requisito": "R04",
+      "descricao": "Sem checagem de tipo: valor inválido quebra a carga em vez de ir para a quarentena",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            casos.append(_caso(invalido, f\"Q-TIPO:{coluna}\"))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_valor_nao_conversivel_vai_para_quarentena_com_o_original"
+      ]
+    },
+    {
+      "id": "M-QUAL-02",
+      "requisito": "R04",
+      "descricao": "Domínio não verificado: status desconhecido entra na curada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            casos.append(_caso(fora, f\"Q-DOMINIO:{coluna}\"))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_obrigatorio_vazio_e_dominio_invalido_acumulam_motivos"
+      ]
+    },
+    {
+      "id": "M-QUAL-03",
+      "requisito": "R04",
+      "descricao": "Obrigatório vazio não é detectado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            casos.append(_caso(sql.SQL(\"{} IS NULL\").format(c), f\"Q-OBRIG:{coluna}\"))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_obrigatorio_vazio_e_dominio_invalido_acumulam_motivos"
+      ]
+    },
+    {
+      "id": "M-QUAL-04",
+      "requisito": "R04",
+      "descricao": "Referência essencial inexistente não vai para quarentena",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            casos.append(_caso(_inexistente(referencia), f\"Q-REF:{referencia.coluna}\"))\n",
+          "para": "            pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_referencia_essencial_inexistente_vai_para_quarentena"
+      ]
+    },
+    {
+      "id": "M-QUAL-05",
+      "requisito": "R08",
+      "descricao": "Transação com produto de outro cliente não é barrada pela regra",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "                casos.append(_caso(_de_outro_cliente(referencia), f\"Q-PROP:{referencia.coluna}\"))\n",
+          "para": "                pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_transacao_com_produto_de_outro_cliente_vai_para_quarentena"
+      ]
+    },
+    {
+      "id": "M-QUAL-06",
+      "requisito": "R08",
+      "descricao": "Referência acessória de outro cliente não é anulada (ACH-016)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            quebrada = sql.SQL(\"({}) OR ({})\").format(quebrada, _de_outro_cliente(referencia))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_reclamacao_nunca_fica_ligada_a_produto_de_outro_cliente"
+      ]
+    },
+    {
+      "id": "M-QUAL-07",
+      "requisito": "R04",
+      "descricao": "Conflito de chave resolvido em silêncio pelo primeiro registro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "UPDATE av SET motivos = array_append(motivos, 'Q-PK-CONFLITO') WHERE ({}) IN ({})",
+          "para": "UPDATE av SET motivos = motivos WHERE ({}) IN ({})"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_chave_repetida_com_conteudo_diferente_nao_e_escolhida_em_silencio"
+      ]
+    },
+    {
+      "id": "M-QUAL-08",
+      "requisito": "R04",
+      "descricao": "Cópias exatas não são descartadas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "x WHERE av.ctid = x.id AND x.n > 1",
+          "para": "x WHERE av.ctid = x.id AND x.n > 100"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_copia_exata_fica_uma_so_e_e_contada"
+      ]
+    },
+    {
+      "id": "M-QUAL-09",
+      "requisito": "R04",
+      "descricao": "Normalização do amount_usd aplicada a qualquer moeda",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "WHERE currency = 'USD' AND amount_usd IS NULL",
+          "para": "WHERE amount_usd IS NULL"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_amount_usd_de_transacao_em_dolar_e_normalizado_e_as_demais_nao"
+      ]
+    },
+    {
+      "id": "M-QUAL-10",
+      "requisito": "R04",
+      "descricao": "Relatório conta a quarentena errado (inclui cópias)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "quarentena=_contar(cursor, sql.SQL(\"SELECT count(*) FROM av WHERE motivos <> '{}'\")),",
+          "para": "quarentena=_contar(cursor, sql.SQL(\"SELECT count(*) FROM av WHERE motivos <> '{}' OR copia\")),"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_relatorio_fecha_raw_igual_a_curado_mais_quarentena_mais_copias"
+      ]
+    },
+    {
+      "id": "M-QUAL-11",
+      "requisito": "R04",
+      "descricao": "Quarentena perde o registro original (grava JSON vazio)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            \" to_jsonb(av) - 'motivos' - 'copia' - '_arquivo' - '_linha'\"",
+          "para": "            \" '{{}}'::jsonb\""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_valor_nao_conversivel_vai_para_quarentena_com_o_original"
+      ]
+    },
+    {
+      "id": "M-QUAL-12",
+      "requisito": "R04",
+      "descricao": "Anulação de referência acessória não é contabilizada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            anulacoes[codigo] = _contar(",
+          "para": "            anulacoes[codigo] = 0 * _contar("
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_referencia_acessoria_inexistente_e_anulada_sem_perder_o_registro"
+      ]
+    },
+    {
+      "id": "M-QUAL-13",
+      "requisito": "R04",
+      "descricao": "Valor válido gravado sem conversão de tipo correta (boolean lido como texto vira NULL)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "    return sql.SQL(\"{}::{}\").format(valor, sql.SQL(contrato.tipo(coluna)))",
+          "para": "    return sql.SQL(\"NULLIF({}, 'False')::{}\").format(valor, sql.SQL(contrato.tipo(coluna)))"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_registro_valido_chega_tipado_a_curada"
+      ]
+    },
+    {
+      "id": "M-QUAL-14",
+      "requisito": "R04",
+      "descricao": "Curadoria fora da ordem de dependência: transação válida vira órfã e cai na quarentena",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "        for contrato in CONTRATOS\n        if contrato.tabela in tabelas",
+          "para": "        for contrato in sorted(CONTRATOS, key=lambda c: c.tabela != 'transactions')\n        if contrato.tabela in tabelas"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_registro_valido_chega_tipado_a_curada"
+      ]
+    },
+    {
+      "id": "M-QUAL-15",
+      "requisito": "R04",
+      "descricao": "Referência conferida na raw: filho de pai em quarentena escapa da regra",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "    return sql.SQL(\"EXISTS (SELECT 1 FROM {} x WHERE {})\").format(\n        sql.Identifier(SCHEMA, alvo.tabela), condicao\n    )",
+          "para": "    return sql.SQL(\"EXISTS (SELECT 1 FROM {} x WHERE {})\").format(\n        sql.Identifier(\"raw\", alvo.tabela), condicao\n    )"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_filho_de_registro_em_quarentena_tambem_vai_para_quarentena"
+      ]
     }
   ]
 }
