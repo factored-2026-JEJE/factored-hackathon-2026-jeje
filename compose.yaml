@@ -8,6 +8,20 @@ x-app-env: &app-env
   DATABASE_URL: postgresql+psycopg://jeje:jeje@db:5432/jeje
   DB_CONNECT_TIMEOUT_S: "3"
 
+# Testes do backend: imagem com dependências de desenvolvimento, banco efêmero db-test.
+x-backend-test: &backend-test
+  build:
+    context: ./backend
+    target: test
+  image: jeje-test:local
+  profiles: ["test"]
+  environment:
+    <<: *app-env
+    DATABASE_URL: postgresql+psycopg://jeje:jeje@db-test:5432/jeje_test
+  depends_on:
+    db-test:
+      condition: service_healthy
+
 services:
   db:
     image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
@@ -72,17 +86,15 @@ services:
       retries: 30
 
   test:
-    build:
-      context: ./backend
-      target: test
-    image: jeje-test:local
-    profiles: ["test"]
-    environment:
-      <<: *app-env
-      DATABASE_URL: postgresql+psycopg://jeje:jeje@db-test:5432/jeje_test
-    depends_on:
-      db-test:
-        condition: service_healthy
+    <<: *backend-test
+    command: ["pytest", "-q"]
+
+  # Prova de sensibilidade (ENG-004): cada mutante registrado precisa derrubar seus testes.
+  mutantes:
+    <<: *backend-test
+    volumes:
+      - ./mutantes:/mutantes:ro
+    command: ["python", "/mutantes/executar.py", "/mutantes/backend.json"]
 
 volumes:
   pgdata:
