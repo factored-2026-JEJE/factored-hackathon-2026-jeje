@@ -267,6 +267,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/conversas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Abrir Conversa */
+        post: operations["abrir_conversa_conversas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversas/{conversa_id}/turnos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enviar Mensagem
+         * @description Um turno: a política decide com fatos verificados; efeito só com confirmação explícita.
+         */
+        post: operations["enviar_mensagem_conversas__conversa_id__turnos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversas/{conversa_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Historico
+         * @description Reabre a conversa (ex.: depois de recarregar a página), só para o dono.
+         */
+        get: operations["historico_conversas__conversa_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -275,6 +332,20 @@ export interface components {
         AvaliacaoDeContestacao: {
             decisao: components["schemas"]["DecisaoDaPolitica"];
             proposta: components["schemas"]["Proposta"] | null;
+        };
+        /** ConversaAberta */
+        ConversaAberta: {
+            /** Conversa Id */
+            conversa_id: string;
+            /**
+             * Idioma
+             * @enum {string}
+             */
+            idioma: "es" | "pt";
+            /** Estado */
+            estado: string;
+            /** Resposta */
+            resposta: string;
         };
         /** DatasetInfo */
         DatasetInfo: {
@@ -302,6 +373,20 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** Historico */
+        Historico: {
+            /** Conversa Id */
+            conversa_id: string;
+            /**
+             * Idioma
+             * @enum {string}
+             */
+            idioma: "es" | "pt";
+            /** Estado */
+            estado: string;
+            /** Turnos */
+            turnos: components["schemas"]["TurnoRegistrado"][];
+        };
         /** Linha */
         Linha: {
             /** Grupo */
@@ -326,6 +411,28 @@ export interface components {
             status: "ok";
             /** Version */
             version: string;
+        };
+        /** Mensagem */
+        Mensagem: {
+            /** Texto */
+            texto: string;
+        };
+        /** NovaConversa */
+        NovaConversa: {
+            /**
+             * Idioma
+             * @enum {string}
+             */
+            idioma: "es" | "pt";
+        };
+        /** Opcao */
+        Opcao: {
+            /** Numero */
+            numero: number;
+            /** Transaction Id */
+            transaction_id: string;
+            /** Descricao */
+            descricao: string;
         };
         /** PedidoDeSessao */
         PedidoDeSessao: {
@@ -422,6 +529,40 @@ export interface components {
             /** Linhas */
             linhas: components["schemas"]["Linha"][];
         };
+        /**
+         * ResultadoDoTurno
+         * @description O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente.
+         */
+        ResultadoDoTurno: {
+            /** Conversa Id */
+            conversa_id: string;
+            /** Numero */
+            numero: number;
+            /**
+             * Idioma
+             * @enum {string}
+             */
+            idioma: "es" | "pt";
+            /** Intencao */
+            intencao: string;
+            /** Regra */
+            regra: string;
+            /** Acao */
+            acao: string;
+            /** Estado */
+            estado: string;
+            /** Resposta */
+            resposta: string;
+            /** Transaction Id */
+            transaction_id: string | null;
+            /** Opcoes */
+            opcoes: components["schemas"]["Opcao"][];
+            proposta: components["schemas"]["Proposta"] | null;
+            /** Protocolo */
+            protocolo: string | null;
+            /** Atendimento */
+            atendimento: string | null;
+        };
         /** SessaoAberta */
         SessaoAberta: {
             /** Token */
@@ -461,6 +602,26 @@ export interface components {
             merchant_name: string | null;
             /** Channel */
             channel: string | null;
+        };
+        /** TurnoRegistrado */
+        TurnoRegistrado: {
+            /** Numero */
+            numero: number;
+            /** Mensagem */
+            mensagem: string;
+            /** Resposta */
+            resposta: string;
+            /** Regra */
+            regra: string;
+            /** Acao */
+            acao: string;
+            /** Estado */
+            estado: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             */
+            criado_em: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -993,6 +1154,161 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    abrir_conversa_conversas_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NovaConversa"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversaAberta"];
+                };
+            };
+            /** @description Corpo ilegível (não é JSON UTF-8) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enviar_mensagem_conversas__conversa_id__turnos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Mensagem"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultadoDoTurno"];
+                };
+            };
+            /** @description Corpo ilegível (não é JSON UTF-8) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conversa não encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Turno não registrado; nada foi criado */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    historico_conversas__conversa_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Historico"];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conversa não encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

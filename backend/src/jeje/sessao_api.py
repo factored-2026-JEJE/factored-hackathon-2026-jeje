@@ -18,6 +18,7 @@ NAO_AUTENTICADO = {"WWW-Authenticate": "Bearer"}
 # Status documentados no OpenAPI de toda rota protegida por sessão.
 RESPOSTAS_SESSAO = {401: {"description": "Sessão ausente, inválida ou expirada"}}
 RESPOSTAS_DEMO = {404: {"description": "Modo demo desligado ou persona não provisionada"}}
+CORPO_ILEGIVEL = {400: {"description": "Corpo ilegível (não é JSON UTF-8)"}}
 
 esquema_bearer = HTTPBearer(
     auto_error=False, description="Token da sessão de teste (POST /sessoes)"
@@ -86,7 +87,7 @@ def listar_personas(engine: EngineDep) -> list[Persona]:
     "/sessoes",
     status_code=201,
     dependencies=[Depends(_exige_modo_demo)],
-    responses={**RESPOSTAS_DEMO, 400: {"description": "Corpo ilegível (não é JSON UTF-8)"}},
+    responses={**RESPOSTAS_DEMO, **CORPO_ILEGIVEL},
 )
 def abrir_sessao(pedido: PedidoDeSessao, request: Request, engine: EngineDep) -> SessaoAberta:
     with engine.begin() as conexao:

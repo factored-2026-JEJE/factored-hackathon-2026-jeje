@@ -564,6 +564,175 @@
           }
         ]
       }
+    },
+    "/conversas": {
+      "post": {
+        "summary": "Abrir Conversa",
+        "operationId": "abrir_conversa_conversas_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovaConversa"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversaAberta"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "400": {
+            "description": "Corpo ilegível (não é JSON UTF-8)"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/conversas/{conversa_id}/turnos": {
+      "post": {
+        "summary": "Enviar Mensagem",
+        "description": "Um turno: a política decide com fatos verificados; efeito só com confirmação explícita.",
+        "operationId": "enviar_mensagem_conversas__conversa_id__turnos_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversa_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Conversa Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mensagem"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoDoTurno"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "400": {
+            "description": "Corpo ilegível (não é JSON UTF-8)"
+          },
+          "404": {
+            "description": "Conversa não encontrada"
+          },
+          "503": {
+            "description": "Turno não registrado; nada foi criado"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conversas/{conversa_id}": {
+      "get": {
+        "summary": "Historico",
+        "description": "Reabre a conversa (ex.: depois de recarregar a página), só para o dono.",
+        "operationId": "historico_conversas__conversa_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversa_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Conversa Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Historico"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "404": {
+            "description": "Conversa não encontrada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -590,6 +759,38 @@
           "proposta"
         ],
         "title": "AvaliacaoDeContestacao"
+      },
+      "ConversaAberta": {
+        "properties": {
+          "conversa_id": {
+            "type": "string",
+            "title": "Conversa Id"
+          },
+          "idioma": {
+            "type": "string",
+            "enum": [
+              "es",
+              "pt"
+            ],
+            "title": "Idioma"
+          },
+          "estado": {
+            "type": "string",
+            "title": "Estado"
+          },
+          "resposta": {
+            "type": "string",
+            "title": "Resposta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversa_id",
+          "idioma",
+          "estado",
+          "resposta"
+        ],
+        "title": "ConversaAberta"
       },
       "DatasetInfo": {
         "properties": {
@@ -657,6 +858,41 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Historico": {
+        "properties": {
+          "conversa_id": {
+            "type": "string",
+            "title": "Conversa Id"
+          },
+          "idioma": {
+            "type": "string",
+            "enum": [
+              "es",
+              "pt"
+            ],
+            "title": "Idioma"
+          },
+          "estado": {
+            "type": "string",
+            "title": "Estado"
+          },
+          "turnos": {
+            "items": {
+              "$ref": "#/components/schemas/TurnoRegistrado"
+            },
+            "type": "array",
+            "title": "Turnos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversa_id",
+          "idioma",
+          "estado",
+          "turnos"
+        ],
+        "title": "Historico"
       },
       "Linha": {
         "properties": {
@@ -735,6 +971,61 @@
           "version"
         ],
         "title": "Liveness"
+      },
+      "Mensagem": {
+        "properties": {
+          "texto": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Texto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "texto"
+        ],
+        "title": "Mensagem"
+      },
+      "NovaConversa": {
+        "properties": {
+          "idioma": {
+            "type": "string",
+            "enum": [
+              "es",
+              "pt"
+            ],
+            "title": "Idioma"
+          }
+        },
+        "type": "object",
+        "required": [
+          "idioma"
+        ],
+        "title": "NovaConversa"
+      },
+      "Opcao": {
+        "properties": {
+          "numero": {
+            "type": "integer",
+            "title": "Numero"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "descricao": {
+            "type": "string",
+            "title": "Descricao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "numero",
+          "transaction_id",
+          "descricao"
+        ],
+        "title": "Opcao"
       },
       "PedidoDeSessao": {
         "properties": {
@@ -968,6 +1259,114 @@
         ],
         "title": "Resultado"
       },
+      "ResultadoDoTurno": {
+        "properties": {
+          "conversa_id": {
+            "type": "string",
+            "title": "Conversa Id"
+          },
+          "numero": {
+            "type": "integer",
+            "title": "Numero"
+          },
+          "idioma": {
+            "type": "string",
+            "enum": [
+              "es",
+              "pt"
+            ],
+            "title": "Idioma"
+          },
+          "intencao": {
+            "type": "string",
+            "title": "Intencao"
+          },
+          "regra": {
+            "type": "string",
+            "title": "Regra"
+          },
+          "acao": {
+            "type": "string",
+            "title": "Acao"
+          },
+          "estado": {
+            "type": "string",
+            "title": "Estado"
+          },
+          "resposta": {
+            "type": "string",
+            "title": "Resposta"
+          },
+          "transaction_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transaction Id"
+          },
+          "opcoes": {
+            "items": {
+              "$ref": "#/components/schemas/Opcao"
+            },
+            "type": "array",
+            "title": "Opcoes"
+          },
+          "proposta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Proposta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "protocolo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocolo"
+          },
+          "atendimento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Atendimento"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversa_id",
+          "numero",
+          "idioma",
+          "intencao",
+          "regra",
+          "acao",
+          "estado",
+          "resposta",
+          "transaction_id",
+          "opcoes",
+          "proposta",
+          "protocolo",
+          "atendimento"
+        ],
+        "title": "ResultadoDoTurno",
+        "description": "O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."
+      },
       "SessaoAberta": {
         "properties": {
           "token": {
@@ -1089,6 +1488,50 @@
           "channel"
         ],
         "title": "Transacao"
+      },
+      "TurnoRegistrado": {
+        "properties": {
+          "numero": {
+            "type": "integer",
+            "title": "Numero"
+          },
+          "mensagem": {
+            "type": "string",
+            "title": "Mensagem"
+          },
+          "resposta": {
+            "type": "string",
+            "title": "Resposta"
+          },
+          "regra": {
+            "type": "string",
+            "title": "Regra"
+          },
+          "acao": {
+            "type": "string",
+            "title": "Acao"
+          },
+          "estado": {
+            "type": "string",
+            "title": "Estado"
+          },
+          "criado_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "numero",
+          "mensagem",
+          "resposta",
+          "regra",
+          "acao",
+          "estado",
+          "criado_em"
+        ],
+        "title": "TurnoRegistrado"
       },
       "ValidationError": {
         "properties": {
