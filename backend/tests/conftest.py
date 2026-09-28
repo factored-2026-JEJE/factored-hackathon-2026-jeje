@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Connection, text
 from sqlalchemy.engine import make_url
 
+from jeje import sessao
 from jeje.api import create_app
 from jeje.config import Settings
 from jeje.dados.qualidade import curar
@@ -180,3 +181,91 @@ def quarentena(settings, tabela: str) -> dict[str, list[str]]:
         tabela, "complaint_id"
     )
     return {registro[chave]: sorted(motivos) for registro, motivos in linhas}
+
+
+# ---- Conversa (G10/G11) ---------------------------------------------------------------------
+
+
+@pytest.fixture
+def cenario_conversa(base):
+    """Conversa (G10): CLI-A com seis transações de status e comércios distintos; CLI-B com uma
+    idêntica à TRX-A1 (mesmo valor, data e comércio) para provar o isolamento."""
+    with conexao(base) as con:
+        a = {"cliente_id": "CLI-A", "produto_id": "PRD-A"}
+        raw_transacao(
+            con,
+            "TRX-A1",
+            **a,
+            transaction_date="2025-03-10 14:09:12",
+            amount="45.90",
+            merchant_name="Streaming Plus",
+        )
+        raw_transacao(
+            con,
+            "TRX-A2",
+            **a,
+            transaction_date="2025-03-12 09:00:00",
+            amount="189900.55",
+            currency="COP",
+            merchant_name="Almacenes Éxito",
+            transaction_status="Declined",
+            response_code="51",
+        )
+        raw_transacao(
+            con,
+            "TRX-A3",
+            **a,
+            transaction_date="2025-03-14 18:30:00",
+            amount="20.00",
+            merchant_name="Uber",
+            transaction_status="Declined",
+        )
+        raw_transacao(
+            con,
+            "TRX-A4",
+            **a,
+            transaction_date="2025-03-15 11:00:00",
+            amount="5000.00",
+            merchant_name="Boutique Moda",
+        )
+        raw_transacao(
+            con,
+            "TRX-A5",
+            **a,
+            transaction_date="2025-03-16 08:15:00",
+            amount="12.00",
+            merchant_name="Café Central",
+            transaction_status="Pending",
+        )
+        raw_transacao(
+            con,
+            "TRX-A6",
+            **a,
+            transaction_date="2025-03-11 20:00:00",
+            amount="45.90",
+            merchant_name="Cine Premium",
+        )
+        # Mesmo valor, data e comércio do TRX-A1, mas de outro cliente.
+        raw_transacao(con, "TRX-B1", "CLI-B", "PRD-B", transaction_date="2025-03-10 14:09:12",
+                      amount="45.90", merchant_name="Streaming Plus")  # fmt: skip
+    curar_tudo(base)
+    with conexao(base) as con:
+        sessao.provisionar_personas(con, 2)
+    return base
+
+
+def autenticar(http, customer_id: str) -> dict:
+    token = http.post("/sessoes", json={"customer_id": customer_id}).json()["token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+def abrir_conversa(http, auth, idioma: str) -> str:
+    resposta = http.post("/conversas", json={"idioma": idioma}, headers=auth)
+    assert resposta.status_code == 201
+    return resposta.json()["conversa_id"]
+
+
+def dizer(http, auth, conversa: str, mensagem: str) -> dict:
+    resposta = http.post(f"/conversas/{conversa}/turnos", json={"texto": mensagem}, headers=auth)
+    assert resposta.status_code == 200, resposta.text
+    return resposta.json()

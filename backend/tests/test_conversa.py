@@ -7,93 +7,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 import httpx2 as httpx
 import pytest
-from conftest import cliente, conexao, curar_tudo, raw_transacao, servidor_http
+from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, servidor_http
 from sqlalchemy import text
-
-from jeje import sessao
 
 
 @pytest.fixture
-def cenario(base):
-    with conexao(base) as con:
-        a = {"cliente_id": "CLI-A", "produto_id": "PRD-A"}
-        raw_transacao(
-            con,
-            "TRX-A1",
-            **a,
-            transaction_date="2025-03-10 14:09:12",
-            amount="45.90",
-            merchant_name="Streaming Plus",
-        )
-        raw_transacao(
-            con,
-            "TRX-A2",
-            **a,
-            transaction_date="2025-03-12 09:00:00",
-            amount="189900.55",
-            currency="COP",
-            merchant_name="Almacenes Éxito",
-            transaction_status="Declined",
-            response_code="51",
-        )
-        raw_transacao(
-            con,
-            "TRX-A3",
-            **a,
-            transaction_date="2025-03-14 18:30:00",
-            amount="20.00",
-            merchant_name="Uber",
-            transaction_status="Declined",
-        )
-        raw_transacao(
-            con,
-            "TRX-A4",
-            **a,
-            transaction_date="2025-03-15 11:00:00",
-            amount="5000.00",
-            merchant_name="Boutique Moda",
-        )
-        raw_transacao(
-            con,
-            "TRX-A5",
-            **a,
-            transaction_date="2025-03-16 08:15:00",
-            amount="12.00",
-            merchant_name="Café Central",
-            transaction_status="Pending",
-        )
-        raw_transacao(
-            con,
-            "TRX-A6",
-            **a,
-            transaction_date="2025-03-11 20:00:00",
-            amount="45.90",
-            merchant_name="Cine Premium",
-        )
-        # Mesmo valor, data e comércio do TRX-A1, mas de outro cliente.
-        raw_transacao(con, "TRX-B1", "CLI-B", "PRD-B", transaction_date="2025-03-10 14:09:12",
-                      amount="45.90", merchant_name="Streaming Plus")  # fmt: skip
-    curar_tudo(base)
-    with conexao(base) as con:
-        sessao.provisionar_personas(con, 2)
-    return base
-
-
-def autenticar(http, customer_id: str) -> dict:
-    token = http.post("/sessoes", json={"customer_id": customer_id}).json()["token"]
-    return {"Authorization": f"Bearer {token}"}
-
-
-def abrir(http, auth, idioma: str) -> str:
-    resposta = http.post("/conversas", json={"idioma": idioma}, headers=auth)
-    assert resposta.status_code == 201
-    return resposta.json()["conversa_id"]
-
-
-def dizer(http, auth, conversa: str, mensagem: str) -> dict:
-    resposta = http.post(f"/conversas/{conversa}/turnos", json={"texto": mensagem}, headers=auth)
-    assert resposta.status_code == 200, resposta.text
-    return resposta.json()
+def cenario(cenario_conversa):
+    return cenario_conversa
 
 
 def contar(settings, tabela: str) -> int:
@@ -152,7 +72,7 @@ def test_caminho_normal_propoe_confirma_e_registra_um_pre_caso_relido(cenario, i
     falas = NORMAL[idioma]
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         proposta = dizer(http, auth, conversa, falas["pedido"])
         assert (proposta["regra"], proposta["acao"], proposta["estado"]) == (
             "POL-DISP-01", "propor_pre_caso", "confirmando"
@@ -195,7 +115,7 @@ def test_caminho_normal_consulta_de_recusa_explica_o_codigo(cenario, idioma):
     pergunta, esperado = CONSULTA[idioma]
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        resposta = dizer(http, auth, abrir(http, auth, "es"), pergunta)
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "es"), pergunta)
     assert (resposta["regra"], resposta["acao"], resposta["transaction_id"]) == (
         "POL-CON-03", "responder", "TRX-A2"
     )  # fmt: skip
@@ -206,7 +126,7 @@ def test_pendente_informa_o_status_sem_prometer_prazo(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         resposta = dizer(
-            http, auth, abrir(http, auth, "pt"), "a compra no Café Central está pendente?"
+            http, auth, abrir_conversa(http, auth, "pt"), "a compra no Café Central está pendente?"
         )
     assert (resposta["regra"], resposta["transaction_id"]) == ("POL-CON-05", "TRX-A5")
     assert resposta["resposta"] == (
@@ -237,7 +157,7 @@ def test_caminho_ambiguo_so_age_depois_que_o_cliente_escolhe(cenario, idioma):
     preposicao = {"es": "en", "pt": "em"}[idioma]
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, idioma)
+        conversa = abrir_conversa(http, auth, idioma)
         pergunta = dizer(http, auth, conversa, pedido)
         assert (pergunta["regra"], pergunta["acao"], pergunta["estado"]) == (
             "POL-CON-02", "esclarecer", "esclarecendo"
@@ -261,7 +181,7 @@ def test_caminho_ambiguo_so_age_depois_que_o_cliente_escolhe(cenario, idioma):
 def test_dois_esclarecimentos_sem_sucesso_encaminham_para_humano(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         primeira = dizer(http, auth, conversa, "No reconozco un cobro de 45,90")
         segunda = dizer(http, auth, conversa, "no sé")
         terceira = dizer(http, auth, conversa, "ni idea")
@@ -282,7 +202,9 @@ def test_dois_esclarecimentos_sem_sucesso_encaminham_para_humano(cenario):
 def test_valor_que_nao_casa_pede_dados_sem_inventar_transacao(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        resposta = dizer(http, auth, abrir(http, auth, "pt"), "não reconheço a compra de 999,99")
+        resposta = dizer(
+            http, auth, abrir_conversa(http, auth, "pt"), "não reconheço a compra de 999,99"
+        )
     assert (resposta["regra"], resposta["opcoes"], resposta["transaction_id"]) == (
         "POL-CON-02", [], None
     )  # fmt: skip
@@ -317,7 +239,7 @@ def test_caminho_humano_fraude_encaminha_e_a_automacao_para(cenario, idioma):
     relato, esperado, depois, aguardando = FRAUDE[idioma]
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         encaminhado = dizer(http, auth, conversa, relato)
         seguinte = dizer(http, auth, conversa, depois)
         sim = dizer(http, auth, conversa, NORMAL[idioma]["sim"])
@@ -344,7 +266,7 @@ def test_contestacao_acima_do_limite_encaminha_com_fatos_e_acoes(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         resposta = dizer(
-            http, auth, abrir(http, auth, "es"), "No reconozco la compra en Boutique Moda"
+            http, auth, abrir_conversa(http, auth, "es"), "No reconozco la compra en Boutique Moda"
         )
     assert (resposta["regra"], resposta["acao"], resposta["transaction_id"]) == (
         "POL-HUM-02", "humano", "TRX-A4"
@@ -365,7 +287,10 @@ def test_contestacao_de_recusada_explica_e_encaminha_sem_pre_caso(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         resposta = dizer(
-            http, auth, abrir(http, auth, "pt"), "Não reconheço a compra no Almacenes Éxito"
+            http,
+            auth,
+            abrir_conversa(http, auth, "pt"),
+            "Não reconheço a compra no Almacenes Éxito",
         )
     assert (resposta["regra"], resposta["acao"], resposta["transaction_id"]) == (
         "POL-DISP-02", "humano", "TRX-A2"
@@ -381,7 +306,7 @@ def test_contestacao_de_recusada_explica_e_encaminha_sem_pre_caso(cenario):
 def test_recusa_sem_motivo_oferece_atendente_e_so_encaminha_com_sim(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         oferta = dizer(http, auth, conversa, "¿Por qué rechazaron lo de Uber?")
         recusada = dizer(http, auth, conversa, "no, gracias")
         assert handoffs(cenario) == []
@@ -411,7 +336,7 @@ def test_recusa_sem_motivo_oferece_atendente_e_so_encaminha_com_sim(cenario):
 def test_efeito_so_com_sim_explicito(cenario, mensagem):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         dizer(http, auth, conversa, NORMAL["es"]["pedido"])
         resposta = dizer(http, auth, conversa, mensagem)
     assert resposta["acao"] != "registrar_pre_caso"
@@ -421,7 +346,7 @@ def test_efeito_so_com_sim_explicito(cenario, mensagem):
 def test_fora_de_escopo_recusa_sem_desfazer_a_confirmacao_pendente(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         dizer(http, auth, conversa, NORMAL["es"]["pedido"])
         recusa = dizer(http, auth, conversa, "¿y me dan un préstamo?")
         registrado = dizer(http, auth, conversa, "sí")
@@ -441,7 +366,7 @@ def test_fora_de_escopo_recusa_sem_desfazer_a_confirmacao_pendente(cenario):
 def test_identificador_digitado_nao_busca_nem_revela_nada(cenario, mensagem):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        resposta = dizer(http, auth, abrir(http, auth, "es"), mensagem)
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "es"), mensagem)
     assert (resposta["regra"], resposta["acao"], resposta["transaction_id"]) == (
         "POL-ID-02", "recusar", None
     )  # fmt: skip
@@ -455,7 +380,7 @@ def test_identificador_digitado_nao_busca_nem_revela_nada(cenario, mensagem):
 def test_conversa_de_outro_cliente_e_igual_a_inexistente(cenario):
     with cliente(cenario) as http:
         auth_a, auth_b = autenticar(http, "CLI-A"), autenticar(http, "CLI-B")
-        conversa = abrir(http, auth_a, "es")
+        conversa = abrir_conversa(http, auth_a, "es")
         dizer(http, auth_a, conversa, NORMAL["es"]["pedido"])
         alheia = http.post(f"/conversas/{conversa}/turnos", json={"texto": "sí"}, headers=auth_b)
         inexistente = http.post(
@@ -470,7 +395,7 @@ def test_conversa_de_outro_cliente_e_igual_a_inexistente(cenario):
 def test_estado_persiste_entre_turnos_e_o_historico_reabre_a_conversa(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "pt")
+        conversa = abrir_conversa(http, auth, "pt")
         falas = ["Não reconheço uma cobrança de 45,90", "a segunda", "Sim"]
         respostas = [dizer(http, auth, conversa, fala) for fala in falas]
         historico = http.get(f"/conversas/{conversa}", headers=auth).json()
@@ -488,7 +413,7 @@ def test_estado_persiste_entre_turnos_e_o_historico_reabre_a_conversa(cenario):
 def test_lingua_da_resposta_segue_a_do_cliente(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         em_portugues = dizer(http, auth, conversa, NORMAL["pt"]["pedido"])
         ok = dizer(http, auth, conversa, "ok")
     assert em_portugues["idioma"] == "pt" and em_portugues["resposta"] == NORMAL["pt"]["proposta"]
@@ -499,7 +424,7 @@ def test_lingua_da_resposta_segue_a_do_cliente(cenario):
 def test_mensagem_vazia_ou_longa_demais_e_recusada_na_borda(cenario, texto_enviado):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         resposta = http.post(
             f"/conversas/{conversa}/turnos", json={"texto": texto_enviado}, headers=auth
         )
@@ -519,7 +444,7 @@ def test_falha_ao_gravar_desfaz_o_turno_e_o_reenvio_registra_um(cenario):
         )
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
         dizer(http, auth, conversa, NORMAL["es"]["pedido"])
         falhou = http.post(f"/conversas/{conversa}/turnos", json={"texto": "sí"}, headers=auth)
         assert falhou.status_code == 503
@@ -539,7 +464,7 @@ def test_falha_ao_gravar_desfaz_o_turno_e_o_reenvio_registra_um(cenario):
 def test_turnos_simultaneos_na_mesma_conversa_sao_serializados(cenario):
     with servidor_http(cenario) as url, httpx.Client(base_url=url) as http:
         auth = autenticar(http, "CLI-A")
-        conversa = abrir(http, auth, "es")
+        conversa = abrir_conversa(http, auth, "es")
 
         def enviar(_):
             return http.post(f"/conversas/{conversa}/turnos", json={"texto": "hola"}, headers=auth)
