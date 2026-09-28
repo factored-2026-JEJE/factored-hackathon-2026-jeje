@@ -15,6 +15,14 @@ class Latencia(BaseModel):
     max: float | None
 
 
+class UsoDoModelo(BaseModel):
+    chamadas: int
+    fallbacks: int
+    tokens_entrada: int
+    tokens_saida: int
+    chamadas_sem_contagem_de_tokens: int
+
+
 class Metricas(BaseModel):
     turnos: int
     erros: int
@@ -26,6 +34,7 @@ class Metricas(BaseModel):
     latencia_ms: Latencia
     acoes: dict[str, int]
     regras: dict[str, int]
+    modelo: UsoDoModelo
 
 
 @router.get("/metricas")

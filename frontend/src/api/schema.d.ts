@@ -540,6 +540,7 @@ export interface components {
             regras: {
                 [key: string]: number;
             };
+            modelo: components["schemas"]["UsoDoModelo"];
         };
         /** NovaConversa */
         NovaConversa: {
@@ -764,6 +765,19 @@ export interface components {
              * Format: date-time
              */
             criado_em: string;
+        };
+        /** UsoDoModelo */
+        UsoDoModelo: {
+            /** Chamadas */
+            chamadas: number;
+            /** Fallbacks */
+            fallbacks: number;
+            /** Tokens Entrada */
+            tokens_entrada: number;
+            /** Tokens Saida */
+            tokens_saida: number;
+            /** Chamadas Sem Contagem De Tokens */
+            chamadas_sem_contagem_de_tokens: number;
         };
         /** ValidationError */
         ValidationError: {

@@ -1295,6 +1295,9 @@
             },
             "type": "object",
             "title": "Regras"
+          },
+          "modelo": {
+            "$ref": "#/components/schemas/UsoDoModelo"
           }
         },
         "type": "object",
@@ -1308,7 +1311,8 @@
           "pre_casos_registrados",
           "latencia_ms",
           "acoes",
-          "regras"
+          "regras",
+          "modelo"
         ],
         "title": "Metricas"
       },
@@ -1903,6 +1907,39 @@
           "criado_em"
         ],
         "title": "TurnoRegistrado"
+      },
+      "UsoDoModelo": {
+        "properties": {
+          "chamadas": {
+            "type": "integer",
+            "title": "Chamadas"
+          },
+          "fallbacks": {
+            "type": "integer",
+            "title": "Fallbacks"
+          },
+          "tokens_entrada": {
+            "type": "integer",
+            "title": "Tokens Entrada"
+          },
+          "tokens_saida": {
+            "type": "integer",
+            "title": "Tokens Saida"
+          },
+          "chamadas_sem_contagem_de_tokens": {
+            "type": "integer",
+            "title": "Chamadas Sem Contagem De Tokens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chamadas",
+          "fallbacks",
+          "tokens_entrada",
+          "tokens_saida",
+          "chamadas_sem_contagem_de_tokens"
+        ],
+        "title": "UsoDoModelo"
       },
       "ValidationError": {
         "properties": {

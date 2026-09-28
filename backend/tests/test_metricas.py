@@ -95,6 +95,8 @@ def test_sem_eventos_nao_inventa_taxa_nem_latencia(banco_migrado):
         "turnos": 0, "erros": 0, "taxa_de_erro": None, "conversas": 0,
         "conversas_encaminhadas": 0, "taxa_de_encaminhamento": None, "pre_casos_registrados": 0,
         "latencia_ms": {"p50": None, "p95": None, "max": None}, "acoes": {}, "regras": {},
+        "modelo": {"chamadas": 0, "fallbacks": 0, "tokens_entrada": 0, "tokens_saida": 0,
+                   "chamadas_sem_contagem_de_tokens": 0},
     }  # fmt: skip
 
 
@@ -131,3 +133,28 @@ def test_metricas_de_conversas_reais_pela_api(cenario_conversa):
         "registrar_pre_caso": 1,
     }  # fmt: skip
     assert 0 < calculado["latencia_ms"]["p50"] <= calculado["latencia_ms"]["p95"]
+
+
+def test_uso_do_modelo_conta_toda_chamada_e_nao_estima_tokens(banco_migrado):
+    # (interpretação, latência do modelo, tokens de entrada, tokens de saída)
+    turnos = [
+        ("ollama:m", 900, 100, 20), ("ollama:m", 700, 50, 10),
+        ("regras (fallback: URLError)", 3, None, None), ("regras", None, None, None),
+        ("regras", None, None, None),
+    ]  # fmt: skip
+    with conexao(banco_migrado) as con:
+        for interpretacao, ms, entrada, saida in turnos:
+            con.execute(
+                text(
+                    "INSERT INTO app.eventos (tipo, conversa_id, acao, regra, latencia_ms,"
+                    " interpretacao, modelo_latencia_ms, modelo_tokens_entrada,"
+                    " modelo_tokens_saida)"
+                    " VALUES ('turno', 'c1', 'responder', 'POL-CON-01', 10, :i, :ms, :e, :s)"
+                ),
+                {"i": interpretacao, "ms": ms, "e": entrada, "s": saida},
+            )
+        calculado = metricas.calcular(con)
+    assert calculado["modelo"] == {
+        "chamadas": 3, "fallbacks": 1, "tokens_entrada": 150, "tokens_saida": 30,
+        "chamadas_sem_contagem_de_tokens": 1,
+    }  # fmt: skip

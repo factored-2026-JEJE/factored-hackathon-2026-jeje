@@ -15,6 +15,7 @@ const METRICAS: Metricas = {
   latencia_ms: { p50: 41.25, p95: 187.5, max: 240 },
   acoes: {},
   regras: {},
+  modelo: { chamadas: 5, fallbacks: 1, tokens_entrada: 600, tokens_saida: 120, chamadas_sem_contagem_de_tokens: 0 },
 };
 
 function servidor(corpo: Metricas) {
@@ -35,6 +36,7 @@ test("mostra os números da API com taxas em porcentagem e latências em ms", as
   expect(valorDe("Pré-casos registrados")).toBe("3");
   expect(valorDe("Latência p50")).toBe("41,3 ms");
   expect(valorDe("Latência p95")).toBe("187,5 ms");
+  expect(valorDe("Chamadas ao modelo local")).toBe("5 (1 com fallback)");
 });
 
 test("sem eventos não inventa taxa nem latência", async () => {

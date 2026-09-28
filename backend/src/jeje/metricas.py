@@ -28,7 +28,13 @@ def calcular(conexao: Connection) -> dict:
             "   FILTER (WHERE tipo = 'turno') AS p50,"
             " percentile_cont(0.95) WITHIN GROUP (ORDER BY latencia_ms)"
             "   FILTER (WHERE tipo = 'turno') AS p95,"
-            " max(latencia_ms) FILTER (WHERE tipo = 'turno') AS maximo"
+            " max(latencia_ms) FILTER (WHERE tipo = 'turno') AS maximo,"
+            " count(*) FILTER (WHERE modelo_latencia_ms IS NOT NULL) AS chamadas,"
+            " count(*) FILTER (WHERE interpretacao LIKE 'regras (fallback:%') AS fallbacks,"
+            " count(*) FILTER (WHERE modelo_latencia_ms IS NOT NULL AND"
+            "   (modelo_tokens_entrada IS NULL OR modelo_tokens_saida IS NULL)) AS sem_contagem,"
+            " coalesce(sum(modelo_tokens_entrada), 0) AS tokens_entrada,"
+            " coalesce(sum(modelo_tokens_saida), 0) AS tokens_saida"
             " FROM app.eventos"
         )
     ).one()
@@ -56,6 +62,15 @@ def calcular(conexao: Connection) -> dict:
         },
         "acoes": por["acao"],
         "regras": por["regra"],
+        # Modelo local (G14): toda chamada despachada conta, inclusive as que caíram no fallback;
+        # tokens não informados pelo servidor não são estimados, só contados à parte.
+        "modelo": {
+            "chamadas": geral.chamadas,
+            "fallbacks": geral.fallbacks,
+            "tokens_entrada": geral.tokens_entrada,
+            "tokens_saida": geral.tokens_saida,
+            "chamadas_sem_contagem_de_tokens": geral.sem_contagem,
+        },
     }
 
 

@@ -34,6 +34,7 @@ export function MetricasDoAtendimento({ versao }: { versao: number }) {
     ["Pré-casos registrados", String(metricas.pre_casos_registrados)],
     ["Latência p50", ms(metricas.latencia_ms.p50)],
     ["Latência p95", ms(metricas.latencia_ms.p95)],
+    ["Chamadas ao modelo local", `${metricas.modelo.chamadas} (${metricas.modelo.fallbacks} com fallback)`],
   ];
   return (
     <section aria-label="Métricas do atendimento" className="cartao">
