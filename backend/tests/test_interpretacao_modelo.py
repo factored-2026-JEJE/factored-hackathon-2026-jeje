@@ -29,8 +29,7 @@ ENTENDIDA = "Não reconheço a cobrança de 45,90 na Streaming Plus"
 
 
 def saida(**campos) -> str:
-    base = {"idioma": "pt", "intencao": "contestar", "valor": None, "data": None,
-            "status": None, "escolha": None}  # fmt: skip
+    base = {"idioma": "pt", "intencao": "contestar", "status": None}
     return json.dumps({**base, **campos})
 
 
@@ -111,12 +110,11 @@ def test_o_que_as_regras_entendem_nem_chega_ao_modelo(texto):
 
 
 def test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem():
-    with ollama_falso(saida(intencao="contestar", valor=12.5)) as (url, pedidos):
+    with ollama_falso(saida(intencao="consultar", status="Reversed")) as (url, pedidos):
         leitura = ler(url, VAGA)
-    assert (leitura.fonte, leitura.lida.intencao, leitura.lida.idioma) == (
-        "ollama:modelo-teste", "contestar", "pt"
+    assert (leitura.fonte, leitura.lida.intencao, leitura.lida.idioma, leitura.lida.status) == (
+        "ollama:modelo-teste", "consultar", "pt", "Reversed"
     )  # fmt: skip
-    assert str(leitura.lida.valor) == "12.5"
     # Sim/não e identificador continuam das regras; o modelo não tem onde dizê-los.
     regras = interpretar(VAGA, "es", REFERENCIA)
     assert (leitura.lida.resposta, leitura.lida.id_digitado) == (
@@ -131,6 +129,9 @@ def test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem():
     assert (pedido["format"], pedido["options"], pedido["stream"]) == (
         ESQUEMA, {"temperature": 0}, False
     )  # fmt: skip
+    # O modelo só diz o que o classificador do time diria: língua, intenção e status (ACH-102).
+    campos = {"idioma", "intencao", "status"}
+    assert set(ESQUEMA["properties"]) == set(ESQUEMA["required"]) == campos
     # Sem raciocínio (modelo que pensa estoura o tempo, ACH-024) e mantido carregado entre turnos.
     assert (pedido["think"], pedido["keep_alive"]) == (False, "7m")
 
@@ -142,8 +143,9 @@ def test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem():
         saida(intencao="registrar_pre_caso"),
         saida(transaction_id="TRX-A1"),
         saida(customer_id="CLI-B"),
-        saida(valor=-5),
-        saida(escolha=12),
+        saida(valor=45.9),  # valor, data e escolha são das regras
+        saida(data="2026-02-27"),
+        saida(escolha=2),
         json.dumps({"idioma": "es", "intencao": "contestar"}),
     ],
 )
