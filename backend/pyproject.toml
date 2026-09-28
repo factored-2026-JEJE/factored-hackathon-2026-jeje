@@ -36,9 +36,13 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 # Aviso vira erro: depreciação ou dependência errada aparece no teste, não em produção (DEV-020c).
 filterwarnings = ["error"]
-# A exploração aleatória do contrato fica fora do gate (ACH-027): make contrato-explorar.
-addopts = "-m 'not exploracao'"
-markers = ["exploracao: exploração aleatória do contrato, fora do gate"]
+# Fora do gate: a exploração aleatória do contrato (ACH-027, make contrato-explorar) e a
+# integração com o Ollama real, que depende da GPU e da ponte (make testar-modelo).
+addopts = "-m 'not exploracao and not ollama'"
+markers = [
+    "exploracao: exploração aleatória do contrato, fora do gate",
+    "ollama: integração com o Ollama real pela ponte do compose, fora do gate",
+]
 
 [tool.ruff]
 target-version = "py312"

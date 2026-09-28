@@ -50,6 +50,9 @@ x-backend-test: &backend-test
   profiles: ["test"]
   volumes:
     - ./contrato:/contrato:ro
+  # Integração real com o Ollama pela ponte (make testar-modelo, fora do gate).
+  extra_hosts:
+    - host.docker.internal:host-gateway
   environment:
     <<: *app-env
     DATABASE_URL: postgresql+psycopg://jeje:jeje@db-test:5432/jeje_test
