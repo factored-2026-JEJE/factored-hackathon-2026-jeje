@@ -267,7 +267,9 @@ def main() -> int:
             copiar(base, raiz)
             try:
                 aplicar_trocas(raiz, mutante["trocas"], mutante["id"])
-                timeout = mutante.get("timeout_s", timeout_padrao)
+                # O controle roda a suíte como a base; os demais, só a seleção deles.
+                controle = mutante.get("espera") == "sobrevive"
+                timeout = mutante.get("timeout_s", timeout_base if controle else timeout_padrao)
                 resultado, segundos, fim = executar_testes(
                     registro, raiz, mutante["testes"], timeout, mutante["id"]
                 )
