@@ -109,6 +109,27 @@ def test_pool_esgotado_responde_503_json_em_vez_de_500(caplog):
     assert aviso.getMessage().startswith("banco indisponivel erro=TimeoutError motivo=")
 
 
+def test_comando_que_passa_do_limite_e_cancelado_e_responde_503(cenario_conversa):
+    """Consulta descontrolada não segura conexão nem requisição: o banco cancela o comando no
+    limite do compose e a API responde 503 com Retry-After."""
+    atrasar = (
+        "create function app.atrasar() returns trigger language plpgsql as"
+        " $$ begin perform pg_sleep(2); return new; end $$;"
+        " create trigger atraso_injetado before insert on app.conversas"
+        " for each row execute function app.atrasar()"
+    )
+    with conexao(cenario_conversa) as con:
+        con.execute(text(atrasar))
+    curto = cenario_conversa.model_copy(update={"db_statement_timeout_ms": 200})
+    with cliente(curto) as http:
+        auth = autenticar(http, "CLI-A")
+        inicio = time.monotonic()
+        resposta = http.post("/conversas", json={"idioma": "es"}, headers=auth)
+        demorou = time.monotonic() - inicio
+    assert (resposta.status_code, resposta.headers["Retry-After"]) == (503, "5")
+    assert demorou < 1.5
+
+
 def test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback(cenario_conversa, caplog):
     falhar = (
         "create function app.falhar() returns trigger language plpgsql as"

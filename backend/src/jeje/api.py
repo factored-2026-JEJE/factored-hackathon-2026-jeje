@@ -55,7 +55,7 @@ def create_app(settings: Settings) -> FastAPI:
         dependencies=[Depends(parametros.sem_parametro_repetido)],
     )
     app.state.settings = settings
-    app.state.engine = create_db_engine(settings)
+    app.state.engine = create_db_engine(settings, settings.db_statement_timeout_ms)
     # Toda transação da API respeita a recarga dos dados: durante ela, 503 na hora (DEV-020i).
     recarga.proteger(app.state.engine)
     app.state.interpretador = interpretacao_modelo.configurado(settings)

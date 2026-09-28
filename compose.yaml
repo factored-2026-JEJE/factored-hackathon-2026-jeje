@@ -16,6 +16,8 @@ x-app-env: &app-env
   DB_POOL_SIZE: "5"
   DB_POOL_MAX_OVERFLOW: "10"
   DB_POOL_TIMEOUT_S: "5"
+  # Tempo máximo de um comando SQL da API (a EDA inteira leva ~1 s nos dados reais).
+  DB_STATEMENT_TIMEOUT_MS: "5000"
   SESSAO_TTL_MINUTOS: "60"
   # Sessões por persona de demonstração (acesso de teste explícito, sem senha).
   MODO_DEMO: "true"

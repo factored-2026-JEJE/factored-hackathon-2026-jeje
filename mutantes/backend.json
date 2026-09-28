@@ -165,8 +165,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/db.py",
-          "de": "        connect_args={\"connect_timeout\": settings.db_connect_timeout_s},\n",
-          "para": ""
+          "de": "    opcoes = {\"connect_timeout\": settings.db_connect_timeout_s}\n",
+          "para": "    opcoes = {}\n"
         }
       ],
       "testes": [
@@ -201,6 +201,21 @@
       ],
       "testes": [
         "tests/test_logs.py::test_pool_esgotado_responde_503_json_em_vez_de_500"
+      ]
+    },
+    {
+      "id": "M-DB-05",
+      "requisito": "R06",
+      "descricao": "API sem limite de tempo por comando: consulta descontrolada segura a conexão e a requisição",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "    app.state.engine = create_db_engine(settings, settings.db_statement_timeout_ms)\n",
+          "para": "    app.state.engine = create_db_engine(settings)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_comando_que_passa_do_limite_e_cancelado_e_responde_503"
       ]
     },
     {

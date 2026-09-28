@@ -18,14 +18,19 @@ log = logging.getLogger("jeje.db")
 INDISPONIVEL = (OperationalError, InterfaceError, PoolEsgotado)
 
 
-def create_db_engine(settings: Settings) -> Engine:
+def create_db_engine(settings: Settings, statement_timeout_ms: int | None = None) -> Engine:
+    """Engine com timeout de conexão e pool do compose; `statement_timeout_ms` limita cada comando
+    (só a API usa: a carga e os scripts podem levar minutos)."""
+    opcoes = {"connect_timeout": settings.db_connect_timeout_s}
+    if statement_timeout_ms is not None:
+        opcoes["options"] = f"-c statement_timeout={statement_timeout_ms}"
     return create_engine(
         settings.database_url,
         pool_pre_ping=True,
         # O SQLAlchemy não anexa os valores dos parâmetros (mensagem do cliente, hash de token) à
         # mensagem de erro. O próprio PostgreSQL ainda pode citar um valor: ver jeje.logs.
         hide_parameters=True,
-        connect_args={"connect_timeout": settings.db_connect_timeout_s},
+        connect_args=opcoes,
         pool_size=settings.db_pool_size,
         max_overflow=settings.db_pool_max_overflow,
         pool_timeout=settings.db_pool_timeout_s,

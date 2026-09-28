@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(gt=0)
     db_pool_max_overflow: int = Field(ge=0)
     db_pool_timeout_s: float = Field(gt=0)
+    # Tempo máximo de um comando SQL da API: consulta descontrolada é cancelada (503), não trava
+    # conexão. A carga e os scripts não têm esse limite.
+    db_statement_timeout_ms: int = Field(gt=0)
     # Validade da sessão de teste, em minutos.
     sessao_ttl_minutos: int = Field(gt=0)
     # Liga a abertura de sessão por persona de demonstração (DEV-008); desligado, só 404.
