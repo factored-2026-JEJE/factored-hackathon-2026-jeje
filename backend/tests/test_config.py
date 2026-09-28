@@ -16,7 +16,7 @@ def test_variavel_ausente_falha_nomeando_a_variavel(monkeypatch):
 
 
 def test_valor_do_ambiente_chega_ao_openapi_da_aplicacao(monkeypatch):
-    monkeypatch.setenv("API_ROOT_PATH", "/api")
+    monkeypatch.setenv("API_ROOT_PATH", "/api")  # demais variáveis vêm do compose de testes
     app = create_app(Settings())
     servidores = TestClient(app).get("/openapi.json").json()["servers"]
     assert servidores == [{"url": "/api"}]

@@ -42,9 +42,9 @@
       "descricao": "Liveness reporta versão fixa em vez da versão do pacote",
       "trocas": [
         {
-          "arquivo": "src/jeje/api.py",
-          "de": "return {\"status\": \"ok\", \"version\": __version__}",
-          "para": "return {\"status\": \"ok\", \"version\": \"0.0.0\"}"
+          "arquivo": "src/jeje/health.py",
+          "de": "return Liveness(status=\"ok\", version=__version__)",
+          "para": "return Liveness(status=\"ok\", version=\"0.0.0\")"
         }
       ],
       "testes": [
@@ -185,6 +185,66 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
+      "id": "M-READY-01",
+      "requisito": "R06",
+      "descricao": "Banco inacessível responde 200 (status HTTP não sinaliza indisponibilidade)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "    except OperationalError:\n        response.status_code = 503\n",
+          "para": "    except OperationalError:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_health.py::test_ready_com_banco_inacessivel_responde_503_rapido"
+      ]
+    },
+    {
+      "id": "M-READY-02",
+      "requisito": "R06",
+      "descricao": "Serviço se declara pronto sem dataset carregado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "    if linha is None:\n        response.status_code = 503\n        return Readiness(status=\"unavailable\", database=\"ok\", dataset=None)\n",
+          "para": "    if linha is None:\n        return Readiness(status=\"ready\", database=\"ok\", dataset=None)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_health.py::test_ready_sem_dataset_carregado_nao_esta_pronto"
+      ]
+    },
+    {
+      "id": "M-READY-03",
+      "requisito": "R06",
+      "descricao": "Versão exibida vem da coluna errada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "select(DatasetVersion.version, DatasetVersion.source, DatasetVersion.loaded_at)",
+          "para": "select(DatasetVersion.source.label(\"version\"), DatasetVersion.source, DatasetVersion.loaded_at)"
+        }
+      ],
+      "testes": [
+        "tests/test_health.py::test_ready_com_dataset_carregado_devolve_versao_e_origem"
+      ]
+    },
+    {
+      "id": "M-READY-04",
+      "requisito": "R06",
+      "descricao": "Banco sem migrations não é tratado e vira erro 500",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "    except ProgrammingError:\n        response.status_code = 503\n        return Readiness(status=\"unavailable\", database=\"not_migrated\", dataset=None)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_health.py::test_ready_com_banco_sem_migrations_nao_esta_pronto"
       ]
     }
   ]
