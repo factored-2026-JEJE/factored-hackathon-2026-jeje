@@ -112,5 +112,12 @@ services:
     volumes:
       - ./contrato:/contrato:ro
 
+  mutantes-web:
+    <<: *web-test
+    volumes:
+      - ./contrato:/contrato:ro
+      - ./mutantes:/mutantes:ro
+    command: ["python3", "/mutantes/executar.py", "/mutantes/web.json"]
+
 volumes:
   pgdata:

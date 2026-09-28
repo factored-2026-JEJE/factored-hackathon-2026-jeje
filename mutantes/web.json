@@ -1,0 +1,80 @@
+{
+  "alvo": "web",
+  "executor": "vitest",
+  "diretorio": "/app",
+  "timeout_s": 60,
+  "comando_teste": ["npx", "vitest", "run"],
+  "comando_coleta": ["npx", "vitest", "list", "--json"],
+  "mutantes": [
+    {
+      "id": "CONTROLE-web",
+      "espera": "sobrevive",
+      "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",
+      "trocas": [{"arquivo": "src/App.tsx", "de": "import { StatusDoSistema } from \"./StatusDoSistema\";", "para": "import { StatusDoSistema } from \"./StatusDoSistema\"; // controle"}],
+      "testes": ["src"]
+    },
+    {
+      "id": "M-WEB-01",
+      "requisito": "R06",
+      "descricao": "Página declara pronto sem olhar o status da API",
+      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "{status === \"ready\" ? \"Pronto para atender\" : \"Indisponível\"}", "para": "{\"Pronto para atender\"}"}],
+      "testes": ["src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"]
+    },
+    {
+      "id": "M-WEB-02",
+      "requisito": "R06",
+      "descricao": "Banco sem migrations exibido como inacessível (diagnóstico errado)",
+      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "not_migrated: \"sem migrations aplicadas\"", "para": "not_migrated: \"inacessível\""}],
+      "testes": ["src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"]
+    },
+    {
+      "id": "M-WEB-03",
+      "requisito": "R06",
+      "descricao": "Ausência de dataset exibida como se os dados estivessem chegando",
+      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": ": \"nenhum dataset carregado\"}", "para": ": \"carregando dados\"}"}],
+      "testes": ["src/StatusDoSistema.test.tsx > mostra nenhum dataset quando o banco está ok mas sem carga"]
+    },
+    {
+      "id": "M-WEB-04",
+      "requisito": "R06",
+      "descricao": "Falha de rede engolida: a página fica eternamente verificando",
+      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "        if (!controle.signal.aborted) setEstado({ tipo: \"erro\", detalhe: String(erro) });\n", "para": "        void erro;\n"}],
+      "testes": ["src/StatusDoSistema.test.tsx > mostra API inacessível quando a requisição falha na rede"]
+    },
+    {
+      "id": "M-WEB-05",
+      "requisito": "R06",
+      "descricao": "Cliente aceita status HTTP fora do contrato como se fosse readiness",
+      "trocas": [{"arquivo": "src/api/cliente.ts", "de": "  if (resposta.status !== 200 && resposta.status !== 503) {\n    throw new Error(`HTTP ${resposta.status}`);\n  }\n", "para": ""}],
+      "testes": ["src/StatusDoSistema.test.tsx > trata status HTTP fora do contrato como erro"]
+    },
+    {
+      "id": "M-WEB-06",
+      "requisito": "R06",
+      "descricao": "Versão exibida vem do campo errado",
+      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "dataset.version.slice(0, 12)", "para": "dataset.source.slice(0, 12)"}],
+      "testes": ["src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"]
+    },
+    {
+      "id": "M-WEB-07",
+      "requisito": "R06",
+      "descricao": "Estado inicial não indica que a verificação está em andamento",
+      "trocas": [{"arquivo": "src/StatusDoSistema.tsx", "de": "useState<Estado>({ tipo: \"carregando\" })", "para": "useState<Estado>({ tipo: \"erro\", detalhe: \"\" })"}],
+      "testes": ["src/StatusDoSistema.test.tsx > mostra verificando enquanto a API não responde"]
+    },
+    {
+      "id": "M-WEB-08",
+      "requisito": "R06",
+      "descricao": "Cliente consulta a rota errada (liveness no lugar da readiness)",
+      "trocas": [{"arquivo": "src/api/cliente.ts", "de": "fetch(\"/api/health/ready\"", "para": "fetch(\"/api/health\""}],
+      "testes": ["src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"]
+    },
+    {
+      "id": "M-WEB-09",
+      "requisito": "R06",
+      "descricao": "Tipos do contrato editados à mão divergem do OpenAPI versionado",
+      "trocas": [{"arquivo": "src/api/schema.d.ts", "de": "\"ok\" | \"unreachable\" | \"not_migrated\"", "para": "\"ok\" | \"unreachable\""}],
+      "testes": ["src/api/contrato.test.ts > tipos gerados coincidem com o contrato versionado"]
+    }
+  ]
+}
