@@ -8,6 +8,7 @@ fora → vale a leitura das regras, com o motivo registrado no trace do turno.
 """
 
 import json
+import time
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, replace
@@ -17,6 +18,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from jeje import eventos
 from jeje.config import Settings
 from jeje.interpretacao import Intencao, Interpretacao, interpretar
 from jeje.mensagens import Idioma
@@ -67,9 +69,20 @@ INSTRUCOES = (
 
 
 @dataclass(frozen=True)
+class Chamada:
+    """Uma chamada despachada ao modelo, tenha dado certo ou não (contabilidade, DEV-015b).
+    Tokens que o servidor não informou ficam None: custo desconhecido segue desconhecido."""
+
+    latencia_ms: Decimal
+    tokens_entrada: int | None = None
+    tokens_saida: int | None = None
+
+
+@dataclass(frozen=True)
 class Leitura:
     lida: Interpretacao
     fonte: str  # "regras", "ollama:<modelo>" ou "regras (fallback: <motivo>)"
+    chamada: Chamada | None = None  # só quando o modelo foi chamado
 
 
 def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitura:
@@ -92,10 +105,12 @@ class Ollama:
         regras = interpretar(texto, idioma_anterior, referencia)
         if entendida(regras):
             return Leitura(regras, "regras")
+        inicio, uso = time.perf_counter(), {}
         try:
-            saida = self._perguntar(texto)
+            saida = self._perguntar(texto, uso)
         except (OSError, ValueError, KeyError, ValidationError) as erro:
-            return Leitura(regras, f"regras (fallback: {type(erro).__name__})")
+            fallback = f"regras (fallback: {type(erro).__name__})"
+            return Leitura(regras, fallback, self._chamada(inicio, uso))
         lida = replace(
             regras,
             idioma=saida.idioma,
@@ -106,9 +121,13 @@ class Ollama:
             escolha=saida.escolha,
             sinais=("modelo",),
         )
-        return Leitura(lida, f"ollama:{self.modelo}")
+        return Leitura(lida, f"ollama:{self.modelo}", self._chamada(inicio, uso))
 
-    def _perguntar(self, texto: str) -> SaidaDoModelo:
+    @staticmethod
+    def _chamada(inicio: float, uso: dict) -> Chamada:
+        return Chamada(eventos.desde(inicio), uso.get("entrada"), uso.get("saida"))
+
+    def _perguntar(self, texto: str, uso: dict) -> SaidaDoModelo:
         corpo = {
             "model": self.modelo,
             "messages": [
@@ -126,8 +145,10 @@ class Ollama:
             method="POST",
         )
         with urllib.request.urlopen(pedido, timeout=self.timeout_s) as resposta:
-            conteudo = json.loads(resposta.read())["message"]["content"]
-        return SaidaDoModelo.model_validate_json(conteudo)
+            dados = json.loads(resposta.read())
+        # Contado antes de validar: saída inválida também custou a chamada.
+        uso["entrada"], uso["saida"] = dados.get("prompt_eval_count"), dados.get("eval_count")
+        return SaidaDoModelo.model_validate_json(dados["message"]["content"])
 
 
 Interpretador = Callable[[str, Idioma, date], Leitura]
