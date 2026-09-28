@@ -113,6 +113,23 @@ def texto(regra: str, idioma: Idioma, t: TransacaoVerificada | None = None, **ex
     return compor(regra, idioma, **{m: disponiveis[m] for m in marcadores(regra, idioma)})
 
 
+def _do_dono(
+    conexao: Connection, customer_id: str, conversa_id: str, colunas: str, travar: bool = False
+):
+    """Linha da conversa, só se ela for do cliente da sessão: a de outro cliente é igual a
+    inexistente (R08). `travar` segura a conversa até o fim da transação (um turno por vez)."""
+    linha = conexao.execute(
+        text(
+            f"SELECT {colunas} FROM app.conversas WHERE id = :id AND customer_id = :cliente"
+            + (" FOR UPDATE" if travar else "")
+        ),
+        {"id": conversa_id, "cliente": customer_id},
+    ).first()
+    if linha is None:
+        raise ConversaNaoEncontrada(conversa_id)
+    return linha
+
+
 def abrir(conexao: Connection, customer_id: str, idioma: Idioma) -> tuple[str, str]:
     """Nova conversa do cliente da sessão; devolve (id, saudação)."""
     conversa_id = secrets.token_urlsafe(16)
@@ -472,15 +489,7 @@ def turno(
     """Processa uma mensagem do cliente da sessão na conversa dele e grava o turno e o evento.
     O interpretador só lê a mensagem; o que fazer é sempre a política que decide."""
     inicio = time.perf_counter()
-    linha = conexao.execute(
-        text(
-            "SELECT idioma, estado, contexto, turnos FROM app.conversas"
-            " WHERE id = :id AND customer_id = :cliente FOR UPDATE"
-        ),
-        {"id": conversa_id, "cliente": customer_id},
-    ).first()
-    if linha is None:
-        raise ConversaNaoEncontrada(conversa_id)
+    linha = _do_dono(conexao, customer_id, conversa_id, "idioma, estado, contexto, turnos", True)
     hoje = conexao.execute(text("SELECT current_date")).scalar_one()
     leitura = interpretador(mensagem, linha.idioma, hoje)
     lida = leitura.lida
@@ -552,19 +561,7 @@ def turno(
 
 def historico(conexao: Connection, customer_id: str, conversa_id: str) -> tuple[dict, list[dict]]:
     """Conversa e turnos, só para o dono (para reabrir a conversa depois de recarregar a página)."""
-    conversa = (
-        conexao.execute(
-            text(
-                "SELECT id, idioma, estado FROM app.conversas"
-                " WHERE id = :id AND customer_id = :cliente"
-            ),
-            {"id": conversa_id, "cliente": customer_id},
-        )
-        .mappings()
-        .first()
-    )
-    if conversa is None:
-        raise ConversaNaoEncontrada(conversa_id)
+    conversa = _do_dono(conexao, customer_id, conversa_id, "id, idioma, estado")
     turnos = conexao.execute(
         text(
             "SELECT numero, mensagem, resposta, regra, acao, estado, criado_em FROM app.turnos"
@@ -572,4 +569,4 @@ def historico(conexao: Connection, customer_id: str, conversa_id: str) -> tuple[
         ),
         {"id": conversa_id},
     ).mappings()
-    return dict(conversa), [dict(t) for t in turnos]
+    return dict(conversa._mapping), [dict(t) for t in turnos]

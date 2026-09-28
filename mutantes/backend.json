@@ -3307,8 +3307,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            \" WHERE id = :id AND customer_id = :cliente FOR UPDATE\"\n        ),\n        {\"id\": conversa_id, \"cliente\": customer_id},\n    ).first()\n",
-          "para": "            \" WHERE id = :id AND customer_id = :cliente\"\n        ),\n        {\"id\": conversa_id, \"cliente\": customer_id},\n    ).first()\n    import time\n\n    time.sleep(0.3)\n"
+          "de": "            + (\" FOR UPDATE\" if travar else \"\")\n        ),\n        {\"id\": conversa_id, \"cliente\": customer_id},\n    ).first()\n",
+          "para": "        ),\n        {\"id\": conversa_id, \"cliente\": customer_id},\n    ).first()\n    import time\n\n    time.sleep(0.3)\n"
         }
       ],
       "testes": [
@@ -3453,27 +3453,12 @@
     {
       "id": "M-CONV-12",
       "requisito": "R08",
-      "descricao": "Turno aceito em conversa de outro cliente",
+      "descricao": "Conversa de outro cliente acessível: turno aceito e histórico lido sem filtro de dono",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            \" WHERE id = :id AND customer_id = :cliente FOR UPDATE\"",
-          "para": "            \" WHERE id = :id FOR UPDATE\""
-        }
-      ],
-      "testes": [
-        "tests/test_conversa.py::test_conversa_de_outro_cliente_e_igual_a_inexistente"
-      ]
-    },
-    {
-      "id": "M-CONV-13",
-      "requisito": "R08",
-      "descricao": "Histórico da conversa sem filtro de dono",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/conversa.py",
-          "de": "                \" WHERE id = :id AND customer_id = :cliente\"\n",
-          "para": "                \" WHERE id = :id\"\n"
+          "de": "f\"SELECT {colunas} FROM app.conversas WHERE id = :id AND customer_id = :cliente\"",
+          "para": "f\"SELECT {colunas} FROM app.conversas WHERE id = :id\""
         }
       ],
       "testes": [
