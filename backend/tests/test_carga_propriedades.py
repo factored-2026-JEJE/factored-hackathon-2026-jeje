@@ -43,7 +43,7 @@ def test_texto_arbitrario_volta_do_banco_identico(banco_migrado, textos):
         ]
         escrever_csv(raiz, "complaints/year=2025/month=03/day=10/c.csv", "complaints", registros)
         manifesto.escrever(manifestos, manifesto.gerar(raiz, ["complaints"]))
-        carregar(banco_migrado, raiz, manifestos, ["complaints"], "fixture")
+        carregar(banco_migrado, raiz, manifestos, ["complaints"], "fixture", "p1")
 
     with conexao(banco_migrado) as con:
         no_banco = dict(

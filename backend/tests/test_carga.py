@@ -66,7 +66,9 @@ def versao_no_banco(settings) -> tuple[str, str] | None:
 def test_carga_grava_registros_texto_nulos_linhagem_e_versao(banco_migrado, dataset):
     raiz, publicar = dataset
     manifestos = publicar()
-    resultado = carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture")
+    resultado = carregar(
+        banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture", "p1"
+    )
 
     assert resultado.carregou
     assert contagens(banco_migrado) == {"complaints": 3, "branches": 1}
@@ -91,18 +93,20 @@ def test_carga_grava_registros_texto_nulos_linhagem_e_versao(banco_migrado, data
 def test_mesma_versao_nao_recarrega_nem_duplica(banco_migrado, dataset):
     raiz, publicar = dataset
     manifestos = publicar()
-    carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture")
-    segunda = carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture")
+    carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture", "p1")
+    segunda = carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture", "p1")
     assert not segunda.carregou
     assert contagens(banco_migrado) == {"complaints": 3, "branches": 1}
 
 
 def test_nova_versao_substitui_a_anterior_sem_sobras(banco_migrado, dataset):
     raiz, publicar = dataset
-    carregar(banco_migrado, raiz, publicar(), ["complaints", "branches"], "fixture")
+    carregar(banco_migrado, raiz, publicar(), ["complaints", "branches"], "fixture", "p1")
     escrever_csv(raiz, RECLAMACOES_DIA_2, "complaints", [{"complaint_id": "CMP-9"}])
     manifestos = publicar()
-    resultado = carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture")
+    resultado = carregar(
+        banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture", "p1"
+    )
     assert resultado.carregou
     with conexao(banco_migrado) as con:
         ids = set(con.execute(text("select complaint_id from raw.complaints")).scalars())
@@ -112,7 +116,9 @@ def test_nova_versao_substitui_a_anterior_sem_sobras(banco_migrado, dataset):
 
 def test_falha_no_meio_da_carga_mantem_a_versao_anterior_inteira(banco_migrado, dataset):
     raiz, publicar = dataset
-    anterior = carregar(banco_migrado, raiz, publicar(), ["complaints", "branches"], "fixture")
+    anterior = carregar(
+        banco_migrado, raiz, publicar(), ["complaints", "branches"], "fixture", "p1"
+    )
     # Nova versão cujo manifesto promete mais registros do que o 2º arquivo tem.
     escrever_csv(raiz, RECLAMACOES_DIA_2, "complaints", [{"complaint_id": "CMP-9"}])
     manifestos = publicar()
@@ -122,7 +128,7 @@ def test_falha_no_meio_da_carga_mantem_a_versao_anterior_inteira(banco_migrado, 
     caminho.write_text("\n".join(linhas) + "\n")
 
     with pytest.raises(CargaInvalida, match="manifesto 7"):
-        carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture")
+        carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture", "p1")
     assert contagens(banco_migrado) == {"complaints": 3, "branches": 1}
     assert versao_no_banco(banco_migrado)[0] == anterior.versao
 
@@ -133,15 +139,15 @@ def test_arquivo_adulterado_e_recusado_antes_de_gravar(banco_migrado, dataset):
     alvo = raiz / "branches.csv"
     alvo.write_text(alvo.read_text(encoding="utf-8").replace("Bogotá", "Bogota"), encoding="utf-8")
     with pytest.raises(CargaInvalida, match=re.escape("branches.csv")):
-        carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture")
+        carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture", "p1")
     assert contagens(banco_migrado) == {"complaints": 0, "branches": 0}
     assert versao_no_banco(banco_migrado) is None
 
 
 def test_tabela_fora_da_selecao_fica_vazia_na_nova_versao(banco_migrado, dataset):
     raiz, publicar = dataset
-    carregar(banco_migrado, raiz, publicar(), ["complaints", "branches"], "fixture")
-    carregar(banco_migrado, raiz, publicar(["branches"]), ["branches"], "fixture")
+    carregar(banco_migrado, raiz, publicar(), ["complaints", "branches"], "fixture", "p1")
+    carregar(banco_migrado, raiz, publicar(["branches"]), ["branches"], "fixture", "p1")
     assert contagens(banco_migrado) == {"complaints": 0, "branches": 1}
 
 
@@ -152,5 +158,46 @@ def test_registro_com_campos_a_menos_e_recusado_com_local_exato(banco_migrado, d
     manifestos = publicar()
     esperado = re.escape(f"{RECLAMACOES_DIA_2}: registro 2 com 2 campos")
     with pytest.raises(CargaInvalida, match=esperado):
-        carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture")
+        carregar(banco_migrado, raiz, manifestos, ["complaints", "branches"], "fixture", "p1")
     assert versao_no_banco(banco_migrado) is None
+
+
+def test_mesmos_dados_com_pipeline_novo_recarregam(banco_migrado, dataset):
+    raiz, publicar = dataset
+    manifestos = publicar()
+    tabelas = ["complaints", "branches"]
+    assert carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1").carregou
+    assert carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p2").carregou
+    assert not carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p2").carregou
+    assert contagens(banco_migrado) == {"complaints": 3, "branches": 1}
+    with conexao(banco_migrado) as con:
+        assert con.execute(text("select pipeline from meta.dataset_version")).scalar_one() == "p2"
+
+
+def test_carga_refaz_curada_e_relatorio_na_mesma_transacao(banco_migrado, tmp_path):
+    raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
+    escrever_csv(raiz, "customers.csv", "customers", [{"customer_id": "CLI-A"}])
+    escrever_csv(raiz, "products.csv", "products", [
+        {"product_id": "PRD-A", "customer_id": "CLI-A", "product_type": "Cuenta Ahorro",
+         "currency": "USD", "product_status": "Active"},
+    ])  # fmt: skip
+    escrever_csv(raiz, "transactions/year=2025/month=03/day=10/t.csv", "transactions", [
+        {"transaction_id": "TRX-1", "transaction_date": "2025-03-10 10:00:00",
+         "customer_id": "CLI-A", "product_id": "PRD-A", "amount": "10.00", "currency": "USD",
+         "transaction_status": "Approved"},
+        {"transaction_id": "TRX-2", "transaction_date": "ontem", "customer_id": "CLI-A",
+         "product_id": "PRD-A", "amount": "5.00", "currency": "USD",
+         "transaction_status": "Approved"},
+    ])  # fmt: skip
+    tabelas = ["customers", "products", "transactions"]
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas))
+    resultado = carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1")
+
+    assert resultado.qualidade["transactions"].motivos == {"Q-TIPO:transaction_date": 1}
+    with conexao(banco_migrado) as con:
+        curadas = set(
+            con.execute(text("select transaction_id from curated.transactions")).scalars()
+        )
+        relatorio = dict(con.execute(text("select tabela, curado from quality.relatorio")).all())
+    assert curadas == {"TRX-1"}
+    assert relatorio == {"customers": 1, "products": 1, "transactions": 1}

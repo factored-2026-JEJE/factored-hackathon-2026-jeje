@@ -109,3 +109,18 @@ def test_cli_devolve_erro_e_mensagem_quando_arquivo_diverge(
     assert main(["jeje.dados", "preparar"]) == 1
     assert "branches.csv" in capsys.readouterr().err
     assert contagens(banco_migrado) == (0, 0, 0)
+
+
+def test_preparar_recarrega_quando_o_pipeline_gravado_e_antigo(
+    ambiente_fixture, banco_migrado, capsys
+):
+    preparar(banco_migrado, ConfigDados())
+    with conexao(banco_migrado) as con:
+        con.execute(text("update meta.dataset_version set pipeline = 'versao-antiga-do-codigo'"))
+    capsys.readouterr()
+    preparar(banco_migrado, ConfigDados())
+    assert "carregada (fixture)" in capsys.readouterr().out
+    with conexao(banco_migrado) as con:
+        assert con.execute(text("select pipeline from meta.dataset_version")).scalar_one() != (
+            "versao-antiga-do-codigo"
+        )

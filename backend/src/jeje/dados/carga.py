@@ -1,9 +1,10 @@
-"""Carga atômica do dataset na camada raw, com linhagem e versão.
+"""Carga atômica do dataset: camada raw, curadoria e versão, numa única transação.
 
-Uma única transação trunca todas as tabelas raw, copia (COPY) cada arquivo do manifesto das
-tabelas selecionadas, confere a contagem de registros de cada arquivo e grava
-`meta.dataset_version`. Qualquer falha desfaz tudo: o banco continua inteiro na versão anterior,
-nunca misturado. Se a versão do manifesto já está no banco, nada é feito.
+A transação trunca todas as tabelas raw, copia (COPY) cada arquivo do manifesto das tabelas
+selecionadas, confere a contagem de registros de cada arquivo, refaz a camada curada com a
+quarentena e o relatório de qualidade (`qualidade.curar`) e grava `meta.dataset_version` com a
+versão dos dados e a do pipeline. Qualquer falha desfaz tudo: o banco continua inteiro na versão
+anterior, nunca misturado. Se as duas versões já estão no banco, nada é feito.
 """
 
 import csv
@@ -15,7 +16,8 @@ from psycopg import Cursor, sql
 from sqlalchemy import Connection, text
 
 from jeje.config import Settings
-from jeje.dados import integridade, manifesto
+from jeje.dados import integridade, manifesto, qualidade
+from jeje.dados.qualidade import Resumo
 from jeje.dados.raw import COLUNAS, LINHAGEM, SCHEMA
 from jeje.db import create_db_engine
 
@@ -27,12 +29,15 @@ class CargaInvalida(Exception):
 @dataclass(frozen=True)
 class ResultadoCarga:
     versao: str
-    carregou: bool  # False quando esta versão já estava no banco
+    carregou: bool  # False quando dados e pipeline já estavam no banco
     registros: dict[str, int] = field(default_factory=dict)
+    qualidade: dict[str, Resumo] = field(default_factory=dict)
 
 
-def versao_carregada(conexao: Connection) -> str | None:
-    return conexao.execute(text("select version from meta.dataset_version")).scalar_one_or_none()
+def versao_carregada(conexao: Connection) -> tuple[str, str] | None:
+    """(versão dos dados, versão do pipeline) gravadas pela última carga, se houver."""
+    linha = conexao.execute(text("select version, pipeline from meta.dataset_version")).first()
+    return None if linha is None else (linha.version, linha.pipeline)
 
 
 def copiar_arquivo(cursor: Cursor, tabela: str, caminho: Path, relativo: str) -> int:
@@ -65,13 +70,14 @@ def carregar(
     diretorio_manifesto: Path,
     tabelas: list[str],
     origem: str,
+    pipeline: str,
 ) -> ResultadoCarga:
     esperado = manifesto.ler(diretorio_manifesto, tabelas)
     versao = manifesto.versao(diretorio_manifesto, tabelas)
     engine = create_db_engine(settings)
     try:
         with engine.connect() as conexao:
-            if versao_carregada(conexao) == versao:
+            if versao_carregada(conexao) == (versao, pipeline):
                 return ResultadoCarga(versao=versao, carregou=False)
 
         problemas = integridade.verificar(diretorio_raw, esperado)
@@ -96,14 +102,22 @@ def carregar(
                 registros[tabela] = sum(a.registros for a in arquivos)
                 print(f"[carga] {tabela}: {registros[tabela]} registros em "
                       f"{time.monotonic() - inicio:.1f}s", flush=True)  # fmt: skip
+            resumos = qualidade.curar(cursor, tabelas)
+            for tabela, resumo in resumos.items():
+                print(
+                    f"[qualidade] {tabela}: {resumo.curado} curados, {resumo.quarentena} em "
+                    f"quarentena, {resumo.copias_descartadas} cópias; anulações {resumo.anulacoes}",
+                    flush=True,
+                )
             conexao.execute(
                 text(
-                    "insert into meta.dataset_version (id, version, source, loaded_at) "
-                    "values (1, :versao, :origem, now()) on conflict (id) do update set "
-                    "version = excluded.version, source = excluded.source, loaded_at = now()"
+                    "insert into meta.dataset_version (id, version, source, pipeline, loaded_at) "
+                    "values (1, :versao, :origem, :pipeline, now()) on conflict (id) do update "
+                    "set version = excluded.version, source = excluded.source, "
+                    "pipeline = excluded.pipeline, loaded_at = now()"
                 ),
-                {"versao": versao, "origem": origem},
+                {"versao": versao, "origem": origem, "pipeline": pipeline},
             )
-        return ResultadoCarga(versao=versao, carregou=True, registros=registros)
+        return ResultadoCarga(versao=versao, carregou=True, registros=registros, qualidade=resumos)
     finally:
         engine.dispose()

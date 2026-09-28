@@ -14,10 +14,11 @@ from jeje.dados import manifesto
 from jeje.dados.carga import CargaInvalida, carregar, versao_carregada
 from jeje.dados.config import ConfigDados
 from jeje.dados.download import DownloadInvalido, baixar
+from jeje.dados.versao import versao_pipeline
 from jeje.db import create_db_engine
 
 
-def versao_no_banco(settings: Settings) -> str | None:
+def versao_no_banco(settings: Settings) -> tuple[str, str] | None:
     engine = create_db_engine(settings)
     try:
         with engine.connect() as conexao:
@@ -40,7 +41,8 @@ def cliente_s3(config: ConfigDados):
 def preparar(settings: Settings, config: ConfigDados) -> None:
     tabelas = config.dataset_tables
     versao = manifesto.versao(config.dataset_manifest_dir, tabelas)
-    if versao_no_banco(settings) == versao:
+    pipeline = versao_pipeline()
+    if versao_no_banco(settings) == (versao, pipeline):
         print(f"[dados] versão {versao[:12]} já carregada; nada a fazer", flush=True)
         return
     if config.dataset_source == "s3":
@@ -63,6 +65,7 @@ def preparar(settings: Settings, config: ConfigDados) -> None:
         config.dataset_manifest_dir,
         tabelas,
         config.dataset_source,
+        pipeline,
     )
     print(f"[dados] versão {carga.versao[:12]} carregada ({config.dataset_source})", flush=True)
 

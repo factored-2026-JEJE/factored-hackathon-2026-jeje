@@ -549,7 +549,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/carga.py",
-          "de": "            if versao_carregada(conexao) == versao:",
+          "de": "            if versao_carregada(conexao) == (versao, pipeline):",
           "para": "            if False:"
         }
       ],
@@ -880,7 +880,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/__main__.py",
-          "de": "    if versao_no_banco(settings) == versao:",
+          "de": "    if versao_no_banco(settings) == (versao, pipeline):",
           "para": "    if False:"
         }
       ],
@@ -1307,6 +1307,66 @@
       ],
       "testes": [
         "tests/test_qualidade.py::test_filho_de_registro_em_quarentena_tambem_vai_para_quarentena"
+      ]
+    },
+    {
+      "id": "M-CARGA-11",
+      "requisito": "R04",
+      "descricao": "Carga ignora a versão do pipeline: contrato novo não refaz a curada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "            if versao_carregada(conexao) == (versao, pipeline):",
+          "para": "            if (versao_carregada(conexao) or (None,))[0] == versao:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_mesmos_dados_com_pipeline_novo_recarregam"
+      ]
+    },
+    {
+      "id": "M-CARGA-12",
+      "requisito": "R04",
+      "descricao": "Carga não refaz a camada curada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "            resumos = qualidade.curar(cursor, tabelas)",
+          "para": "            resumos = {}"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_carga_refaz_curada_e_relatorio_na_mesma_transacao"
+      ]
+    },
+    {
+      "id": "M-VER-01",
+      "requisito": "R04",
+      "descricao": "Versão do pipeline só olha os nomes dos arquivos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/versao.py",
+          "de": "        resumo.update(arquivo.name.encode() + b\"\\0\" + arquivo.read_bytes())",
+          "para": "        resumo.update(arquivo.name.encode())"
+        }
+      ],
+      "testes": [
+        "tests/test_versao.py::test_versao_muda_com_o_conteudo_do_codigo_e_e_estavel_sem_mudanca"
+      ]
+    },
+    {
+      "id": "M-CLI-08",
+      "requisito": "R04",
+      "descricao": "Seed compara só a versão dos dados e mantém curada de código antigo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "    if versao_no_banco(settings) == (versao, pipeline):",
+          "para": "    if (versao_no_banco(settings) or (None,))[0] == versao:"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_preparar_recarrega_quando_o_pipeline_gravado_e_antigo"
       ]
     }
   ]
