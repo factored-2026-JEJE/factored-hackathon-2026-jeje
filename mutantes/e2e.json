@@ -112,6 +112,36 @@
       "testes": [
         "dados.spec.ts > stack sobe pronta com exatamente a versão de dados do manifesto versionado"
       ]
+    },
+    {
+      "id": "M-E2E-05",
+      "requisito": "R04",
+      "descricao": "Anulações de referência deixam de ser contabilizadas no relatório",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/dados/qualidade.py",
+          "de": "            anulacoes[codigo] = _contar(",
+          "para": "            anulacoes[codigo] = 0 * _contar("
+        }
+      ],
+      "testes": [
+        "qualidade.spec.ts > curadoria bate com o oráculo independente da origem carregada"
+      ]
+    },
+    {
+      "id": "M-E2E-06",
+      "requisito": "R04",
+      "descricao": "Painel mostra curados na coluna de registros",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/QualidadeDosDados.tsx",
+          "de": "              <td>{numero(t.raw)}</td>",
+          "para": "              <td>{numero(t.curado)}</td>"
+        }
+      ],
+      "testes": [
+        "qualidade.spec.ts > painel de qualidade mostra os números da API e fecha a conta de cada tabela"
+      ]
     }
   ]
 }
