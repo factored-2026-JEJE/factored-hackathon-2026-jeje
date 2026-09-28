@@ -10,3 +10,5 @@ data/raw/
 *.part
 *.egg-info/
 *.tsbuildinfo
+test-results/
+playwright-report/

@@ -137,5 +137,17 @@ services:
       - ./mutantes:/mutantes:ro
     command: ["python3", "/mutantes/executar.py", "/mutantes/web.json"]
 
+  # Jornadas no navegador real (Chromium e Firefox) contra a stack em execução.
+  e2e:
+    build:
+      context: ./e2e
+    image: jeje-e2e:local
+    profiles: ["e2e"]
+    environment:
+      BASE_URL: http://web:8080
+    depends_on:
+      web:
+        condition: service_healthy
+
 volumes:
   pgdata:
