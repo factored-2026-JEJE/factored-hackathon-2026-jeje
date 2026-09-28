@@ -1,10 +1,11 @@
-"""Smoke da fundação: a aplicação real sobe e expõe apenas as rotas declaradas."""
+"""Liveness: a aplicação real sobe e expõe apenas as rotas declaradas."""
 
 from fastapi.testclient import TestClient
 
-from jeje.api import app
+from jeje.api import create_app
+from jeje.config import Settings
 
-client = TestClient(app)
+client = TestClient(create_app(Settings(api_root_path="")))
 
 
 def test_health_responde_ok_com_versao_do_pacote():

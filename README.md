@@ -19,7 +19,7 @@ cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -e '.[dev]'
 pytest                                   # testes
-uvicorn jeje.api:app --reload            # API em http://127.0.0.1:8000/health
+API_ROOT_PATH= uvicorn jeje.main:app   # API em http://127.0.0.1:8000/health
 ```
 
 No PC de desenvolvimento do time há um ambiente pronto: `source <vault>/scripts/ambiente/ativar.sh`, depois `cd backend && pytest`.
