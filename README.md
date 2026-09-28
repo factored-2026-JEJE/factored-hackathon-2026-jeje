@@ -83,8 +83,11 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
 
 ## Limites
 
-- Política **simulada** e rotulada, não a de um banco: pré-caso automático só para transação
-  aprovada até USD 1.000 (`LIMITE_PRE_CASO_USD`); o resto vai para humano.
+- Política **simulada** e rotulada, com limites decididos pelo time (todos no `compose.yaml`): o
+  assistente registra sozinho a contestação de transação aprovada até USD 5.000; à noite
+  (20h–6h) pelo app ou pela web, até USD 1.000 por transação e 1.000 somados no dia (a base não
+  diz se o aparelho é cadastrado, então todo acesso digital noturno conta como não cadastrado);
+  transferência acima de USD 50.000 vai para análise de segurança. O resto vai para humano.
 - Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado.
 - Motivo de recusa usa o significado genérico dos códigos ISO 8583, rotulado como tal.
 - Acesso por cliente de demonstração (sem senha) e console do atendente existem só com
