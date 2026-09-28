@@ -7,6 +7,7 @@ entendem (o modelo nem pode ser chamado).
 """
 
 import json
+import logging
 import threading
 import time
 from contextlib import contextmanager
@@ -135,6 +136,16 @@ def test_modelo_lento_fora_do_ar_ou_com_erro_fica_com_as_regras():
         "regras (fallback: URLError)",
     ]  # fmt: skip
     assert lento.lida == com_erro.lida == fora.lida == interpretar(VAGA, "es", REFERENCIA)
+
+
+def test_fallback_vira_aviso_no_log_so_com_a_classe_do_erro(caplog):
+    with ollama_falso(saida()) as (url, _):
+        pass  # servidor já encerrado: porta fechada
+    with caplog.at_level(logging.WARNING, logger="jeje.modelo"):
+        ler(url, VAGA)
+    assert [(r.levelno, r.getMessage()) for r in caplog.records if r.name == "jeje.modelo"] == [
+        (logging.WARNING, "modelo nao usado; seguem as regras modelo=modelo-teste erro=URLError")
+    ]
 
 
 def test_toda_chamada_despachada_e_contada_mesmo_quando_cai_no_fallback():

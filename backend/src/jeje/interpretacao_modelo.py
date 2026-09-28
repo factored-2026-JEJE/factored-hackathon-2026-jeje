@@ -8,6 +8,7 @@ fora → vale a leitura das regras, com o motivo registrado no trace do turno.
 """
 
 import json
+import logging
 import time
 import urllib.request
 from collections.abc import Callable
@@ -22,6 +23,8 @@ from jeje import eventos
 from jeje.config import Settings
 from jeje.interpretacao import Intencao, Interpretacao, interpretar
 from jeje.mensagens import Idioma
+
+log = logging.getLogger("jeje.modelo")
 
 INTENCOES = ["fraude", "humano", "fora_de_escopo", "contestar", "consultar", "desconhecida"]
 STATUS = ["Approved", "Declined", "Pending", "Reversed"]
@@ -110,6 +113,12 @@ class Ollama:
             saida = self._perguntar(texto, uso)
         except (OSError, ValueError, KeyError, ValidationError) as erro:
             fallback = f"regras (fallback: {type(erro).__name__})"
+            # Só a classe do erro: a mensagem do cliente nunca vai para o log.
+            log.warning(
+                "modelo nao usado; seguem as regras modelo=%s erro=%s",
+                self.modelo,
+                type(erro).__name__,
+            )
             return Leitura(regras, fallback, self._chamada(inicio, uso))
         lida = replace(
             regras,

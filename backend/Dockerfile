@@ -22,7 +22,8 @@ RUN uv sync --frozen --no-dev --no-editable \
     && mkdir -p /dataset && chown app /dataset
 USER app
 EXPOSE 8000
-CMD ["uvicorn", "jeje.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Acesso registrado pela própria app (jeje.logs: id da requisição, rota-modelo e duração).
+CMD ["uvicorn", "jeje.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
 
 # Testes: inclui o grupo dev; o código também pode ser montado por cima em desenvolvimento.
 FROM base AS test

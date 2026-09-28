@@ -5,6 +5,7 @@ operador. Mostra o resumo estruturado (regra, pedido truncado, fatos verificados
 pendências), nunca a conversa inteira.
 """
 
+import logging
 from datetime import datetime
 from typing import Annotated
 
@@ -17,6 +18,7 @@ from jeje.pre_caso_api import ID_PROPOSTA
 from jeje.sessao_api import RESPOSTAS_DEMO, exige_modo_demo
 
 router = APIRouter()
+log = logging.getLogger("jeje.atendimento")
 
 
 class TransacaoResumida(BaseModel):
@@ -69,8 +71,10 @@ def assumir(
     """O atendente assume o caso: ele sai da fila aberta, com o mesmo resumo."""
     try:
         with engine.begin() as conexao:
-            return Encaminhamento(**handoff.assumir(conexao, handoff_id))
+            assumido = Encaminhamento(**handoff.assumir(conexao, handoff_id))
     except handoff.NaoEncontrado:
         raise HTTPException(status_code=404, detail="Encaminhamento não encontrado") from None
     except handoff.JaAssumido:
         raise HTTPException(status_code=409, detail="Encaminhamento já assumido") from None
+    log.info("encaminhamento assumido id=%s regra=%s", assumido.id, assumido.regra)
+    return assumido
