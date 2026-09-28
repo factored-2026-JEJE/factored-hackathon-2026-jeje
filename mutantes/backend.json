@@ -3,73 +3,189 @@
   "executor": "pytest",
   "diretorio": "/app",
   "timeout_s": 60,
-  "ambiente": {"PYTHONPATH": "{raiz}/src"},
-  "comando_teste": ["pytest", "-q", "-x", "-p", "no:cacheprovider"],
-  "comando_coleta": ["pytest", "--collect-only", "-q", "-p", "no:cacheprovider"],
+  "ambiente": {
+    "PYTHONPATH": "{raiz}/src"
+  },
+  "comando_teste": [
+    "pytest",
+    "-q",
+    "-x",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "comando_coleta": [
+    "pytest",
+    "--collect-only",
+    "-q",
+    "-p",
+    "no:cacheprovider"
+  ],
   "mutantes": [
     {
       "id": "CONTROLE-backend",
       "espera": "sobrevive",
       "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",
-      "trocas": [{"arquivo": "src/jeje/__init__.py", "de": "\"\"\"Backend do produto JEJE.\"\"\"", "para": "\"\"\"Backend do produto JEJE (controle).\"\"\""}],
-      "testes": ["tests"]
+      "trocas": [
+        {
+          "arquivo": "src/jeje/__init__.py",
+          "de": "\"\"\"Backend do produto JEJE.\"\"\"",
+          "para": "\"\"\"Backend do produto JEJE (controle).\"\"\""
+        }
+      ],
+      "testes": [
+        "tests"
+      ]
     },
     {
       "id": "M-HEALTH-01",
       "requisito": "R06",
       "descricao": "Liveness reporta versão fixa em vez da versão do pacote",
-      "trocas": [{"arquivo": "src/jeje/api.py", "de": "return {\"status\": \"ok\", \"version\": __version__}", "para": "return {\"status\": \"ok\", \"version\": \"0.0.0\"}"}],
-      "testes": ["tests/test_health.py::test_health_responde_ok_com_versao_do_pacote"]
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "return {\"status\": \"ok\", \"version\": __version__}",
+          "para": "return {\"status\": \"ok\", \"version\": \"0.0.0\"}"
+        }
+      ],
+      "testes": [
+        "tests/test_health.py::test_health_responde_ok_com_versao_do_pacote"
+      ]
     },
     {
       "id": "M-HEALTH-02",
       "requisito": "R06",
       "descricao": "Rota coringa responde 200 para qualquer caminho e mascara erros de rota",
-      "trocas": [{"arquivo": "src/jeje/api.py", "de": "    return app\n", "para": "    @app.get(\"/{caminho:path}\")\n    def coringa(caminho: str) -> dict[str, str]:\n        return {\"status\": \"ok\"}\n\n    return app\n"}],
-      "testes": ["tests/test_health.py::test_rota_inexistente_retorna_404"]
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "    return app\n",
+          "para": "    @app.get(\"/{caminho:path}\")\n    def coringa(caminho: str) -> dict[str, str]:\n        return {\"status\": \"ok\"}\n\n    return app\n"
+        }
+      ],
+      "testes": [
+        "tests/test_health.py::test_rota_inexistente_retorna_404"
+      ]
     },
     {
       "id": "M-CFG-01",
       "requisito": "ENG-003",
       "descricao": "Configuração ganha default silencioso e deixa de falhar sem a variável",
-      "trocas": [{"arquivo": "src/jeje/config.py", "de": "    api_root_path: str\n", "para": "    api_root_path: str = \"\"\n"}],
-      "testes": ["tests/test_config.py::test_variavel_ausente_falha_nomeando_a_variavel"]
+      "trocas": [
+        {
+          "arquivo": "src/jeje/config.py",
+          "de": "    api_root_path: str\n",
+          "para": "    api_root_path: str = \"\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_config.py::test_variavel_ausente_falha_nomeando_a_variavel"
+      ]
     },
     {
       "id": "M-CFG-02",
       "requisito": "ENG-003",
       "descricao": "Aplicação ignora o prefixo configurado",
-      "trocas": [{"arquivo": "src/jeje/api.py", "de": "root_path=settings.api_root_path", "para": "root_path=\"\""}],
-      "testes": ["tests/test_config.py::test_valor_do_ambiente_chega_ao_openapi_da_aplicacao"]
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "root_path=settings.api_root_path",
+          "para": "root_path=\"\""
+        }
+      ],
+      "testes": [
+        "tests/test_config.py::test_valor_do_ambiente_chega_ao_openapi_da_aplicacao"
+      ]
     },
     {
       "id": "M-DB-01",
       "requisito": "ENG-003",
       "descricao": "Engine usa URL fixa no código em vez da configuração",
-      "trocas": [{"arquivo": "src/jeje/db.py", "de": "        settings.database_url,\n", "para": "        \"postgresql+psycopg://jeje:jeje@db:5432/jeje\",\n"}],
-      "testes": ["tests/test_db.py::test_engine_conecta_no_banco_de_teste_postgres_16"]
+      "trocas": [
+        {
+          "arquivo": "src/jeje/db.py",
+          "de": "        settings.database_url,\n",
+          "para": "        \"postgresql+psycopg://jeje:jeje@db:5432/jeje\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_db.py::test_engine_conecta_no_banco_de_teste_postgres_16"
+      ]
     },
     {
       "id": "M-DB-02",
       "requisito": "R06",
       "descricao": "Conexão sem timeout: banco mudo prende o processo por minutos",
       "timeout_s": 30,
-      "trocas": [{"arquivo": "src/jeje/db.py", "de": "        connect_args={\"connect_timeout\": settings.db_connect_timeout_s},\n", "para": ""}],
-      "testes": ["tests/test_db.py::test_banco_mudo_falha_dentro_do_timeout_configurado"]
+      "trocas": [
+        {
+          "arquivo": "src/jeje/db.py",
+          "de": "        connect_args={\"connect_timeout\": settings.db_connect_timeout_s},\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_db.py::test_banco_mudo_falha_dentro_do_timeout_configurado"
+      ]
     },
     {
       "id": "M-MIG-01",
       "requisito": "R04",
       "descricao": "Downgrade esquece de remover o schema meta (migration não reversível)",
-      "trocas": [{"arquivo": "migrations/versions/0001_meta_dataset_version.py", "de": "    op.execute(\"DROP SCHEMA meta\")\n", "para": ""}],
-      "testes": ["tests/test_migrations.py::test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema"]
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0001_meta_dataset_version.py",
+          "de": "    op.execute(\"DROP SCHEMA meta\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema"
+      ]
     },
     {
       "id": "M-MIG-02",
       "requisito": "R04",
       "descricao": "Tabela de versão sem a restrição de linha única permite versões concorrentes",
-      "trocas": [{"arquivo": "migrations/versions/0001_meta_dataset_version.py", "de": "        sa.CheckConstraint(\"id = 1\", name=\"ck_dataset_version_linha_unica\"),\n", "para": ""}],
-      "testes": ["tests/test_migrations.py::test_dataset_version_aceita_uma_unica_linha"]
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0001_meta_dataset_version.py",
+          "de": "        sa.CheckConstraint(\"id = 1\", name=\"ck_dataset_version_linha_unica\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_dataset_version_aceita_uma_unica_linha"
+      ]
+    },
+    {
+      "id": "M-MIG-03",
+      "requisito": "R04",
+      "descricao": "Modelo ganha coluna sem migration correspondente (drift silencioso)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/models.py",
+          "de": "    source: Mapped[str] = mapped_column(Text)\n",
+          "para": "    source: Mapped[str] = mapped_column(Text)\n    observacao: Mapped[str] = mapped_column(Text)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
+      "id": "M-MIG-04",
+      "requisito": "R04",
+      "descricao": "Migration cria coluna com tipo diferente do modelo",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0001_meta_dataset_version.py",
+          "de": "        sa.Column(\"source\", sa.Text(), nullable=False),\n",
+          "para": "        sa.Column(\"source\", sa.String(length=10), nullable=False),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
     }
   ]
 }
