@@ -5,17 +5,21 @@ TESTE := docker compose -p jeje-test --profile test
 # Roda um serviço de teste e sempre derruba o projeto de testes (banco efêmero incluso).
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
-.PHONY: up down reset logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
+.PHONY: up up-fixture down reset logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	contrato check gate
 
-up: ## Sobe a stack completa e espera ficar saudável: http://localhost:8080
+up: ## Sobe a stack completa (dados reais do S3; precisa do .env): http://localhost:8080
 	docker compose up -d --build --wait
+
+up-fixture: ## Sobe a stack com a fixture sintética (sem .env, sem download)
+	docker compose -f compose.yaml -f compose.ci.yaml up -d --build --wait
 
 down: ## Para a stack (mantém o banco)
 	docker compose down
 
-reset: ## Apaga o banco local para recarregar tudo do zero
-	docker compose down -v
+reset: ## Apaga o banco local (mantém os CSV baixados) para recarregar do zero
+	docker compose down
+	docker volume rm -f jeje_pgdata
 
 logs:
 	docker compose logs -f

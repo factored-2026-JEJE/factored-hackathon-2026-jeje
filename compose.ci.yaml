@@ -1,0 +1,16 @@
+# Override versionado para CI, stacks de mutantes e máquinas sem as chaves do S3:
+# o seed carrega a fixture sintética de data/fixture (nada é baixado).
+#   docker compose -f compose.yaml -f compose.ci.yaml up -d --build --wait
+services:
+  seed:
+    environment:
+      DATASET_SOURCE: fixture
+      DATASET_RAW_DIR: /fixture/raw
+      DATASET_MANIFEST_DIR: /fixture/manifesto
+    volumes: !override
+      - ./data/fixture:/fixture:ro
+  e2e:
+    environment:
+      DATASET_MANIFEST_DIR: /fixture/manifesto
+    volumes: !override
+      - ./data/fixture:/fixture:ro
