@@ -2583,6 +2583,156 @@
       "testes": [
         "tests/test_pre_caso.py::test_avaliacao_reconhece_pre_caso_ja_aberto"
       ]
+    },
+    {
+      "id": "M-MSG-01",
+      "requisito": "R07",
+      "descricao": "Cláusula sem a versão em português",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "        \"pt\": \"A transação {transacao} está {estado}. Informo o que consta hoje no registro.\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_clausula_existe_nas_duas_linguas_com_os_mesmos_marcadores"
+      ]
+    },
+    {
+      "id": "M-MSG-02",
+      "requisito": "R02",
+      "descricao": "Cláusula promete prazo de devolução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "        \"es\": \"Registré la solicitud con el protocolo {protocolo}. Es un registro para revisión, \"\n        \"no un reembolso.\",",
+          "para": "        \"es\": \"Registré la solicitud con el protocolo {protocolo}. El dinero te lo devolveremos \"\n        \"en hasta 5 días.\","
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_nenhuma_clausula_promete_estorno_prazo_ou_resultado"
+      ]
+    },
+    {
+      "id": "M-MSG-03",
+      "requisito": "R07",
+      "descricao": "Versões ES/PT com marcadores diferentes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "        \"pt\": \"Já existe o pedido {protocolo} para a transação {transacao}.\",",
+          "para": "        \"pt\": \"Já existe o pedido {protocolo}.\","
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_clausula_existe_nas_duas_linguas_com_os_mesmos_marcadores"
+      ]
+    },
+    {
+      "id": "M-MSG-04",
+      "requisito": "R02",
+      "descricao": "Valor com separadores americanos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    return f\"{moeda} {inteiro.replace(',', '.')},{centavos}\"",
+          "para": "    return f\"{moeda} {inteiro}.{centavos}\""
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_valor_sempre_com_centavos_e_separadores_fixos"
+      ]
+    },
+    {
+      "id": "M-MSG-05",
+      "requisito": "R07",
+      "descricao": "Descrição em português com preposição espanhola",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "PREPOSICAO: dict[Idioma, str] = {\"es\": \"en\", \"pt\": \"em\"}",
+          "para": "PREPOSICAO: dict[Idioma, str] = {\"es\": \"en\", \"pt\": \"en\"}"
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_descricao_da_transacao_na_lingua_da_resposta"
+      ]
+    },
+    {
+      "id": "M-MSG-06",
+      "requisito": "R02",
+      "descricao": "Código catalogado pela política sem explicação no catálogo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    \"54\": {\"es\": \"tarjeta vencida\", \"pt\": \"cartão vencido\"},\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_codigos_explicados_sao_exatamente_os_catalogados_pela_politica"
+      ]
+    },
+    {
+      "id": "M-MSG-07",
+      "requisito": "R02",
+      "descricao": "Composição aceita fatos a mais ou a menos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    if set(fatos) != esperados:",
+          "para": "    if not esperados <= set(fatos):"
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_compor_recusa_marcador_faltando_ou_sobrando"
+      ]
+    },
+    {
+      "id": "M-MSG-08",
+      "requisito": "R07",
+      "descricao": "Regra da matriz sem cláusula (fora de escopo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    \"POL-ESC-01\": {",
+          "para": "    \"POL-ESC-99\": {"
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_toda_regra_da_matriz_tem_clausula"
+      ]
+    },
+    {
+      "id": "M-MSG-09",
+      "requisito": "R02",
+      "descricao": "Valor arredondado para inteiro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    inteiro, _, centavos = f\"{quantia:,.2f}\".partition(\".\")",
+          "para": "    inteiro, _, centavos = f\"{quantia:,.0f}.00\".partition(\".\")"
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_valor_sempre_com_centavos_e_separadores_fixos"
+      ]
+    },
+    {
+      "id": "M-MSG-10",
+      "requisito": "R02",
+      "descricao": "Texto da recusa com código composto na língua errada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "        \"pt\": \"A transação {transacao} foi recusada. Motivo informado no código {codigo}: \"",
+          "para": "        \"pt\": \"La transacción {transacao} fue rechazada. Motivo informado no código {codigo}: \""
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_compor_preenche_so_com_os_fatos_pedidos"
+      ]
     }
   ]
 }
