@@ -5,6 +5,7 @@ const ROTULO_ESPERADO = {
   ok: "conectado",
   unreachable: "inacessível",
   not_migrated: "sem migrations aplicadas",
+  reloading: "recarregando os dados",
 } as const;
 
 test("página de status mostra exatamente o estado que a API reporta", async ({ page, request }) => {
