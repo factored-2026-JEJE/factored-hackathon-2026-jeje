@@ -2733,6 +2733,81 @@
       "testes": [
         "tests/test_mensagens.py::test_compor_preenche_so_com_os_fatos_pedidos"
       ]
+    },
+    {
+      "id": "M-HO-01",
+      "requisito": "R08",
+      "descricao": "Pedido do cliente guardado inteiro (sem minimização)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    pedido = e.pedido if len(e.pedido) <= LIMITE_PEDIDO else e.pedido[: LIMITE_PEDIDO - 1] + \"…\"",
+          "para": "    pedido = e.pedido"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_pedido_longo_e_truncado_para_minimizar_dados"
+      ]
+    },
+    {
+      "id": "M-HO-02",
+      "requisito": "R03",
+      "descricao": "Fila atende os mais novos primeiro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "\" ORDER BY criado_em, id LIMIT :limite\"",
+          "para": "\" ORDER BY criado_em DESC, id DESC LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_fila_atende_os_mais_antigos_primeiro"
+      ]
+    },
+    {
+      "id": "M-HO-03",
+      "requisito": "R03",
+      "descricao": "Encaminhamento sem os fatos da transação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "            \"transacao\": _transacao_json(e.transacao),",
+          "para": "            \"transacao\": None,"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_encaminhamento_leva_motivo_fatos_acoes_e_pendencias"
+      ]
+    },
+    {
+      "id": "M-HO-04",
+      "requisito": "R03",
+      "descricao": "Ações tentadas não chegam ao atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "            \"acoes\": json.dumps([asdict(a) for a in e.acoes]),",
+          "para": "            \"acoes\": \"[]\","
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_encaminhamento_leva_motivo_fatos_acoes_e_pendencias"
+      ]
+    },
+    {
+      "id": "M-HO-05",
+      "requisito": "R03",
+      "descricao": "Fila ignora o limite pedido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "\" ORDER BY criado_em, id LIMIT :limite\"",
+          "para": "\" ORDER BY criado_em, id LIMIT 100 + 0 * :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_fila_atende_os_mais_antigos_primeiro"
+      ]
     }
   ]
 }

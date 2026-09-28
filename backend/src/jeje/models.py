@@ -103,3 +103,21 @@ class PreCaso(Base):
     proposta_id: Mapped[str] = mapped_column(Text)
     estado: Mapped[str] = mapped_column(Text, server_default="recebido")
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Handoff(Base):
+    """Encaminhamento para humano (DEV-016): o bastante para seguir sem ler a conversa inteira."""
+
+    __tablename__ = "handoffs"
+    __table_args__ = ({"schema": "app"},)
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text, index=True)
+    regra: Mapped[str] = mapped_column(Text)
+    idioma: Mapped[str] = mapped_column(Text)
+    pedido: Mapped[str] = mapped_column(Text)
+    transacao: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    acoes: Mapped[list] = mapped_column(JSONB)
+    pendencias: Mapped[list] = mapped_column(JSONB)
+    estado: Mapped[str] = mapped_column(Text, server_default="aberto")
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
