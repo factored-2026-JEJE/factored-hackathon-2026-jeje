@@ -3546,6 +3546,41 @@
       ]
     },
     {
+      "id": "M-CONV-23",
+      "requisito": "R03",
+      "descricao": "Mensagem não entendida não conta como esclarecimento (ACH-029)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            \"esclarecimentos\": pedidos_de_novo + 1,",
+          "para": "            \"esclarecimentos\": pedidos_de_novo,"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_mensagens_nao_entendidas_seguidas_encaminham_para_humano"
+      ]
+    },
+    {
+      "id": "M-CONV-24",
+      "requisito": "R03",
+      "descricao": "Contexto do turno anterior carregado adiante: a contagem de não entendidos sobrevive a um pedido entendido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            self.contexto = {\"pedido\": self.mensagem[:280], \"status\": self.lida.status}",
+          "para": "            self.contexto = {**self.contexto, \"pedido\": self.mensagem[:280], \"status\": self.lida.status}"
+        },
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        contexto = {\"foco\": t.transaction_id}",
+          "para": "        contexto = {**self.contexto, \"foco\": t.transaction_id}"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pedido_entendido_no_meio_zera_a_contagem"
+      ]
+    },
+    {
       "id": "M-EVT-01",
       "requisito": "R09",
       "descricao": "Latência do turno não medida (≈ 0)",
@@ -4005,6 +4040,36 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "\"robaron\", \"robo de\", \"un robo\",",
           "para": "\"robaron\", \"robo\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_intencao_por_lingua"
+      ]
+    },
+    {
+      "id": "M-ITP-18",
+      "requisito": "R03",
+      "descricao": "\"Ayuda de una persona\" não é pedido de humano (ACH-029)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"falar com uma pessoa\", \"una persona\", \"uma pessoa\",",
+          "para": "\"falar com uma pessoa\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_intencao_por_lingua"
+      ]
+    },
+    {
+      "id": "M-ITP-19",
+      "requisito": "R03",
+      "descricao": "\"Alguien usó mi tarjeta\" vira pedido de humano em vez de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"usaron mi tarjeta\", \"usaram meu cartao\", \"alguien uso mi tarjeta\",\n                \"alguem usou meu cartao\",\n",
+          "para": ""
         }
       ],
       "testes": [

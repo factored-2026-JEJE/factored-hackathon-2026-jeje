@@ -304,6 +304,36 @@ def test_contestacao_noturna_pelo_app_acima_do_limite_vai_para_humano(cenario):
     assert pre_casos(cenario) == [] and contar(cenario, "propostas_pre_caso") == 0
 
 
+def test_mensagens_nao_entendidas_seguidas_encaminham_para_humano(cenario):
+    """ACH-029: 'no entendí' também é esclarecimento; o terceiro seguido vai para humano."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        respostas = [dizer(http, auth, conversa, m) for m in ("asdf", "zzzz", "???")]
+    assert [r["regra"] for r in respostas] == ["AJUDA", "AJUDA", "POL-HUM-03"]
+    assert (respostas[2]["acao"], respostas[2]["estado"]) == ("humano", "com_humano")
+    [registro] = handoffs(cenario)
+    assert (registro["regra"], registro["pedido"]) == ("POL-HUM-03", "asdf")
+    assert registro["acoes"] == [
+        {"acao": "esclarecer", "resultado": "2 mensagens seguidas não entendidas"}
+    ]
+    assert registro["pendencias"] == [
+        "Atender o cliente no pedido abaixo (esclarecimentos sem sucesso)"
+    ]
+
+
+def test_pedido_entendido_no_meio_zera_a_contagem(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "asdf")
+        consulta = dizer(http, auth, conversa, "¿Por qué rechazaron mi compra en Almacenes Éxito?")
+        depois = [dizer(http, auth, conversa, m) for m in ("zzzz", "???")]
+    assert consulta["regra"] == "POL-CON-03"
+    assert [r["regra"] for r in depois] == ["AJUDA", "AJUDA"]
+    assert handoffs(cenario) == []
+
+
 def test_contestacao_de_recusada_explica_e_encaminha_sem_pre_caso(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")

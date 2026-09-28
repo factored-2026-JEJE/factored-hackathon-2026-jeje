@@ -188,8 +188,23 @@ class _Turno:
             )
         if self._tem_pista():
             return self._pedido("consultar")
-        foco = self.contexto.get("foco")
-        return Saida("AJUDA", "esclarecer", (texto("AJUDA", self.idioma),), "livre", _so_foco(foco))
+        return self._nao_entendido()
+
+    def _nao_entendido(self) -> Saida:
+        """Mensagem não entendida também é esclarecimento (POL-HUM-03): pede de novo até o limite
+        e depois encaminha, com a primeira mensagem da sequência no resumo. Pedido entendido zera
+        a contagem (o contexto é trocado)."""
+        pedidos_de_novo = self.contexto.get("esclarecimentos", 0)
+        decisao = politica.decidir_esclarecimento(pedidos_de_novo)
+        if decisao.acao == "humano":
+            self._anotar("esclarecer", f"{pedidos_de_novo} mensagens seguidas não entendidas")
+            return self._encaminhar(decisao, self._em_foco())
+        contexto = {
+            **_so_foco(self.contexto.get("foco")),
+            "pedido": self.contexto.get("pedido", self.mensagem[:280]),
+            "esclarecimentos": pedidos_de_novo + 1,
+        }
+        return Saida("AJUDA", "esclarecer", (texto("AJUDA", self.idioma),), "livre", contexto)
 
     # ---- resolução da transação --------------------------------------------------------------
 
