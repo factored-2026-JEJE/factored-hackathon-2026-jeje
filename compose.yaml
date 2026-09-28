@@ -2,6 +2,10 @@
 # Segredos (chaves do S3) ficam só no .env, fora do Git. Suba tudo com: docker compose up --build
 name: jeje
 
+# Tabelas do dataset carregadas na camada raw (usada pelo seed e pelo oráculo do e2e).
+# digital_events (3,8 GB, 15,6 mi registros) fica fora por padrão: acrescente aqui se precisar.
+x-dataset-tables: &dataset-tables branches,customers,products,service_agents,marketing_campaigns,daily_exchange_rates,transactions,call_center_interactions,call_transcripts,satisfaction_surveys,complaints,campaign_sends
+
 # Configuração comum aos processos da aplicação (API, migrações, carga e testes).
 x-app-env: &app-env
   API_ROOT_PATH: /api
@@ -70,12 +74,36 @@ services:
       db:
         condition: service_healthy
 
+  # Baixa do S3 só o que falta (conferido pelo manifesto versionado) e carrega a camada raw numa
+  # transação. Se a versão do manifesto já está no banco, termina na hora.
+  seed:
+    image: jeje-api:local
+    command: ["python", "-m", "jeje.dados", "preparar"]
+    environment:
+      <<: *app-env
+      DATASET_RAW_DIR: /dataset/raw
+      DATASET_MANIFEST_DIR: /manifesto
+      DATASET_TABLES: *dataset-tables
+      DATASET_SOURCE: s3
+      DATASET_S3_ENDPOINT: ""
+      DATASET_DOWNLOAD_WORKERS: "16"
+      AWS_DEFAULT_REGION: us-east-2
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - dataset:/dataset
+      - ./data/manifesto:/manifesto:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   api:
     image: jeje-api:local
     environment:
       <<: *app-env
     depends_on:
-      migrate:
+      seed:
         condition: service_completed_successfully
     ports:
       - "127.0.0.1:8000:8000"
@@ -173,6 +201,11 @@ services:
     profiles: ["e2e"]
     environment:
       BASE_URL: http://web:8080
+      # Oráculo independente da versão dos dados: sha256sum dos manifestos montados.
+      DATASET_TABLES: *dataset-tables
+      DATASET_MANIFEST_DIR: /manifesto
+    volumes:
+      - ./data/manifesto:/manifesto:ro
     depends_on:
       web:
         condition: service_healthy
@@ -185,10 +218,16 @@ services:
     image: jeje-mutantes-e2e:local
     profiles: ["mutantes-e2e"]
     working_dir: /repo
+    environment:
+      # Cópias dos mutantes num caminho idêntico no host e no container: os bind mounts das
+      # stacks (ex.: ./data/fixture) são resolvidos pelo daemon Docker do host.
+      TMPDIR: /tmp/jeje-mutantes
     volumes:
       - .:/repo:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/jeje-mutantes:/tmp/jeje-mutantes
     command: ["python3", "/repo/mutantes/executar.py", "/repo/mutantes/e2e.json"]
 
 volumes:
   pgdata:
+  dataset:
