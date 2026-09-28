@@ -65,6 +65,5 @@ segredos: ## Nenhuma chave nem valor do .env no histórico Git (gitleaks + busca
 
 check: segredos lint test mutantes ## Tudo que não precisa da stack no ar
 
+# `e2e` sobe a stack com --wait: só roda com todos os serviços saudáveis (host precisa só de Docker).
 gate: check e2e mutantes-e2e ## Portão de uma meta: checks, jornadas e mutantes E2E
-	@curl -sf http://localhost:8080/api/health/ready >/dev/null && echo "readiness: pronto" \
-		|| echo "readiness: indisponível (ver http://localhost:8080)"
