@@ -2896,6 +2896,36 @@
       ]
     },
     {
+      "id": "M-FILA-01",
+      "requisito": "R08",
+      "descricao": "Fila do atendimento aberta sem o modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "\"/atendimento/fila\", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO",
+          "para": "\"/atendimento/fila\", responses=RESPOSTAS_DEMO"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_fila_nao_existe_fora_do_modo_demo"
+      ]
+    },
+    {
+      "id": "M-FILA-02",
+      "requisito": "R07",
+      "descricao": "Atendente recebe o encaminhamento sem as ações tentadas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "return [Encaminhamento(**e) for e in handoff.fila(conexao, limite)]",
+          "para": "return [Encaminhamento(**{**e, \"acoes\": []}) for e in handoff.fila(conexao, limite)]"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_fila_mostra_os_encaminhamentos_com_o_resumo_na_ordem"
+      ]
+    },
+    {
       "id": "M-CONV-01",
       "requisito": "R03",
       "descricao": "Confirmação por palavra solta em qualquer frase (\"¿y si...?\")",

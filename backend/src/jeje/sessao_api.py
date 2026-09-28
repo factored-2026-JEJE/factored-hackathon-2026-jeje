@@ -49,7 +49,7 @@ def _settings(request: Request) -> Settings:
     return request.app.state.settings
 
 
-def _exige_modo_demo(request: Request) -> None:
+def exige_modo_demo(request: Request) -> None:
     if not _settings(request).modo_demo:
         raise HTTPException(status_code=404, detail="Not Found")
 
@@ -73,7 +73,7 @@ def sessao_da_requisicao(
 SessaoDep = Annotated[sessao.SessaoAtiva, Depends(sessao_da_requisicao)]
 
 
-@router.get("/personas", dependencies=[Depends(_exige_modo_demo)], responses=RESPOSTAS_DEMO)
+@router.get("/personas", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)
 def listar_personas(engine: EngineDep) -> list[Persona]:
     """Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado)."""
     with engine.connect() as conexao:
@@ -86,7 +86,7 @@ def listar_personas(engine: EngineDep) -> list[Persona]:
 @router.post(
     "/sessoes",
     status_code=201,
-    dependencies=[Depends(_exige_modo_demo)],
+    dependencies=[Depends(exige_modo_demo)],
     responses={**RESPOSTAS_DEMO, **CORPO_ILEGIVEL},
 )
 def abrir_sessao(pedido: PedidoDeSessao, request: Request, engine: EngineDep) -> SessaoAberta:

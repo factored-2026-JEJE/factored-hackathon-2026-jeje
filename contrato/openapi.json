@@ -751,10 +751,78 @@
           }
         }
       }
+    },
+    "/atendimento/fila": {
+      "get": {
+        "summary": "Fila",
+        "description": "Encaminhamentos abertos, mais antigos primeiro (ordem de atendimento).",
+        "operationId": "fila_atendimento_fila_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Encaminhamento"
+                  },
+                  "title": "Response Fila Atendimento Fila Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou persona não provisionada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AcaoTentada": {
+        "properties": {
+          "acao": {
+            "type": "string",
+            "title": "Acao"
+          },
+          "resultado": {
+            "type": "string",
+            "title": "Resultado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "acao",
+          "resultado"
+        ],
+        "title": "AcaoTentada"
+      },
       "AvaliacaoDeContestacao": {
         "properties": {
           "decisao": {
@@ -863,6 +931,77 @@
           "detalhe"
         ],
         "title": "DecisaoDaPolitica"
+      },
+      "Encaminhamento": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "regra": {
+            "type": "string",
+            "title": "Regra"
+          },
+          "idioma": {
+            "type": "string",
+            "title": "Idioma"
+          },
+          "pedido": {
+            "type": "string",
+            "title": "Pedido"
+          },
+          "transacao": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransacaoResumida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "acoes": {
+            "items": {
+              "$ref": "#/components/schemas/AcaoTentada"
+            },
+            "type": "array",
+            "title": "Acoes"
+          },
+          "pendencias": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pendencias"
+          },
+          "estado": {
+            "type": "string",
+            "title": "Estado"
+          },
+          "criado_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "customer_id",
+          "regra",
+          "idioma",
+          "pedido",
+          "transacao",
+          "acoes",
+          "pendencias",
+          "estado",
+          "criado_em"
+        ],
+        "title": "Encaminhamento"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1627,6 +1766,52 @@
           "channel"
         ],
         "title": "Transacao"
+      },
+      "TransacaoResumida": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "data": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Data"
+          },
+          "valor": {
+            "type": "string",
+            "title": "Valor"
+          },
+          "moeda": {
+            "type": "string",
+            "title": "Moeda"
+          },
+          "comercio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comercio"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "data",
+          "valor",
+          "moeda",
+          "comercio",
+          "status"
+        ],
+        "title": "TransacaoResumida"
       },
       "TurnoRegistrado": {
         "properties": {
