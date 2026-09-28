@@ -15,6 +15,9 @@ from sqlalchemy import Connection, Engine, event
 
 # Chave da trava consultiva da recarga: fixa e só desta aplicação ("JEJE" em ASCII).
 TRAVA = int.from_bytes(b"JEJE", "big")
+# Quanto a carga espera por qualquer trava (as transações da API em curso terminam em
+# milissegundos; esperar mais que isso é uma sessão presa) antes de desistir sem alterar nada.
+ESPERA_DA_CARGA_S = 60
 
 log = logging.getLogger("jeje.recarga")
 
@@ -33,6 +36,13 @@ def proteger(engine: Engine) -> None:
         ).scalar_one()
         if not livre:
             raise Recarregando
+
+
+def exclusiva(conexao: Connection) -> None:
+    """Primeiro comando da transação da carga: espera as transações da API em curso terminarem e
+    impede que outras comecem até o commit. Nenhuma trava da carga espera mais que o limite."""
+    conexao.exec_driver_sql(f"SET LOCAL lock_timeout = '{ESPERA_DA_CARGA_S}s'")
+    conexao.exec_driver_sql(f"SELECT pg_advisory_xact_lock({TRAVA})")
 
 
 def em_recarga(request: Request, erro: Exception) -> JSONResponse:

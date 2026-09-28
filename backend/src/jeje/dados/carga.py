@@ -14,7 +14,9 @@ from pathlib import Path
 
 from psycopg import Cursor, sql
 from sqlalchemy import Connection, text
+from sqlalchemy.exc import OperationalError
 
+from jeje import recarga
 from jeje.config import Settings
 from jeje.dados import integridade, manifesto, qualidade
 from jeje.dados.qualidade import Resumo
@@ -86,6 +88,12 @@ def carregar(
 
         registros: dict[str, int] = {}
         with engine.begin() as conexao:
+            try:
+                recarga.exclusiva(conexao)
+            except OperationalError as erro:
+                raise CargaInvalida(
+                    f"dados em uso há mais de {recarga.ESPERA_DA_CARGA_S} s; nada foi alterado"
+                ) from erro
             cursor = conexao.connection.driver_connection.cursor()
             todas = sql.SQL(", ").join(sql.Identifier(SCHEMA, tabela) for tabela in COLUNAS)
             cursor.execute(sql.SQL("TRUNCATE {}").format(todas))

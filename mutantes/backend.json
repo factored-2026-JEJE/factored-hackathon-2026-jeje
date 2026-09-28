@@ -4750,6 +4750,51 @@
       "testes": [
         "tests/test_recarga.py::test_durante_a_recarga_a_api_responde_503_na_hora"
       ]
+    },
+    {
+      "id": "M-REC-04",
+      "requisito": "R08",
+      "descricao": "Carga troca os dados sem esperar as transações da API em curso (turno com fatos de duas versões)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "                recarga.exclusiva(conexao)\n",
+          "para": "                pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_carga_espera_a_transacao_da_api_em_curso_e_so_depois_troca_os_dados"
+      ]
+    },
+    {
+      "id": "M-REC-05",
+      "requisito": "R06",
+      "descricao": "Carga que não consegue a trava sai com erro cru do banco em vez da mensagem de dados em uso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "            except OperationalError as erro:\n                raise CargaInvalida(",
+          "para": "            except KeyError as erro:\n                raise CargaInvalida("
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_carga_desiste_sem_alterar_nada_se_a_api_segura_os_dados_alem_do_limite"
+      ]
+    },
+    {
+      "id": "M-REC-06",
+      "requisito": "R06",
+      "descricao": "Carga espera para sempre por uma sessão presa (sem limite de espera das travas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/recarga.py",
+          "de": "    conexao.exec_driver_sql(f\"SET LOCAL lock_timeout = '{ESPERA_DA_CARGA_S}s'\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_carga_desiste_sem_alterar_nada_se_a_api_segura_os_dados_alem_do_limite"
+      ]
     }
   ]
 }
