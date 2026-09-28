@@ -149,5 +149,18 @@ services:
       web:
         condition: service_healthy
 
+  # Mutantes E2E (opt-in): sobe uma stack isolada por mutante usando o Docker do host.
+  # Montar o socket dá controle do Docker a este container; use só localmente.
+  mutantes-e2e:
+    build:
+      context: ./mutantes
+    image: jeje-mutantes-e2e:local
+    profiles: ["mutantes-e2e"]
+    working_dir: /repo
+    volumes:
+      - .:/repo:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["python3", "/repo/mutantes/executar.py", "/repo/mutantes/e2e.json"]
+
 volumes:
   pgdata:

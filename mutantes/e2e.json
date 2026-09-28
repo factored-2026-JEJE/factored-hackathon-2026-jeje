@@ -1,0 +1,85 @@
+{
+  "alvo": "e2e",
+  "executor": "playwright-stack",
+  "diretorio": "/repo",
+  "timeout_s": 300,
+  "timeout_stack_s": 600,
+  "compose_args": [
+    "-f",
+    "compose.yaml",
+    "-f",
+    "mutantes/compose.mutantes.yaml"
+  ],
+  "servicos_stack": [
+    "web"
+  ],
+  "comando_teste": [
+    "run",
+    "--rm",
+    "e2e",
+    "npx",
+    "playwright",
+    "test"
+  ],
+  "comando_coleta": [
+    "--profile",
+    "e2e",
+    "run",
+    "--rm",
+    "--build",
+    "--no-deps",
+    "e2e",
+    "npx",
+    "playwright",
+    "test",
+    "--list",
+    "--reporter=json"
+  ],
+  "mutantes": [
+    {
+      "id": "CONTROLE-e2e",
+      "espera": "sobrevive",
+      "descricao": "Troca sem efeito no comportamento; a jornada precisa continuar verde",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "# API_UPSTREAM vem do compose versionado.",
+          "para": "# API_UPSTREAM vem do compose versionado (controle)."
+        }
+      ],
+      "testes": [
+        "status.spec.ts"
+      ]
+    },
+    {
+      "id": "M-E2E-01",
+      "requisito": "R06",
+      "descricao": "Caminho do proxy digitado errado: /api cai no fallback da SPA e recebe HTML",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\thandle_path /api/* {",
+          "para": "\thandle_path /apis/* {"
+        }
+      ],
+      "testes": [
+        "status.spec.ts > página de status mostra exatamente o estado que a API reporta"
+      ]
+    },
+    {
+      "id": "M-E2E-02",
+      "requisito": "R06",
+      "descricao": "Compose aponta o proxy para uma porta errada da API (502 para o navegador)",
+      "trocas": [
+        {
+          "arquivo": "compose.yaml",
+          "de": "      API_UPSTREAM: api:8000",
+          "para": "      API_UPSTREAM: api:9000"
+        }
+      ],
+      "testes": [
+        "status.spec.ts > página de status mostra exatamente o estado que a API reporta"
+      ]
+    }
+  ]
+}
