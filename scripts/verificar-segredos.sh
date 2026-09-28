@@ -11,13 +11,16 @@ docker run --rm -v "$PWD":/repo:ro \
 
 if [ -f .env ]; then
   valores=$(mktemp)
-  trap 'rm -f "$valores"' EXIT
-  # Valores com 8+ caracteres sem espaço (chaves, URI e o nome do bucket isolado). Vazios ou
-  # curtos não são segredo e, numa lista de padrões, casariam com qualquer linha (DEV-020d).
-  {
-    sed -n 's/^[A-Z_][A-Z0-9_]*=[[:space:]]*\([^[:space:]]*\)[[:space:]]*$/\1/p' .env
-    sed -n 's|^DATASET_S3_URI=[[:space:]]*s3://\([^/[:space:]]*\).*|\1|p' .env
-  } | grep -E '^.{8,}$' > "$valores" || true
+  lidos=$(mktemp)
+  trap 'rm -f "$valores" "$lidos"' EXIT
+  chaves=$(sed -n 's/^\([A-Z_][A-Z0-9_]*\)=.*/\1/p' .env.example | paste -sd'|' -)
+  # Valores exatamente como o Compose os lê do .env (aspas, export, espaços, comentário, CRLF,
+  # BOM: DEV-020e), num ambiente limpo para variáveis do shell não mascararem o arquivo.
+  env -i PATH="$PATH" HOME="$HOME" docker compose config --environment 2>/dev/null \
+    | grep -E "^($chaves)=" | cut -d= -f2- > "$lidos" || true
+  # Também o nome do bucket isolado. Vazios ou com menos de 8 caracteres não são segredo e,
+  # numa lista de padrões, casariam com qualquer linha (DEV-020d).
+  { cat "$lidos"; sed -n 's|^s3://\([^/]*\).*|\1|p' "$lidos"; } | grep -E '^.{8,}$' > "$valores" || true
   if [ ! -s "$valores" ]; then
     echo "segredos: .env sem valores para procurar"
     echo "segredos: ok"

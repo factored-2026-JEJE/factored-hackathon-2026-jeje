@@ -13,6 +13,8 @@ repo() {
   cp "$raiz/scripts/verificar-segredos.sh" "$d/scripts/"
   cp "$raiz/.env.example" "$d/.env.example"
   printf '.env\n' > "$d/.gitignore"
+  # O script lê o .env pelo parser do Compose: basta um compose.yaml mínimo.
+  printf 'services:\n  x:\n    image: alpine\n' > "$d/compose.yaml"
   git -C "$d" init -q
   git -C "$d" add .
   git -C "$d" -c user.name=t -c user.email=t@t commit -qm base
@@ -51,5 +53,30 @@ d=$(repo historico); printf '%s\n' "$CHAVES" > "$d/.env"
 printf 'bucket: bucket-falso-de-teste\n' > "$d/notas.txt"
 git -C "$d" add notas.txt && git -C "$d" -c user.name=t -c user.email=t@t commit -qm notas
 caso "nome do bucket no histórico falha" 1 "$d"
+
+# DEV-020e: toda sintaxe que o Compose aceita no .env (valor lido é "segredo-falso-2026-abc").
+SEGREDO=segredo-falso-2026-abc
+i=0
+for linha in \
+  "AWS_SECRET_ACCESS_KEY=$SEGREDO" \
+  "AWS_SECRET_ACCESS_KEY=\"$SEGREDO\"" \
+  "AWS_SECRET_ACCESS_KEY='$SEGREDO'" \
+  "AWS_SECRET_ACCESS_KEY=$SEGREDO # comentario" \
+  "export AWS_SECRET_ACCESS_KEY=$SEGREDO" \
+  "AWS_SECRET_ACCESS_KEY= $SEGREDO" \
+  "AWS_SECRET_ACCESS_KEY = $SEGREDO" \
+  "AWS_SECRET_ACCESS_KEY=$SEGREDO\r" \
+  "\357\273\277AWS_SECRET_ACCESS_KEY=$SEGREDO"; do
+  i=$((i + 1))
+  d=$(repo "sintaxe_$i"); printf "$linha\n" > "$d/.env"
+  caso "sintaxe $i sem vazamento passa" 0 "$d"
+  printf 'valor: %s\n' "$SEGREDO" > "$d/vazou.txt"
+  caso "sintaxe $i com valor em arquivo não rastreado falha" 1 "$d"
+done
+for i in 2 5 8; do
+  d="$tmp/sintaxe_$i"
+  git -C "$d" add vazou.txt && git -C "$d" -c user.name=t -c user.email=t@t commit -qm vazou
+  caso "sintaxe $i com valor no histórico falha" 1 "$d"
+done
 
 [ "$falhas" -eq 0 ] || exit 1
