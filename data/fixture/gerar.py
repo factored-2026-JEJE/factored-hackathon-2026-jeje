@@ -30,11 +30,11 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
          "branch_status": "Active"},
     ]},
     "customers": {None: [
-        {"customer_id": "CLI-FX00000001", "document_number": "FX1000001", "document_type": "Cédula",
+        {"customer_id": "CLI-FX00000001", "document_number": "FX1000001", "document_type": "CC",
          "first_name": "Valentina", "last_name": "Gómez Ríos", "country": "Colombia", "city": "Bogotá",
          "segment": "Plus", "customer_status": "Active", "registration_branch_id": "SUC-FX000001",
          "detected_accent": "colombian"},
-        {"customer_id": "CLI-FX00000002", "document_number": "FX1000002", "document_type": "INE",
+        {"customer_id": "CLI-FX00000002", "document_number": "FX1000002", "document_type": "DNI",
          "first_name": "Diego", "last_name": "Hernández López", "country": "México",
          "city": "Ciudad de México", "segment": "Basic", "customer_status": "Active",
          "registration_branch_id": "SUC-FX000002", "detected_accent": "mexican"},
@@ -82,6 +82,11 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
              "transaction_type": "Withdrawal", "amount": "200.00", "currency": "USD", "channel": "ATM",
              "transaction_country": "México", "transaction_status": "Pending", "response_code": "05",
              "is_fraud": "False"},
+            # Defeito deliberado (Q-TIPO:amount): vírgula decimal não é um número válido.
+            {"transaction_id": "TRX-FX0000000000000004", "transaction_date": "2025-03-11 11:30:00",
+             "process_date": "2025-03-11", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",
+             "transaction_type": "Payment", "amount": "12,50", "currency": "USD", "channel": "App",
+             "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
         ],
     },
     "call_center_interactions": {DIA_1: [
@@ -108,6 +113,10 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
          "category": "Transactions", "subcategory": "Cargo no reconocido",
          "affected_product_id": "PRD-FX00000001", "claimed_amount": "189900.00", "currency": "COP",
          "status": "Open"},
+        # Defeito deliberado (A-PROP, como ACH-016): produto de outro cliente; a curadoria anula.
+        {"complaint_id": "CMP-FX0000000000000002", "creation_date": "2025-03-10 21:00:00",
+         "process_date": "2025-03-10", "customer_id": "CLI-FX00000002", "case_type": "Complaint",
+         "category": "Service", "affected_product_id": "PRD-FX00000001", "status": "Open"},
     ]},
     "campaign_sends": {DIA_1: [
         {"send_id": "SND-FX0000000000000001", "send_date": "2025-03-10 10:00:00",
