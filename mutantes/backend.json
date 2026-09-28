@@ -2818,6 +2818,262 @@
       "testes": [
         "tests/test_handoff.py::test_fila_atende_os_mais_antigos_primeiro"
       ]
+    },
+    {
+      "id": "M-ITP-01",
+      "requisito": "R03",
+      "descricao": "Intenções avaliadas de trás para frente (autosserviço antes de segurança)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    for intencao, termos in TERMOS:",
+          "para": "    for intencao, termos in reversed(TERMOS):"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_seguranca_vence_autosservico",
+        "tests/test_interpretacao.py::test_intencao_por_lingua"
+      ]
+    },
+    {
+      "id": "M-ITP-02",
+      "requisito": "R02",
+      "descricao": "Crédito sozinho vira fora de escopo (contestação no cartão de crédito recusada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"fora_de_escopo\", (\"prestamo\", \"emprestimo\", \"linea de credito\",",
+          "para": "    (\"fora_de_escopo\", (\"prestamo\", \"emprestimo\", \"credito\", \"linea de credito\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_de_credito_nao_e_fora_de_escopo"
+      ]
+    },
+    {
+      "id": "M-ITP-03",
+      "requisito": "R03",
+      "descricao": "Qualquer frase com um sim confirma (\"¿y si me rechazaron?\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            return None  # palavra fora do vocabulário: não é resposta curta",
+          "para": "            i += 1"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_resposta_curta_so_quando_a_mensagem_inteira_responde"
+      ]
+    },
+    {
+      "id": "M-ITP-04",
+      "requisito": "R03",
+      "descricao": "Sim e não na mesma mensagem viram um dos dois",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    achados.discard(\"cortesia\")\n    return achados.pop() if len(achados) == 1 else None",
+          "para": "    achados.discard(\"cortesia\")\n    return achados.pop() if achados else None"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_resposta_curta_so_quando_a_mensagem_inteira_responde"
+      ]
+    },
+    {
+      "id": "M-ITP-05",
+      "requisito": "R02",
+      "descricao": "Ordinal em qualquer frase vira escolha (\"es la primera vez\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    resto = [p for p in limpo.split() if p not in ENCHIMENTO_DA_ESCOLHA]",
+          "para": "    resto = [p for p in limpo.split() if p in ORDINAIS or p.isdigit()][:1]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_escolha_so_em_resposta_curta"
+      ]
+    },
+    {
+      "id": "M-ITP-06",
+      "requisito": "R07",
+      "descricao": "Empate de língua vira espanhol (cliente PT recebe resposta em ES)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if pontos[\"pt\"] == pontos[\"es\"]:\n        return anterior",
+          "para": "    if pontos[\"pt\"] == pontos[\"es\"]:\n        return \"es\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_idioma_da_mensagem_e_empate_mantem_o_anterior"
+      ]
+    },
+    {
+      "id": "M-ITP-07",
+      "requisito": "R02",
+      "descricao": "Valor lido de dentro de uma data numérica",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", texto)",
+          "para": "    sem_datas = texto"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
+      ]
+    },
+    {
+      "id": "M-ITP-08",
+      "requisito": "R02",
+      "descricao": "Valor lido do dia de uma data por extenso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        lambda m: \" \" if normalizar(m.group(2)) in MESES else m.group(0), sem_datas",
+          "para": "        lambda m: m.group(0), sem_datas"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
+      ]
+    },
+    {
+      "id": "M-ITP-09",
+      "requisito": "R02",
+      "descricao": "Data sem ano cai no futuro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if neste_ano is not None and neste_ano <= referencia:",
+          "para": "    if neste_ano is not None:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_data_sem_ano_nunca_no_futuro"
+      ]
+    },
+    {
+      "id": "M-ITP-10",
+      "requisito": "R08",
+      "descricao": "Identificador digitado no chat não é sinalizado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"id_digitado\": IDENTIFICADOR.search(texto) is not None,",
+          "para": "        \"id_digitado\": False,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_identificador_digitado_so_e_sinalizado"
+      ]
+    },
+    {
+      "id": "M-ITP-11",
+      "requisito": "R02",
+      "descricao": "Palavra comum do nome do comércio basta (\"estoy seguro\" → Taxi Seguro)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "if len(p) >= 4 and p not in COMUNS]",
+          "para": "if len(p) >= 4]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-12",
+      "requisito": "R02",
+      "descricao": "Dois comércios citados: escolhe um sem perguntar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            citados.add(nome)\n    return citados.pop() if len(citados) == 1 else None",
+          "para": "            citados.add(nome)\n    return citados.pop() if citados else None"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-13",
+      "requisito": "R02",
+      "descricao": "Dois status citados: filtra por um deles",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    citados = {status for status, termos in STATUS_CITADO if any(_casa(t, limpo) for t in termos)}\n    return citados.pop() if len(citados) == 1 else None",
+          "para": "    citados = {status for status, termos in STATUS_CITADO if any(_casa(t, limpo) for t in termos)}\n    return citados.pop() if citados else None"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_status_citado_so_quando_e_um"
+      ]
+    },
+    {
+      "id": "M-ITP-14",
+      "requisito": "R03",
+      "descricao": "\"No fui yo\" deixa de ser relato de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"no fui yo\", \"nao fui eu\")),",
+          "para": "                )),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_intencao_por_lingua"
+      ]
+    },
+    {
+      "id": "M-ITP-15",
+      "requisito": "R07",
+      "descricao": "Sem tirar acento: \"não reconheço\" não casa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    sem_acento = \"\".join(c for c in decomposto if not unicodedata.combining(c))",
+          "para": "    sem_acento = decomposto"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_intencao_por_lingua"
+      ]
+    },
+    {
+      "id": "M-ITP-16",
+      "requisito": "R08",
+      "descricao": "Contrato da interpretação ganha campo de transação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    id_digitado: bool = False  # parece identificador de sistema (POL-ID-02)",
+          "para": "    id_digitado: bool = False  # parece identificador de sistema (POL-ID-02)\n    transaction_id: str | None = None"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_interpretacao_nao_carrega_identidade_nem_transacao"
+      ]
+    },
+    {
+      "id": "M-ITP-17",
+      "requisito": "R03",
+      "descricao": "\"Robô\" em português vira relato de roubo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"robaron\", \"robo de\", \"un robo\",",
+          "para": "\"robaron\", \"robo\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_intencao_por_lingua"
+      ]
     }
   ]
 }
