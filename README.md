@@ -61,6 +61,17 @@ de travar a conversa (esperar o modelo não prende o banco), pede a carga do mod
   mutantes já rodam com regras (`compose.ci.yaml`).
 - `make testar-modelo`: integração real com o Ollama (fora do gate; precisa da stack no ar).
 
+### Classificador de intenção (próximo passo, ainda não integrado)
+
+O classificador do time (branch `feat/intencao-classificador`, TF-IDF + regressão logística) entra
+como mais um leitor atrás do mesmo contrato do modelo local, escolhido em `INTERPRETADOR`: as regras
+leem primeiro, ele só lê o que elas não entendem, e sim/não, fraude, pedido de atendente e
+identificador continuam com as regras. Os fluxos dele viram intenção e status (`explicar_recusa`,
+`explicar_pendencia` e `explicar_estorno` → consultar com Declined, Pending e Reversed;
+`abrir_disputa` → contestar; `relato_de_fraude` → fraude; `fora_de_escopo`). Só age com confiança de
+0,8 ou mais: abaixo disso seguem as regras (esclarecimento), porque sem limiar 11,8% dos pedidos fora
+de escopo de um conjunto real de pedidos a banco viravam disputa ou fraude.
+
 ## Logs
 
 `make logs` mostra uma linha por acontecimento, marcada com o id da requisição:
