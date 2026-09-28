@@ -948,6 +948,81 @@
       "testes": [
         "tests/test_download.py::test_arquivo_local_corrompido_e_baixado_de_novo"
       ]
+    },
+    {
+      "id": "M-CONT-01",
+      "requisito": "R04",
+      "descricao": "Contrato declara coluna que não existe no arquivo (nome digitado errado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/contratos.py",
+          "de": "            \"current_balance\": \"numeric(18,2)\", \"credit_limit\": \"numeric(18,2)\",",
+          "para": "            \"current_balance\": \"numeric(18,2)\", \"credit_limt\": \"numeric(18,2)\","
+        }
+      ],
+      "testes": [
+        "tests/test_contratos.py::test_contrato_so_cita_colunas_e_tipos_existentes"
+      ]
+    },
+    {
+      "id": "M-CONT-02",
+      "requisito": "R04",
+      "descricao": "Tipo fora do catálogo suportado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/contratos.py",
+          "de": "\"amount\": \"numeric(18,2)\", \"amount_usd\": \"numeric(18,2)\",",
+          "para": "\"amount\": \"money\", \"amount_usd\": \"numeric(18,2)\","
+        }
+      ],
+      "testes": [
+        "tests/test_contratos.py::test_contrato_so_cita_colunas_e_tipos_existentes"
+      ]
+    },
+    {
+      "id": "M-CONT-03",
+      "requisito": "R04",
+      "descricao": "Ordem de dependência quebrada: produtos antes de clientes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/contratos.py",
+          "de": "        referencias=(\n            Referencia(\"customer_id\", \"customers\", essencial=True),\n            Referencia(\"opening_branch_id\", \"branches\", essencial=False),\n        ),",
+          "para": "        referencias=(\n            Referencia(\"customer_id\", \"accounts\", essencial=True),\n            Referencia(\"opening_branch_id\", \"branches\", essencial=False),\n        ),"
+        }
+      ],
+      "testes": [
+        "tests/test_contratos.py::test_referencias_apontam_para_tabelas_anteriores_com_chave_simples"
+      ]
+    },
+    {
+      "id": "M-CONT-04",
+      "requisito": "R08",
+      "descricao": "Transação pode apontar produto de outro cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/contratos.py",
+          "de": "            Referencia(\"product_id\", \"products\", essencial=True, mesmo_cliente=True),",
+          "para": "            Referencia(\"product_id\", \"products\", essencial=True),"
+        }
+      ],
+      "testes": [
+        "tests/test_contratos.py::test_politica_das_referencias_que_protegem_o_cliente"
+      ]
+    },
+    {
+      "id": "M-CONT-05",
+      "requisito": "R08",
+      "descricao": "Colunas curadas em ordem diferente da raw",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/contratos.py",
+          "de": "    return COLUNAS[contrato.tabela]",
+          "para": "    return tuple(sorted(COLUNAS[contrato.tabela]))"
+        }
+      ],
+      "testes": [
+        "tests/test_contratos.py::test_colunas_curadas_sao_as_da_raw_na_mesma_ordem"
+      ]
     }
   ]
 }
