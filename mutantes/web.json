@@ -217,6 +217,51 @@
       ]
     },
     {
+      "id": "M-WEB-50",
+      "requisito": "R03",
+      "descricao": "Fila tira o encaminhamento antes da API confirmar (remoção otimista)",
+      "trocas": [
+        {
+          "arquivo": "src/FilaDoAtendimento.tsx",
+          "de": "    try {\n      const assumido = await assumirEncaminhamento(id);",
+          "para": "    try {\n      setFila((atual) => atual?.filter((x) => x.id !== id) ?? null);\n      const assumido = await assumirEncaminhamento(id);"
+        }
+      ],
+      "testes": [
+        "src/FilaDoAtendimento.test.tsx > assumir tira da fila só depois que a API confirma"
+      ]
+    },
+    {
+      "id": "M-WEB-51",
+      "requisito": "R07",
+      "descricao": "Encaminhamento já assumido vira erro genérico, sem o motivo",
+      "trocas": [
+        {
+          "arquivo": "src/FilaDoAtendimento.tsx",
+          "de": "e instanceof Recusado ? `${id}: ${e.message}.` : `Não foi possível assumir ${id}.`",
+          "para": "`Não foi possível assumir ${id}.`"
+        }
+      ],
+      "testes": [
+        "src/FilaDoAtendimento.test.tsx > encaminhamento já assumido por outro mostra o motivo e atualiza a fila"
+      ]
+    },
+    {
+      "id": "M-WEB-52",
+      "requisito": "R07",
+      "descricao": "Fila não é recarregada depois de assumir",
+      "trocas": [
+        {
+          "arquivo": "src/FilaDoAtendimento.tsx",
+          "de": "    setAssumidos((n) => n + 1);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/FilaDoAtendimento.test.tsx > assumir tira da fila só depois que a API confirma"
+      ]
+    },
+    {
       "id": "CONTROLE-web",
       "espera": "sobrevive",
       "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",

@@ -129,6 +129,12 @@ export async function filaDoAtendimento(): Promise<Encaminhamento[]> {
   return json<Encaminhamento[]>(await fetch("/api/atendimento/fila"), 200);
 }
 
+/** O atendente assume o encaminhamento; 409 (já assumido) vira `Recusado` com a explicação. */
+export async function assumirEncaminhamento(id: string): Promise<Encaminhamento> {
+  const resposta = await fetch(`/api/atendimento/fila/${encodeURIComponent(id)}/assumir`, { method: "POST" });
+  return json<Encaminhamento>(resposta, 200);
+}
+
 export async function buscarMetricas(): Promise<Metricas> {
   return json<Metricas>(await fetch("/api/metricas"), 200);
 }

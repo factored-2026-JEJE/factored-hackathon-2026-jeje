@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { type Encaminhamento, filaDoAtendimento } from "./api/cliente";
+import { assumirEncaminhamento, type Encaminhamento, filaDoAtendimento, Recusado } from "./api/cliente";
 
 const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
@@ -7,6 +7,19 @@ const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { dateStyl
 export function FilaDoAtendimento({ versao }: { versao: number }) {
   const [fila, setFila] = useState<Encaminhamento[] | null>(null);
   const [erro, setErro] = useState(false);
+  const [assumidos, setAssumidos] = useState(0);
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  // Só sai da fila quando a API confirma que este atendente assumiu (sem remoção otimista).
+  async function assumir(id: string) {
+    try {
+      const assumido = await assumirEncaminhamento(id);
+      setAviso(`Você assumiu ${assumido.id}.`);
+    } catch (e) {
+      setAviso(e instanceof Recusado ? `${id}: ${e.message}.` : `Não foi possível assumir ${id}.`);
+    }
+    setAssumidos((n) => n + 1);
+  }
 
   useEffect(() => {
     let ativo = true;
@@ -20,13 +33,14 @@ export function FilaDoAtendimento({ versao }: { versao: number }) {
     return () => {
       ativo = false;
     };
-  }, [versao]);
+  }, [versao, assumidos]);
 
   return (
     <section aria-label="Fila do atendimento humano" className="cartao">
       <h2>Fila do atendimento humano</h2>
       <p className="nota">Console simulado do atendente (modo demo): o que ele recebe para continuar sem ler a conversa.</p>
       {erro && <p role="alert">Fila indisponível.</p>}
+      {aviso && <p role="status">{aviso}</p>}
       {!erro && fila === null && <p role="status">Carregando fila…</p>}
       {fila?.length === 0 && <p>Nenhum encaminhamento aberto.</p>}
       <ol className="fila">
@@ -56,6 +70,9 @@ export function FilaDoAtendimento({ versao }: { versao: number }) {
                 <li key={i}>{p}</li>
               ))}
             </ul>
+            <button type="button" onClick={() => void assumir(e.id)}>
+              Assumir {e.id}
+            </button>
           </li>
         ))}
       </ol>
