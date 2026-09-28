@@ -1,5 +1,6 @@
 """Aplicação HTTP. Rotas de domínio entram por casos de uso, não aqui diretamente."""
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -11,6 +12,7 @@ from jeje import (
     conversa_api,
     health,
     interpretacao_modelo,
+    logs,
     metricas_api,
     pre_caso_api,
     qualidade_api,
@@ -18,17 +20,28 @@ from jeje import (
     transacoes_api,
 )
 from jeje.config import Settings
-from jeje.db import create_db_engine
+from jeje.db import INDISPONIVEL, banco_indisponivel, create_db_engine
+
+log = logging.getLogger("jeje.api")
 
 
 @asynccontextmanager
 async def ciclo_de_vida(app: FastAPI) -> AsyncIterator[None]:
+    config = app.state.settings
+    log.info(
+        "api iniciada versao=%s interpretador=%s modo_demo=%s",
+        __version__,
+        config.interpretador,
+        config.modo_demo,
+    )
     yield
     # Fecha as conexões do pool ao encerrar o processo (sem conexões órfãs no banco).
     app.state.engine.dispose()
+    log.info("api encerrada")
 
 
 def create_app(settings: Settings) -> FastAPI:
+    logs.configurar(settings.log_level)
     app = FastAPI(
         title="JEJE", version=__version__, root_path=settings.api_root_path, lifespan=ciclo_de_vida
     )
@@ -43,4 +56,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(conversa_api.router)
     app.include_router(metricas_api.router)
     app.include_router(atendimento_api.router)
+    for erro in INDISPONIVEL:
+        app.add_exception_handler(erro, banco_indisponivel)
+    app.middleware("http")(logs.por_requisicao)
     return app

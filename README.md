@@ -42,6 +42,25 @@ sim/não, fraude e identificadores continuam com as regras, e a política decide
 fora do ar ou saída inválida → segue pelas regras, e o trace do turno diz quem leu a mensagem. O
 Ollama do host precisa aceitar conexões dos containers (ex.: `OLLAMA_HOST=0.0.0.0:11434`).
 
+## Logs
+
+`make logs` mostra uma linha por acontecimento, marcada com o id da requisição:
+
+```text
+INFO jeje.conversa req=7489ce07… turno conversa=6nP-Nrp2jajGqdYt3AxszA numero=2 intencao=fraude regra=POL-HUM-01 acao=humano estado=com_humano efeito=AT-00000003
+INFO jeje.http req=7489ce07… acesso metodo=POST rota=/conversas/{conversa_id}/turnos status=200 ms=13.7
+WARNING jeje.db req=b0711da3… banco indisponivel erro=OperationalError motivo="failed to resolve host 'db'…"
+```
+
+- Toda resposta traz `X-Request-ID` (um id válido recebido é reaproveitado): quem relata um problema
+  informa esse id, e ele leva às linhas do log.
+- Nível em `LOG_LEVEL` no `compose.yaml`; `DEBUG` mostra também as sondas de saúde.
+- Nunca entram a mensagem do cliente, o token, o identificador do cliente nem valores de SQL. Erro
+  inesperado vira 500 com o id e um log com os arquivos e as linhas do código, sem a mensagem da
+  exceção (o banco repete valores nela). O trace completo de cada turno fica em `app.eventos`
+  (`make metricas`).
+- Banco fora do ar: 503 com `Retry-After`, sem traceback.
+
 ## Testar
 
 ```bash

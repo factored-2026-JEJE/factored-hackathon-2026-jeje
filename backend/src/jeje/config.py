@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     ollama_url: str
     ollama_modelo: str
     ollama_timeout_s: float = Field(gt=0)
+    # Nível dos logs da aplicação (saída padrão, uma linha por acontecimento; ver jeje.logs).
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
     def limites(self) -> Limites:
         """Os limites da política, na forma que ela usa."""

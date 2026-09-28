@@ -98,7 +98,7 @@
       ]
     },
     {
-      "id": "M-CFG-03",
+      "id": "M-CFG-04",
       "requisito": "R06",
       "descricao": "Limite noturno por transação lido do campo do limite padrão",
       "trocas": [
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "id": "M-CFG-04",
+      "id": "M-CFG-05",
       "requisito": "R06",
       "descricao": "Canais digitais fixos, ignorando o compose",
       "trocas": [
@@ -128,7 +128,7 @@
       ]
     },
     {
-      "id": "M-CFG-05",
+      "id": "M-CFG-06",
       "requisito": "R06",
       "descricao": "Limite de segurança fixo, ignorando o compose",
       "trocas": [
@@ -2467,8 +2467,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/pre_caso_api.py",
-          "de": "    except (SQLAlchemyError, RuntimeError):",
-          "para": "    except RuntimeError:"
+          "de": "    except (SQLAlchemyError, RuntimeError) as erro:",
+          "para": "    except RuntimeError as erro:"
         }
       ],
       "testes": [
@@ -4254,6 +4254,266 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_na_conversa_o_modelo_so_le_e_cada_turno_registra_quem_leu"
+      ]
+    },
+    {
+      "id": "M-LOG-01",
+      "requisito": "R06",
+      "descricao": "Resposta sem o id da requisição no cabeçalho",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "        resposta.headers[CABECALHO] = rid\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_resposta_traz_id_e_o_mesmo_id_marca_acesso_e_turno_com_rota_modelo",
+        "tests/test_logs.py::test_id_recebido_valido_e_reaproveitado_e_invalido_e_trocado"
+      ]
+    },
+    {
+      "id": "M-LOG-02",
+      "requisito": "R08",
+      "descricao": "Linha de acesso grava o caminho cru (IDs de conversa e transação) em vez da rota-modelo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "    return getattr(rota, \"path\", \"?\")",
+          "para": "    return request.url.path"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_resposta_traz_id_e_o_mesmo_id_marca_acesso_e_turno_com_rota_modelo",
+        "tests/test_logs.py::test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback"
+      ]
+    },
+    {
+      "id": "M-LOG-03",
+      "requisito": "R06",
+      "descricao": "Id da requisição não entra no contexto: logs do endpoint ficam sem correlação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "    marca = id_da_requisicao.set(rid)",
+          "para": "    marca = id_da_requisicao.set(\"-\")"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_resposta_traz_id_e_o_mesmo_id_marca_acesso_e_turno_com_rota_modelo",
+        "tests/test_logs.py::test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback"
+      ]
+    },
+    {
+      "id": "M-LOG-04",
+      "requisito": "R08",
+      "descricao": "Id recebido aceito sem validação (texto arbitrário do cliente no log)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "    rid = recebido if FORMATO_DO_ID.fullmatch(recebido) else uuid.uuid4().hex",
+          "para": "    rid = recebido or uuid.uuid4().hex"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_id_recebido_valido_e_reaproveitado_e_invalido_e_trocado"
+      ]
+    },
+    {
+      "id": "M-LOG-05",
+      "requisito": "R06",
+      "descricao": "Sonda de saúde ok aparece a cada poucos segundos no nível normal",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "    if rota in ROTAS_DE_SAUDE and status < 400:",
+          "para": "    if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_sonda_de_saude_ok_nao_aparece_no_nivel_info_mas_a_que_falha_aparece"
+      ]
+    },
+    {
+      "id": "M-LOG-06",
+      "requisito": "R06",
+      "descricao": "Resposta 5xx deixa de ser aviso (sonda de saúde que falha some no nível normal)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "    if status >= 500:\n        return logging.WARNING\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_sonda_de_saude_ok_nao_aparece_no_nivel_info_mas_a_que_falha_aparece"
+      ]
+    },
+    {
+      "id": "M-LOG-07",
+      "requisito": "R06",
+      "descricao": "Erro não tratado escapa do middleware (500 texto puro, traceback do servidor, sem id)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "        except Exception as erro:",
+          "para": "        except LookupError as erro:"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback"
+      ]
+    },
+    {
+      "id": "M-LOG-08",
+      "requisito": "R08",
+      "descricao": "Traceback do erro inesperado leva a mensagem da exceção (o banco repete valores nela)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "        blocos.append(f\"{quadros}{classe.__module__}.{classe.__qualname__}\")",
+          "para": "        blocos.append(f\"{quadros}{classe.__module__}.{classe.__qualname__}: {excecao}\")"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback"
+      ]
+    },
+    {
+      "id": "M-LOG-09",
+      "requisito": "R08",
+      "descricao": "Linha do turno grava a mensagem do cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        conversa_id,\n        resultado.numero,\n",
+          "para": "        f\"{conversa_id} {mensagem.texto}\",\n        resultado.numero,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_resposta_traz_id_e_o_mesmo_id_marca_acesso_e_turno_com_rota_modelo",
+        "tests/test_logs.py::test_logs_nunca_trazem_mensagem_do_cliente_token_nem_cliente"
+      ]
+    },
+    {
+      "id": "M-LOG-10",
+      "requisito": "R06",
+      "descricao": "Turno gravado não aparece no log",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "    log.info(\n        \"turno conversa=",
+          "para": "    log.debug(\n        \"turno conversa="
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_resposta_traz_id_e_o_mesmo_id_marca_acesso_e_turno_com_rota_modelo",
+        "tests/test_logs.py::test_logs_nunca_trazem_mensagem_do_cliente_token_nem_cliente"
+      ]
+    },
+    {
+      "id": "M-LOG-11",
+      "requisito": "R06",
+      "descricao": "Log da confirmação diz que todo pré-caso é novo (repetição idempotente some)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso_api.py",
+          "de": "registrado.protocolo, criado_agora)",
+          "para": "registrado.protocolo, True)"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_efeitos_confirmados_pela_api_aparecem_no_log_depois_do_commit"
+      ]
+    },
+    {
+      "id": "M-LOG-12",
+      "requisito": "R06",
+      "descricao": "Atendimento assumido não aparece no log",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "    log.info(\"encaminhamento assumido",
+          "para": "    log.debug(\"encaminhamento assumido"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_efeitos_confirmados_pela_api_aparecem_no_log_depois_do_commit"
+      ]
+    },
+    {
+      "id": "M-LOG-13",
+      "requisito": "R06",
+      "descricao": "Banco fora volta a virar 500 com traceback em toda rota protegida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "    for erro in INDISPONIVEL:\n        app.add_exception_handler(erro, banco_indisponivel)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_banco_fora_rota_protegida_responde_503_json_e_um_aviso_sem_traceback"
+      ]
+    },
+    {
+      "id": "M-LOG-14",
+      "requisito": "R08",
+      "descricao": "Erro de SQL volta a anexar os valores dos parâmetros",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/db.py",
+          "de": "        hide_parameters=True,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_erro_de_sql_nao_carrega_os_valores_dos_parametros"
+      ]
+    },
+    {
+      "id": "M-LOG-15",
+      "requisito": "R06",
+      "descricao": "Fallback do modelo some do log",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "            log.warning(\n                \"modelo nao usado;",
+          "para": "            log.debug(\n                \"modelo nao usado;"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_fallback_vira_aviso_no_log_so_com_a_classe_do_erro"
+      ]
+    },
+    {
+      "id": "M-CFG-03",
+      "requisito": "ENG-003",
+      "descricao": "Nível de log ganha default e aceita qualquer texto",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/config.py",
+          "de": "    log_level: Literal[\"DEBUG\", \"INFO\", \"WARNING\", \"ERROR\"]\n",
+          "para": "    log_level: str = \"INFO\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_config.py::test_nivel_de_log_ausente_ou_invalido_falha"
+      ]
+    },
+    {
+      "id": "M-LOG-16",
+      "requisito": "R06",
+      "descricao": "Traceback do erro inesperado volta a trazer todo o miolo do framework (dezenas de linhas sem o local do problema)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "    return [q for i, q in enumerate(quadros) if \"/jeje/\" in q.filename or i == len(quadros) - 1]",
+          "para": "    return list(quadros)"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback"
       ]
     }
   ]

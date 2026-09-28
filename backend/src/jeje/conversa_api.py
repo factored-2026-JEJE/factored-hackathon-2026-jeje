@@ -1,5 +1,6 @@
 """Rotas da conversa sem modelo (G10): abrir, enviar mensagem (turno) e reabrir o histórico."""
 
+import logging
 import time
 from datetime import datetime
 from typing import Annotated, Literal
@@ -14,6 +15,7 @@ from jeje.pre_caso_api import ID_PROPOSTA, Proposta
 from jeje.sessao_api import CORPO_ILEGIVEL, RESPOSTAS_SESSAO, SessaoDep
 
 router = APIRouter(responses=RESPOSTAS_SESSAO)
+log = logging.getLogger("jeje.conversa")
 
 NAO_ENCONTRADA = "Conversa não encontrada"
 ConversaId = Annotated[str, Path(pattern=ID_PROPOSTA)]
@@ -122,6 +124,17 @@ def enviar_mensagem(
             status_code=503, detail="Turno não registrado; nada foi criado. Tente de novo."
         ) from None
     saida = resultado.saida
+    # Depois do commit: o log só afirma o que ficou gravado (nunca o texto do cliente).
+    log.info(
+        "turno conversa=%s numero=%d intencao=%s regra=%s acao=%s estado=%s efeito=%s",
+        conversa_id,
+        resultado.numero,
+        resultado.intencao,
+        saida.regra,
+        saida.acao,
+        saida.estado,
+        resultado.efeito,
+    )
     return ResultadoDoTurno(
         conversa_id=resultado.conversa_id,
         numero=resultado.numero,
@@ -142,6 +155,7 @@ def enviar_mensagem(
 def _registrar_erro(engine, conversa_id: str, erro: Exception, inicio: float) -> None:
     """O turno foi desfeito; o erro fica registrado à parte (só a classe, sem texto nem dados).
     Se nem isso grava (banco fora), o cliente continua recebendo o 503."""
+    log.warning("turno desfeito conversa=%s erro=%s", conversa_id, type(erro).__name__)
     evento = eventos.Evento(
         tipo="erro",
         latencia_ms=eventos.desde(inicio),
@@ -151,8 +165,10 @@ def _registrar_erro(engine, conversa_id: str, erro: Exception, inicio: float) ->
     try:
         with engine.begin() as conexao:
             eventos.registrar(conexao, evento)
-    except SQLAlchemyError:
-        pass
+    except SQLAlchemyError as outro:
+        log.warning(
+            "evento de erro nao gravado conversa=%s erro=%s", conversa_id, type(outro).__name__
+        )
 
 
 @router.get("/conversas/{conversa_id}", responses={404: {"description": NAO_ENCONTRADA}})

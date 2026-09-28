@@ -87,6 +87,10 @@ class ResultadoDoTurno:
     def resposta(self) -> str:
         return "\n".join(self.saida.textos)
 
+    @property
+    def efeito(self) -> str | None:
+        return _efeito(self.saida)
+
 
 def verificada(t: consultas.Transacao) -> TransacaoVerificada:
     return TransacaoVerificada(

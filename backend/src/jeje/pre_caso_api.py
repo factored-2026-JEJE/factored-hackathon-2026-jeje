@@ -1,5 +1,6 @@
 """Rotas do pré-caso de contestação: proposta, confirmação e acompanhamento (DEV-012)."""
 
+import logging
 from datetime import datetime
 from typing import Annotated
 
@@ -13,6 +14,7 @@ from jeje.sessao_api import ID_DA_BASE, RESPOSTAS_SESSAO, SessaoDep
 from jeje.transacoes_api import NAO_ENCONTRADA, DecisaoDaPolitica, decisao_para_resposta
 
 router = APIRouter(responses=RESPOSTAS_SESSAO)
+log = logging.getLogger("jeje.pre_caso")
 
 ID_PROPOSTA = r"^[A-Za-z0-9_-]{1,64}$"
 
@@ -98,13 +100,16 @@ def confirmar(
         raise HTTPException(status_code=404, detail="Proposta não encontrada") from None
     except pre_caso.Conflito as conflito:
         raise HTTPException(status_code=409, detail=str(conflito)) from None
-    except (SQLAlchemyError, RuntimeError):
+    except (SQLAlchemyError, RuntimeError) as erro:
         # Sem sucesso falso: a transação foi desfeita e o cliente pode tentar de novo.
+        nivel = logging.ERROR if isinstance(erro, RuntimeError) else logging.WARNING
+        log.log(nivel, "pre-caso nao registrado erro=%s", type(erro).__name__)
         raise HTTPException(
             status_code=503, detail="Pré-caso não registrado; nada foi criado. Tente de novo."
         ) from None
     if not criado_agora:
         response.status_code = 200
+    log.info("pre-caso confirmado protocolo=%s novo=%s", registrado.protocolo, criado_agora)
     return PreCaso(**registrado.__dict__)
 
 
