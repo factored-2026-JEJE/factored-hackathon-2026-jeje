@@ -10,3 +10,12 @@ FROM deps AS test
 RUN apk add --no-cache python3
 COPY . .
 CMD ["sh", "-c", "npm run typecheck && npm run lint && npm test"]
+
+FROM deps AS build
+COPY . .
+RUN npm run build
+
+# Execução: Caddy serve os estáticos e encaminha /api para o backend (mesma origem).
+FROM caddy:2-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b AS runtime
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/dist /srv

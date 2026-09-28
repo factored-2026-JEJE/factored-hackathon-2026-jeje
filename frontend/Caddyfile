@@ -1,0 +1,18 @@
+# Servidor web do produto: estáticos do build + proxy /api para o backend (mesma origem, sem CORS).
+# API_UPSTREAM vem do compose versionado.
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	encode gzip
+	handle_path /api/* {
+		reverse_proxy {$API_UPSTREAM}
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
