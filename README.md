@@ -8,6 +8,24 @@ pendente e registra um pedido de revisão (pré-caso) de cobrança que não reco
 de atendente e casos fora da regra vão para a fila humana com um resumo pronto. Quem decide é uma
 política determinística com fatos do banco; o texto do cliente nunca muda permissão.
 
+## Por que este fluxo
+
+Medido na base do desafio (seção “Por que este fluxo” da interface, com a consulta de cada número;
+`GET /dados/eda`):
+
+- Contatos de motivo **transacional** são **35,0%** dos 686.296 atendimentos e **24,0%** do tempo
+  total de atendimento, e **91,5%** se resolvem no primeiro contato: são perguntas com resposta nos
+  dados.
+- Das 4.425.008 transações, 5,0% foram recusadas, 2,0% estão pendentes e 1,0% foram estornadas;
+  95% das recusas trazem código de resposta.
+- Das reclamações sobre transações (20,2% de 67.095), **90,6%** são “Cargo no reconocido”.
+
+O assistente automatiza exatamente isso: explica a situação de uma transação do próprio cliente e
+registra o pedido de revisão (pré-caso) de uma cobrança não reconhecida, sempre com confirmação
+explícita. Com os limites da política, 86,3% das transações aprovadas em USD da base poderiam ter a
+contestação registrada sem atendente; o resto vai para um atendente com o resumo pronto. A base não
+tem conversas em português (transcrições 100% em espanhol): os casos em português são do time.
+
 ## Ligar tudo
 
 Precisa só de **Docker**.
