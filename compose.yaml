@@ -17,6 +17,7 @@ x-app-env: &app-env
   MODO_DEMO: "true"
   # Limite simulado de contestação automática em USD (POL-HUM-02); valor a confirmar pelo time.
   LIMITE_PRE_CASO_USD: "1000"
+  PROPOSTA_TTL_MINUTOS: "10"
 
 # Testes do backend: imagem com dependências de desenvolvimento, banco efêmero db-test.
 x-backend-test: &backend-test

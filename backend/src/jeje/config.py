@@ -26,3 +26,5 @@ class Settings(BaseSettings):
     modo_demo: bool
     # Valor máximo (USD) de contestação que vira pré-caso automático (POL-HUM-02, simulado).
     limite_pre_caso_usd: Decimal = Field(gt=0)
+    # Validade da proposta de pré-caso até a confirmação do cliente, em minutos.
+    proposta_ttl_minutos: int = Field(gt=0)

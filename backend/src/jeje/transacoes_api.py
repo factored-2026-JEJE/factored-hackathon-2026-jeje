@@ -53,7 +53,7 @@ def _fatos_ou_404(engine, customer_id: str, transaction_id: str) -> politica.Fat
     return fatos
 
 
-def _saida(decisao: politica.Decisao) -> DecisaoDaPolitica:
+def decisao_para_resposta(decisao: politica.Decisao) -> DecisaoDaPolitica:
     return DecisaoDaPolitica(regra=decisao.regra, acao=decisao.acao, detalhe=decisao.detalhe)
 
 
@@ -69,7 +69,9 @@ def situacao(
         transacao = consultas.transacao_do_cliente(conexao, ativa.customer_id, transaction_id)
     if fatos is None or transacao is None:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA)
-    return Situacao(transacao=transacao, decisao=_saida(politica.decidir_consulta(fatos)))
+    return Situacao(
+        transacao=transacao, decisao=decisao_para_resposta(politica.decidir_consulta(fatos))
+    )
 
 
 @router.get(
@@ -85,4 +87,6 @@ def avaliar_contestacao(
     """Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso."""
     fatos = _fatos_ou_404(engine, ativa.customer_id, transaction_id)
     limite = request.app.state.settings.limite_pre_caso_usd
-    return _saida(politica.decidir_contestacao(fatos, limite, protocolo_existente=None))
+    return decisao_para_resposta(
+        politica.decidir_contestacao(fatos, limite, protocolo_existente=None)
+    )

@@ -403,10 +403,194 @@
           }
         }
       }
+    },
+    "/minhas/transacoes/{transaction_id}/contestacao/proposta": {
+      "post": {
+        "summary": "Propor",
+        "description": "Avalia a contestação e, se a política permitir, cria uma proposta a confirmar.",
+        "operationId": "propor_minhas_transacoes__transaction_id__contestacao_proposta_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]{1,64}$",
+              "title": "Transaction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvaliacaoDeContestacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvaliacaoDeContestacao"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "404": {
+            "description": "Transação não encontrada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/minhas/propostas/{proposta_id}/confirmacao": {
+      "post": {
+        "summary": "Confirmar",
+        "description": "Confirma a proposta: grava o pré-caso sem duplicar e só responde depois de relê-lo.",
+        "operationId": "confirmar_minhas_propostas__proposta_id__confirmacao_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "proposta_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Proposta Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreCaso"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "200": {
+            "description": "Já confirmado antes: mesmo protocolo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreCaso"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proposta não encontrada"
+          },
+          "409": {
+            "description": "Proposta vencida ou situação da transação mudou"
+          },
+          "503": {
+            "description": "Pré-caso não registrado; nada foi criado"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/minhas/pre-casos": {
+      "get": {
+        "summary": "Meus Pre Casos",
+        "description": "Acompanhamento: pré-casos do cliente da sessão, mais recentes primeiro.",
+        "operationId": "meus_pre_casos_minhas_pre_casos_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PreCaso"
+                  },
+                  "type": "array",
+                  "title": "Response Meus Pre Casos Minhas Pre Casos Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
     "schemas": {
+      "AvaliacaoDeContestacao": {
+        "properties": {
+          "decisao": {
+            "$ref": "#/components/schemas/DecisaoDaPolitica"
+          },
+          "proposta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Proposta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "decisao",
+          "proposta"
+        ],
+        "title": "AvaliacaoDeContestacao"
+      },
       "DatasetInfo": {
         "properties": {
           "version": {
@@ -583,6 +767,59 @@
           "nome"
         ],
         "title": "Persona"
+      },
+      "PreCaso": {
+        "properties": {
+          "protocolo": {
+            "type": "string",
+            "title": "Protocolo"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "estado": {
+            "type": "string",
+            "title": "Estado"
+          },
+          "criado_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "protocolo",
+          "transaction_id",
+          "estado",
+          "criado_em"
+        ],
+        "title": "PreCaso"
+      },
+      "Proposta": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "expira_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expira Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "transaction_id",
+          "expira_em"
+        ],
+        "title": "Proposta"
       },
       "QualidadeTabela": {
         "properties": {

@@ -207,10 +207,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/minhas/transacoes/{transaction_id}/contestacao/proposta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propor
+         * @description Avalia a contestação e, se a política permitir, cria uma proposta a confirmar.
+         */
+        post: operations["propor_minhas_transacoes__transaction_id__contestacao_proposta_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/minhas/propostas/{proposta_id}/confirmacao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar
+         * @description Confirma a proposta: grava o pré-caso sem duplicar e só responde depois de relê-lo.
+         */
+        post: operations["confirmar_minhas_propostas__proposta_id__confirmacao_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/minhas/pre-casos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Meus Pre Casos
+         * @description Acompanhamento: pré-casos do cliente da sessão, mais recentes primeiro.
+         */
+        get: operations["meus_pre_casos_minhas_pre_casos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AvaliacaoDeContestacao */
+        AvaliacaoDeContestacao: {
+            decisao: components["schemas"]["DecisaoDaPolitica"];
+            proposta: components["schemas"]["Proposta"] | null;
+        };
         /** DatasetInfo */
         DatasetInfo: {
             /** Version */
@@ -273,6 +338,32 @@ export interface components {
             customer_id: string;
             /** Nome */
             nome: string;
+        };
+        /** PreCaso */
+        PreCaso: {
+            /** Protocolo */
+            protocolo: string;
+            /** Transaction Id */
+            transaction_id: string;
+            /** Estado */
+            estado: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             */
+            criado_em: string;
+        };
+        /** Proposta */
+        Proposta: {
+            /** Id */
+            id: string;
+            /** Transaction Id */
+            transaction_id: string;
+            /**
+             * Expira Em
+             * Format: date-time
+             */
+            expira_em: string;
         };
         /** QualidadeTabela */
         QualidadeTabela: {
@@ -753,6 +844,155 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    propor_minhas_transacoes__transaction_id__contestacao_proposta_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvaliacaoDeContestacao"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvaliacaoDeContestacao"];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Transação não encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirmar_minhas_propostas__proposta_id__confirmacao_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposta_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Já confirmado antes: mesmo protocolo */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreCaso"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreCaso"];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Proposta não encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Proposta vencida ou situação da transação mudou */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Pré-caso não registrado; nada foi criado */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    meus_pre_casos_minhas_pre_casos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreCaso"][];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

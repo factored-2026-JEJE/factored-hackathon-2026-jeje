@@ -3,7 +3,17 @@ com elas (verificado por `alembic check` nos testes)."""
 
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, MetaData, SmallInteger, Text, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    MetaData,
+    Sequence,
+    SmallInteger,
+    Text,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 NAMING = {
@@ -58,3 +68,38 @@ class Sessao(Base):
     customer_id: Mapped[str] = mapped_column(Text, index=True)
     criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class PropostaDePreCaso(Base):
+    """Proposta de pré-caso: fatos da transação no momento em que a política permitiu propor."""
+
+    __tablename__ = "propostas_pre_caso"
+    __table_args__ = ({"schema": "app"},)
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text)
+    transaction_id: Mapped[str] = mapped_column(Text)
+    fatos: Mapped[dict] = mapped_column(JSONB)
+    criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+PROTOCOLO_SEQ = Sequence("protocolo_seq", schema="app", metadata=Base.metadata)
+
+
+class PreCaso(Base):
+    """Pré-caso recebido (DEV-012): um por transação do cliente; nunca move dinheiro."""
+
+    __tablename__ = "pre_casos"
+    __table_args__ = (
+        UniqueConstraint("proposta_id", name="uq_pre_casos_proposta_id"),
+        UniqueConstraint("customer_id", "transaction_id", name="uq_pre_casos_transacao"),
+        {"schema": "app"},
+    )
+
+    protocolo: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text)
+    transaction_id: Mapped[str] = mapped_column(Text)
+    proposta_id: Mapped[str] = mapped_column(Text)
+    estado: Mapped[str] = mapped_column(Text, server_default="recebido")
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

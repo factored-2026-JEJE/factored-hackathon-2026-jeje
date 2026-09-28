@@ -2343,6 +2343,201 @@
       "testes": [
         "tests/test_politica_api.py::test_situacao_de_recusa_com_codigo_catalogado_explica_o_codigo"
       ]
+    },
+    {
+      "id": "M-PRE-01",
+      "requisito": "R03",
+      "descricao": "Confirmação repetida responde como se tivesse criado de novo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    return registrado, inserido == 1",
+          "para": "    return registrado, True"
+        },
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
+          "para": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_propostas_diferentes_confirmadas_ao_mesmo_tempo_so_uma_cria"
+      ]
+    },
+    {
+      "id": "M-PRE-02",
+      "requisito": "R03",
+      "descricao": "Proposta vencida ainda confirma",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    if not proposta.valida:\n        raise Conflito(\"proposta vencida; peça uma nova avaliação\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_proposta_vencida_nao_confirma"
+      ]
+    },
+    {
+      "id": "M-PRE-03",
+      "requisito": "R03",
+      "descricao": "Confirmação não reavalia a política com os fatos atuais",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    if decisao.acao != \"propor_pre_caso\":\n        raise Conflito(f\"situação da transação mudou ({decisao.regra})\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_situacao_mudou_entre_proposta_e_confirmacao"
+      ]
+    },
+    {
+      "id": "M-PRE-04",
+      "requisito": "R08",
+      "descricao": "Proposta de outro cliente confirmada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "            \" WHERE id = :id AND customer_id = :cliente FOR UPDATE\"",
+          "para": "            \" WHERE id = :id AND :cliente = :cliente FOR UPDATE\""
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_proposta_de_outro_cliente_nao_e_confirmada"
+      ]
+    },
+    {
+      "id": "M-PRE-05",
+      "requisito": "R02",
+      "descricao": "Protocolo devolvido sem reler o banco (inventado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:\n        raise RuntimeError(\"pré-caso não encontrado na releitura; nada foi confirmado\")",
+          "para": "    registrado = PreCaso(protocolo=f\"PC-{proposta_id[:8]}\", transaction_id=proposta.transaction_id, estado=\"recebido\", criado_em=datetime.now())"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_duas_propostas_da_mesma_transacao_viram_um_so_pre_caso"
+      ]
+    },
+    {
+      "id": "M-PRE-06",
+      "requisito": "R06",
+      "descricao": "Falha de gravação vira erro 500 genérico (sem mensagem de que nada foi criado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso_api.py",
+          "de": "    except (SQLAlchemyError, RuntimeError):",
+          "para": "    except RuntimeError:"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_falha_ao_gravar_nao_finge_sucesso_e_nova_tentativa_cria_um"
+      ]
+    },
+    {
+      "id": "M-PRE-07",
+      "requisito": "R03",
+      "descricao": "Proposta criada sem consultar a política",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    if decisao.acao != \"propor_pre_caso\":\n        return decisao, None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_contestacao_de_recusada_nao_gera_proposta"
+      ]
+    },
+    {
+      "id": "M-PRE-08",
+      "requisito": "R03",
+      "descricao": "Pré-caso existente ignorado ao propor de novo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    decisao = politica.decidir_contestacao(\n        fatos, limite, existente.protocolo if existente else None\n    )",
+          "para": "    decisao = politica.decidir_contestacao(fatos, limite, None)"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_confirmar_de_novo_devolve_o_mesmo_protocolo_sem_duplicar"
+      ]
+    },
+    {
+      "id": "M-PRE-09",
+      "requisito": "R02",
+      "descricao": "Confirmação altera a transação (efeito indevido)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:",
+          "para": "    conexao.execute(text(\"UPDATE curated.transactions SET transaction_status = 'Reversed' WHERE transaction_id = :t\"), {\"t\": proposta.transaction_id})\n    registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_pre_caso_nao_move_dinheiro_nem_muda_a_transacao"
+      ]
+    },
+    {
+      "id": "M-PRE-10",
+      "requisito": "R03",
+      "descricao": "Sem unicidade por transação: duas propostas viram dois pré-casos",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0006_pre_casos.py",
+          "de": "        sa.UniqueConstraint(\"customer_id\", \"transaction_id\", name=\"uq_pre_casos_transacao\"),\n",
+          "para": ""
+        },
+        {
+          "arquivo": "src/jeje/models.py",
+          "de": "        UniqueConstraint(\"customer_id\", \"transaction_id\", name=\"uq_pre_casos_transacao\"),\n",
+          "para": ""
+        },
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_duas_propostas_da_mesma_transacao_viram_um_so_pre_caso"
+      ]
+    },
+    {
+      "id": "M-PRE-11",
+      "requisito": "R03",
+      "descricao": "Sem trava nem unicidade: confirmações simultâneas duplicam o pré-caso",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0006_pre_casos.py",
+          "de": "        sa.UniqueConstraint(\"proposta_id\", name=\"uq_pre_casos_proposta_id\"),\n        sa.UniqueConstraint(\"customer_id\", \"transaction_id\", name=\"uq_pre_casos_transacao\"),\n",
+          "para": ""
+        },
+        {
+          "arquivo": "src/jeje/models.py",
+          "de": "        UniqueConstraint(\"proposta_id\", name=\"uq_pre_casos_proposta_id\"),\n        UniqueConstraint(\"customer_id\", \"transaction_id\", name=\"uq_pre_casos_transacao\"),\n",
+          "para": ""
+        },
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "            \" WHERE id = :id AND customer_id = :cliente FOR UPDATE\"",
+          "para": "            \" WHERE id = :id AND customer_id = :cliente\""
+        },
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
+          "para": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_confirmacoes_concorrentes_criam_um_unico_pre_caso"
+      ]
     }
   ]
 }
