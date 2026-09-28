@@ -75,6 +75,10 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
              "transaction_type": "Purchase", "amount": "1500000.00", "currency": "COP", "channel": "Web",
              "merchant_name": 'Viajes "El Cóndor", S.A.', "transaction_country": "Colombia",
              "transaction_status": "Declined", "response_code": "51", "is_fraud": "False"},
+            {"transaction_id": "TRX-FX0000000000000005", "transaction_date": "2025-03-10 16:20:00",
+             "process_date": "2025-03-10", "product_id": "PRD-FX00000001", "customer_id": "CLI-FX00000001",
+             "transaction_type": "Payment", "amount": "50000.00", "currency": "COP", "channel": "App",
+             "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
         ],
         DIA_2: [
             {"transaction_id": "TRX-FX0000000000000003", "transaction_date": "2025-03-11 09:02:44",
@@ -82,6 +86,12 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
              "transaction_type": "Withdrawal", "amount": "200.00", "currency": "USD", "channel": "ATM",
              "transaction_country": "México", "transaction_status": "Pending", "response_code": "05",
              "is_fraud": "False"},
+            # Revisão deliberada (R-REVISAO-SUBSTITUIDA): TRX-...5 republicada no dia 11 com o valor
+            # corrigido; a versão do dia 10 sai da curada e fica auditável.
+            {"transaction_id": "TRX-FX0000000000000005", "transaction_date": "2025-03-10 16:20:00",
+             "process_date": "2025-03-11", "product_id": "PRD-FX00000001", "customer_id": "CLI-FX00000001",
+             "transaction_type": "Payment", "amount": "55000.00", "currency": "COP", "channel": "App",
+             "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
             # Defeito deliberado (Q-TIPO:amount): vírgula decimal não é um número válido.
             {"transaction_id": "TRX-FX0000000000000004", "transaction_date": "2025-03-11 11:30:00",
              "process_date": "2025-03-11", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",

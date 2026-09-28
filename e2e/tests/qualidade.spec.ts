@@ -18,7 +18,7 @@ const pt = (n: number) => n.toLocaleString("pt-BR");
 // - fixture: defeitos deliberados escritos em data/fixture/gerar.py;
 // - dados reais (versão exata do manifesto): recontagem DuckDB do validador (EV-009, ACH-016/017/019).
 const ESPERADO_FIXTURE = {
-  transactions: { quarentena: 1, motivos: { "Q-TIPO:amount": 1 } },
+  transactions: { quarentena: 2, motivos: { "Q-TIPO:amount": 1, "R-REVISAO-SUBSTITUIDA": 1 } },
   complaints: { anulacao: ["A-PROP:affected_product_id", 1] as const },
 };
 const ESPERADO_S3 = {
