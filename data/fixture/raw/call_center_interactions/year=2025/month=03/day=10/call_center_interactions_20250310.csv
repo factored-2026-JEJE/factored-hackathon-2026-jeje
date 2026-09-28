@@ -1,0 +1,2 @@
+﻿interaction_id,interaction_date,process_date,customer_id,agent_id,interaction_type,channel,contact_reason,reason_category,duration_seconds,wait_time_seconds,was_resolved,requires_followup,detected_sentiment,sentiment_score,customer_detected_accent,agent_used_accent,was_escalated,mentioned_products,has_transcript,has_recording
+INT-FX00000000000001,2025-03-10 19:10:00,2025-03-10,CLI-FX00000001,AGT-FX000001,Inbound Call,Phone,Transaccional,,,,False,,,,,,,,True,

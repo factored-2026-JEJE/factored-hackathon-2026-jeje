@@ -1,0 +1,3 @@
+﻿transcript_id,interaction_id,process_date,customer_id,agent_id,full_text,customer_text,agent_text,detected_language,detected_accent,accent_confidence,detected_keywords,mentioned_entities,detected_intents,main_topics,transcription_model,audio_quality,duration_seconds
+TRS-FX0000000000000001,INT-FX00000000000001,2025-03-10,CLI-FX00000001,AGT-FX000001,"Cliente: Hola, mi compra fue rechazada.
+Agente: Reviso su tarjeta, un momento.",,,es,,,,,,,,,
