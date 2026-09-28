@@ -117,6 +117,7 @@ def test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback(cenario_c
     assert linhas[0] == "erro inesperado metodo=POST rota=/atendimento/fila/{handoff_id}/assumir"
     # Onde e o quê (frames e classes da cadeia), sem a mensagem que o banco devolveu.
     assert any("jeje/handoff.py" in linha for linha in linhas)
+    assert not any("starlette/" in linha for linha in linhas)  # sem o miolo do framework
     assert linhas[-1] == "sqlalchemy.exc.ProgrammingError"
     assert "psycopg.errors.RaiseException" in linhas
     assert "falha injetada" not in erros[0].getMessage()

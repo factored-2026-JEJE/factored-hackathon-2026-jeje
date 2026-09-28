@@ -4190,6 +4190,21 @@
       "testes": [
         "tests/test_config.py::test_nivel_de_log_ausente_ou_invalido_falha"
       ]
+    },
+    {
+      "id": "M-LOG-16",
+      "requisito": "R06",
+      "descricao": "Traceback do erro inesperado volta a trazer todo o miolo do framework (dezenas de linhas sem o local do problema)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/logs.py",
+          "de": "    return [q for i, q in enumerate(quadros) if \"/jeje/\" in q.filename or i == len(quadros) - 1]",
+          "para": "    return list(quadros)"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback"
+      ]
     }
   ]
 }

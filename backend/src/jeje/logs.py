@@ -51,6 +51,13 @@ def configurar(nivel: str) -> None:
     raiz.setLevel(nivel)
 
 
+def _quadros_uteis(excecao: BaseException) -> list[traceback.FrameSummary]:
+    """Frames do próprio pacote e o frame onde a exceção nasceu (o miolo do framework fica de
+    fora: dezenas de linhas de starlette/anyio que não dizem onde está o problema)."""
+    quadros = traceback.extract_tb(excecao.__traceback__)
+    return [q for i, q in enumerate(quadros) if "/jeje/" in q.filename or i == len(quadros) - 1]
+
+
 def sem_mensagens(erro: BaseException) -> str:
     """Traceback da cadeia de exceções (causa primeiro) só com frames e classes."""
     cadeia: list[BaseException] = []
@@ -60,7 +67,7 @@ def sem_mensagens(erro: BaseException) -> str:
         atual = atual.__cause__ or atual.__context__
     blocos = []
     for excecao in reversed(cadeia):
-        quadros = "".join(traceback.format_list(traceback.extract_tb(excecao.__traceback__)))
+        quadros = "".join(traceback.format_list(_quadros_uteis(excecao)))
         classe = type(excecao)
         blocos.append(f"{quadros}{classe.__module__}.{classe.__qualname__}")
     return "\n-- levou a --\n".join(blocos)
