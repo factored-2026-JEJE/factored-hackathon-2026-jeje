@@ -248,6 +248,96 @@
       "testes": [
         "pre_caso.spec.ts > contestar, confirmar, ver o protocolo e reencontrá-lo sem duplicar"
       ]
+    },
+    {
+      "id": "M-E2E-14",
+      "requisito": "R02",
+      "descricao": "Conversa diz que registrou o pré-caso sem gravar",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/conversa.py",
+          "de": "            registrado, _ = pre_caso.confirmar(\n                self.conexao, self.customer_id, proposta_id, self.limite_usd\n            )",
+          "para": "            registrado = pre_caso.PreCaso(\"PC-00000077\", transaction_id, \"recebido\", None)"
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho normal (es): contestar, confirmar e reencontrar o pré-caso sem duplicar"
+      ]
+    },
+    {
+      "id": "M-E2E-15",
+      "requisito": "R07",
+      "descricao": "Botões de confirmação sempre em espanhol",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Conversa.tsx",
+          "de": "  const rapidas = RESPOSTAS[situacao.idioma];",
+          "para": "  const rapidas = RESPOSTAS.es;"
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho normal (pt): contestar, confirmar e reencontrar o pré-caso sem duplicar"
+      ]
+    },
+    {
+      "id": "M-E2E-16",
+      "requisito": "R02",
+      "descricao": "Opções de transação da mais antiga para a mais recente",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/consultas.py",
+          "de": "            \" ORDER BY transaction_date DESC, transaction_id\"\n",
+          "para": "            \" ORDER BY transaction_date ASC, transaction_id\"\n"
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho ambíguo (es): lista só as recusas do cliente e explica a escolhida"
+      ]
+    },
+    {
+      "id": "M-E2E-17",
+      "requisito": "R02",
+      "descricao": "Tela mostra só a primeira opção",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Conversa.tsx",
+          "de": "          {situacao.opcoes.map((o) => (",
+          "para": "          {situacao.opcoes.slice(0, 1).map((o) => ("
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho ambíguo (pt): lista só as recusas do cliente e explica a escolhida"
+      ]
+    },
+    {
+      "id": "M-E2E-18",
+      "requisito": "R07",
+      "descricao": "Fila do atendente não atualiza quando a conversa encaminha",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/App.tsx",
+          "de": "            <FilaDoAtendimento versao={versao} />",
+          "para": "            <FilaDoAtendimento versao={0} />"
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho humano (es): relato de fraude encaminha e aparece na fila do atendente"
+      ]
+    },
+    {
+      "id": "M-E2E-19",
+      "requisito": "R03",
+      "descricao": "Relato de fraude não encaminha para humano",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/politica.py",
+          "de": "    if intencao == \"fraude\":\n        return Decisao(\"POL-HUM-01\", \"humano\", \"relato de fraude\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho humano (pt): relato de fraude encaminha e aparece na fila do atendente"
+      ]
     }
   ]
 }
