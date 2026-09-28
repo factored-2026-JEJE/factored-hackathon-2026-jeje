@@ -8,3 +8,4 @@ dist/
 # Dados do desafio: baixados do S3 dos organizadores, conferidos pelo manifesto versionado; nunca no Git
 data/raw/
 *.part
+*.egg-info/

@@ -2,16 +2,19 @@
 name = "jeje"
 version = "0.1.0"
 description = "Backend do produto JEJE — Factored AI & Data Hackathon 2026"
-requires-python = ">=3.12"
-# Versões fixadas iguais ao lock do ambiente local do time (vault, scripts/ambiente/requirements.lock).
+requires-python = ">=3.12,<3.13"
+# Versões iguais às do ambiente local validado do time; o uv.lock fixa toda a árvore com hashes.
 dependencies = [
   "fastapi==0.141.1",
   "pydantic==2.13.5",
   "uvicorn==0.54.0",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest==9.1.1", "httpx==0.28.1"]
+[dependency-groups]
+dev = [
+  "pytest==9.1.1",
+  "httpx==0.28.1",
+]
 
 [build-system]
 requires = ["setuptools>=69"]
