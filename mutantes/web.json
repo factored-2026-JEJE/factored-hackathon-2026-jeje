@@ -359,6 +359,111 @@
       "testes": [
         "src/IndicadoresDaEda.test.tsx > mostra erro quando os indicadores não podem ser obtidos"
       ]
+    },
+    {
+      "id": "M-WEB-23",
+      "requisito": "R02",
+      "descricao": "Valor em COP arredondado (sem centavos)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "    minimumFractionDigits: 2,\n    maximumFractionDigits: 2,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > entrar como persona abre sessão e mostra só as transações dela"
+      ]
+    },
+    {
+      "id": "M-WEB-24",
+      "requisito": "R08",
+      "descricao": "Transações pedidas sem o token da sessão",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "  return json<Transacao[]>(await fetch(\"/api/minhas/transacoes\", { headers: comToken(token) }), 200);",
+          "para": "  return json<Transacao[]>(await fetch(\"/api/minhas/transacoes\"), 200);"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > pede as transações com o token emitido e nunca com o id do cliente"
+      ]
+    },
+    {
+      "id": "M-WEB-25",
+      "requisito": "R08",
+      "descricao": "Sessão recusada vira erro genérico em vez de voltar ao acesso",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "        if (e instanceof SessaoExpirada) aoExpirar();\n        else setErro(String(e));",
+          "para": "        setErro(String(e));"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > sessão expirada volta para o acesso com aviso"
+      ]
+    },
+    {
+      "id": "M-WEB-26",
+      "requisito": "R08",
+      "descricao": "Sair não apaga o token guardado",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "    guardarSessao(null);\n    setSessao(null);",
+          "para": "    setSessao(null);"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > sair apaga a sessão guardada"
+      ]
+    },
+    {
+      "id": "M-WEB-27",
+      "requisito": "R06",
+      "descricao": "Token não é guardado: recarregar perde a sessão",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "    guardarSessao(aberta.token);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > sair apaga a sessão guardada"
+      ]
+    },
+    {
+      "id": "M-WEB-28",
+      "requisito": "R06",
+      "descricao": "Recarregar ignora a sessão guardada",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "    const token = lerSessaoGuardada();",
+          "para": "    const token: string | null = null;"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > recarregar a página com sessão guardada volta direto para o cliente"
+      ]
+    },
+    {
+      "id": "M-WEB-29",
+      "requisito": "R02",
+      "descricao": "Situação da transação traduzida errado",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "  Declined: \"Recusada\",",
+          "para": "  Declined: \"Aprovada\","
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > entrar como persona abre sessão e mostra só as transações dela"
+      ]
     }
   ]
 }
