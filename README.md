@@ -34,6 +34,16 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 Em português também: "Não reconheço a cobrança…", "Por que recusaram minha compra?", "Roubaram
 meu cartão". As métricas do atendimento (encaminhamentos, pré-casos, latência) ficam ao lado.
 
+## Recarga dos dados
+
+Quando a versão dos dados (`data/manifesto/`) ou o código do pipeline mudam, o `make up` recarrega
+tudo numa transação só. Durante a recarga a API responde 503 na hora, com `Retry-After`, e a
+readiness diz `reloading`. Nada espera nem mistura as duas versões. No fim da mesma transação, o
+atendimento montado com os dados anteriores não atravessa a troca: as conversas em andamento ficam
+encerradas (a tela oferece uma nova), as propostas de pré-caso pendentes vencem e as sessões caem
+(volte ao acesso de teste). Conversas com atendente, encaminhamentos e pré-casos continuam como
+registro. Mesma versão já carregada: nada muda.
+
 ## Modelo local
 
 `make up` liga o modo modelo: as frases que as regras não entendem vão para um modelo local
