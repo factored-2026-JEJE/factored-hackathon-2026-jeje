@@ -2331,13 +2331,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/transacoes_api.py",
-          "de": "    return Situacao(transacao=transacao, decisao=_saida(politica.decidir_consulta(fatos)))",
-          "para": "    return Situacao(transacao=transacao, decisao=_saida(politica.decidir_contestacao(fatos, request_limite(), None)))"
-        },
-        {
-          "arquivo": "src/jeje/transacoes_api.py",
-          "de": "def _saida(decisao: politica.Decisao) -> DecisaoDaPolitica:",
-          "para": "def request_limite():\n    from decimal import Decimal\n\n    return Decimal(\"1000\")\n\n\ndef _saida(decisao: politica.Decisao) -> DecisaoDaPolitica:"
+          "de": "decisao=decisao_para_resposta(politica.decidir_consulta(fatos))",
+          "para": "decisao=decisao_para_resposta(politica.decidir_contestacao(fatos, fatos.amount_usd, None))"
         }
       ],
       "testes": [
@@ -2582,6 +2577,21 @@
       ],
       "testes": [
         "tests/test_pre_caso.py::test_avaliacao_reconhece_pre_caso_ja_aberto"
+      ]
+    },
+    {
+      "id": "M-PRE-13",
+      "requisito": "R02",
+      "descricao": "Confirmação responde protocolo montado em memória em vez do relido do banco",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:",
+          "para": "    registrado = PreCaso(protocolo=\"PC-\" + proposta_id[:8], transaction_id=proposta.transaction_id, estado=\"recebido\", criado_em=datetime.now())\n    if registrado is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_proposta_confirmada_gera_um_protocolo_relido_do_banco"
       ]
     },
     {
