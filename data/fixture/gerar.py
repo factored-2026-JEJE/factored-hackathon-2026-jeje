@@ -108,6 +108,18 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
              "transaction_type": "Purchase", "amount": "27.40", "currency": "USD", "channel": "POS",
              "merchant_name": "Óptica Visión", "transaction_country": "México",
              "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
+            # Limites decididos por Jader (PRD-001): compra noturna pelo app acima de 1.000 vai para
+            # humano (POL-HUM-04); transferência acima de 50.000 vai para segurança (POL-SEG-01).
+            {"transaction_id": "TRX-FX0000000000000013", "transaction_date": "2025-03-09 23:10:00",
+             "process_date": "2025-03-10", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",
+             "transaction_type": "Purchase", "amount": "1500.00", "currency": "USD", "channel": "App",
+             "merchant_name": "Boutique Moda", "transaction_country": "México",
+             "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
+            {"transaction_id": "TRX-FX0000000000000014", "transaction_date": "2025-03-09 11:00:00",
+             "process_date": "2025-03-10", "product_id": "PRD-FX00000001", "customer_id": "CLI-FX00000001",
+             "transaction_type": "Transfer", "amount": "60000.00", "currency": "USD", "channel": "Web",
+             "transaction_country": "Colombia", "transaction_status": "Approved", "response_code": "00",
+             "is_fraud": "False"},
         ],
         DIA_2: [
             {"transaction_id": "TRX-FX0000000000000003", "transaction_date": "2025-03-11 09:02:44",
@@ -122,7 +134,7 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
              "transaction_type": "Payment", "amount": "55000.00", "currency": "COP", "channel": "App",
              "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
             # Aprovada em USD abaixo do limite simulado: caso elegível para pré-caso (POL-DISP-01).
-            {"transaction_id": "TRX-FX0000000000000006", "transaction_date": "2025-03-11 20:15:00",
+            {"transaction_id": "TRX-FX0000000000000006", "transaction_date": "2025-03-11 19:15:00",
              "process_date": "2025-03-11", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",
              "transaction_type": "Purchase", "amount": "45.90", "currency": "USD", "channel": "Web",
              "merchant_name": "Streaming Plus", "transaction_country": "México",

@@ -1,10 +1,15 @@
 import { expect, test } from "@playwright/test";
+import { LIMITES, noturnaDigital, type Transacao } from "./comum";
 
-type Transacao = { transaction_id: string; transaction_status: string; response_code: string | null };
-
-// Matriz de autonomia (DEV-006) reescrita aqui como oráculo, independente do código da política.
+// Matriz de autonomia (DEV-006, limites PRD-001) reescrita aqui como oráculo, independente do
+// código da política. O valor em USD só é conhecido aqui quando a moeda é USD; nenhuma transação
+// da base real passa de USD 10.000, então transferência atípica só existe em USD na fixture.
 const CATALOGADOS = new Set(["05", "14", "51", "54"]);
+const atipica = (t: Transacao) =>
+  t.transaction_type === "Transfer" && t.currency === "USD" && Number(t.amount) > LIMITES.seguranca;
+
 function regraEsperada(t: Transacao): string {
+  if (atipica(t)) return "POL-SEG-01";
   if (t.transaction_status === "Approved") return "POL-CON-01";
   if (t.transaction_status === "Declined") return CATALOGADOS.has(t.response_code ?? "") ? "POL-CON-03" : "POL-CON-04";
   if (t.transaction_status === "Pending" || t.transaction_status === "Reversed") return "POL-CON-05";
@@ -30,9 +35,14 @@ test("situação de cada transação das personas segue a matriz e contestação
       const situacao = await (await request.get(`/api/minhas/transacoes/${t.transaction_id}/situacao`, { headers: auth })).json();
       expect(situacao.decisao.regra, t.transaction_id).toBe(regraEsperada(t));
       const contestacao = await (await request.get(`/api/minhas/transacoes/${t.transaction_id}/contestacao`, { headers: auth })).json();
-      if (t.transaction_status !== "Approved") expect(contestacao).toMatchObject({ regra: "POL-DISP-02", acao: "humano" });
+      if (atipica(t)) expect(contestacao).toMatchObject({ regra: "POL-SEG-01", acao: "humano" });
+      else if (t.transaction_status !== "Approved") expect(contestacao).toMatchObject({ regra: "POL-DISP-02", acao: "humano" });
       else if (contestacao.regra === "POL-DISP-03") expect(await protocoloAberto(t.transaction_id)).toBe(contestacao.detalhe);
-      else expect(["POL-DISP-01", "POL-HUM-02"]).toContain(contestacao.regra);
+      else if (t.currency !== "USD") expect(["POL-DISP-01", "POL-HUM-02", "POL-HUM-04"]).toContain(contestacao.regra);
+      else if (noturnaDigital(t) && Number(t.amount) > LIMITES.noturno) expect(contestacao.regra).toBe("POL-HUM-04");
+      // Noturna digital dentro do limite: o que já foi registrado hoje decide (limite do dia).
+      else if (noturnaDigital(t)) expect(["POL-DISP-01", "POL-HUM-04"]).toContain(contestacao.regra);
+      else expect(contestacao.regra).toBe(Number(t.amount) > LIMITES.padrao ? "POL-HUM-02" : "POL-DISP-01");
       avaliadas += 1;
     }
   }

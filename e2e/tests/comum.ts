@@ -11,7 +11,18 @@ export type Transacao = {
   merchant_name: string | null;
   transaction_status: string;
   response_code: string | null;
+  transaction_type: string | null;
+  channel: string | null;
 };
+
+// Limites do compose (PRD-001), reescritos aqui como oráculo independente do código da política.
+export const LIMITES = { padrao: 5000, noturno: 1000, seguranca: 50000, canais: ["App", "Web"], inicio: 20, fim: 6 };
+
+/** Feita à noite (20h–6h, horário local da transação) por celular ou computador. */
+export function noturnaDigital(t: Transacao): boolean {
+  const hora = Number(t.transaction_date.slice(11, 13));
+  return LIMITES.canais.includes(t.channel ?? "") && (hora >= LIMITES.inicio || hora < LIMITES.fim);
+}
 
 export const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
@@ -39,7 +50,9 @@ const CONSUMIDORES = ["pre_caso", "conversa-es", "conversa-pt"] as const;
 /**
  * Transação que a política deixa contestar agora (POL-DISP-01), numa partição estável por
  * consumidor e navegador. Já contestadas (POL-DISP-03) seguem contando na partição, para que quem
- * confirmar primeiro não desloque a escolha dos outros. `aceita` filtra dentro da própria parte.
+ * confirmar primeiro não desloque a escolha dos outros. Noturnas digitais ficam de fora: o limite
+ * do dia (POL-HUM-04) pode tirá-las da lista no meio da execução, quando outro teste registra um
+ * pré-caso do mesmo cliente. `aceita` filtra dentro da própria parte.
  */
 export async function elegivel(
   request: APIRequestContext,
@@ -55,6 +68,7 @@ export async function elegivel(
     const token = await sessao(request, persona.customer_id);
     const doCliente = await transacoes(request, token);
     for (const t of doCliente.slice(0, 20)) {
+      if (noturnaDigital(t)) continue;
       const url = `/api/minhas/transacoes/${t.transaction_id}/contestacao`;
       const { regra } = await (await request.get(url, { headers: auth(token) })).json();
       if (regra !== "POL-DISP-01" && regra !== "POL-DISP-03") continue;

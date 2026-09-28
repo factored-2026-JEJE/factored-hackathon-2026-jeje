@@ -338,6 +338,36 @@
       "testes": [
         "conversa.spec.ts > caminho humano (pt): relato de fraude encaminha e aparece na fila do atendente"
       ]
+    },
+    {
+      "id": "M-E2E-20",
+      "requisito": "R03",
+      "descricao": "Regra noturna digital desligada no backend",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/politica.py",
+          "de": "    if noturna_digital(fatos, limites):",
+          "para": "    if False:"
+        }
+      ],
+      "testes": [
+        "politica.spec.ts > situação de cada transação das personas segue a matriz e contestação só avança para Approved"
+      ]
+    },
+    {
+      "id": "M-E2E-21",
+      "requisito": "R03",
+      "descricao": "Transferência atípica sem análise de segurança",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/politica.py",
+          "de": "        fatos.transaction_type == \"Transfer\"\n",
+          "para": "        fatos.transaction_type == \"Transferencia\"\n"
+        }
+      ],
+      "testes": [
+        "politica.spec.ts > situação de cada transação das personas segue a matriz e contestação só avança para Approved"
+      ]
     }
   ]
 }
