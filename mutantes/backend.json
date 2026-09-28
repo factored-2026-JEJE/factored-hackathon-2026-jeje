@@ -291,6 +291,61 @@
       "testes": [
         "tests/test_contrato_versionado.py::test_contrato_versionado_coincide_com_a_api"
       ]
+    },
+    {
+      "id": "M-RAW-01",
+      "requisito": "R04",
+      "descricao": "Migration raw esquece uma coluna do arquivo (response_code das transações)",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0002_raw.py",
+          "de": "        \"response_code\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
+      "id": "M-RAW-02",
+      "requisito": "R04",
+      "descricao": "Downgrade da camada raw deixa o schema para trás",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0002_raw.py",
+          "de": "    op.execute(\"DROP SCHEMA raw\")",
+          "para": "    pass"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema"
+      ]
+    },
+    {
+      "id": "M-RAW-03",
+      "requisito": "R04",
+      "descricao": "Migration raw deixa de criar uma das 13 tabelas",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0002_raw.py",
+          "de": "    for tabela, colunas in COLUNAS.items():\n        op.create_table(",
+          "para": "    for tabela, colunas in list(COLUNAS.items())[:-1]:\n        op.create_table("
+        },
+        {
+          "arquivo": "migrations/versions/0002_raw.py",
+          "de": "    for tabela in COLUNAS:\n        op.drop_table(",
+          "para": "    for tabela in list(COLUNAS)[:-1]:\n        op.drop_table("
+        },
+        {
+          "arquivo": "src/jeje/dados/raw.py",
+          "de": "    for nome, colunas in COLUNAS.items()\n}",
+          "para": "    for nome, colunas in list(COLUNAS.items())[:-1]\n}"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema"
+      ]
     }
   ]
 }

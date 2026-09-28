@@ -6,7 +6,7 @@ from conftest import alembic_config, conexao
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-SCHEMAS_DO_PRODUTO = ("meta",)
+SCHEMAS_DO_PRODUTO = ("meta", "raw")
 
 
 def tabelas_do_produto(settings) -> set[str]:
@@ -33,10 +33,12 @@ def test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema(banco_limpo):
     command.upgrade(config, "head")
     depois_do_upgrade = tabelas_do_produto(banco_limpo)
     assert "meta.dataset_version" in depois_do_upgrade
+    # As 13 tabelas do dataset entregue pelos organizadores (inventário S3 de 28/09/2026).
+    assert len({t for t in depois_do_upgrade if t.startswith("raw.")}) == 13
 
     command.downgrade(config, "base")
     assert tabelas_do_produto(banco_limpo) == set()
-    assert "meta" not in schemas_existentes(banco_limpo)
+    assert schemas_existentes(banco_limpo).isdisjoint(SCHEMAS_DO_PRODUTO)
 
     command.upgrade(config, "head")
     assert tabelas_do_produto(banco_limpo) == depois_do_upgrade
