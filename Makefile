@@ -10,17 +10,17 @@ rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>
 .PHONY: up up-fixture down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	metricas contrato contrato-explorar check gate
 
-up: ## Sobe a stack completa (dados reais do S3; precisa do .env): http://localhost:8080
-	docker compose up -d --build --wait
+up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
+	docker compose --profile modelo up -d --build --wait
 
 up-fixture: ## Sobe a stack com a fixture sintética (sem .env, sem download)
 	docker compose -f compose.yaml -f compose.ci.yaml up -d --build --wait
 
 down: ## Para a stack (mantém o banco)
-	docker compose down
+	docker compose --profile modelo down
 
 reset: ## Apaga o banco local (mantém os CSV baixados) para recarregar do zero
-	docker compose down
+	docker compose --profile modelo down
 	@# Volume do projeto efetivo (respeita -p/COMPOSE_PROJECT_NAME); só a linha do nome é lida.
 	docker volume rm -f "$$(docker compose config | sed -n 's/^name: //p')_pgdata"
 
