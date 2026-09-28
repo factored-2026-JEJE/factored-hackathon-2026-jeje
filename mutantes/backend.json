@@ -3277,8 +3277,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        if proposta is not None:\n            contexto = {",
-          "para": "        if proposta is not None:\n            pre_caso.confirmar(self.conexao, self.customer_id, proposta.id, self.limite_usd)\n            contexto = {"
+          "de": "        if proposta is not None:\n            self._fonte(\"app.propostas_pre_caso\")\n",
+          "para": "        if proposta is not None:\n            self._fonte(\"app.propostas_pre_caso\")\n            pre_caso.confirmar(self.conexao, self.customer_id, proposta.id, self.limite_usd)\n"
         }
       ],
       "testes": [

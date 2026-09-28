@@ -178,8 +178,8 @@
       "trocas": [
         {
           "arquivo": "src/FilaDoAtendimento.tsx",
-          "de": "  }, [versao]);",
-          "para": "  }, []);"
+          "de": "  }, [versao, assumidos]);",
+          "para": "  }, [assumidos]);"
         }
       ],
       "testes": [
