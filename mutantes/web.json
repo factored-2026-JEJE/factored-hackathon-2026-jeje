@@ -442,6 +442,36 @@
       ]
     },
     {
+      "id": "M-WEB-56",
+      "requisito": "R07",
+      "descricao": "Conversa encerrada pela recarga sem aviso na tela (cliente não sabe por que nada acontece)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      {encerrada && (\n        <p role=\"status\" className=\"aviso\">\n          Conversa encerrada: os dados foram atualizados. Abra uma nova conversa.\n        </p>\n      )}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > conversa encerrada pela recarga avisa, trava o envio e deixa só a nova conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-57",
+      "requisito": "R07",
+      "descricao": "Campo de mensagem continua ativo na conversa encerrada",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "          disabled={enviando || encerrada}",
+          "para": "          disabled={enviando}"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > conversa encerrada pela recarga avisa, trava o envio e deixa só a nova conversa"
+      ]
+    },
+    {
       "id": "M-WEB-09",
       "requisito": "R06",
       "descricao": "Tipos do contrato editados à mão divergem do OpenAPI versionado",

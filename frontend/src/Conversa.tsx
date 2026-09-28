@@ -167,6 +167,8 @@ export function Conversa({
   }
 
   const rapidas = RESPOSTAS[situacao.idioma];
+  // A recarga dos dados encerrou a conversa: nada do contexto vale mais, só uma nova conversa.
+  const encerrada = situacao.estado === "encerrada";
   return (
     <section aria-label="Conversa" className="cartao conversa">
       <div className="cabecalho">
@@ -194,6 +196,11 @@ export function Conversa({
       {situacao.estado === "com_humano" && (
         <p role="status" className="aviso">
           Com atendimento humano{situacao.atendimento ? ` (${situacao.atendimento})` : ""}.
+        </p>
+      )}
+      {encerrada && (
+        <p role="status" className="aviso">
+          Conversa encerrada: os dados foram atualizados. Abra uma nova conversa.
         </p>
       )}
       {situacao.opcoes.length > 0 && (
@@ -245,11 +252,11 @@ export function Conversa({
           id="mensagem"
           value={texto}
           maxLength={500}
-          disabled={enviando}
+          disabled={enviando || encerrada}
           onChange={(e) => setTexto(e.target.value)}
           placeholder={situacao.idioma === "es" ? "Escribe tu mensaje" : "Escreva sua mensagem"}
         />
-        <button type="submit" disabled={enviando || texto.trim() === ""}>
+        <button type="submit" disabled={enviando || encerrada || texto.trim() === ""}>
           Enviar
         </button>
       </form>

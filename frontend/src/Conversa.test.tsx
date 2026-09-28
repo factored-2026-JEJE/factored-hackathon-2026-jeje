@@ -182,3 +182,21 @@ test("encaminhamento mostra o atendimento humano e avisa a fila", async () => {
   expect(await screen.findByText("Com atendimento humano (AT-00000001).")).toBeInTheDocument();
   expect(aoMudar).toHaveBeenCalledTimes(1);
 });
+
+test("conversa encerrada pela recarga avisa, trava o envio e deixa só a nova conversa", async () => {
+  const encerrada = turno({
+    intencao: "desconhecida",
+    regra: "ENCERRADA",
+    acao: "encerrada",
+    estado: "encerrada",
+    resposta: "Esta conversación se cerró porque los datos se actualizaron.",
+    transaction_id: null,
+    proposta: null,
+  });
+  servidor([{ status: 200, corpo: encerrada }]);
+  montar();
+  await abrirEPedir("sí");
+  expect(await screen.findByText("Conversa encerrada: os dados foram atualizados. Abra uma nova conversa.")).toBeInTheDocument();
+  expect(screen.getByLabelText("Mensagem")).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Nova conversa" })).toBeEnabled();
+});
