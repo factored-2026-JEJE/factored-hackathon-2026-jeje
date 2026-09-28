@@ -76,9 +76,31 @@ WARNING jeje.db req=b0711da3… banco indisponivel erro=OperationalError motivo=
 - Nível em `LOG_LEVEL` no `compose.yaml`; `DEBUG` mostra também as sondas de saúde.
 - Nunca entram a mensagem do cliente, o token, o identificador do cliente nem valores de SQL. Erro
   inesperado vira 500 com o id e um log com os arquivos e as linhas do código, sem a mensagem da
-  exceção (o banco repete valores nela). O trace completo de cada turno fica em `app.eventos`
-  (`make metricas`).
-- Banco fora do ar: 503 com `Retry-After`, sem traceback.
+  exceção (o banco repete valores nela).
+
+### Auditoria
+
+Todo efeito deixa um evento em `app.eventos`, na mesma transação do efeito, com o mesmo id da
+requisição (`requisicao`): turno da conversa (regra, ação, efeito, fontes, quem leu a mensagem e o uso
+do modelo), erro de turno desfeito (só a classe), ação fora da conversa (proposta e pré-caso pelo
+painel, atendente que assume) e a própria recarga dos dados (quantas conversas, propostas e sessões
+ela encerrou). Do `X-Request-ID` de uma resposta chega-se às linhas do log, ao evento e, pelo efeito,
+ao turno (`app.turnos`), ao pré-caso (`app.pre_casos`) ou ao encaminhamento (`app.handoffs`).
+`make metricas` recomputa tudo dos eventos; os pré-casos contados batem com os gravados.
+
+### Limites de tempo e respostas de falha
+
+Tudo no `compose.yaml`. Nenhuma requisição fica pendurada: ou responde, ou falha rápido com uma
+resposta que diz o que fazer.
+
+| Situação | Limite | Resposta |
+| --- | --- | --- |
+| Banco fora do ar ou sem responder | conexão em 3 s (`DB_CONNECT_TIMEOUT_S`) | 503 com `Retry-After: 5` |
+| Todas as conexões do pool ocupadas | espera de 5 s (`DB_POOL_*`: 5 + 10 excedentes) | 503 com `Retry-After: 5` |
+| Comando SQL da API demorado | 5 s por comando (`DB_STATEMENT_TIMEOUT_MS`) | 503 com `Retry-After: 5` |
+| Recarga dos dados em andamento | nenhuma espera | 503 com `Retry-After: 30` |
+| Modelo lento, fora do ar ou resposta estranha | 10 s por chamada (`OLLAMA_TIMEOUT_S`) | segue pelas regras, motivo no trace |
+| Erro inesperado | — | 500 com o id da requisição |
 
 ## Testar
 
