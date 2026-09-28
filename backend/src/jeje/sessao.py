@@ -33,8 +33,11 @@ def provisionar_personas(conexao: Connection, quantidade: int) -> list[str]:
             "        coalesce(nullif(trim(concat_ws(' ', c.first_name, c.last_name)), ''),"
             "                 c.customer_id),"
             "        row_number() OVER (ORDER BY t.variedade DESC, c.customer_id)"
-            " FROM (SELECT customer_id, count(DISTINCT transaction_status) AS variedade"
-            "       FROM curated.transactions GROUP BY customer_id) t"
+            # Pares distintos (cliente, status) antes de contar: agregação em hash, sem a ordenação
+            # em disco do count(DISTINCT) nas 4,4 mi transações (7,4 s; 14 s com o índice → 1,8 s).
+            " FROM (SELECT customer_id, count(*) AS variedade FROM"
+            "       (SELECT DISTINCT customer_id, transaction_status FROM curated.transactions) d"
+            "       GROUP BY customer_id) t"
             " JOIN curated.customers c USING (customer_id)"
             " ORDER BY t.variedade DESC, c.customer_id LIMIT :quantidade"
         ),
