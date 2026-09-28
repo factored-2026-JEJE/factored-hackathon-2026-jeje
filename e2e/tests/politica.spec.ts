@@ -18,11 +18,20 @@ test("situação de cada transação das personas segue a matriz e contestação
     const { token } = await (await request.post("/api/sessoes", { data: { customer_id: persona.customer_id } })).json();
     const auth = { Authorization: `Bearer ${token}` };
     const transacoes: Transacao[] = await (await request.get("/api/minhas/transacoes?limite=20", { headers: auth })).json();
+    // POL-DISP-03 precisa apontar o protocolo existente da transação. A lista é relida na hora:
+    // outros testes em paralelo podem abrir pré-casos durante este.
+    const protocoloAberto = async (transacaoId: string) => {
+      const abertos: { protocolo: string; transaction_id: string }[] = await (
+        await request.get("/api/minhas/pre-casos", { headers: auth })
+      ).json();
+      return abertos.find((p) => p.transaction_id === transacaoId)?.protocolo;
+    };
     for (const t of transacoes) {
       const situacao = await (await request.get(`/api/minhas/transacoes/${t.transaction_id}/situacao`, { headers: auth })).json();
       expect(situacao.decisao.regra, t.transaction_id).toBe(regraEsperada(t));
       const contestacao = await (await request.get(`/api/minhas/transacoes/${t.transaction_id}/contestacao`, { headers: auth })).json();
       if (t.transaction_status !== "Approved") expect(contestacao).toMatchObject({ regra: "POL-DISP-02", acao: "humano" });
+      else if (contestacao.regra === "POL-DISP-03") expect(await protocoloAberto(t.transaction_id)).toBe(contestacao.detalhe);
       else expect(["POL-DISP-01", "POL-HUM-02"]).toContain(contestacao.regra);
       avaliadas += 1;
     }

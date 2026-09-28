@@ -98,6 +98,12 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
              "transaction_type": "Purchase", "amount": "45.90", "currency": "USD", "channel": "Web",
              "merchant_name": "Streaming Plus", "transaction_country": "México",
              "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
+            # Segunda elegível: cada navegador do E2E contesta uma transação diferente.
+            {"transaction_id": "TRX-FX0000000000000007", "transaction_date": "2025-03-11 21:40:00",
+             "process_date": "2025-03-11", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",
+             "transaction_type": "Purchase", "amount": "12.00", "currency": "USD", "channel": "POS",
+             "merchant_name": "Café Central", "transaction_country": "México",
+             "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
             # Defeito deliberado (Q-TIPO:amount): vírgula decimal não é um número válido.
             {"transaction_id": "TRX-FX0000000000000004", "transaction_date": "2025-03-11 11:30:00",
              "process_date": "2025-03-11", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",
