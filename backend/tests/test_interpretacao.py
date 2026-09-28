@@ -77,6 +77,22 @@ def test_perda_assalto_e_cargo_de_quem_atende(texto, intencao):
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # Perguntar pelo reembolso ou pela devolução é consulta (ACH-102, nas regras).
+        ("¿dónde está mi reembolso?", "consultar"),
+        ("¿cuándo llega la devolución?", "consultar"),
+        ("cadê a devolução do meu dinheiro?", "consultar"),
+        # Contestação é dizer que não reconhece a cobrança ou que ela é indevida.
+        ("quiero el reembolso de un cobro que no reconozco", "contestar"),
+        ("quero a devolução de uma cobrança indevida", "contestar"),
+    ],
+)
+def test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         ("no reconozco el cobro, me robaron la tarjeta", "fraude"),
         ("não reconheço a compra, quero falar com um atendente", "humano"),
         ("quero um empréstimo pra pagar a compra", "fora_de_escopo"),

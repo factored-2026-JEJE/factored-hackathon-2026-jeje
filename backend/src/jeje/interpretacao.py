@@ -104,13 +104,13 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("contestar", ("no reconozco", "no la reconozco", "no lo reconozco", "nao reconheco",
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
-                   "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
-                   "reembolso", "devolucion", "devolucao")),
+                   "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei")),
+    # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
                    "negaram", "pendiente*", "pendente*", "revertid*", "estornad*", "estado",
                    "status", "situacion", "situacao", "que paso", "o que aconteceu", "transac*",
                    "compra", "pago", "pagamento", "cobro", "cobranca", "cargo", "consultar",
-                   "aprobad*", "aprovad*")),
+                   "aprobad*", "aprovad*", "reembolso", "devolucion", "devolucao")),
 )  # fmt: skip
 
 STATUS_CITADO: tuple[tuple[str, tuple[str, ...]], ...] = (

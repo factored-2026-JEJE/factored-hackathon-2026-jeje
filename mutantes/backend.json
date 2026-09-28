@@ -4525,6 +4525,21 @@
       ]
     },
     {
+      "id": "M-ITP-26",
+      "requisito": "R03",
+      "descricao": "Reembolso e devolução voltam a ser contestação (\"¿dónde está mi reembolso?\" leva a propor pré-caso; ACH-102)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"no autorice\", \"nao autorizei\")),",
+          "para": "\"no autorice\", \"nao autorizei\",\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer"
+      ]
+    },
+    {
       "id": "M-LLM-01",
       "requisito": "R06",
       "descricao": "Modelo consultado mesmo quando as regras já entenderam",
