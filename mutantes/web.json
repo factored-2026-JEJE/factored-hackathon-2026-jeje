@@ -17,6 +17,206 @@
   ],
   "mutantes": [
     {
+      "id": "M-WEB-37",
+      "requisito": "R02",
+      "descricao": "Pré-caso mostrado como recebido ao clicar, antes da API",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "          <button type=\"button\" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>",
+          "para": "          <button type=\"button\" disabled={enviando} onClick={() => { setSituacao({ ...situacao, protocolo: \"PC-00000009\" }); void enviar(rapidas.confirmar); }}>"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > protocolo só aparece depois que a API registra, e a fila é avisada"
+      ]
+    },
+    {
+      "id": "M-WEB-38",
+      "requisito": "R02",
+      "descricao": "Resposta com protocolo existente vira \"recebido\" de novo",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "protocolo: turno.acao === \"registrar_pre_caso\" ? turno.protocolo : null,",
+          "para": "protocolo: turno.protocolo,"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > pré-caso já existente não vira 'recebido' de novo"
+      ]
+    },
+    {
+      "id": "M-WEB-39",
+      "requisito": "R02",
+      "descricao": "Opção envia a descrição em vez do número escolhido",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "onClick={() => void enviar(String(o.numero))}",
+          "para": "onClick={() => void enviar(o.descricao)}"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > opções da API viram botões que enviam o número escolhido"
+      ]
+    },
+    {
+      "id": "M-WEB-40",
+      "requisito": "R03",
+      "descricao": "Confirmação enviada duas vezes (sem trava durante o envio)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "    if (!conversaId || enviando || limpa === \"\") return;",
+          "para": "    if (!conversaId || limpa === \"\") return;"
+        },
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "          <button type=\"button\" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>",
+          "para": "          <button type=\"button\" onClick={() => void enviar(rapidas.confirmar)}>"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > não envia duas vezes enquanto espera a resposta"
+      ]
+    },
+    {
+      "id": "M-WEB-41",
+      "requisito": "R02",
+      "descricao": "503 tratado como erro genérico, sem dizer que nada foi criado",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "  if (resposta.status === 503) throw new NaoRegistrado(((await resposta.json()) as { detail: string }).detail);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > 503 diz que nada foi criado e reenviar manda a mesma mensagem"
+      ]
+    },
+    {
+      "id": "M-WEB-42",
+      "requisito": "R02",
+      "descricao": "Reenviar manda o texto da caixa, não a mensagem que falhou",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "onClick={() => void enviar(falha.mensagem)}",
+          "para": "onClick={() => void enviar(texto)}"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > 503 diz que nada foi criado e reenviar manda a mesma mensagem"
+      ]
+    },
+    {
+      "id": "M-WEB-43",
+      "requisito": "R07",
+      "descricao": "Recarregar ignora a conversa guardada",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "    const guardada = lerGuardada();\n",
+          "para": "    const guardada: string | null = null;\n"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > recarregar reabre a conversa guardada pelo histórico, sem enviar nada"
+      ]
+    },
+    {
+      "id": "M-WEB-44",
+      "requisito": "R07",
+      "descricao": "Respostas rápidas sempre em espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  const rapidas = RESPOSTAS[situacao.idioma];",
+          "para": "  const rapidas = RESPOSTAS.es;"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > recarregar reabre a conversa guardada pelo histórico, sem enviar nada"
+      ]
+    },
+    {
+      "id": "M-WEB-45",
+      "requisito": "R07",
+      "descricao": "Encaminhamento não avisa a fila do atendente",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "if (turno.acao === \"registrar_pre_caso\" || turno.acao === \"humano\") aoMudar();",
+          "para": "if (turno.acao === \"registrar_pre_caso\") aoMudar();"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > encaminhamento mostra o atendimento humano e avisa a fila"
+      ]
+    },
+    {
+      "id": "M-WEB-46",
+      "requisito": "R07",
+      "descricao": "Fila mostra o encaminhamento sem as ações tentadas",
+      "trocas": [
+        {
+          "arquivo": "src/FilaDoAtendimento.tsx",
+          "de": "            {e.acoes.length > 0 && (",
+          "para": "            {false && ("
+        }
+      ],
+      "testes": [
+        "src/FilaDoAtendimento.test.tsx > mostra cada encaminhamento com pedido, fatos, ações e pendências, na ordem da API"
+      ]
+    },
+    {
+      "id": "M-WEB-47",
+      "requisito": "R07",
+      "descricao": "Fila não busca de novo quando a conversa cria encaminhamento",
+      "trocas": [
+        {
+          "arquivo": "src/FilaDoAtendimento.tsx",
+          "de": "  }, [versao]);",
+          "para": "  }, []);"
+        }
+      ],
+      "testes": [
+        "src/FilaDoAtendimento.test.tsx > fila vazia diz que não há encaminhamento e busca de novo quando a versão muda"
+      ]
+    },
+    {
+      "id": "M-WEB-48",
+      "requisito": "R09",
+      "descricao": "Taxa mostrada como fração crua em vez de porcentagem",
+      "trocas": [
+        {
+          "arquivo": "src/MetricasDoAtendimento.tsx",
+          "de": "taxa === null ? \"—\" : taxa.toLocaleString(\"pt-BR\", { style: \"percent\", maximumFractionDigits: 1 });",
+          "para": "taxa === null ? \"—\" : String(taxa);"
+        }
+      ],
+      "testes": [
+        "src/MetricasDoAtendimento.test.tsx > mostra os números da API com taxas em porcentagem e latências em ms"
+      ]
+    },
+    {
+      "id": "M-WEB-49",
+      "requisito": "R09",
+      "descricao": "Sem eventos, a tela mostra zero em vez de ausência de dado",
+      "trocas": [
+        {
+          "arquivo": "src/MetricasDoAtendimento.tsx",
+          "de": "const ms = (valor: number | null) => (valor === null ? \"—\" :",
+          "para": "const ms = (valor: number | null) => (valor === null ? \"0 ms\" :"
+        }
+      ],
+      "testes": [
+        "src/MetricasDoAtendimento.test.tsx > sem eventos não inventa taxa nem latência"
+      ]
+    },
+    {
       "id": "CONTROLE-web",
       "espera": "sobrevive",
       "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",
