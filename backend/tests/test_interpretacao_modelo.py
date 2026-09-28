@@ -269,6 +269,22 @@ def test_enquanto_o_modelo_pensa_nenhuma_conexao_fica_presa(cenario_conversa):
     assert lida_pelo_modelo["regra"] == "POL-CON-02"
 
 
+def test_conversa_com_atendente_nao_chama_o_modelo(cenario_conversa):
+    """Depois do encaminhamento a automação só lembra quem está com o caso: a leitura não decide
+    nada nesse estado, então chamar o modelo seria custo sem uso."""
+    with (
+        ollama_falso(saida(intencao="contestar")) as (url, pedidos),
+        cliente(com_modelo(cenario_conversa, url)) as http,
+    ):
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        dizer(http, auth, conversa, "Roubaram meu cartão")
+        depois = dizer(http, auth, conversa, VAGA)
+    assert (depois["regra"], depois["estado"]) == ("COM-HUMANO", "com_humano")
+    assert pedidos == []
+    assert interpretacoes(cenario_conversa) == ["regras", "regras"]
+
+
 def test_modelo_fora_do_ar_a_conversa_segue_pelas_regras(cenario_conversa):
     with ollama_falso(saida()) as (url, _):
         pass  # servidor encerrado: a porta fica fechada

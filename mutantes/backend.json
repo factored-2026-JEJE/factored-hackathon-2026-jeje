@@ -3651,6 +3651,21 @@
       ]
     },
     {
+      "id": "M-CONV-26",
+      "requisito": "R06",
+      "descricao": "Conversa com atendente ainda chama o modelo a cada mensagem (custo sem uso)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    if preparo.estado in SEM_LEITURA_DO_MODELO:\n        return pelas_regras(mensagem, preparo.idioma, preparo.hoje)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_conversa_com_atendente_nao_chama_o_modelo"
+      ]
+    },
+    {
       "id": "M-EVT-01",
       "requisito": "R09",
       "descricao": "Latência do turno não medida (≈ 0)",

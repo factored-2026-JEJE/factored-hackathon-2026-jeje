@@ -19,7 +19,7 @@ from sqlalchemy import Connection, text
 
 from jeje import consultas, eventos, handoff, politica, pre_caso
 from jeje.interpretacao import Interpretacao, comercio_citado
-from jeje.interpretacao_modelo import Interpretador, Leitura
+from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
     ESTADO,
     MOTIVO_DO_CODIGO,
@@ -31,6 +31,8 @@ from jeje.mensagens import (
 )
 
 Estado = Literal["livre", "esclarecendo", "confirmando", "oferecendo_humano", "com_humano"]
+# Estados em que a automação não responde mais ao pedido (só lembra quem está com o caso).
+SEM_LEITURA_DO_MODELO: frozenset[Estado] = frozenset({"com_humano"})
 
 LIMITE_MENSAGEM = 500
 MAXIMO_OPCOES = 5
@@ -495,7 +497,11 @@ def preparar(conexao: Connection, customer_id: str, conversa_id: str) -> Preparo
 
 
 def ler(preparo: Preparo, mensagem: str, interpretador: Interpretador) -> Leitura:
-    """A leitura da mensagem pelo interpretador configurado (regras ou cascata com o modelo)."""
+    """A leitura da mensagem pelo interpretador configurado (regras ou cascata com o modelo).
+    Em estado onde a leitura não decide nada, bastam as regras (língua da resposta): o modelo não
+    é chamado."""
+    if preparo.estado in SEM_LEITURA_DO_MODELO:
+        return pelas_regras(mensagem, preparo.idioma, preparo.hoje)
     return interpretador(mensagem, preparo.idioma, preparo.hoje)
 
 
