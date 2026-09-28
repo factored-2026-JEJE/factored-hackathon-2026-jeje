@@ -20,6 +20,15 @@ def alembic_config(settings: Settings) -> Config:
     return config
 
 
+def registrar_dataset(settings: Settings, version: str, source: str) -> None:
+    """Registra diretamente no banco uma versão de dataset carregada (estado de teste)."""
+    with create_engine(settings.database_url).begin() as conexao:
+        conexao.execute(
+            text("insert into meta.dataset_version (id, version, source) values (1, :v, :s)"),
+            {"v": version, "s": source},
+        )
+
+
 @pytest.fixture
 def banco_limpo():
     """Banco vazio e exclusivo do teste, criado no db-test e removido ao final."""

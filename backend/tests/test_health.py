@@ -2,12 +2,11 @@
 
 import time
 
+from conftest import registrar_dataset
 from fastapi.testclient import TestClient
-from sqlalchemy import text
 
 from jeje.api import create_app
 from jeje.config import Settings
-from jeje.db import create_db_engine
 
 
 def cliente(settings: Settings) -> TestClient:
@@ -25,13 +24,7 @@ def test_rota_inexistente_retorna_404():
 
 
 def test_ready_com_dataset_carregado_devolve_versao_e_origem(banco_migrado):
-    with create_db_engine(banco_migrado).begin() as conexao:
-        conexao.execute(
-            text(
-                "insert into meta.dataset_version (id, version, source) "
-                "values (1, 'abc123', 'fixture')"
-            )
-        )
+    registrar_dataset(banco_migrado, version="abc123", source="fixture")
     resposta = cliente(banco_migrado).get("/health/ready")
     assert resposta.status_code == 200
     corpo = resposta.json()
