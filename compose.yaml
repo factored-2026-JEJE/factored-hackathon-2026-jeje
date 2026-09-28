@@ -117,6 +117,17 @@ services:
     <<: *backend-test
     command: ["pytest", "-q"]
 
+  # Lint e formatação do Python (backend e harness de mutantes) com a config do backend.
+  lint:
+    <<: *backend-test
+    depends_on: {}
+    volumes:
+      - ./mutantes:/mutantes:ro
+    command:
+      - sh
+      - -c
+      - ruff check --config pyproject.toml . /mutantes && ruff format --check --config pyproject.toml . /mutantes
+
   # Prova de sensibilidade (ENG-004): cada mutante registrado precisa derrubar seus testes.
   mutantes:
     <<: *backend-test
