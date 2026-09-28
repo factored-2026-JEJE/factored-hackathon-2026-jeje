@@ -246,6 +246,36 @@
       "testes": [
         "tests/test_health.py::test_ready_com_banco_sem_migrations_nao_esta_pronto"
       ]
+    },
+    {
+      "id": "M-CONTRATO-01",
+      "requisito": "R06",
+      "descricao": "Liveness monta resposta inválida para o próprio schema (erro 500)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "return Liveness(status=\"ok\", version=__version__)",
+          "para": "return Liveness(status=\"ok\", version=None)"
+        }
+      ],
+      "testes": [
+        "tests/test_contrato.py::test_api_cumpre_o_proprio_contrato"
+      ]
+    },
+    {
+      "id": "M-CONTRATO-02",
+      "requisito": "R06",
+      "descricao": "Readiness pronta responde com status HTTP não documentado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "    return Readiness(status=\"ready\", database=\"ok\", dataset=DatasetInfo(**linha._mapping))",
+          "para": "    response.status_code = 202\n    return Readiness(status=\"ready\", database=\"ok\", dataset=DatasetInfo(**linha._mapping))"
+        }
+      ],
+      "testes": [
+        "tests/test_contrato.py::test_api_cumpre_o_proprio_contrato"
+      ]
     }
   ]
 }

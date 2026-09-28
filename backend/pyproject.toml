@@ -18,7 +18,9 @@ dependencies = [
 dev = [
   "pytest==9.1.1",
   "httpx==0.28.1",
+  "hypothesis==6.168.2",
   "ruff==0.16.9",
+  "schemathesis==4.28.0",
 ]
 
 [build-system]
