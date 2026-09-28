@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 
 from jeje import sessao
@@ -29,8 +29,13 @@ class Persona(BaseModel):
     nome: str
 
 
+# Formato dos identificadores da base (ex.: CLI-G4X2AMVD62NR). Rejeitar na borda evita que texto
+# arbitrário (inclusive NUL, que o PostgreSQL não aceita) chegue ao banco.
+ID_DA_BASE = r"^[A-Za-z0-9-]{1,64}$"
+
+
 class PedidoDeSessao(BaseModel):
-    customer_id: str
+    customer_id: str = Field(pattern=ID_DA_BASE)
 
 
 class SessaoAberta(BaseModel):

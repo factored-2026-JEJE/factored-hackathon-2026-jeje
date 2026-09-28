@@ -2003,6 +2003,36 @@
       "testes": [
         "tests/test_sessao_api.py::test_sessao_expirada_e_recusada"
       ]
+    },
+    {
+      "id": "M-API-11",
+      "requisito": "R08",
+      "descricao": "Pedido de sessão aceita qualquer texto como cliente (NUL derruba com 500)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "    customer_id: str = Field(pattern=ID_DA_BASE)",
+          "para": "    customer_id: str = Field()"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_identificador_fora_do_formato_e_422_e_nunca_500"
+      ]
+    },
+    {
+      "id": "M-API-12",
+      "requisito": "R08",
+      "descricao": "ID de transação no endereço sem validação (NUL derruba com 500)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "    transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)], ativa: SessaoDep, engine: EngineDep",
+          "para": "    transaction_id: Annotated[str, Path()], ativa: SessaoDep, engine: EngineDep"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_transacao_com_nul_no_endereco_e_422_e_nunca_500"
+      ]
     }
   ]
 }

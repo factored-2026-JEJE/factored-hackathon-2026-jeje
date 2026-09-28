@@ -88,3 +88,13 @@ def test_limite_restringe_a_listagem(api):
     cabecalho = entrar(api, "CLI-A")
     assert len(api.get("/minhas/transacoes?limite=1", headers=cabecalho).json()) == 1
     assert api.get("/minhas/transacoes?limite=0", headers=cabecalho).status_code == 422
+
+
+@pytest.mark.parametrize("identificador", ["CLI-A\x00", "CLI A", "", "x" * 65, "CLI-Ã"])
+def test_identificador_fora_do_formato_e_422_e_nunca_500(api, identificador):
+    assert api.post("/sessoes", json={"customer_id": identificador}).status_code == 422
+
+
+def test_transacao_com_nul_no_endereco_e_422_e_nunca_500(api):
+    cabecalho = entrar(api, "CLI-A")
+    assert api.get("/minhas/transacoes/TRX%00A1", headers=cabecalho).status_code == 422

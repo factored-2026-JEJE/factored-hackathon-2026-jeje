@@ -2,11 +2,11 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Path, Query
 
 from jeje import consultas
 from jeje.db import EngineDep
-from jeje.sessao_api import RESPOSTAS_SESSAO, SessaoDep
+from jeje.sessao_api import ID_DA_BASE, RESPOSTAS_SESSAO, SessaoDep
 
 router = APIRouter(responses=RESPOSTAS_SESSAO)
 
@@ -23,7 +23,7 @@ def minhas_transacoes(
 
 @router.get("/minhas/transacoes/{transaction_id}", responses={404: {"description": NAO_ENCONTRADA}})
 def minha_transacao(
-    transaction_id: str, ativa: SessaoDep, engine: EngineDep
+    transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)], ativa: SessaoDep, engine: EngineDep
 ) -> consultas.Transacao:
     with engine.connect() as conexao:
         transacao = consultas.transacao_do_cliente(conexao, ativa.customer_id, transaction_id)

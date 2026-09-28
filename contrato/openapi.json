@@ -265,6 +265,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "pattern": "^[A-Za-z0-9-]{1,64}$",
               "title": "Transaction Id"
             }
           }
@@ -421,6 +422,7 @@
         "properties": {
           "customer_id": {
             "type": "string",
+            "pattern": "^[A-Za-z0-9-]{1,64}$",
             "title": "Customer Id"
           }
         },
