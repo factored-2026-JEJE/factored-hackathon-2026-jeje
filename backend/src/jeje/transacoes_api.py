@@ -2,10 +2,11 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Path, Query, Request
+from fastapi import APIRouter, HTTPException, Path, Query
 from pydantic import BaseModel
 
 from jeje import consultas, politica, pre_caso
+from jeje.config import ConfigDep
 from jeje.db import EngineDep
 from jeje.sessao_api import ID_DA_BASE, RESPOSTAS_SESSAO, SessaoDep
 
@@ -56,7 +57,7 @@ def situacao(
     transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)],
     ativa: SessaoDep,
     engine: EngineDep,
-    request: Request,
+    config: ConfigDep,
 ) -> Situacao:
     """Fatos da transação e a decisão da política para uma consulta sobre ela (POL-CON-*)."""
     with engine.connect() as conexao:
@@ -64,7 +65,7 @@ def situacao(
         transacao = consultas.transacao_do_cliente(conexao, ativa.customer_id, transaction_id)
     if fatos is None or transacao is None:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA)
-    limites = request.app.state.settings.limites()
+    limites = config.limites()
     return Situacao(
         transacao=transacao,
         decisao=decisao_para_resposta(politica.decidir_consulta(fatos, limites)),
@@ -79,11 +80,11 @@ def avaliar_contestacao(
     transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)],
     ativa: SessaoDep,
     engine: EngineDep,
-    request: Request,
+    config: ConfigDep,
 ) -> DecisaoDaPolitica:
     """Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso (a mesma
     avaliação da proposta: pré-caso existente, limites e total noturno do dia)."""
-    limites = request.app.state.settings.limites()
+    limites = config.limites()
     with engine.connect() as conexao:
         try:
             _, decisao = pre_caso.avaliar(conexao, ativa.customer_id, transaction_id, limites)

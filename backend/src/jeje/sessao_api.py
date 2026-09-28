@@ -3,13 +3,13 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
 from jeje import sessao
-from jeje.config import Settings
+from jeje.config import ConfigDep
 from jeje.db import EngineDep
 
 router = APIRouter()
@@ -45,12 +45,8 @@ class SessaoAberta(BaseModel):
     cliente: Persona
 
 
-def _settings(request: Request) -> Settings:
-    return request.app.state.settings
-
-
-def exige_modo_demo(request: Request) -> None:
-    if not _settings(request).modo_demo:
+def exige_modo_demo(config: ConfigDep) -> None:
+    if not config.modo_demo:
         raise HTTPException(status_code=404, detail="Not Found")
 
 
@@ -89,12 +85,10 @@ def listar_personas(engine: EngineDep) -> list[Persona]:
     dependencies=[Depends(exige_modo_demo)],
     responses={**RESPOSTAS_DEMO, **CORPO_ILEGIVEL},
 )
-def abrir_sessao(pedido: PedidoDeSessao, request: Request, engine: EngineDep) -> SessaoAberta:
+def abrir_sessao(pedido: PedidoDeSessao, config: ConfigDep, engine: EngineDep) -> SessaoAberta:
     with engine.begin() as conexao:
         try:
-            token, expira_em = sessao.abrir(
-                conexao, pedido.customer_id, _settings(request).sessao_ttl_minutos
-            )
+            token, expira_em = sessao.abrir(conexao, pedido.customer_id, config.sessao_ttl_minutos)
         except sessao.PersonaDesconhecida:
             raise HTTPException(status_code=404, detail="Persona não encontrada") from None
         nome = conexao.execute(

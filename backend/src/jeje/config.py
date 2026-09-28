@@ -6,8 +6,9 @@ inicialização, em vez de o código assumir um valor que diverge do compose.
 """
 
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 
+from fastapi import Depends, Request
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -67,3 +68,11 @@ class Settings(BaseSettings):
             ),
             seguranca_transferencia_usd=self.limite_seguranca_transferencia_usd,
         )
+
+
+def config_da_requisicao(request: Request) -> Settings:
+    """Dependência FastAPI: a configuração única do processo, criada em `create_app`."""
+    return request.app.state.settings
+
+
+ConfigDep = Annotated[Settings, Depends(config_da_requisicao)]

@@ -4,11 +4,12 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Path, Request, Response
+from fastapi import APIRouter, HTTPException, Path, Response
 from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 
 from jeje import pre_caso
+from jeje.config import ConfigDep
 from jeje.db import EngineDep
 from jeje.sessao_api import ID_DA_BASE, RESPOSTAS_SESSAO, SessaoDep
 from jeje.transacoes_api import NAO_ENCONTRADA, DecisaoDaPolitica, decisao_para_resposta
@@ -37,10 +38,6 @@ class PreCaso(BaseModel):
     criado_em: datetime
 
 
-def _settings(request: Request):
-    return request.app.state.settings
-
-
 @router.post(
     "/minhas/transacoes/{transaction_id}/contestacao/proposta",
     responses={201: {"model": AvaliacaoDeContestacao}, 404: {"description": NAO_ENCONTRADA}},
@@ -49,11 +46,10 @@ def propor(
     transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)],
     ativa: SessaoDep,
     engine: EngineDep,
-    request: Request,
+    config: ConfigDep,
     response: Response,
 ) -> AvaliacaoDeContestacao:
     """Avalia a contestação e, se a política permitir, cria uma proposta a confirmar."""
-    config = _settings(request)
     with engine.begin() as conexao:
         try:
             decisao, proposta = pre_caso.propor(
@@ -87,14 +83,14 @@ def confirmar(
     proposta_id: Annotated[str, Path(pattern=ID_PROPOSTA)],
     ativa: SessaoDep,
     engine: EngineDep,
-    request: Request,
+    config: ConfigDep,
     response: Response,
 ) -> PreCaso:
     """Confirma a proposta: grava o pré-caso sem duplicar e só responde depois de relê-lo."""
     try:
         with engine.begin() as conexao:
             registrado, criado_agora = pre_caso.confirmar(
-                conexao, ativa.customer_id, proposta_id, _settings(request).limites()
+                conexao, ativa.customer_id, proposta_id, config.limites()
             )
     except pre_caso.NaoEncontrada:
         raise HTTPException(status_code=404, detail="Proposta não encontrada") from None

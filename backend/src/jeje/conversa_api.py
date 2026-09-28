@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.exc import SQLAlchemyError
 
 from jeje import conversa, eventos
+from jeje.config import ConfigDep
 from jeje.db import EngineDep
 from jeje.interpretacao_modelo import Leitura
 from jeje.pre_caso_api import ID_PROPOSTA, Proposta
@@ -100,10 +101,10 @@ def enviar_mensagem(
     mensagem: Mensagem,
     ativa: SessaoDep,
     engine: EngineDep,
+    config: ConfigDep,
     request: Request,
 ) -> ResultadoDoTurno:
     """Um turno: a política decide com fatos verificados; efeito só com confirmação explícita."""
-    config = request.app.state.settings
     inicio, leitura = time.perf_counter(), None
     try:
         with engine.connect() as conexao:

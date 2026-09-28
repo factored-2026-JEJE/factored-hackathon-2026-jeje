@@ -2073,7 +2073,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/sessao_api.py",
-          "de": "    if not _settings(request).modo_demo:",
+          "de": "    if not config.modo_demo:",
           "para": "    if False:"
         }
       ],
@@ -2118,8 +2118,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/sessao_api.py",
-          "de": "            token, expira_em = sessao.abrir(\n                conexao, pedido.customer_id, _settings(request).sessao_ttl_minutos\n            )",
-          "para": "            token, expira_em = sessao.abrir(\n                conexao, \"CLI-A\", _settings(request).sessao_ttl_minutos\n            )"
+          "de": "            token, expira_em = sessao.abrir(conexao, pedido.customer_id, config.sessao_ttl_minutos)",
+          "para": "            token, expira_em = sessao.abrir(conexao, \"CLI-A\", config.sessao_ttl_minutos)"
         }
       ],
       "testes": [
