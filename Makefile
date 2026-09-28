@@ -5,7 +5,7 @@ TESTE := docker compose -p jeje-test --profile test
 # Roda um serviço de teste e sempre derruba o projeto de testes (banco efêmero incluso).
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
-.PHONY: up up-fixture down reset logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
+.PHONY: up up-fixture down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	contrato check gate
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env): http://localhost:8080
@@ -53,7 +53,10 @@ contrato: build ## Regenera o OpenAPI versionado e os tipos TypeScript
 	$(TESTE) build web-test
 	$(TESTE) run --rm --no-deps -T web-test node scripts/gerar-tipos.ts /contrato/openapi.json /dev/stdout > frontend/src/api/schema.d.ts
 
-check: lint test mutantes ## Tudo que não precisa da stack no ar
+segredos: ## Nenhuma chave nem valor do .env no histórico Git (gitleaks + busca dos valores)
+	./scripts/verificar-segredos.sh
+
+check: segredos lint test mutantes ## Tudo que não precisa da stack no ar
 
 gate: check e2e mutantes-e2e ## Portão de uma meta: checks, jornadas e mutantes E2E
 	@curl -sf http://localhost:8080/api/health/ready >/dev/null && echo "readiness: pronto" \
