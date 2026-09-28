@@ -15,6 +15,8 @@ COPY pyproject.toml uv.lock .python-version ./
 FROM base AS runtime
 RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./src
+COPY alembic.ini ./
+COPY migrations ./migrations
 RUN uv sync --frozen --no-dev --no-editable \
     && useradd --system --uid 10001 app
 USER app

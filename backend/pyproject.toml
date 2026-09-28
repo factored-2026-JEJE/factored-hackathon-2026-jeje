@@ -5,6 +5,7 @@ description = "Backend do produto JEJE — Factored AI & Data Hackathon 2026"
 requires-python = ">=3.12,<3.13"
 # Versões iguais às do ambiente local validado do time; o uv.lock fixa toda a árvore com hashes.
 dependencies = [
+  "alembic==1.20.0",
   "fastapi==0.141.1",
   "psycopg[binary]==3.3.6",
   "pydantic==2.13.5",

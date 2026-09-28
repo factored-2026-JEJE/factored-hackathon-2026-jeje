@@ -27,16 +27,26 @@ services:
       timeout: 3s
       retries: 30
 
-  api:
+  # Aplica as migrations e termina; a API só sobe depois que ele conclui com sucesso.
+  migrate:
     build:
       context: ./backend
       target: runtime
     image: jeje-api:local
+    command: ["alembic", "upgrade", "head"]
     environment:
       <<: *app-env
     depends_on:
       db:
         condition: service_healthy
+
+  api:
+    image: jeje-api:local
+    environment:
+      <<: *app-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:8000:8000"
     healthcheck:
