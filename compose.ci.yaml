@@ -2,6 +2,10 @@
 # o seed carrega a fixture sintética de data/fixture (nada é baixado).
 #   docker compose -f compose.yaml -f compose.ci.yaml up -d --build --wait
 services:
+  # CI, mutantes e validação sem modelo: comportamento determinístico (PRD-003).
+  api:
+    environment:
+      INTERPRETADOR: "regras"
   seed:
     environment:
       DATASET_SOURCE: fixture

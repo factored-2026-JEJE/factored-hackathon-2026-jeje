@@ -27,8 +27,9 @@ x-app-env: &app-env
   # Transferência acima disto vai para análise de segurança (POL-SEG-01).
   LIMITE_SEGURANCA_TRANSFERENCIA_USD: "50000"
   PROPOSTA_TTL_MINUTOS: "10"
-  # Leitura da mensagem: "regras" (padrão, sem modelo) ou "ollama" (modelo local consultado só
-  # quando as regras não entendem; ver backend/src/jeje/interpretacao_modelo.py).
+  # Leitura da mensagem: "regras" (sem modelo) ou "ollama" (modelo local consultado só quando as
+  # regras não entendem; ver backend/src/jeje/interpretacao_modelo.py). Regras aqui (testes, carga,
+  # migrações); a API da stack de demonstração liga o modelo (serviço api, PRD-003).
   INTERPRETADOR: "regras"
   OLLAMA_URL: http://host.docker.internal:11434
   OLLAMA_MODELO: qwen2.5:7b
@@ -127,6 +128,8 @@ services:
     image: jeje-api:${JEJE_TAG:-local}
     environment:
       <<: *app-env
+      # Modelo local ligado na demonstração (PRD-003); o compose.ci.yaml volta para "regras".
+      INTERPRETADOR: "ollama"
     # Ollama do host, quando INTERPRETADOR=ollama (no Linux o nome precisa ser declarado).
     extra_hosts:
       - host.docker.internal:host-gateway
