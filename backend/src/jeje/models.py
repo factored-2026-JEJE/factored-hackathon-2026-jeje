@@ -30,4 +30,6 @@ class DatasetVersion(Base):
     version: Mapped[str] = mapped_column(Text)
     # Origem declarada da carga ("s3" ou "fixture"), para nunca confundir dado de teste com real.
     source: Mapped[str] = mapped_column(Text)
+    # sha256 do código do pipeline de dados que produziu raw/curated: mudar contrato recarrega.
+    pipeline: Mapped[str] = mapped_column(Text, server_default="")
     loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
