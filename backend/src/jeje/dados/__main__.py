@@ -9,6 +9,7 @@ import sys
 import boto3
 from botocore.config import Config
 
+from jeje import sessao
 from jeje.config import Settings
 from jeje.dados import manifesto
 from jeje.dados.carga import CargaInvalida, carregar, versao_carregada
@@ -38,7 +39,22 @@ def cliente_s3(config: ConfigDados):
     )
 
 
+def provisionar(settings: Settings, config: ConfigDados) -> None:
+    engine = create_db_engine(settings)
+    try:
+        with engine.begin() as conexao:
+            personas = sessao.provisionar_personas(conexao, config.personas_quantidade)
+    finally:
+        engine.dispose()
+    print(f"[dados] {len(personas)} personas de demonstração provisionadas", flush=True)
+
+
 def preparar(settings: Settings, config: ConfigDados) -> None:
+    carregar_se_preciso(settings, config)
+    provisionar(settings, config)
+
+
+def carregar_se_preciso(settings: Settings, config: ConfigDados) -> None:
     tabelas = config.dataset_tables
     versao = manifesto.versao(config.dataset_manifest_dir, tabelas)
     pipeline = versao_pipeline()

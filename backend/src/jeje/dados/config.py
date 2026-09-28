@@ -24,6 +24,8 @@ class ConfigDados(BaseSettings):
     # Endpoint S3 alternativo (servidor de testes); vazio = AWS.
     dataset_s3_endpoint: str
     dataset_download_workers: int = Field(gt=0)
+    # Personas de demonstração provisionadas depois da carga (DEV-008).
+    personas_quantidade: int = Field(gt=0)
 
     @field_validator("dataset_tables", mode="before")
     @classmethod

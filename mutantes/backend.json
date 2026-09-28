@@ -1728,6 +1728,131 @@
       "testes": [
         "tests/test_eda.py::test_reclamacoes_por_categoria_e_subcategorias_de_transacao"
       ]
+    },
+    {
+      "id": "M-SES-01",
+      "requisito": "R08",
+      "descricao": "Personas escolhidas só pelo ID, sem cobrir variedade de status",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "\"        row_number() OVER (ORDER BY t.variedade DESC, c.customer_id)\"",
+          "para": "\"        row_number() OVER (ORDER BY c.customer_id)\""
+        },
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "\" ORDER BY t.variedade DESC, c.customer_id LIMIT :quantidade\"",
+          "para": "\" ORDER BY c.customer_id LIMIT :quantidade\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_personas_sao_os_clientes_com_mais_variedade_de_status_em_ordem_estavel"
+      ]
+    },
+    {
+      "id": "M-SES-02",
+      "requisito": "R08",
+      "descricao": "Reprovisionar acumula personas antigas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "    conexao.execute(text(\"DELETE FROM app.personas\"))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_reprovisionar_nao_duplica_e_respeita_a_quantidade"
+      ]
+    },
+    {
+      "id": "M-SES-03",
+      "requisito": "R08",
+      "descricao": "Sessão abre para qualquer cliente, não só persona provisionada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "    if persona is None:\n        raise PersonaDesconhecida(customer_id)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_sessao_so_abre_para_persona_e_valida_pelo_token"
+      ]
+    },
+    {
+      "id": "M-SES-04",
+      "requisito": "R08",
+      "descricao": "Banco guarda o token em claro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "    return hashlib.sha256(token.encode()).hexdigest()",
+          "para": "    return token"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_banco_guarda_so_o_hash_do_token"
+      ]
+    },
+    {
+      "id": "M-SES-05",
+      "requisito": "R08",
+      "descricao": "Sessão expirada continua válida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h AND expira_em > now()\"",
+          "para": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_sessao_expirada_nao_vale"
+      ]
+    },
+    {
+      "id": "M-SES-06",
+      "requisito": "R08",
+      "descricao": "TTL configurado ignorado (sessão de um dia)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "\" VALUES (:h, :c, now() + make_interval(mins => :ttl)) RETURNING expira_em\"",
+          "para": "\" VALUES (:h, :c, now() + make_interval(mins => 1440)) RETURNING expira_em\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_sessao_expirada_nao_vale"
+      ]
+    },
+    {
+      "id": "M-SES-07",
+      "requisito": "R08",
+      "descricao": "Token curto demais (baixa entropia)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "    token = secrets.token_urlsafe(32)",
+          "para": "    token = secrets.token_urlsafe(4)"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_sessao_so_abre_para_persona_e_valida_pelo_token"
+      ]
+    },
+    {
+      "id": "M-SES-08",
+      "requisito": "R08",
+      "descricao": "Seed só provisiona personas quando recarrega os dados",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "    carregar_se_preciso(settings, config)\n    provisionar(settings, config)",
+          "para": "    carregar_se_preciso(settings, config)"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_preparar_provisiona_personas_mesmo_quando_a_carga_e_pulada"
+      ]
     }
   ]
 }

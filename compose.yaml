@@ -90,6 +90,7 @@ services:
       DATASET_SOURCE: s3
       DATASET_S3_ENDPOINT: ""
       DATASET_DOWNLOAD_WORKERS: "16"
+      PERSONAS_QUANTIDADE: "8"
       AWS_DEFAULT_REGION: us-east-2
     env_file:
       - path: .env

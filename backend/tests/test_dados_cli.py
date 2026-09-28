@@ -31,6 +31,7 @@ def ambiente_fixture(tmp_path, monkeypatch):
         "DATASET_SOURCE": "fixture",
         "DATASET_S3_ENDPOINT": "",
         "DATASET_DOWNLOAD_WORKERS": "2",
+        "PERSONAS_QUANTIDADE": "3",
     }.items():
         monkeypatch.setenv(chave, valor)
     monkeypatch.delenv("DATASET_S3_URI", raising=False)
@@ -124,3 +125,32 @@ def test_preparar_recarrega_quando_o_pipeline_gravado_e_antigo(
         assert con.execute(text("select pipeline from meta.dataset_version")).scalar_one() != (
             "versao-antiga-do-codigo"
         )
+
+
+def test_preparar_provisiona_personas_mesmo_quando_a_carga_e_pulada(
+    ambiente_fixture, banco_migrado, tmp_path, monkeypatch
+):
+    raiz, _ = ambiente_fixture
+    escrever_csv(raiz, "customers.csv", "customers", [{"customer_id": "CLI-A"}])
+    escrever_csv(raiz, "products.csv", "products", [
+        {"product_id": "PRD-A", "customer_id": "CLI-A", "product_type": "Cuenta Ahorro",
+         "currency": "USD", "product_status": "Active"},
+    ])  # fmt: skip
+    escrever_csv(raiz, "transactions/year=2025/month=03/day=10/t.csv", "transactions", [
+        {"transaction_id": "TRX-1", "transaction_date": "2025-03-10 10:00:00",
+         "customer_id": "CLI-A", "product_id": "PRD-A", "amount": "1.00", "currency": "USD",
+         "transaction_status": "Approved"},
+    ])  # fmt: skip
+    tabelas = "customers,products,transactions"
+    manifestos = tmp_path / "manifesto-trx"
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas.split(",")))
+    monkeypatch.setenv("DATASET_TABLES", tabelas)
+    monkeypatch.setenv("DATASET_MANIFEST_DIR", str(manifestos))
+    preparar(banco_migrado, ConfigDados())
+    with conexao(banco_migrado) as con:
+        con.execute(text("delete from app.personas"))
+    preparar(banco_migrado, ConfigDados())  # carga pulada; personas voltam
+    with conexao(banco_migrado) as con:
+        assert con.execute(text("select customer_id from app.personas")).scalars().all() == [
+            "CLI-A"
+        ]
