@@ -1,5 +1,7 @@
 """Sessão e autorização por dono pela API real (R08): identidade só pelo token da sessão."""
 
+import re
+
 import pytest
 from conftest import cliente, conexao
 from sqlalchemy import text
@@ -98,3 +100,28 @@ def test_identificador_fora_do_formato_e_422_e_nunca_500(api, identificador):
 def test_transacao_com_nul_no_endereco_e_422_e_nunca_500(api):
     cabecalho = entrar(api, "CLI-A")
     assert api.get("/minhas/transacoes/TRX%00A1", headers=cabecalho).status_code == 422
+
+
+# Rotas sem sessão de propósito: saúde, agregados sem dado de cliente e o acesso de demonstração
+# (esses dois só com MODO_DEMO). Rota nova fica fora daqui e, portanto, precisa exigir sessão.
+PUBLICAS = {
+    ("GET", "/health"), ("GET", "/health/ready"), ("GET", "/dados/eda"),
+    ("GET", "/dados/qualidade"), ("GET", "/metricas"), ("GET", "/personas"), ("POST", "/sessoes"),
+    ("GET", "/atendimento/fila"), ("POST", "/atendimento/fila/{handoff_id}/assumir"),
+}  # fmt: skip
+
+
+def test_toda_rota_fora_da_lista_publica_exige_sessao(api):
+    """Inventário pelo contrato publicado: cada operação que não é pública recusa quem chega sem
+    sessão com 401 (antes de validar parâmetro ou corpo) e declara o esquema Bearer."""
+    contrato = api.get("/openapi.json").json()
+    recusadas = []
+    for caminho, operacoes in contrato["paths"].items():
+        for metodo, operacao in operacoes.items():
+            if (metodo.upper(), caminho) in PUBLICAS:
+                continue
+            url = re.sub(r"\{[^}]+\}", "X-1", caminho)
+            status = api.request(metodo.upper(), url, json={}).status_code
+            recusadas.append((metodo.upper(), caminho, status, "security" in operacao))
+    fora_do_padrao = [r for r in recusadas if r[2] != 401 or not r[3]]
+    assert recusadas and not fora_do_padrao, fora_do_padrao

@@ -2232,6 +2232,21 @@
       ]
     },
     {
+      "id": "M-API-13",
+      "requisito": "R08",
+      "descricao": "Requisição sem token entra como um cliente fixo (rotas de dado de cliente abertas sem sessão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "    if credenciais is None or credenciais.scheme.lower() != \"bearer\":\n",
+          "para": "    if credenciais is None:\n        return sessao.SessaoAtiva(customer_id=\"CLI-A\")\n    if credenciais.scheme.lower() != \"bearer\":\n"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_toda_rota_fora_da_lista_publica_exige_sessao"
+      ]
+    },
+    {
       "id": "M-POL-01",
       "requisito": "R03",
       "descricao": "Transação aprovada vai para humano (sem resposta)",
