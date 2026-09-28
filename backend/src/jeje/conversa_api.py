@@ -111,6 +111,7 @@ def enviar_mensagem(
                 mensagem.texto,
                 config.limite_pre_caso_usd,
                 config.proposta_ttl_minutos,
+                request.app.state.interpretador,
             )
     except conversa.ConversaNaoEncontrada:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None

@@ -18,7 +18,8 @@ from typing import Literal
 from sqlalchemy import Connection, text
 
 from jeje import consultas, eventos, handoff, politica, pre_caso
-from jeje.interpretacao import Interpretacao, comercio_citado, interpretar
+from jeje.interpretacao import Interpretacao, comercio_citado
+from jeje.interpretacao_modelo import Interpretador, pelas_regras
 from jeje.mensagens import (
     ESTADO,
     MOTIVO_DO_CODIGO,
@@ -435,8 +436,10 @@ def turno(
     mensagem: str,
     limite_usd: Decimal,
     ttl_minutos: int,
+    interpretador: Interpretador = pelas_regras,
 ) -> ResultadoDoTurno:
-    """Processa uma mensagem do cliente da sessão na conversa dele e grava o turno e o evento."""
+    """Processa uma mensagem do cliente da sessão na conversa dele e grava o turno e o evento.
+    O interpretador só lê a mensagem; o que fazer é sempre a política que decide."""
     inicio = time.perf_counter()
     linha = conexao.execute(
         text(
@@ -448,7 +451,8 @@ def turno(
     if linha is None:
         raise ConversaNaoEncontrada(conversa_id)
     hoje = conexao.execute(text("SELECT current_date")).scalar_one()
-    lida = interpretar(mensagem, linha.idioma, hoje)
+    leitura = interpretador(mensagem, linha.idioma, hoje)
+    lida = leitura.lida
     atual = _Turno(
         conexao,
         customer_id,
@@ -508,6 +512,7 @@ def turno(
             acao=saida.acao,
             efeito=_efeito(saida),
             fontes=tuple(atual.fontes),
+            interpretacao=leitura.fonte,
         ),
     )
     return resultado

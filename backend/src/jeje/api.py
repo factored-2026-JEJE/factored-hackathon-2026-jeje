@@ -10,6 +10,7 @@ from jeje import (
     atendimento_api,
     conversa_api,
     health,
+    interpretacao_modelo,
     metricas_api,
     pre_caso_api,
     qualidade_api,
@@ -33,6 +34,7 @@ def create_app(settings: Settings) -> FastAPI:
     )
     app.state.settings = settings
     app.state.engine = create_db_engine(settings)
+    app.state.interpretador = interpretacao_modelo.configurado(settings)
     app.include_router(health.router)
     app.include_router(qualidade_api.router)
     app.include_router(sessao_api.router)

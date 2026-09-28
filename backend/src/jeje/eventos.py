@@ -22,6 +22,7 @@ class Evento:
     efeito: str | None = None
     fontes: tuple[str, ...] = ()
     erro: str | None = None
+    interpretacao: str | None = None
 
 
 def desde(inicio: float) -> Decimal:
@@ -33,8 +34,9 @@ def registrar(conexao: Connection, e: Evento) -> None:
     conexao.execute(
         text(
             "INSERT INTO app.eventos (tipo, conversa_id, numero, intencao, regra, acao, efeito,"
-            " fontes, erro, latencia_ms) VALUES (:tipo, :conversa, :numero, :intencao, :regra,"
-            " :acao, :efeito, CAST(:fontes AS jsonb), :erro, :latencia)"
+            " fontes, erro, latencia_ms, interpretacao) VALUES (:tipo, :conversa, :numero,"
+            " :intencao, :regra, :acao, :efeito, CAST(:fontes AS jsonb), :erro, :latencia,"
+            " :interpretacao)"
         ),
         {
             "tipo": e.tipo,
@@ -47,5 +49,6 @@ def registrar(conexao: Connection, e: Evento) -> None:
             "fontes": json.dumps(list(e.fontes)),
             "erro": e.erro,
             "latencia": e.latencia_ms,
+            "interpretacao": e.interpretacao,
         },
     )

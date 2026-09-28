@@ -197,5 +197,7 @@ class Evento(Base):
     efeito: Mapped[str | None] = mapped_column(Text, nullable=True)
     fontes: Mapped[list] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
     erro: Mapped[str | None] = mapped_column(Text, nullable=True)  # classe do erro, sem mensagem
+    # Quem leu a mensagem: "regras", "ollama:<modelo>" ou "regras (fallback: <motivo>)".
+    interpretacao: Mapped[str | None] = mapped_column(Text, nullable=True)
     latencia_ms: Mapped[Decimal] = mapped_column(Numeric(12, 3))
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
