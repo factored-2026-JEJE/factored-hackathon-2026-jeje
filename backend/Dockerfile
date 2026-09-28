@@ -18,7 +18,8 @@ COPY src ./src
 COPY alembic.ini ./
 COPY migrations ./migrations
 RUN uv sync --frozen --no-dev --no-editable \
-    && useradd --system --uid 10001 app
+    && useradd --system --uid 10001 app \
+    && mkdir -p /dataset && chown app /dataset
 USER app
 EXPOSE 8000
 CMD ["uvicorn", "jeje.main:app", "--host", "0.0.0.0", "--port", "8000"]
