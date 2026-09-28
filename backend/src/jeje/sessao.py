@@ -68,9 +68,13 @@ def abrir(conexao: Connection, customer_id: str, ttl_minutos: int) -> tuple[str,
 
 
 def validar(conexao: Connection, token: str) -> SessaoAtiva | None:
-    """Sessão ativa do token, ou None: inexistente, adulterado ou expirado (relógio do banco)."""
+    """Sessão ativa do token, ou None: inexistente, adulterado, expirado (relógio do banco) ou de
+    quem deixou de ser persona (as personas são refeitas a cada carga dos dados)."""
     customer_id = conexao.execute(
-        text("SELECT customer_id FROM app.sessoes WHERE token_hash = :h AND expira_em > now()"),
+        text(
+            "SELECT s.customer_id FROM app.sessoes s JOIN app.personas p USING (customer_id)"
+            " WHERE s.token_hash = :h AND s.expira_em > now()"
+        ),
         {"h": hash_token(token)},
     ).scalar_one_or_none()
     return None if customer_id is None else SessaoAtiva(customer_id=customer_id)

@@ -1908,8 +1908,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/sessao.py",
-          "de": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h AND expira_em > now()\"",
-          "para": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h\""
+          "de": "\" WHERE s.token_hash = :h AND s.expira_em > now()\"",
+          "para": "\" WHERE s.token_hash = :h\""
         }
       ],
       "testes": [
@@ -1959,6 +1959,21 @@
       ],
       "testes": [
         "tests/test_dados_cli.py::test_preparar_provisiona_personas_mesmo_quando_a_carga_e_pulada"
+      ]
+    },
+    {
+      "id": "M-SES-09",
+      "requisito": "R08",
+      "descricao": "Sessão continua valendo para quem deixou de ser persona (depois da recarga ou de reduzir as personas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "\"SELECT s.customer_id FROM app.sessoes s JOIN app.personas p USING (customer_id)\"",
+          "para": "\"SELECT s.customer_id FROM app.sessoes s\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_sessao_de_quem_deixou_de_ser_persona_nao_vale"
       ]
     },
     {
@@ -2103,8 +2118,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/sessao.py",
-          "de": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h AND expira_em > now()\"",
-          "para": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h\""
+          "de": "\" WHERE s.token_hash = :h AND s.expira_em > now()\"",
+          "para": "\" WHERE s.token_hash = :h\""
         }
       ],
       "testes": [

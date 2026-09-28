@@ -58,3 +58,13 @@ def test_sessao_expirada_nao_vale(curada):
         assert 59 * 60 <= (expira_em - agora).total_seconds() <= 60 * 60
         con.execute(text("update app.sessoes set expira_em = now() - interval '1 second'"))
         assert sessao.validar(con, token) is None
+
+
+def test_sessao_de_quem_deixou_de_ser_persona_nao_vale(curada):
+    """As personas são refeitas a cada carga: a sessão de quem saiu da lista não vale mais (a
+    recarga derruba todas as sessões; esta regra fecha o intervalo até o reprovisionamento)."""
+    with conexao(curada) as con:
+        sessao.provisionar_personas(con, 2)  # CLI-A e CLI-C
+        token, _ = sessao.abrir(con, "CLI-C", 60)
+        sessao.provisionar_personas(con, 1)  # só CLI-A
+        assert sessao.validar(con, token) is None
