@@ -7,13 +7,15 @@ from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.exc import InterfaceError, OperationalError
+from sqlalchemy.exc import TimeoutError as PoolEsgotado
 
 from jeje.config import Settings
 
 log = logging.getLogger("jeje.db")
 
-# Banco fora, conexão caída, timeout ou conflito transitório: tentar de novo pode dar certo.
-INDISPONIVEL = (OperationalError, InterfaceError)
+# Banco fora, conexão caída, timeout, conflito transitório ou pool esgotado (todas as conexões
+# ocupadas além da espera do compose): tentar de novo pode dar certo.
+INDISPONIVEL = (OperationalError, InterfaceError, PoolEsgotado)
 
 
 def create_db_engine(settings: Settings) -> Engine:
@@ -24,6 +26,9 @@ def create_db_engine(settings: Settings) -> Engine:
         # mensagem de erro. O próprio PostgreSQL ainda pode citar um valor: ver jeje.logs.
         hide_parameters=True,
         connect_args={"connect_timeout": settings.db_connect_timeout_s},
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_pool_max_overflow,
+        pool_timeout=settings.db_pool_timeout_s,
     )
 
 

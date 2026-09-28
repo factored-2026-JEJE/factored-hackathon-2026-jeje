@@ -174,6 +174,36 @@
       ]
     },
     {
+      "id": "M-DB-03",
+      "requisito": "R06",
+      "descricao": "Pool esgotado vira 500 com traceback em vez de 503 com Retry-After",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/db.py",
+          "de": "INDISPONIVEL = (OperationalError, InterfaceError, PoolEsgotado)",
+          "para": "INDISPONIVEL = (OperationalError, InterfaceError)"
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_pool_esgotado_responde_503_json_em_vez_de_500"
+      ]
+    },
+    {
+      "id": "M-DB-04",
+      "requisito": "ENG-003",
+      "descricao": "Engine ignora a espera do pool do compose (requisição presa até 30 s por uma conexão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/db.py",
+          "de": "        pool_timeout=settings.db_pool_timeout_s,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_logs.py::test_pool_esgotado_responde_503_json_em_vez_de_500"
+      ]
+    },
+    {
       "id": "M-MIG-01",
       "requisito": "R04",
       "descricao": "Downgrade esquece de remover o schema meta (migration não reversível)",

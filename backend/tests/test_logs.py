@@ -7,6 +7,7 @@ no banco, como nos testes de pré-caso, sem tocar no código sob teste.
 
 import logging
 import re
+import time
 
 import pytest
 from conftest import abrir_conversa, autenticar, cliente, conexao, dizer
@@ -89,6 +90,23 @@ def test_banco_fora_rota_protegida_responde_503_json_e_um_aviso_sem_traceback(ca
     assert aviso.getMessage() == (
         "banco indisponivel erro=ConnectionTimeout motivo='connection timeout expired'"
     )
+
+
+def test_pool_esgotado_responde_503_json_em_vez_de_500(caplog):
+    """Todas as conexões do pool presas (pico de carga): a requisição espera no máximo o limite do
+    compose e responde 503 com Retry-After, como banco indisponível, em vez de 500."""
+    pequeno = Settings().model_copy(
+        update={"db_pool_size": 1, "db_pool_max_overflow": 0, "db_pool_timeout_s": 0.5}
+    )
+    with cliente(pequeno) as http, http.app.state.engine.connect() as presa:
+        presa.execute(text("SELECT 1"))
+        inicio = time.monotonic()
+        resposta = http.get("/minhas/transacoes", headers={"Authorization": "Bearer qualquer"})
+        demorou = time.monotonic() - inicio
+    assert (resposta.status_code, resposta.headers["Retry-After"]) == (503, "5")
+    assert demorou < 3
+    [aviso] = registros(caplog, "jeje.db")
+    assert aviso.getMessage().startswith("banco indisponivel erro=TimeoutError motivo=")
 
 
 def test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback(cenario_conversa, caplog):

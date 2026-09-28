@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     database_url: str
     # Limite para abrir conexão; evita que readiness e requisições fiquem presas num banco mudo.
     db_connect_timeout_s: int = Field(gt=0)
+    # Pool de conexões da API: tamanho, excedente permitido e espera máxima por uma conexão livre
+    # (esgotado → 503 com Retry-After, não requisição pendurada).
+    db_pool_size: int = Field(gt=0)
+    db_pool_max_overflow: int = Field(ge=0)
+    db_pool_timeout_s: float = Field(gt=0)
     # Validade da sessão de teste, em minutos.
     sessao_ttl_minutos: int = Field(gt=0)
     # Liga a abertura de sessão por persona de demonstração (DEV-008); desligado, só 404.
