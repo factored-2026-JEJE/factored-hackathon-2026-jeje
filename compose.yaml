@@ -222,6 +222,9 @@ services:
       # Cópias dos mutantes num caminho idêntico no host e no container: os bind mounts das
       # stacks (ex.: ./data/fixture) são resolvidos pelo daemon Docker do host.
       TMPDIR: /tmp/jeje-mutantes
+      # Prefixo dos projetos das stacks; outra execução em paralelo usa outro valor
+      # (docker compose run -e MUTANTES_PREFIXO=... mutantes-e2e).
+      MUTANTES_PREFIXO: jejemut
     volumes:
       - .:/repo:ro
       - /var/run/docker.sock:/var/run/docker.sock

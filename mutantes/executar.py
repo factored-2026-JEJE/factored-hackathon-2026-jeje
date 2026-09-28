@@ -92,6 +92,12 @@ def ambiente_para(raiz: Path, registro: dict, extra: dict | None = None) -> dict
     return env
 
 
+def prefixo_de_projeto() -> str:
+    """Prefixo dos projetos compose das stacks (ACH-023): execuções paralelas usam prefixos
+    diferentes, definidos no compose (`MUTANTES_PREFIXO`)."""
+    return os.environ["MUTANTES_PREFIXO"]
+
+
 class StackIndisponivel(Exception):
     """A stack do mutante não subiu: o mutante é inválido, não conta como detectado."""
 
@@ -99,7 +105,7 @@ class StackIndisponivel(Exception):
 @contextlib.contextmanager
 def stack(registro: dict, raiz: Path, rotulo: str):
     """Sobe uma stack compose isolada (projeto, imagens e rede próprios) e a destrói ao final."""
-    projeto = "jejemut-" + re.sub(r"[^a-z0-9]+", "-", rotulo.lower()).strip("-")
+    projeto = f"{prefixo_de_projeto()}-" + re.sub(r"[^a-z0-9]+", "-", rotulo.lower()).strip("-")
     env = ambiente_para(raiz, registro, {"MUTANTE_TAG": projeto})
     compose = ["docker", "compose", "-p", projeto, *registro["compose_args"]]
     try:
@@ -174,7 +180,7 @@ def coletar_ids(registro: dict, raiz: Path) -> set[str]:
     comando = registro["comando_coleta"]
     env = ambiente_para(raiz, registro)
     if registro["executor"] == "playwright-stack":
-        projeto = "jejemut-coleta"
+        projeto = f"{prefixo_de_projeto()}-coleta"
         env["MUTANTE_TAG"] = projeto
         comando = ["docker", "compose", "-p", projeto, *registro["compose_args"], *comando]
     try:
@@ -184,11 +190,11 @@ def coletar_ids(registro: dict, raiz: Path) -> set[str]:
     finally:
         if registro["executor"] == "playwright-stack":
             subprocess.run(
-                ["docker", "compose", "-p", "jejemut-coleta", *registro["compose_args"],
+                ["docker", "compose", "-p", projeto, *registro["compose_args"],
                  "--profile", "e2e", "down", "-v", "--remove-orphans"],
                 cwd=raiz, env=env, capture_output=True, check=False,
             )  # fmt: skip
-            remover_imagens_do_projeto("jejemut-coleta")
+            remover_imagens_do_projeto(projeto)
     if registro["executor"] == "pytest":
         return {re.sub(r"\[.*\]$", "", linha) for linha in saida.splitlines() if "::" in linha}
     if registro["executor"] == "vitest":

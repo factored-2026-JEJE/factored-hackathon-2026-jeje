@@ -1,7 +1,9 @@
 # Atalhos. Tudo roda via Docker Compose: o host precisa apenas de Docker (e make, opcional).
 # Configuração não secreta vive no compose.yaml; segredos só no .env (ENG-003).
 
-TESTE := docker compose -p jeje-test --profile test
+# Projeto compose dos testes; execuções paralelas usam outro nome: make check PROJETO_TESTE=x
+PROJETO_TESTE ?= jeje-test
+TESTE := docker compose -p $(PROJETO_TESTE) --profile test
 # Roda um serviço de teste e sempre derruba o projeto de testes (banco efêmero incluso).
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
@@ -19,7 +21,8 @@ down: ## Para a stack (mantém o banco)
 
 reset: ## Apaga o banco local (mantém os CSV baixados) para recarregar do zero
 	docker compose down
-	docker volume rm -f jeje_pgdata
+	@# Volume do projeto efetivo (respeita -p/COMPOSE_PROJECT_NAME); só a linha do nome é lida.
+	docker volume rm -f "$$(docker compose config | sed -n 's/^name: //p')_pgdata"
 
 logs:
 	docker compose logs -f
