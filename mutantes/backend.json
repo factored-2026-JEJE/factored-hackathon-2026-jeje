@@ -276,6 +276,21 @@
       "testes": [
         "tests/test_contrato.py::test_api_cumpre_o_proprio_contrato"
       ]
+    },
+    {
+      "id": "M-CONTRATO-03",
+      "requisito": "R06",
+      "descricao": "API muda o schema de resposta sem regenerar o contrato versionado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "    dataset: DatasetInfo | None\n",
+          "para": "    dataset: DatasetInfo | None\n    detail: str | None = None\n"
+        }
+      ],
+      "testes": [
+        "tests/test_contrato_versionado.py::test_contrato_versionado_coincide_com_a_api"
+      ]
     }
   ]
 }

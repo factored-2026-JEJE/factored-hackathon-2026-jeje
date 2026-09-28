@@ -15,6 +15,8 @@ x-backend-test: &backend-test
     target: test
   image: jeje-test:local
   profiles: ["test"]
+  volumes:
+    - ./contrato:/contrato:ro
   environment:
     <<: *app-env
     DATABASE_URL: postgresql+psycopg://jeje:jeje@db-test:5432/jeje_test
@@ -93,6 +95,7 @@ services:
   mutantes:
     <<: *backend-test
     volumes:
+      - ./contrato:/contrato:ro
       - ./mutantes:/mutantes:ro
     command: ["python", "/mutantes/executar.py", "/mutantes/backend.json"]
 
