@@ -24,6 +24,14 @@ x-backend-test: &backend-test
     db-test:
       condition: service_healthy
 
+# Testes do frontend: typecheck, lint e vitest com o contrato versionado montado.
+x-web-test: &web-test
+  build:
+    context: ./frontend
+    target: test
+  image: jeje-web-test:local
+  profiles: ["test"]
+
 services:
   db:
     image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
@@ -98,6 +106,11 @@ services:
       - ./contrato:/contrato:ro
       - ./mutantes:/mutantes:ro
     command: ["python", "/mutantes/executar.py", "/mutantes/backend.json"]
+
+  web-test:
+    <<: *web-test
+    volumes:
+      - ./contrato:/contrato:ro
 
 volumes:
   pgdata:
