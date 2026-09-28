@@ -721,6 +721,112 @@
       "testes": [
         "tests/test_carga_propriedades.py::test_texto_arbitrario_volta_do_banco_identico"
       ]
+    },
+    {
+      "id": "M-DOWN-01",
+      "requisito": "R06",
+      "descricao": "Sempre baixa de novo, mesmo com o arquivo local íntegro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "    if local_confere(alvo, esperado):\n        return False\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_segunda_execucao_nao_baixa_nada"
+      ]
+    },
+    {
+      "id": "M-DOWN-02",
+      "requisito": "R04",
+      "descricao": "Confia no tamanho local sem conferir o hash",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "        and sha256_de(caminho) == esperado.sha256\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_objeto_remoto_adulterado_com_mesmo_tamanho_e_recusado"
+      ]
+    },
+    {
+      "id": "M-DOWN-04",
+      "requisito": "R06",
+      "descricao": "Primeira falha cancela o restante do download",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "            except DownloadInvalido as erro:\n                erros.append(str(erro))",
+          "para": "            except DownloadInvalido:\n                executor.shutdown(wait=False, cancel_futures=True)\n                raise"
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_objeto_remoto_adulterado_com_mesmo_tamanho_e_recusado"
+      ]
+    },
+    {
+      "id": "M-DOWN-05",
+      "requisito": "R06",
+      "descricao": "Erro do S3 vira mensagem genérica sem o código de resposta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "        raise DownloadInvalido(f\"{esperado.caminho}: S3 respondeu {codigo}\") from erro",
+          "para": "        raise DownloadInvalido(f\"{esperado.caminho}: falha\") from erro"
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_objeto_ausente_no_bucket_falha_nomeando_o_arquivo",
+        "tests/test_download.py::test_credencial_errada_falha_com_acesso_negado"
+      ]
+    },
+    {
+      "id": "M-DOWN-06",
+      "requisito": "R06",
+      "descricao": "Prefixo sem barra final não é normalizado (chaves erradas no bucket)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "    if prefixo and not prefixo.endswith(\"/\"):\n        prefixo += \"/\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_separar_uri"
+      ]
+    },
+    {
+      "id": "M-DOWN-07",
+      "requisito": "R06",
+      "descricao": "URI sem esquema s3:// é aceita",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "    if not uri.startswith(\"s3://\") or not bucket:",
+          "para": "    if not bucket:"
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_uri_invalida_e_recusada"
+      ]
+    },
+    {
+      "id": "M-DOWN-09",
+      "requisito": "R06",
+      "descricao": "Destino ignora o caminho particionado do arquivo (tudo na raiz)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "    alvo = destino / esperado.caminho\n",
+          "para": "    alvo = destino / Path(esperado.caminho).name\n"
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_baixa_todos_os_arquivos_identicos_aos_originais"
+      ]
     }
   ]
 }
