@@ -1,6 +1,7 @@
 """Conversa sem modelo (G10): um turno = interpretar → política → ação verificada → resposta.
 
-O estado da conversa fica no banco, travado durante o turno, sempre de um cliente da sessão.
+O estado da conversa fica no banco, travado durante o turno, sempre de um cliente da sessão; a
+leitura da mensagem, que pode esperar o modelo, vem antes e fora da transação (ACH-030).
 Nenhum turno pula a política: o texto só escolhe a pergunta feita a ela, e a transação só vem de
 consulta filtrada pelo dono. Efeito (pré-caso) só com confirmação explícita ligada à proposta
 guardada no estado; encaminhamento humano grava o resumo e encerra a automação da conversa.
@@ -9,8 +10,8 @@ Falha ao gravar propaga: quem chama desfaz o turno inteiro, sem resposta de suce
 
 import json
 import secrets
-import time
 from dataclasses import dataclass, field, replace
+from datetime import date
 from functools import cached_property
 from typing import Literal
 
@@ -18,7 +19,7 @@ from sqlalchemy import Connection, text
 
 from jeje import consultas, eventos, handoff, politica, pre_caso
 from jeje.interpretacao import Interpretacao, comercio_citado
-from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
+from jeje.interpretacao_modelo import Interpretador, Leitura
 from jeje.mensagens import (
     ESTADO,
     MOTIVO_DO_CODIGO,
@@ -477,21 +478,41 @@ def _efeito(saida: Saida) -> str | None:
     return None
 
 
+@dataclass(frozen=True)
+class Preparo:
+    """O que ler a mensagem precisa saber da conversa, lido sem travar nada."""
+
+    idioma: Idioma
+    estado: Estado
+    hoje: date
+
+
+def preparar(conexao: Connection, customer_id: str, conversa_id: str) -> Preparo:
+    """Língua, estado e data de hoje (relógio do banco) para ler a mensagem antes do turno: a
+    leitura, que pode esperar o modelo, fica fora de qualquer transação e trava (ACH-030)."""
+    linha = _do_dono(conexao, customer_id, conversa_id, "idioma, estado, current_date AS hoje")
+    return Preparo(linha.idioma, linha.estado, linha.hoje)
+
+
+def ler(preparo: Preparo, mensagem: str, interpretador: Interpretador) -> Leitura:
+    """A leitura da mensagem pelo interpretador configurado (regras ou cascata com o modelo)."""
+    return interpretador(mensagem, preparo.idioma, preparo.hoje)
+
+
 def turno(
     conexao: Connection,
     customer_id: str,
     conversa_id: str,
     mensagem: str,
+    leitura: Leitura,
     limites: politica.Limites,
     ttl_minutos: int,
-    interpretador: Interpretador = pelas_regras,
+    inicio: float,
 ) -> ResultadoDoTurno:
-    """Processa uma mensagem do cliente da sessão na conversa dele e grava o turno e o evento.
-    O interpretador só lê a mensagem; o que fazer é sempre a política que decide."""
-    inicio = time.perf_counter()
-    linha = _do_dono(conexao, customer_id, conversa_id, "idioma, estado, contexto, turnos", True)
-    hoje = conexao.execute(text("SELECT current_date")).scalar_one()
-    leitura = interpretador(mensagem, linha.idioma, hoje)
+    """Processa uma mensagem já lida do cliente da sessão na conversa dele e grava o turno e o
+    evento. O interpretador só leu a mensagem; o que fazer é sempre a política que decide.
+    `inicio` (time.perf_counter) vem de antes da leitura: a latência do turno inclui o modelo."""
+    linha = _do_dono(conexao, customer_id, conversa_id, "estado, contexto, turnos", True)
     lida = leitura.lida
     atual = _Turno(
         conexao,

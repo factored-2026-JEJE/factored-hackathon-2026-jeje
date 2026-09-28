@@ -10,12 +10,13 @@ import json
 import logging
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
-from conftest import abrir_conversa, autenticar, cliente, conexao, dizer
+from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, registrar_dataset
 from sqlalchemy import text
 
 from jeje.interpretacao import interpretar
@@ -23,6 +24,8 @@ from jeje.interpretacao_modelo import ESQUEMA, INSTRUCOES, Ollama
 
 REFERENCIA = date(2026, 3, 1)
 VAGA = "apareceu um negócio esquisito na minha fatura"
+# Mensagem que as regras entendem sozinhas (o modelo nem é chamado).
+ENTENDIDA = "Não reconheço a cobrança de 45,90 na Streaming Plus"
 
 
 def saida(**campos) -> str:
@@ -35,14 +38,18 @@ USO = {"prompt_eval_count": 120, "eval_count": 30}
 
 
 @contextmanager
-def ollama_falso(conteudo: str, atraso_s: float = 0, status: int = 200, uso: dict = USO):
+def ollama_falso(
+    conteudo: str, atraso_s: float = 0, status: int = 200, uso: dict = USO, ao_receber=None
+):
     """Stub da fronteira externa (o modelo): devolve `conteudo` (e os tokens em `uso`) e guarda
-    cada pedido recebido."""
+    cada pedido recebido. `ao_receber` roda enquanto o "modelo pensa", antes da resposta."""
     pedidos: list[dict] = []
 
     class Resposta(BaseHTTPRequestHandler):
         def do_POST(self):
             pedidos.append(json.loads(self.rfile.read(int(self.headers["Content-Length"]))))
+            if ao_receber is not None:
+                ao_receber()
             time.sleep(atraso_s)
             resposta = {"message": {"role": "assistant", "content": conteudo}, **uso}
             corpo = json.dumps(resposta).encode()
@@ -227,6 +234,39 @@ def test_instrucao_injetada_na_mensagem_nao_vira_acao(cenario_conversa):
     assert (resposta["acao"], resposta["estado"]) == ("propor_pre_caso", "confirmando")
     assert pre_casos(cenario_conversa) == 0
     assert interpretacoes(cenario_conversa)[-1] == "ollama:modelo-teste"
+
+
+def test_enquanto_o_modelo_pensa_nenhuma_conexao_fica_presa(cenario_conversa):
+    """ACH-030: a mensagem é lida antes de o turno abrir a transação e travar a conversa. Enquanto
+    o modelo pensa, nenhuma conexão do pool fica presa, e outra conversa e a readiness respondem."""
+    registrar_dataset(cenario_conversa, "v-teste", "fixture")
+    app, presas = {}, []
+    recebido, liberar = threading.Event(), threading.Event()
+
+    def pensar():
+        presas.append(app["engine"].pool.checkedout())
+        recebido.set()
+        liberar.wait(10)
+
+    with (
+        ollama_falso(saida(intencao="contestar"), ao_receber=pensar) as (url, _),
+        cliente(com_modelo(cenario_conversa, url)) as http,
+        ThreadPoolExecutor(max_workers=1) as fundo,
+    ):
+        app["engine"] = http.app.state.engine
+        auth = autenticar(http, "CLI-A")
+        lenta, outra = abrir_conversa(http, auth, "pt"), abrir_conversa(http, auth, "pt")
+        try:
+            primeira = fundo.submit(dizer, http, auth, lenta, VAGA)
+            assert recebido.wait(10)
+            enquanto = dizer(http, auth, outra, ENTENDIDA)
+            pronta = http.get("/health/ready")
+        finally:
+            liberar.set()
+        lida_pelo_modelo = primeira.result(timeout=10)
+    assert presas == [0]
+    assert (enquanto["acao"], pronta.status_code) == ("propor_pre_caso", 200)
+    assert lida_pelo_modelo["regra"] == "POL-CON-02"
 
 
 def test_modelo_fora_do_ar_a_conversa_segue_pelas_regras(cenario_conversa):

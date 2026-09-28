@@ -105,15 +105,20 @@ def enviar_mensagem(
     config = request.app.state.settings
     inicio = time.perf_counter()
     try:
+        with engine.connect() as conexao:
+            preparo = conversa.preparar(conexao, ativa.customer_id, conversa_id)
+        # Fora de qualquer conexão: esperar o modelo não prende trava, transação nem pool.
+        leitura = conversa.ler(preparo, mensagem.texto, request.app.state.interpretador)
         with engine.begin() as conexao:
             resultado = conversa.turno(
                 conexao,
                 ativa.customer_id,
                 conversa_id,
                 mensagem.texto,
+                leitura,
                 config.limites(),
                 config.proposta_ttl_minutos,
-                request.app.state.interpretador,
+                inicio,
             )
     except conversa.ConversaNaoEncontrada:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None

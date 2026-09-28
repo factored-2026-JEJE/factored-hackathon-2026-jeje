@@ -3636,6 +3636,21 @@
       ]
     },
     {
+      "id": "M-CONV-25",
+      "requisito": "R06",
+      "descricao": "Modelo consultado com a transação do turno aberta: a leitura volta para dentro dela e prende uma conexão do pool (ACH-030)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        leitura = conversa.ler(preparo, mensagem.texto, request.app.state.interpretador)\n        with engine.begin() as conexao:\n",
+          "para": "        with engine.begin() as conexao:\n            leitura = conversa.ler(preparo, mensagem.texto, request.app.state.interpretador)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_enquanto_o_modelo_pensa_nenhuma_conexao_fica_presa"
+      ]
+    },
+    {
       "id": "M-EVT-01",
       "requisito": "R09",
       "descricao": "Latência do turno não medida (≈ 0)",
@@ -3643,7 +3658,7 @@
         {
           "arquivo": "src/jeje/conversa.py",
           "de": "            latencia_ms=eventos.desde(inicio),",
-          "para": "            latencia_ms=eventos.desde(time.perf_counter()),"
+          "para": "            latencia_ms=eventos.desde(inicio) * 0,"
         }
       ],
       "testes": [
