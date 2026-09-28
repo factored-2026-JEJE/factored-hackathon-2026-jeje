@@ -172,6 +172,36 @@
       "testes": [
         "eda.spec.ts > seção da EDA mostra exatamente os números e as consultas da API"
       ]
+    },
+    {
+      "id": "M-E2E-09",
+      "requisito": "R08",
+      "descricao": "Listagem do backend sem filtro de dono: um cliente vê transações de outro",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/consultas.py",
+          "de": "            f\"SELECT {COLUNAS} FROM curated.transactions WHERE customer_id = :cliente\"\n            \" ORDER BY",
+          "para": "            f\"SELECT {COLUNAS} FROM curated.transactions WHERE :cliente = :cliente\"\n            \" ORDER BY"
+        }
+      ],
+      "testes": [
+        "acesso.spec.ts > uma persona nunca alcança transação de outra, nem pelo endereço direto"
+      ]
+    },
+    {
+      "id": "M-E2E-10",
+      "requisito": "R08",
+      "descricao": "Página manda o token num cabeçalho que a API não lê",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/api/cliente.ts",
+          "de": "  return json<Transacao[]>(await fetch(\"/api/minhas/transacoes\", { headers: comToken(token) }), 200);",
+          "para": "  return json<Transacao[]>(await fetch(\"/api/minhas/transacoes\", { headers: { \"X-Token\": token } }), 200);"
+        }
+      ],
+      "testes": [
+        "acesso.spec.ts > entrar como persona mostra na tela exatamente as transações da sessão"
+      ]
     }
   ]
 }
