@@ -15,7 +15,9 @@ modo=${2:-completo}
 id="repro$(date +%s)"
 area=$(mktemp -d)
 
-export JEJE_TAG="$id" PROJETO_TESTE="$id-test" MUTANTES_PREFIXO="$id-mut"
+# Tudo com o nome desta execução: projeto (inclusive alvos do make sem -p), imagens e prefixos.
+export COMPOSE_PROJECT_NAME="$id" JEJE_TAG="$id" MUTANTE_TAG="$id"
+export PROJETO_TESTE="$id-test" MUTANTES_PREFIXO="$id-mut"
 stack=(docker compose -p "$id" -f compose.yaml -f compose.ci.yaml -f mutantes/compose.mutantes.yaml)
 
 limpar() {
