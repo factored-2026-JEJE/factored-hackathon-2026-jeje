@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     ollama_timeout_s: float = Field(gt=0)
     # Quanto tempo o Ollama mantém o modelo carregado depois da última chamada (ex.: 30m).
     ollama_keep_alive: str
+    # Tempo máximo para o modelo carregar ao iniciar a API (em segundo plano; não atrasa nada).
+    ollama_carga_timeout_s: float = Field(gt=0)
     # Nível dos logs da aplicação (saída padrão, uma linha por acontecimento; ver jeje.logs).
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 

@@ -4198,8 +4198,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "        except Exception as erro:",
-          "para": "        except KeyError as erro:"
+          "de": "        except Exception as erro:\n            fallback = f\"regras (fallback: {type(erro).__name__})\"\n",
+          "para": "        except KeyError as erro:\n            fallback = f\"regras (fallback: {type(erro).__name__})\"\n"
         }
       ],
       "testes": [
@@ -4333,8 +4333,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "        except Exception as erro:",
-          "para": "        except (OSError, ValueError, KeyError) as erro:"
+          "de": "        except Exception as erro:\n            fallback = f\"regras (fallback: {type(erro).__name__})\"\n",
+          "para": "        except (OSError, ValueError, KeyError) as erro:\n            fallback = f\"regras (fallback: {type(erro).__name__})\"\n"
         }
       ],
       "testes": [
@@ -4369,6 +4369,51 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem"
+      ]
+    },
+    {
+      "id": "M-LLM-15",
+      "requisito": "R06",
+      "descricao": "API espera a carga do modelo para começar a responder (carga fora de segundo plano)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    carga = threading.Thread(\n        target=interpretador.carregar, args=(timeout_s,), name=\"carga-do-modelo\", daemon=True\n    )\n",
+          "para": "    interpretador.carregar(timeout_s)\n    carga = threading.Thread(target=lambda: None)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_inicio_da_api_carrega_o_modelo_sem_esperar_por_ele"
+      ]
+    },
+    {
+      "id": "M-LLM-16",
+      "requisito": "R06",
+      "descricao": "Carga inicial sem o keep_alive das chamadas (o modelo sai da memória no prazo padrão do Ollama)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        corpo = {\"model\": self.modelo, \"keep_alive\": self.keep_alive}",
+          "para": "        corpo = {\"model\": self.modelo}"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_inicio_da_api_carrega_o_modelo_sem_esperar_por_ele"
+      ]
+    },
+    {
+      "id": "M-LLM-17",
+      "requisito": "R06",
+      "descricao": "Modelo fora do ar no início some sem aviso (a thread morre e ninguém sabe que o modo modelo caiu nas regras)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        except Exception as erro:\n            log.warning(\"modelo indisponivel modelo=%s erro=%s\", self.modelo, type(erro).__name__)\n            return\n",
+          "para": "        except KeyError:\n            return\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_modelo_fora_do_ar_no_inicio_so_vira_aviso"
       ]
     },
     {

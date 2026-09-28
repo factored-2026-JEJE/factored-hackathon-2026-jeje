@@ -35,6 +35,9 @@ async def ciclo_de_vida(app: FastAPI) -> AsyncIterator[None]:
         config.interpretador,
         config.modo_demo,
     )
+    app.state.carga_do_modelo = interpretacao_modelo.carregar_em_segundo_plano(
+        app.state.interpretador, config.ollama_carga_timeout_s
+    )
     yield
     # Fecha as conexões do pool ao encerrar o processo (sem conexões órfãs no banco).
     app.state.engine.dispose()

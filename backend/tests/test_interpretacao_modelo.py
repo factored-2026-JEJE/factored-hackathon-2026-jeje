@@ -46,16 +46,30 @@ def ollama_falso(
     ao_receber=None,
     corpo: bytes | None = None,
     declarado: int | None = None,
+    cargas: list | None = None,
+    ao_carregar=None,
 ):
     """Stub da fronteira externa (o modelo): devolve `conteudo` (e os tokens em `uso`) e guarda
-    cada pedido recebido. `ao_receber` roda enquanto o "modelo pensa", antes da resposta.
-    `corpo` troca a resposta inteira (envelope fora do formato) e `declarado`, o Content-Length
-    anunciado (maior que o corpo: conexão cortada no meio da resposta)."""
+    cada pedido de leitura (`/api/chat`). `ao_receber` roda enquanto o "modelo pensa", antes da
+    resposta. `corpo` troca a resposta inteira (envelope fora do formato) e `declarado`, o
+    Content-Length anunciado (maior que o corpo: conexão cortada no meio da resposta). Pedidos de
+    carga do modelo (`/api/generate` sem prompt) vão para `cargas`; `ao_carregar` segura a carga."""
     pedidos: list[dict] = []
 
     class Resposta(BaseHTTPRequestHandler):
         def do_POST(self):
-            pedidos.append(json.loads(self.rfile.read(int(self.headers["Content-Length"]))))
+            recebido = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            if self.path == "/api/generate":
+                if cargas is not None:
+                    cargas.append(recebido)
+                if ao_carregar is not None:
+                    ao_carregar()
+                self.send_response(200)
+                self.send_header("Content-Length", "2")
+                self.end_headers()
+                self.wfile.write(b"{}")
+                return
+            pedidos.append(recebido)
             if ao_receber is not None:
                 ao_receber()
             time.sleep(atraso_s)
@@ -338,6 +352,44 @@ def test_turno_desfeito_ainda_registra_a_chamada_ao_modelo(cenario_conversa):
             )
         ).one()
     assert tuple(erro) == ("erro", "ollama:modelo-teste", True, 120, 30)
+
+
+def test_inicio_da_api_carrega_o_modelo_sem_esperar_por_ele(cenario_conversa, caplog):
+    """A primeira mensagem não paga a carga fria do modelo: a API pede a carga ao iniciar, em
+    segundo plano, com o mesmo keep_alive das chamadas, e já responde enquanto ela acontece."""
+    cargas, liberar = [], threading.Event()
+    with (
+        caplog.at_level(logging.INFO, logger="jeje.modelo"),
+        ollama_falso(saida(), cargas=cargas, ao_carregar=lambda: liberar.wait(5)) as (url, _),
+    ):
+        inicio = time.monotonic()
+        with cliente(com_modelo(cenario_conversa, url)) as http:
+            try:
+                subiu_em = time.monotonic() - inicio
+                viva = http.get("/health")
+            finally:
+                liberar.set()
+            http.app.state.carga_do_modelo.join(5)
+    assert subiu_em < 2 and viva.status_code == 200
+    assert cargas == [{"model": "modelo-teste", "keep_alive": "30m"}]
+    assert any(
+        r.getMessage().startswith("modelo pronto modelo=modelo-teste ms=") for r in caplog.records
+    )
+
+
+def test_modelo_fora_do_ar_no_inicio_so_vira_aviso(cenario_conversa, caplog):
+    with ollama_falso(saida()) as (url, _):
+        pass  # servidor encerrado: a porta fica fechada
+    with (
+        caplog.at_level(logging.WARNING, logger="jeje.modelo"),
+        cliente(com_modelo(cenario_conversa, url)) as http,
+    ):
+        http.app.state.carga_do_modelo.join(5)
+        viva = http.get("/health")
+    assert viva.status_code == 200
+    assert [r.getMessage() for r in caplog.records if r.name == "jeje.modelo"] == [
+        "modelo indisponivel modelo=modelo-teste erro=URLError"
+    ]
 
 
 def test_modelo_fora_do_ar_a_conversa_segue_pelas_regras(cenario_conversa):

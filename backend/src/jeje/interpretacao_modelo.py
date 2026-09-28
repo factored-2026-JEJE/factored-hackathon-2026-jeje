@@ -10,6 +10,7 @@ regras, com o motivo registrado no trace do turno.
 
 import json
 import logging
+import threading
 import time
 import urllib.request
 from collections.abc import Callable
@@ -136,6 +137,25 @@ class Ollama:
         )
         return Leitura(lida, f"ollama:{self.modelo}", self._chamada(inicio, uso))
 
+    def carregar(self, timeout_s: float) -> None:
+        """Pede ao Ollama que carregue o modelo (pedido sem prompt: não gera nada), para a primeira
+        mensagem não pagar a carga fria. Só registra o resultado: falha não impede nada."""
+        inicio = time.perf_counter()
+        corpo = {"model": self.modelo, "keep_alive": self.keep_alive}
+        pedido = urllib.request.Request(
+            f"{self.url}/api/generate",
+            data=json.dumps(corpo).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(pedido, timeout=timeout_s) as resposta:
+                resposta.read()
+        except Exception as erro:
+            log.warning("modelo indisponivel modelo=%s erro=%s", self.modelo, type(erro).__name__)
+            return
+        log.info("modelo pronto modelo=%s ms=%.0f", self.modelo, eventos.desde(inicio))
+
     @staticmethod
     def _chamada(inicio: float, uso: dict) -> Chamada:
         return Chamada(eventos.desde(inicio), uso.get("entrada"), uso.get("saida"))
@@ -169,6 +189,18 @@ class Ollama:
 
 
 Interpretador = Callable[[str, Idioma, date], Leitura]
+
+
+def carregar_em_segundo_plano(interpretador: Interpretador, timeout_s: float):
+    """Carga do modelo ao iniciar a API, numa thread: o início não espera por ela. Só a cascata
+    com o Ollama tem o que carregar; devolve a thread (ou None)."""
+    if not isinstance(interpretador, Ollama):
+        return None
+    carga = threading.Thread(
+        target=interpretador.carregar, args=(timeout_s,), name="carga-do-modelo", daemon=True
+    )
+    carga.start()
+    return carga
 
 
 def configurado(settings: Settings) -> Interpretador:

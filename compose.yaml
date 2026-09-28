@@ -36,6 +36,8 @@ x-app-env: &app-env
   OLLAMA_TIMEOUT_S: "10"
   # Modelo mantido carregado entre turnos (carga fria do qwen2.5:7b leva segundos).
   OLLAMA_KEEP_ALIVE: "30m"
+  # A API pede a carga do modelo ao iniciar, em segundo plano (a primeira mensagem já o acha pronto).
+  OLLAMA_CARGA_TIMEOUT_S: "120"
   # Logs da aplicação: DEBUG mostra também as sondas de saúde; INFO é o normal.
   LOG_LEVEL: INFO
 
