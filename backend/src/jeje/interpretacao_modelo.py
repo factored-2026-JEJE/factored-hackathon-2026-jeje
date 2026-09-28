@@ -104,6 +104,7 @@ class Ollama:
     url: str
     modelo: str
     timeout_s: float
+    keep_alive: str
 
     def __call__(self, texto: str, idioma_anterior: Idioma, referencia: date) -> Leitura:
         regras = interpretar(texto, idioma_anterior, referencia)
@@ -148,6 +149,10 @@ class Ollama:
             ],
             "format": ESQUEMA,
             "stream": False,
+            # Sem raciocínio: modelo que pensa gasta o tempo antes do JSON e estoura (ACH-024).
+            "think": False,
+            # Mantido carregado entre turnos: a carga fria passa do tempo máximo da chamada.
+            "keep_alive": self.keep_alive,
             "options": {"temperature": 0},
         }
         pedido = urllib.request.Request(
@@ -169,5 +174,10 @@ Interpretador = Callable[[str, Idioma, date], Leitura]
 def configurado(settings: Settings) -> Interpretador:
     """O interpretador escolhido no compose (INTERPRETADOR): só regras, ou cascata com o Ollama."""
     if settings.interpretador == "ollama":
-        return Ollama(settings.ollama_url, settings.ollama_modelo, settings.ollama_timeout_s)
+        return Ollama(
+            settings.ollama_url,
+            settings.ollama_modelo,
+            settings.ollama_timeout_s,
+            settings.ollama_keep_alive,
+        )
     return pelas_regras

@@ -4342,6 +4342,36 @@
       ]
     },
     {
+      "id": "M-LLM-13",
+      "requisito": "R06",
+      "descricao": "Modelo chamado com raciocínio ligado (modelo que pensa gasta o tempo antes do JSON, ACH-024)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "            \"think\": False,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem"
+      ]
+    },
+    {
+      "id": "M-LLM-14",
+      "requisito": "R06",
+      "descricao": "Modelo descarregado entre turnos (keep_alive não enviado; cada turno paga a carga fria)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "            \"keep_alive\": self.keep_alive,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem"
+      ]
+    },
+    {
       "id": "M-EVT-06",
       "requisito": "R09",
       "descricao": "Evento do turno sem o uso do modelo",

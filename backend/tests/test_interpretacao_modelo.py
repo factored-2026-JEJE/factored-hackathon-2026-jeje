@@ -82,7 +82,7 @@ def ollama_falso(
 
 
 def ler(url: str, texto: str, timeout_s: float = 5):
-    return Ollama(url, "modelo-teste", timeout_s)(texto, "es", REFERENCIA)
+    return Ollama(url, "modelo-teste", timeout_s, "7m")(texto, "es", REFERENCIA)
 
 
 @pytest.mark.parametrize(
@@ -117,6 +117,8 @@ def test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem():
     assert (pedido["format"], pedido["options"], pedido["stream"]) == (
         ESQUEMA, {"temperature": 0}, False
     )  # fmt: skip
+    # Sem raciocínio (modelo que pensa estoura o tempo, ACH-024) e mantido carregado entre turnos.
+    assert (pedido["think"], pedido["keep_alive"]) == (False, "7m")
 
 
 @pytest.mark.parametrize(

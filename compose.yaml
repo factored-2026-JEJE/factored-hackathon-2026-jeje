@@ -34,6 +34,8 @@ x-app-env: &app-env
   OLLAMA_URL: http://host.docker.internal:11434
   OLLAMA_MODELO: qwen2.5:7b
   OLLAMA_TIMEOUT_S: "10"
+  # Modelo mantido carregado entre turnos (carga fria do qwen2.5:7b leva segundos).
+  OLLAMA_KEEP_ALIVE: "30m"
   # Logs da aplicação: DEBUG mostra também as sondas de saúde; INFO é o normal.
   LOG_LEVEL: INFO
 
