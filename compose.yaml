@@ -1,0 +1,25 @@
+# Fonte única de execução e de toda configuração não secreta do produto (ENG-003).
+# Segredos (chaves do S3) ficam só no .env, fora do Git. Suba tudo com: docker compose up --build
+name: jeje
+
+services:
+  db:
+    image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+    environment:
+      POSTGRES_DB: jeje
+      POSTGRES_USER: jeje
+      # Credencial apenas do banco local de desenvolvimento (porta só em 127.0.0.1).
+      # Publicação usa segredo próprio, nunca este valor.
+      POSTGRES_PASSWORD: jeje
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jeje -d jeje"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:
