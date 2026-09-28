@@ -38,6 +38,13 @@ test("mostra indisponível e banco sem migrations quando a API responde 503", as
   expect(screen.getByText("sem migrations aplicadas")).toBeInTheDocument();
 });
 
+test("mostra que os dados estão sendo recarregados quando a API está em recarga", async () => {
+  responder(503, { status: "unavailable", database: "reloading", dataset: null });
+  render(<StatusDoSistema />);
+  expect(await screen.findByRole("heading", { name: "Indisponível" })).toBeInTheDocument();
+  expect(screen.getByText("recarregando os dados")).toBeInTheDocument();
+});
+
 test("mostra nenhum dataset quando o banco está ok mas sem carga", async () => {
   responder(503, { status: "unavailable", database: "ok", dataset: null });
   render(<StatusDoSistema />);

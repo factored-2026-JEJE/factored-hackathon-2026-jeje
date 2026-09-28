@@ -10,6 +10,7 @@ const ROTULO_BANCO: Record<Prontidao["database"], string> = {
   ok: "conectado",
   unreachable: "inacessível",
   not_migrated: "sem migrations aplicadas",
+  reloading: "recarregando os dados",
 };
 
 export function StatusDoSistema() {

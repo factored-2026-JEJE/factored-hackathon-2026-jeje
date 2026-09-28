@@ -1513,7 +1513,8 @@
             "enum": [
               "ok",
               "unreachable",
-              "not_migrated"
+              "not_migrated",
+              "reloading"
             ],
             "title": "Database"
           },

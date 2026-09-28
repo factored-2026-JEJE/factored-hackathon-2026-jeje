@@ -17,6 +17,7 @@ from jeje import (
     parametros,
     pre_caso_api,
     qualidade_api,
+    recarga,
     sessao_api,
     transacoes_api,
 )
@@ -55,6 +56,8 @@ def create_app(settings: Settings) -> FastAPI:
     )
     app.state.settings = settings
     app.state.engine = create_db_engine(settings)
+    # Toda transação da API respeita a recarga dos dados: durante ela, 503 na hora (DEV-020i).
+    recarga.proteger(app.state.engine)
     app.state.interpretador = interpretacao_modelo.configurado(settings)
     app.include_router(health.router)
     app.include_router(qualidade_api.router)
@@ -66,5 +69,6 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(atendimento_api.router)
     for erro in INDISPONIVEL:
         app.add_exception_handler(erro, banco_indisponivel)
+    app.add_exception_handler(recarga.Recarregando, recarga.em_recarga)
     app.middleware("http")(logs.por_requisicao)
     return app

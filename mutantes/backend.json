@@ -4705,6 +4705,51 @@
       "testes": [
         "tests/test_logs.py::test_erro_inesperado_vira_500_json_com_o_id_e_um_log_com_traceback"
       ]
+    },
+    {
+      "id": "M-REC-01",
+      "requisito": "R08",
+      "descricao": "API ignora a recarga: atende com a curada sendo trocada (resposta com fatos de duas versões ou requisição pendurada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "    recarga.proteger(app.state.engine)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_durante_a_recarga_a_api_responde_503_na_hora"
+      ]
+    },
+    {
+      "id": "M-REC-02",
+      "requisito": "R06",
+      "descricao": "Readiness durante a recarga sai do contrato (503 sem o corpo Readiness)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "    except recarga.Recarregando:\n        response.status_code = 503\n        return Readiness(status=\"unavailable\", database=\"reloading\", dataset=None)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_durante_a_recarga_a_api_responde_503_na_hora"
+      ]
+    },
+    {
+      "id": "M-REC-03",
+      "requisito": "R06",
+      "descricao": "503 da recarga sem Retry-After (cliente não sabe quando tentar de novo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/recarga.py",
+          "de": "        headers={\"Retry-After\": \"30\"},\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_durante_a_recarga_a_api_responde_503_na_hora"
+      ]
     }
   ]
 }

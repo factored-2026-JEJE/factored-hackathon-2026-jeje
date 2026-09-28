@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-from jeje import __version__
+from jeje import __version__, recarga
 from jeje.db import EngineDep
 from jeje.models import DatasetVersion
 
@@ -29,7 +29,7 @@ class DatasetInfo(BaseModel):
 class Readiness(BaseModel):
     # ready: banco acessível, migrado e com dataset carregado; só então o serviço atende.
     status: Literal["ready", "unavailable"]
-    database: Literal["ok", "unreachable", "not_migrated"]
+    database: Literal["ok", "unreachable", "not_migrated", "reloading"]
     dataset: DatasetInfo | None
 
 
@@ -52,6 +52,9 @@ def readiness(response: Response, engine: EngineDep) -> Readiness:
     except OperationalError:
         response.status_code = 503
         return Readiness(status="unavailable", database="unreachable", dataset=None)
+    except recarga.Recarregando:
+        response.status_code = 503
+        return Readiness(status="unavailable", database="reloading", dataset=None)
 
     if linha is None:
         response.status_code = 503

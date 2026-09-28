@@ -427,6 +427,21 @@
       ]
     },
     {
+      "id": "M-WEB-55",
+      "requisito": "R06",
+      "descricao": "Página de status mostra recarga como banco inacessível",
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": "  reloading: \"recarregando os dados\",",
+          "para": "  reloading: \"inacessível\","
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra que os dados estão sendo recarregados quando a API está em recarga"
+      ]
+    },
+    {
       "id": "M-WEB-09",
       "requisito": "R06",
       "descricao": "Tipos do contrato editados à mão divergem do OpenAPI versionado",

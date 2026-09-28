@@ -634,7 +634,7 @@ export interface components {
              * Database
              * @enum {string}
              */
-            database: "ok" | "unreachable" | "not_migrated";
+            database: "ok" | "unreachable" | "not_migrated" | "reloading";
             dataset: components["schemas"]["DatasetInfo"] | null;
         };
         /** Resultado */
