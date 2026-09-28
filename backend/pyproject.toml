@@ -6,8 +6,10 @@ requires-python = ">=3.12,<3.13"
 # Versões iguais às do ambiente local validado do time; o uv.lock fixa toda a árvore com hashes.
 dependencies = [
   "fastapi==0.141.1",
+  "psycopg[binary]==3.3.6",
   "pydantic==2.13.5",
   "pydantic-settings==2.15.0",
+  "sqlalchemy==2.1.1",
   "uvicorn==0.54.0",
 ]
 

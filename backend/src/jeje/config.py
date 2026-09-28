@@ -5,6 +5,7 @@ Os valores vêm do ambiente montado pelo `compose.yaml` versionado (ENG-003); se
 inicialização, em vez de o código assumir um valor que diverge do compose.
 """
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,3 +14,7 @@ class Settings(BaseSettings):
 
     # Prefixo público sob o qual o proxy expõe a API (ex.: "/api"); vazio quando acessada direto.
     api_root_path: str
+    # URL SQLAlchemy do PostgreSQL (driver psycopg).
+    database_url: str
+    # Limite para abrir conexão; evita que readiness e requisições fiquem presas num banco mudo.
+    db_connect_timeout_s: int = Field(gt=0)

@@ -5,6 +5,8 @@ name: jeje
 # Configuração comum aos processos da aplicação (API, migrações, carga e testes).
 x-app-env: &app-env
   API_ROOT_PATH: /api
+  DATABASE_URL: postgresql+psycopg://jeje:jeje@db:5432/jeje
+  DB_CONNECT_TIMEOUT_S: "3"
 
 services:
   db:
@@ -67,6 +69,7 @@ services:
     profiles: ["test"]
     environment:
       <<: *app-env
+      DATABASE_URL: postgresql+psycopg://jeje:jeje@db-test:5432/jeje_test
     depends_on:
       db-test:
         condition: service_healthy
