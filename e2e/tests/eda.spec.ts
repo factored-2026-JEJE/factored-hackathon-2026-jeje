@@ -30,6 +30,9 @@ test("seção da EDA mostra exatamente os números e as consultas da API", async
   const todos = await indicadores(request);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Por que este fluxo" })).toBeVisible();
+  // Na base real as consultas varrem milhões de linhas e disputam o banco com as outras
+  // jornadas em paralelo: o primeiro indicador pode levar mais que o tempo padrão.
+  await expect(page.getByRole("article").first()).toBeVisible({ timeout: 30_000 });
   for (const ind of todos) {
     const artigo = page.getByRole("article", { name: ind.pergunta });
     await expect(artigo).toBeVisible();

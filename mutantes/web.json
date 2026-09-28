@@ -262,6 +262,21 @@
       ]
     },
     {
+      "id": "M-WEB-53",
+      "requisito": "R07",
+      "descricao": "Seção da EDA some enquanto os números são calculados",
+      "trocas": [
+        {
+          "arquivo": "src/IndicadoresDaEda.tsx",
+          "de": "  // A seção aparece já;",
+          "para": "  if (estado.tipo === \"carregando\") return <p role=\"status\">Calculando indicadores…</p>;\n  // A seção aparece já;"
+        }
+      ],
+      "testes": [
+        "src/IndicadoresDaEda.test.tsx > a seção aparece já, avisando que os números estão sendo calculados"
+      ]
+    },
+    {
       "id": "CONTROLE-web",
       "espera": "sobrevive",
       "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",

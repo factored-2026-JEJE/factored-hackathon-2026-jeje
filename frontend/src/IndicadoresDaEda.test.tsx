@@ -45,14 +45,14 @@ function linhaDe(pergunta: string, grupo: string) {
 test("distribuição mostra contagem, participação e participação no tempo", async () => {
   responder(200, [MOTIVOS]);
   render(<IndicadoresDaEda />);
-  await screen.findByRole("heading", { name: "Por que este fluxo" });
+  await screen.findByRole("article", { name: MOTIVOS.pergunta });
   expect(linhaDe(MOTIVOS.pergunta, "Transaccional")).toEqual(["240.056", "35,0%", "24,0%"]);
 });
 
 test("taxa mostra numerador e base do próprio grupo", async () => {
   responder(200, [RESOLUCAO]);
   render(<IndicadoresDaEda />);
-  await screen.findByRole("heading", { name: "Por que este fluxo" });
+  await screen.findByRole("article", { name: RESOLUCAO.pergunta });
   expect(linhaDe(RESOLUCAO.pergunta, "Queja")).toEqual(["51.021 de 117.021", "43,6%"]);
 });
 
@@ -67,4 +67,12 @@ test("mostra erro quando os indicadores não podem ser obtidos", async () => {
   responder(503, { detail: "indisponível" });
   render(<IndicadoresDaEda />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Indicadores indisponíveis (Error: HTTP 503)");
+});
+
+test("a seção aparece já, avisando que os números estão sendo calculados", async () => {
+  vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+  render(<IndicadoresDaEda />);
+  expect(screen.getByRole("heading", { name: "Por que este fluxo" })).toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Calculando indicadores…");
+  expect(screen.queryByRole("article")).not.toBeInTheDocument();
 });

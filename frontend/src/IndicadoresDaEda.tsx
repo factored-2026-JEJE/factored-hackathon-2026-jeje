@@ -61,8 +61,8 @@ export function IndicadoresDaEda() {
     return () => controle.abort();
   }, []);
 
-  if (estado.tipo === "carregando") return <p role="status">Calculando indicadores…</p>;
-  if (estado.tipo === "erro") return <p role="alert">Indicadores indisponíveis ({estado.detalhe})</p>;
+  // A seção aparece já; os números chegam quando as consultas terminam (milhões de linhas na
+  // base real levam alguns segundos).
   return (
     <section aria-label="Por que este fluxo">
       <h2>Por que este fluxo</h2>
@@ -70,9 +70,10 @@ export function IndicadoresDaEda() {
         Números da base carregada, cada um com a consulta que o produziu. Eles descrevem o dataset,
         não o efeito do sistema.
       </p>
-      {estado.indicadores.map((indicador) => (
-        <Indicador key={indicador.id} indicador={indicador} />
-      ))}
+      {estado.tipo === "carregando" && <p role="status">Calculando indicadores…</p>}
+      {estado.tipo === "erro" && <p role="alert">Indicadores indisponíveis ({estado.detalhe})</p>}
+      {estado.tipo === "pronto" &&
+        estado.indicadores.map((indicador) => <Indicador key={indicador.id} indicador={indicador} />)}
     </section>
   );
 }
