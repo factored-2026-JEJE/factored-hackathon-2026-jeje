@@ -200,3 +200,15 @@ def test_propostas_diferentes_confirmadas_ao_mesmo_tempo_so_uma_cria(cenario):
     assert sorted(r.status_code for r in respostas) == [200] * 5 + [201]
     assert len({r.json()["protocolo"] for r in respostas}) == 1
     assert len(pre_casos(cenario)) == 1
+
+
+def test_avaliacao_reconhece_pre_caso_ja_aberto(cenario):
+    """A avaliação (GET) e a proposta (POST) precisam concordar: achado do E2E da G8."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        proposta = http.post(PROPOR.format("TRX-OK"), headers=auth).json()
+        protocolo = http.post(CONFIRMAR.format(proposta["proposta"]["id"]), headers=auth).json()[
+            "protocolo"
+        ]
+        avaliacao = http.get("/minhas/transacoes/TRX-OK/contestacao", headers=auth).json()
+    assert avaliacao == {"regra": "POL-DISP-03", "acao": "responder", "detalhe": protocolo}

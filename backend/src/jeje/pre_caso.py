@@ -41,7 +41,7 @@ class PreCaso:
     criado_em: datetime
 
 
-def _pre_caso_da_transacao(conexao: Connection, customer_id: str, transaction_id: str):
+def pre_caso_da_transacao(conexao: Connection, customer_id: str, transaction_id: str):
     linha = conexao.execute(
         text(
             "SELECT protocolo, transaction_id, estado, criado_em FROM app.pre_casos"
@@ -58,7 +58,7 @@ def propor(
     fatos = consultas.fatos_da_transacao(conexao, customer_id, transaction_id)
     if fatos is None:
         raise NaoEncontrada(transaction_id)
-    existente = _pre_caso_da_transacao(conexao, customer_id, transaction_id)
+    existente = pre_caso_da_transacao(conexao, customer_id, transaction_id)
     decisao = politica.decidir_contestacao(
         fatos, limite, existente.protocolo if existente else None
     )
@@ -105,7 +105,7 @@ def confirmar(
     ).first()
     if proposta is None:
         raise NaoEncontrada(proposta_id)
-    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)
+    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)
     if ja_registrado is not None:
         return ja_registrado, False
     if not proposta.valida:
@@ -125,7 +125,7 @@ def confirmar(
         ),
         {"cliente": customer_id, "transacao": proposta.transaction_id, "proposta": proposta_id},
     ).rowcount
-    registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)
+    registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)
     if registrado is None:
         raise RuntimeError("pré-caso não encontrado na releitura; nada foi confirmado")
     return registrado, inserido == 1

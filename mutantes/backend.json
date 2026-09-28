@@ -2356,8 +2356,8 @@
         },
         {
           "arquivo": "src/jeje/pre_caso.py",
-          "de": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
-          "para": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
+          "de": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
+          "para": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
         }
       ],
       "testes": [
@@ -2416,7 +2416,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/pre_caso.py",
-          "de": "    registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:\n        raise RuntimeError(\"pré-caso não encontrado na releitura; nada foi confirmado\")",
+          "de": "    registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:\n        raise RuntimeError(\"pré-caso não encontrado na releitura; nada foi confirmado\")",
           "para": "    registrado = PreCaso(protocolo=f\"PC-{proposta_id[:8]}\", transaction_id=proposta.transaction_id, estado=\"recebido\", criado_em=datetime.now())"
         }
       ],
@@ -2476,8 +2476,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/pre_caso.py",
-          "de": "    registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:",
-          "para": "    conexao.execute(text(\"UPDATE curated.transactions SET transaction_status = 'Reversed' WHERE transaction_id = :t\"), {\"t\": proposta.transaction_id})\n    registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:"
+          "de": "    registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:",
+          "para": "    conexao.execute(text(\"UPDATE curated.transactions SET transaction_status = 'Reversed' WHERE transaction_id = :t\"), {\"t\": proposta.transaction_id})\n    registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:"
         }
       ],
       "testes": [
@@ -2501,7 +2501,7 @@
         },
         {
           "arquivo": "src/jeje/pre_caso.py",
-          "de": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
+          "de": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
           "para": ""
         }
       ],
@@ -2531,8 +2531,8 @@
         },
         {
           "arquivo": "src/jeje/pre_caso.py",
-          "de": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
-          "para": "    ja_registrado = _pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
+          "de": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
+          "para": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
         }
       ],
       "testes": [
@@ -2567,6 +2567,21 @@
       ],
       "testes": [
         "tests/test_politica_api.py::test_situacao_de_pendente_informa_sem_prometer"
+      ]
+    },
+    {
+      "id": "M-PRE-12",
+      "requisito": "R03",
+      "descricao": "Avaliação ignora pré-caso já aberto e diz que ainda pode contestar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "        fatos, limite, protocolo_existente=existente.protocolo if existente else None",
+          "para": "        fatos, limite, protocolo_existente=None"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_avaliacao_reconhece_pre_caso_ja_aberto"
       ]
     }
   ]

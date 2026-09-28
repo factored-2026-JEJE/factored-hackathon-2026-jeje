@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Path, Query, Request
 from pydantic import BaseModel
 
-from jeje import consultas, politica
+from jeje import consultas, politica, pre_caso
 from jeje.db import EngineDep
 from jeje.sessao_api import ID_DA_BASE, RESPOSTAS_SESSAO, SessaoDep
 
@@ -86,7 +86,10 @@ def avaliar_contestacao(
 ) -> DecisaoDaPolitica:
     """Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso."""
     fatos = _fatos_ou_404(engine, ativa.customer_id, transaction_id)
+    with engine.connect() as conexao:
+        existente = pre_caso.pre_caso_da_transacao(conexao, ativa.customer_id, transaction_id)
     limite = request.app.state.settings.limite_pre_caso_usd
-    return decisao_para_resposta(
-        politica.decidir_contestacao(fatos, limite, protocolo_existente=None)
+    decisao = politica.decidir_contestacao(
+        fatos, limite, protocolo_existente=existente.protocolo if existente else None
     )
+    return decisao_para_resposta(decisao)
