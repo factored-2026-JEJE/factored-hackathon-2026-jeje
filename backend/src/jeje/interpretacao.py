@@ -176,8 +176,11 @@ MESES = {
 DATA_NUMERICA = re.compile(r"(?<![\d.,])(\d{1,2})[/-](\d{1,2})(?:[/-](\d{4}|\d{2}))?(?![\d/-])")
 DATA_POR_EXTENSO = re.compile(r"(?<!\d)(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?(?!\d)")
 VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
+# Identificadores do sistema (prefixos da base e dos protocolos) ou código longo com dígitos.
 IDENTIFICADOR = re.compile(
-    r"\b[a-z]{2,4}-(?=[a-z0-9]*\d)[a-z0-9]{3,}\b|\b(?=[a-z0-9]*\d)(?=[a-z0-9]*[a-z])[a-z0-9]{10,}\b",
+    r"\b(?:trx|cli|prd|suc|pc|at)-[a-z0-9]+\b"
+    r"|\b[a-z]{2,4}-(?=[a-z0-9]*\d)[a-z0-9]{3,}\b"
+    r"|\b(?=[a-z0-9]*\d)(?=[a-z0-9]*[a-z])[a-z0-9]{10,}\b",
     re.IGNORECASE,
 )
 

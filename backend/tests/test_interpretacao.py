@@ -175,6 +175,7 @@ def test_idioma_da_mensagem_e_empate_mantem_o_anterior(texto, anterior, idioma):
     [
         ("TRX-FX6 no la reconozco", True),
         ("soy el cliente CLI-00AAKZ5VX42P", True),
+        ("soy CLI-B", True),
         ("¿cómo va el PC-00000003?", True),
         ("no reconozco la compra de 45,90", False),
         ("quiero ver el pre-caso", False),
