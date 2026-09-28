@@ -1563,6 +1563,36 @@
       "testes": [
         "tests/test_revisoes.py::test_tabela_sem_process_date_nao_tem_revisao_so_conflito"
       ]
+    },
+    {
+      "id": "M-G4-01",
+      "requisito": "R04",
+      "descricao": "Lote atrasado ignorado: carga só considera a primeira partição de cada tabela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "    particionados = sorted((diretorio_raw / tabela).rglob(\"*.csv\"))",
+          "para": "    particionados = sorted((diretorio_raw / tabela).rglob(\"*.csv\"))[:1]"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_lote_atrasado_com_revisao_e_registro_novo_atualiza_a_curada"
+      ]
+    },
+    {
+      "id": "M-G4-02",
+      "requisito": "R04",
+      "descricao": "Coluna nova aceita em silêncio (cabeçalho comparado só pelo prefixo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/integridade.py",
+          "de": "    if cabecalho(caminho) != COLUNAS[tabela]:",
+          "para": "    if cabecalho(caminho)[: len(COLUNAS[tabela])] != COLUNAS[tabela]:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_lote_com_coluna_nova_e_recusado_e_a_versao_anterior_continua"
+      ]
     }
   ]
 }

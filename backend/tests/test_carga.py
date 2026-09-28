@@ -201,3 +201,64 @@ def test_carga_refaz_curada_e_relatorio_na_mesma_transacao(banco_migrado, tmp_pa
         relatorio = dict(con.execute(text("select tabela, curado from quality.relatorio")).all())
     assert curadas == {"TRX-1"}
     assert relatorio == {"customers": 1, "products": 1, "transactions": 1}
+
+
+def _base_transacional(raiz):
+    escrever_csv(raiz, "customers.csv", "customers", [{"customer_id": "CLI-A"}])
+    escrever_csv(raiz, "products.csv", "products", [
+        {"product_id": "PRD-A", "customer_id": "CLI-A", "product_type": "Cuenta Ahorro",
+         "currency": "USD", "product_status": "Active"},
+    ])  # fmt: skip
+
+
+def _trx(tid: str, dia: str, valor: str) -> dict:
+    return {
+        "transaction_id": tid, "transaction_date": f"{dia} 10:00:00", "process_date": dia,
+        "customer_id": "CLI-A", "product_id": "PRD-A", "amount": valor, "currency": "USD",
+        "transaction_status": "Approved",
+    }  # fmt: skip
+
+
+def test_lote_atrasado_com_revisao_e_registro_novo_atualiza_a_curada(banco_migrado, tmp_path):
+    raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
+    tabelas = ["customers", "products", "transactions"]
+    _base_transacional(raiz)
+    escrever_csv(raiz, "transactions/year=2025/month=03/day=10/t10.csv", "transactions",
+                 [_trx("TRX-1", "2025-03-10", "10.00")])  # fmt: skip
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas))
+    carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1")
+
+    # Chega depois a partição do dia 12: revisão da TRX-1 e uma transação nova.
+    atrasado = [_trx("TRX-1", "2025-03-12", "12.00"), _trx("TRX-2", "2025-03-12", "5.00")]
+    escrever_csv(raiz, "transactions/year=2025/month=03/day=12/t12.csv", "transactions", atrasado)
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas))
+    resultado = carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1")
+
+    with conexao(banco_migrado) as con:
+        valores = dict(
+            con.execute(text("select transaction_id, amount::text from curated.transactions")).all()
+        )
+    assert valores == {"TRX-1": "12.00", "TRX-2": "5.00"}
+    assert resultado.qualidade["transactions"].motivos == {"R-REVISAO-SUBSTITUIDA": 1}
+    assert not carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1").carregou
+
+
+def test_lote_com_coluna_nova_e_recusado_e_a_versao_anterior_continua(banco_migrado, tmp_path):
+    raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
+    tabelas = ["customers", "products", "transactions"]
+    _base_transacional(raiz)
+    escrever_csv(raiz, "transactions/year=2025/month=03/day=10/t10.csv", "transactions",
+                 [_trx("TRX-1", "2025-03-10", "10.00")])  # fmt: skip
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas))
+    anterior = carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1")
+
+    novo = raiz / "transactions/year=2025/month=03/day=12/t12.csv"
+    novo.parent.mkdir(parents=True)
+    colunas = ",".join(COLUNAS["transactions"]) + ",loyalty_points"
+    novo.write_text("﻿" + colunas + "\n", encoding="utf-8")
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas))
+    with pytest.raises(CargaInvalida, match=re.escape("cabeçalho difere das colunas raw")):
+        carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1")
+    with conexao(banco_migrado) as con:
+        versao = con.execute(text("select version from meta.dataset_version")).scalar_one()
+    assert versao == anterior.versao
