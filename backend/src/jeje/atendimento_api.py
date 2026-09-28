@@ -6,13 +6,14 @@ pendências), nunca a conversa inteira.
 """
 
 import logging
+import time
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
 
-from jeje import handoff
+from jeje import eventos, handoff
 from jeje.db import EngineDep
 from jeje.pre_caso_api import ID_PROPOSTA
 from jeje.sessao_api import RESPOSTAS_DEMO, exige_modo_demo
@@ -69,9 +70,18 @@ def assumir(
     handoff_id: Annotated[str, Path(pattern=ID_PROPOSTA)], engine: EngineDep
 ) -> Encaminhamento:
     """O atendente assume o caso: ele sai da fila aberta, com o mesmo resumo."""
+    inicio = time.perf_counter()
     try:
         with engine.begin() as conexao:
             assumido = Encaminhamento(**handoff.assumir(conexao, handoff_id))
+            eventos.registrar_acao(
+                conexao,
+                inicio,
+                "assumir_atendimento",
+                assumido.id,
+                assumido.regra,
+                ("app.handoffs",),
+            )
     except handoff.NaoEncontrado:
         raise HTTPException(status_code=404, detail="Encaminhamento não encontrado") from None
     except handoff.JaAssumido:

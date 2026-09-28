@@ -2997,6 +2997,51 @@
       ]
     },
     {
+      "id": "M-PAPI-07",
+      "requisito": "R09",
+      "descricao": "Proposta pela rota direta sem evento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso_api.py",
+          "de": "        if proposta is not None:\n            eventos.registrar_acao(\n",
+          "para": "        if False:\n            eventos.registrar_acao(\n"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_pre_casos_de_toda_origem_batem_com_os_gravados_e_toda_acao_deixa_evento"
+      ]
+    },
+    {
+      "id": "M-PAPI-08",
+      "requisito": "R09",
+      "descricao": "Pré-caso registrado pela rota direta sem evento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso_api.py",
+          "de": "            if criado_agora:  # a repetição idempotente não cria nada, então não vira evento\n",
+          "para": "            if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_pre_casos_de_toda_origem_batem_com_os_gravados_e_toda_acao_deixa_evento"
+      ]
+    },
+    {
+      "id": "M-PAPI-09",
+      "requisito": "R09",
+      "descricao": "Repetição idempotente da confirmação vira evento (pré-caso contado duas vezes)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso_api.py",
+          "de": "            if criado_agora:  # a repetição idempotente não cria nada, então não vira evento\n",
+          "para": "            if True:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_pre_casos_de_toda_origem_batem_com_os_gravados_e_toda_acao_deixa_evento"
+      ]
+    },
+    {
       "id": "M-PRE-12",
       "requisito": "R03",
       "descricao": "Avaliação ignora pré-caso já aberto e diz que ainda pode contestar",
@@ -3374,6 +3419,21 @@
       ],
       "testes": [
         "tests/test_atendimento_api.py::test_dois_atendentes_ao_mesmo_tempo_so_um_assume"
+      ]
+    },
+    {
+      "id": "M-FILA-07",
+      "requisito": "R09",
+      "descricao": "Atendente assume o caso sem deixar evento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "            eventos.registrar_acao(\n                conexao,\n                inicio,\n                \"assumir_atendimento\",\n",
+          "para": "            (lambda *_: None)(\n                conexao,\n                inicio,\n                \"assumir_atendimento\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_assumir_deixa_evento_com_o_atendimento_e_a_regra"
       ]
     },
     {
@@ -3832,6 +3892,21 @@
       ]
     },
     {
+      "id": "M-MIG-08",
+      "requisito": "R09",
+      "descricao": "Migration não aceita os tipos de evento acao e recarga",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0015_eventos_acao_recarga.py",
+          "de": "DEPOIS = (*ANTES, \"acao\", \"recarga\")",
+          "para": "DEPOIS = ANTES"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_pre_casos_de_toda_origem_batem_com_os_gravados_e_toda_acao_deixa_evento"
+      ]
+    },
+    {
       "id": "M-EVT-01",
       "requisito": "R09",
       "descricao": "Latência do turno não medida (≈ 0)",
@@ -4039,6 +4114,21 @@
       ],
       "testes": [
         "tests/test_metricas.py::test_uso_do_modelo_conta_toda_chamada_e_nao_estima_tokens"
+      ]
+    },
+    {
+      "id": "M-MET-10",
+      "requisito": "R09",
+      "descricao": "Métricas só contam o pré-caso registrado pela conversa (o do painel some)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "            \" count(*) FILTER (WHERE tipo IN ('turno', 'acao') AND acao = 'registrar_pre_caso')\"",
+          "para": "            \" count(*) FILTER (WHERE tipo = 'turno' AND acao = 'registrar_pre_caso')\""
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_pre_casos_de_toda_origem_batem_com_os_gravados_e_toda_acao_deixa_evento"
       ]
     },
     {
@@ -5046,6 +5136,21 @@
           "arquivo": "src/jeje/dados/carga.py",
           "de": "            encerrado = recarga.encerrar_atendimento(conexao)\n",
           "para": "            encerrado = recarga.Encerramento(0, 0, 0)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha"
+      ]
+    },
+    {
+      "id": "M-REC-12",
+      "requisito": "R09",
+      "descricao": "Recarga encerra o atendimento sem deixar evento (sem trace de quantas conversas e sessões caíram)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/recarga.py",
+          "de": "            tipo=\"recarga\",\n",
+          "para": "            tipo=\"turno\",\n"
         }
       ],
       "testes": [

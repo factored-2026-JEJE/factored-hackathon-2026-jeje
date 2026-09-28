@@ -182,13 +182,21 @@ class Turno(Base):
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+# Tipos de evento (fonte única: o tipo `eventos.Evento.tipo` e o CHECK do banco saem daqui):
+# turno da conversa, erro de turno desfeito, ação fora de um turno (rota direta, atendente) e
+# recarga dos dados.
+TIPOS_DE_EVENTO = ("turno", "erro", "acao", "recarga")
+
+
 class Evento(Base):
     """Evento de atendimento (G11): o que cada turno fez e quanto levou; nunca token nem texto do
     cliente. Erro de turno desfeito vira evento próprio, gravado fora da transação que falhou."""
 
     __tablename__ = "eventos"
     __table_args__ = (
-        CheckConstraint("tipo IN ('turno', 'erro')", name="tipo"),
+        CheckConstraint(
+            "tipo IN (" + ", ".join(f"'{t}'" for t in TIPOS_DE_EVENTO) + ")", name="tipo"
+        ),
         CheckConstraint("latencia_ms >= 0", name="latencia"),
         {"schema": "app"},
     )

@@ -11,11 +11,12 @@ from typing import Literal
 from sqlalchemy import Connection, text
 
 from jeje.logs import id_da_requisicao
+from jeje.models import TIPOS_DE_EVENTO
 
 
 @dataclass(frozen=True)
 class Evento:
-    tipo: Literal["turno", "erro"]
+    tipo: Literal[TIPOS_DE_EVENTO]
     latencia_ms: Decimal
     conversa_id: str | None = None
     numero: int | None = None
@@ -64,4 +65,27 @@ def registrar(conexao: Connection, e: Evento) -> None:
             "tokens_saida": e.modelo_tokens_saida,
             "requisicao": None if requisicao == "-" else requisicao,
         },
+    )
+
+
+def registrar_acao(
+    conexao: Connection,
+    inicio: float,
+    acao: str,
+    efeito: str,
+    regra: str | None,
+    fontes: tuple[str, ...],
+) -> None:
+    """Efeito feito fora de um turno (rota direta, atendente): o mesmo trace, na mesma transação
+    do efeito, para que a auditoria e as métricas vejam tudo o que foi criado."""
+    registrar(
+        conexao,
+        Evento(
+            tipo="acao",
+            latencia_ms=desde(inicio),
+            acao=acao,
+            regra=regra,
+            efeito=efeito,
+            fontes=fontes,
+        ),
     )

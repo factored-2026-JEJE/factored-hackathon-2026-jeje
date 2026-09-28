@@ -212,6 +212,11 @@ def test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha(banco_mig
     with conexao(banco_migrado) as con:
         pre_casos = con.execute(text("SELECT customer_id, transaction_id FROM app.pre_casos"))
         assert [tuple(p) for p in pre_casos] == [("CLI-B", "TRX-X")]
+        consulta = "SELECT efeito FROM app.eventos WHERE tipo = 'recarga' ORDER BY id"
+        recargas = list(con.execute(text(consulta)).scalars())
+    # Toda carga deixa trace: a primeira não tinha atendimento; a segunda encerrou a conversa de A,
+    # as duas propostas pendentes e as duas sessões.
+    assert recargas == ["conversas=0 propostas=0 sessoes=0", "conversas=1 propostas=2 sessoes=2"]
 
 
 def test_recarga_da_mesma_versao_nao_encerra_nada(banco_migrado, tmp_path):

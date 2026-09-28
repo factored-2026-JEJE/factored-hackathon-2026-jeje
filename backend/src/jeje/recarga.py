@@ -10,12 +10,14 @@ pendurada durante a recarga.
 """
 
 import logging
+import time
 from dataclasses import dataclass
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import Connection, Engine, event, text
 
+from jeje import eventos
 from jeje.conversa import TERMINAIS
 
 # Chave da trava consultiva da recarga: fixa e só desta aplicação ("JEJE" em ASCII).
@@ -62,7 +64,9 @@ def encerrar_atendimento(conexao: Connection) -> Encerramento:
     com o contexto apagado (foco, opções e proposta apontavam para a versão anterior); propostas
     de pré-caso pendentes vencem (confirmar depois dá conflito, nunca pré-caso); todas as sessões
     caem. Conversas com atendente seguem (o contexto só guarda a referência do caso), e
-    encaminhamentos e pré-casos ficam como registro: a fotografia dos fatos daquele momento."""
+    encaminhamentos e pré-casos ficam como registro: a fotografia dos fatos daquele momento. A
+    própria recarga deixa um evento com as contagens (auditoria)."""
+    inicio = time.perf_counter()
     conversas = conexao.execute(
         text(
             "UPDATE app.conversas SET estado = 'encerrada', contexto = '{}', atualizada_em = now()"
@@ -74,6 +78,17 @@ def encerrar_atendimento(conexao: Connection) -> Encerramento:
         text("UPDATE app.propostas_pre_caso SET expira_em = now() WHERE expira_em > now()")
     ).rowcount
     sessoes = conexao.execute(text("DELETE FROM app.sessoes")).rowcount
+    eventos.registrar(
+        conexao,
+        eventos.Evento(
+            tipo="recarga",
+            latencia_ms=eventos.desde(inicio),
+            acao="encerrar_atendimento",
+            regra="PRD-002",
+            efeito=f"conversas={conversas} propostas={propostas} sessoes={sessoes}",
+            fontes=("app.conversas", "app.propostas_pre_caso", "app.sessoes"),
+        ),
+    )
     return Encerramento(conversas, propostas, sessoes)
 
 

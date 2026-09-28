@@ -4,7 +4,8 @@ aberto, na ordem de chegada, e nada disso fora do modo demo."""
 from concurrent.futures import ThreadPoolExecutor
 
 import httpx2 as httpx
-from conftest import abrir_conversa, autenticar, cliente, dizer, servidor_http
+from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, servidor_http
+from sqlalchemy import text
 
 
 def test_fila_mostra_os_encaminhamentos_com_o_resumo_na_ordem(cenario_conversa):
@@ -77,3 +78,18 @@ def test_assumir_nao_existe_fora_do_modo_demo(cenario_conversa):
     with cliente(cenario_conversa.model_copy(update={"modo_demo": False})) as http:
         resposta = http.post(f"/atendimento/fila/{atendimento}/assumir")
     assert resposta.status_code == 404
+
+
+def test_assumir_deixa_evento_com_o_atendimento_e_a_regra(cenario_conversa):
+    """Auditoria: quem assumiu o caso não é um turno da conversa, mas é um efeito e deixa trace."""
+    with cliente(cenario_conversa) as http:
+        auth = autenticar(http, "CLI-A")
+        atendimento = dizer(http, auth, abrir_conversa(http, auth, "es"), "Me robaron la tarjeta")[
+            "atendimento"
+        ]
+        assumido = http.post(f"/atendimento/fila/{atendimento}/assumir")
+    with conexao(cenario_conversa) as con:
+        consulta = "SELECT acao, efeito, regra FROM app.eventos WHERE tipo = 'acao'"
+        acoes = [tuple(linha) for linha in con.execute(text(consulta))]
+    assert assumido.status_code == 200
+    assert acoes == [("assumir_atendimento", atendimento, "POL-HUM-01")]

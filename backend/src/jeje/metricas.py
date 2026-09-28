@@ -23,7 +23,9 @@ def calcular(conexao: Connection) -> dict:
             " count(DISTINCT conversa_id) FILTER (WHERE tipo = 'turno') AS conversas,"
             " count(DISTINCT conversa_id) FILTER (WHERE tipo = 'turno' AND acao = 'humano')"
             "   AS encaminhadas,"
-            " count(*) FILTER (WHERE tipo = 'turno' AND acao = 'registrar_pre_caso') AS pre_casos,"
+            # Pré-casos de toda origem: pela conversa (turno) e pelo painel (ação direta).
+            " count(*) FILTER (WHERE tipo IN ('turno', 'acao') AND acao = 'registrar_pre_caso')"
+            "   AS pre_casos,"
             " percentile_cont(0.5) WITHIN GROUP (ORDER BY latencia_ms)"
             "   FILTER (WHERE tipo = 'turno') AS p50,"
             " percentile_cont(0.95) WITHIN GROUP (ORDER BY latencia_ms)"

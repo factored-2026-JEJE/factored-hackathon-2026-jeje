@@ -158,3 +158,31 @@ def test_uso_do_modelo_conta_toda_chamada_e_nao_estima_tokens(banco_migrado):
         "chamadas": 3, "fallbacks": 1, "tokens_entrada": 150, "tokens_saida": 30,
         "chamadas_sem_contagem_de_tokens": 1,
     }  # fmt: skip
+
+
+def test_pre_casos_de_toda_origem_batem_com_os_gravados_e_toda_acao_deixa_evento(
+    cenario_conversa,
+):
+    """Pré-caso pela conversa e pelo painel de contestação (rota direta): as métricas contam os
+    dois, o total bate com os pré-casos gravados, e cada ação direta deixa seu evento (a repetição
+    idempotente da confirmação não cria nada, então não conta)."""
+    with cliente(cenario_conversa) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco el cobro de 45,90 en Streaming Plus")
+        dizer(http, auth, conversa, "sí")
+        proposta = http.post("/minhas/transacoes/TRX-A6/contestacao/proposta", headers=auth)
+        confirmacao = f"/minhas/propostas/{proposta.json()['proposta']['id']}/confirmacao"
+        confirmado = http.post(confirmacao, headers=auth)
+        repetido = http.post(confirmacao, headers=auth)
+        numeros = http.get("/metricas").json()
+    with conexao(cenario_conversa) as con:
+        gravados = con.execute(text("SELECT count(*) FROM app.pre_casos")).scalar_one()
+        consulta = "SELECT acao, efeito FROM app.eventos WHERE tipo = 'acao' ORDER BY id"
+        acoes = [tuple(linha) for linha in con.execute(text(consulta))]
+    assert (proposta.status_code, confirmado.status_code, repetido.status_code) == (201, 201, 200)
+    assert numeros["pre_casos_registrados"] == gravados == 2
+    assert acoes == [
+        ("propor_pre_caso", proposta.json()["proposta"]["id"]),
+        ("registrar_pre_caso", confirmado.json()["protocolo"]),
+    ]

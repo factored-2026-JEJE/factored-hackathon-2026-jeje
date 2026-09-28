@@ -1,6 +1,7 @@
 """Rotas do pré-caso de contestação: proposta, confirmação e acompanhamento (DEV-012)."""
 
 import logging
+import time
 from datetime import datetime
 from typing import Annotated
 
@@ -8,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Path, Response
 from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 
-from jeje import pre_caso
+from jeje import eventos, pre_caso
 from jeje.config import ConfigDep
 from jeje.db import EngineDep
 from jeje.sessao_api import ID_DA_BASE, RESPOSTAS_SESSAO, SessaoDep
@@ -50,6 +51,7 @@ def propor(
     response: Response,
 ) -> AvaliacaoDeContestacao:
     """Avalia a contestação e, se a política permitir, cria uma proposta a confirmar."""
+    inicio = time.perf_counter()
     with engine.begin() as conexao:
         try:
             decisao, proposta = pre_caso.propor(
@@ -61,6 +63,15 @@ def propor(
             )
         except pre_caso.NaoEncontrada:
             raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None
+        if proposta is not None:
+            eventos.registrar_acao(
+                conexao,
+                inicio,
+                "propor_pre_caso",
+                proposta.id,
+                decisao.regra,
+                ("curated.transactions", "app.pre_casos", "app.propostas_pre_caso"),
+            )
     if proposta is not None:
         response.status_code = 201
     return AvaliacaoDeContestacao(
@@ -87,11 +98,21 @@ def confirmar(
     response: Response,
 ) -> PreCaso:
     """Confirma a proposta: grava o pré-caso sem duplicar e só responde depois de relê-lo."""
+    inicio = time.perf_counter()
     try:
         with engine.begin() as conexao:
             registrado, criado_agora = pre_caso.confirmar(
                 conexao, ativa.customer_id, proposta_id, config.limites()
             )
+            if criado_agora:  # a repetição idempotente não cria nada, então não vira evento
+                eventos.registrar_acao(
+                    conexao,
+                    inicio,
+                    "registrar_pre_caso",
+                    registrado.protocolo,
+                    "POL-DISP-01",
+                    ("app.pre_casos",),
+                )
     except pre_caso.NaoEncontrada:
         raise HTTPException(status_code=404, detail="Proposta não encontrada") from None
     except pre_caso.Conflito as conflito:
