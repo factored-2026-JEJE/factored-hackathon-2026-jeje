@@ -6,12 +6,15 @@ from datetime import datetime
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
+    ForeignKey,
+    Integer,
     MetaData,
     Sequence,
     SmallInteger,
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -120,4 +123,50 @@ class Handoff(Base):
     acoes: Mapped[list] = mapped_column(JSONB)
     pendencias: Mapped[list] = mapped_column(JSONB)
     estado: Mapped[str] = mapped_column(Text, server_default="aberto")
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Conversa(Base):
+    """Conversa de atendimento (G10): estado entre turnos, sempre de um cliente da sessão."""
+
+    __tablename__ = "conversas"
+    __table_args__ = (
+        CheckConstraint("idioma IN ('es', 'pt')", name="idioma"),
+        CheckConstraint(
+            "estado IN ('livre', 'esclarecendo', 'confirmando', 'oferecendo_humano', 'com_humano')",
+            name="estado",
+        ),
+        {"schema": "app"},
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text, index=True)
+    idioma: Mapped[str] = mapped_column(Text)
+    estado: Mapped[str] = mapped_column(Text, server_default="livre")
+    # Só o necessário para o próximo turno: opções listadas, proposta pendente, foco, atendimento.
+    contexto: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
+    turnos: Mapped[int] = mapped_column(Integer, server_default="0")
+    criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    atualizada_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class Turno(Base):
+    """Um turno: a mensagem (limitada), a intenção lida, a regra aplicada e a resposta dada."""
+
+    __tablename__ = "turnos"
+    __table_args__ = ({"schema": "app"},)
+
+    conversa_id: Mapped[str] = mapped_column(Text, ForeignKey("app.conversas.id"), primary_key=True)
+    numero: Mapped[int] = mapped_column(Integer, primary_key=True)
+    mensagem: Mapped[str] = mapped_column(Text)
+    idioma: Mapped[str] = mapped_column(Text)
+    intencao: Mapped[str] = mapped_column(Text)
+    regra: Mapped[str] = mapped_column(Text)
+    acao: Mapped[str] = mapped_column(Text)
+    estado: Mapped[str] = mapped_column(Text)  # estado da conversa depois do turno
+    resposta: Mapped[str] = mapped_column(Text)
+    transaction_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    efeito: Mapped[str | None] = mapped_column(Text, nullable=True)  # protocolo, atendimento…
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

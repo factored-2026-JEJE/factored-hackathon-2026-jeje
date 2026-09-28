@@ -11,7 +11,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 from sqlalchemy import Connection, text
 
-from jeje.politica import Fatos
+from jeje.politica import Candidata, Fatos
 
 
 class Transacao(BaseModel):
@@ -78,4 +78,33 @@ def fatos_da_transacao(conexao: Connection, customer_id: str, transaction_id: st
         status=linha.transaction_status,
         response_code=linha.response_code,
         amount_usd=linha.amount_usd,
+    )
+
+
+def candidatas_do_cliente(
+    conexao: Connection, customer_id: str, status: str | None
+) -> list[Candidata]:
+    """Transações do cliente (opcionalmente só de um status), mais recentes primeiro: é entre
+    elas, e nunca entre as de outro cliente, que a conversa resolve de qual se fala."""
+    linhas = conexao.execute(
+        text(
+            "SELECT transaction_id, amount, transaction_date, merchant_name"
+            " FROM curated.transactions WHERE customer_id = :cliente"
+            " AND (CAST(:status AS text) IS NULL OR transaction_status = :status)"
+            " ORDER BY transaction_date DESC, transaction_id"
+        ),
+        {"cliente": customer_id, "status": status},
+    )
+    return [Candidata(**linha._mapping) for linha in linhas]
+
+
+def comercios_do_cliente(conexao: Connection, customer_id: str) -> list[str]:
+    return list(
+        conexao.execute(
+            text(
+                "SELECT DISTINCT merchant_name FROM curated.transactions"
+                " WHERE customer_id = :cliente AND merchant_name IS NOT NULL ORDER BY 1"
+            ),
+            {"cliente": customer_id},
+        ).scalars()
     )
