@@ -3,6 +3,7 @@
   "executor": "pytest",
   "diretorio": "/app",
   "timeout_s": 60,
+  "timeout_base_s": 600,
   "ambiente": {
     "PYTHONPATH": "{raiz}/src"
   },

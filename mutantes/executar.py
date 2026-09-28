@@ -236,6 +236,8 @@ def main() -> int:
     registro = json.loads(Path(args.registro).read_text(encoding="utf-8"))
     base = Path(registro["diretorio"])
     timeout_padrao = registro["timeout_s"]
+    # A suíte inteira cresce com o projeto; cada mutante roda só a seleção dele.
+    timeout_base = registro["timeout_base_s"]
     ids = [m["id"] for m in registro["mutantes"]]
     if len(ids) != len(set(ids)):
         print("ERRO: IDs de mutante repetidos", file=sys.stderr)
@@ -248,7 +250,7 @@ def main() -> int:
         copiar(base, raiz_base)
         print(f"[base] suíte original de {base}")
         try:
-            resultado, _, fim = executar_testes(registro, raiz_base, None, timeout_padrao, "base")
+            resultado, _, fim = executar_testes(registro, raiz_base, None, timeout_base, "base")
         except StackIndisponivel as erro:
             print(erro, file=sys.stderr)
             return 1

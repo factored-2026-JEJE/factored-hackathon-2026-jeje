@@ -3,6 +3,7 @@
   "executor": "vitest",
   "diretorio": "/app",
   "timeout_s": 60,
+  "timeout_base_s": 300,
   "comando_teste": [
     "npx",
     "vitest",
