@@ -2033,6 +2033,246 @@
       "testes": [
         "tests/test_sessao_api.py::test_transacao_com_nul_no_endereco_e_422_e_nunca_500"
       ]
+    },
+    {
+      "id": "M-POL-01",
+      "requisito": "R03",
+      "descricao": "Transação aprovada vai para humano (sem resposta)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        return Decisao(\"POL-CON-01\", \"responder\")",
+          "para": "        return Decisao(\"POL-CON-01\", \"humano\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_consulta_segue_a_matriz_por_status_e_codigo"
+      ]
+    },
+    {
+      "id": "M-POL-02",
+      "requisito": "R02",
+      "descricao": "Código 51 fora do catálogo: recusa explicável tratada como sem causa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "CODIGOS_CATALOGADOS = frozenset({\"05\", \"14\", \"51\", \"54\"})",
+          "para": "CODIGOS_CATALOGADOS = frozenset({\"05\", \"14\", \"54\"})"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_consulta_segue_a_matriz_por_status_e_codigo"
+      ]
+    },
+    {
+      "id": "M-POL-03",
+      "requisito": "R02",
+      "descricao": "Qualquer código vira causa explicável (inventa motivo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        if fatos.response_code in CODIGOS_CATALOGADOS:",
+          "para": "        if fatos.response_code is not None:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_consulta_segue_a_matriz_por_status_e_codigo"
+      ]
+    },
+    {
+      "id": "M-POL-04",
+      "requisito": "R02",
+      "descricao": "Estornada respondida como aprovada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if fatos.status == \"Approved\":\n        return Decisao(\"POL-CON-01\", \"responder\")",
+          "para": "    if fatos.status in (\"Approved\", \"Reversed\"):\n        return Decisao(\"POL-CON-01\", \"responder\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_consulta_segue_a_matriz_por_status_e_codigo"
+      ]
+    },
+    {
+      "id": "M-POL-05",
+      "requisito": "R03",
+      "descricao": "Status desconhecido respondido em vez de ir para humano",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return Decisao(\"POL-CON-04\", \"humano\", \"status desconhecido\")",
+          "para": "    return Decisao(\"POL-CON-04\", \"responder\", \"status desconhecido\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_consulta_segue_a_matriz_por_status_e_codigo"
+      ]
+    },
+    {
+      "id": "M-POL-06",
+      "requisito": "R03",
+      "descricao": "Pré-caso proposto para transação recusada (ACH-001)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if fatos.status != \"Approved\":\n        return Decisao(\"POL-DISP-02\", \"humano\", fatos.status)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_contestacao_de_transacao_nao_aprovada_vai_para_humano_sem_pre_caso"
+      ]
+    },
+    {
+      "id": "M-POL-07",
+      "requisito": "R03",
+      "descricao": "Limite exato já manda para humano (fronteira errada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if fatos.amount_usd > limite_usd:",
+          "para": "    if fatos.amount_usd >= limite_usd:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_contestacao_no_limite_exato_ainda_propoe_e_um_centavo_acima_nao"
+      ]
+    },
+    {
+      "id": "M-POL-08",
+      "requisito": "R03",
+      "descricao": "Limite simulado ignorado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if fatos.amount_usd > limite_usd:",
+          "para": "    if fatos.amount_usd > limite_usd * 1000:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_contestacao_no_limite_exato_ainda_propoe_e_um_centavo_acima_nao"
+      ]
+    },
+    {
+      "id": "M-POL-09",
+      "requisito": "R03",
+      "descricao": "Sem valor em USD o pré-caso é proposto assim mesmo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if fatos.amount_usd is None:\n        return Decisao(\"POL-HUM-02\", \"humano\", \"valor em USD indisponível\")",
+          "para": "    if fatos.amount_usd is None:\n        return Decisao(\"POL-DISP-01\", \"propor_pre_caso\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_contestacao_sem_valor_em_usd_vai_para_humano"
+      ]
+    },
+    {
+      "id": "M-POL-10",
+      "requisito": "R03",
+      "descricao": "Pré-caso existente ignorado (proposta duplicada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if protocolo_existente is not None:\n        return Decisao(\"POL-DISP-03\", \"responder\", protocolo_existente)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pre_caso_existente_devolve_o_protocolo_sem_propor_outro"
+      ]
+    },
+    {
+      "id": "M-POL-11",
+      "requisito": "R02",
+      "descricao": "Várias candidatas: escolhe a primeira em silêncio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return Resolucao(\"varias\", tuple(c.transaction_id for c in casadas[:maximo_opcoes]))",
+          "para": "    return Resolucao(\"unica\", (casadas[0].transaction_id,))"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_desambiguacao_nunca_escolhe_entre_varias"
+      ]
+    },
+    {
+      "id": "M-POL-12",
+      "requisito": "R07",
+      "descricao": "Comércio comparado com acento e maiúsculas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    decomposto = unicodedata.normalize(\"NFKD\", texto.casefold())\n    return \"\".join(c for c in decomposto if not unicodedata.combining(c))",
+          "para": "    return texto"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_desambiguacao_nunca_escolhe_entre_varias"
+      ]
+    },
+    {
+      "id": "M-POL-13",
+      "requisito": "R02",
+      "descricao": "Tolerância de valor frouxa (1 unidade)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "abs(candidata.amount - pista.valor) > Decimal(\"0.01\")",
+          "para": "abs(candidata.amount - pista.valor) > Decimal(\"1.00\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_desambiguacao_nunca_escolhe_entre_varias"
+      ]
+    },
+    {
+      "id": "M-POL-14",
+      "requisito": "R02",
+      "descricao": "Data da pista ignorada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if pista.data is not None and candidata.transaction_date.date() != pista.data:\n        return False\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_desambiguacao_nunca_escolhe_entre_varias"
+      ]
+    },
+    {
+      "id": "M-POL-15",
+      "requisito": "R02",
+      "descricao": "Lista de opções sem limite",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "tuple(c.transaction_id for c in casadas[:maximo_opcoes])",
+          "para": "tuple(c.transaction_id for c in casadas)"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_sem_pista_lista_no_maximo_o_limite_de_opcoes_na_ordem_recebida"
+      ]
+    },
+    {
+      "id": "M-POL-16",
+      "requisito": "R03",
+      "descricao": "Protocolo existente ignorado, pego só pela propriedade",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if protocolo_existente is not None:\n        return Decisao(\"POL-DISP-03\", \"responder\", protocolo_existente)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_propriedade_so_propoe_pre_caso_quando_toda_a_regra_permite"
+      ]
     }
   ]
 }
