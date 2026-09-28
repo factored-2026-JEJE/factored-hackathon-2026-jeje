@@ -4,10 +4,15 @@ import { render, screen } from "@testing-library/react";
 import type { Prontidao } from "./api/cliente";
 import { StatusDoSistema } from "./StatusDoSistema";
 
+// Servidor mínimo na fronteira de rede: só a rota da readiness existe; o resto é 404.
 function responder(status: number, corpo: unknown) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => new Response(JSON.stringify(corpo), { status })),
+    vi.fn(async (url: string) =>
+      url === "/api/health/ready"
+        ? new Response(JSON.stringify(corpo), { status })
+        : new Response(JSON.stringify({ detail: "Not Found" }), { status: 404 }),
+    ),
   );
 }
 
