@@ -25,31 +25,39 @@ import tempfile
 import time
 from pathlib import Path
 
-IGNORAR = shutil.ignore_patterns(".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "node_modules")
+IGNORAR = shutil.ignore_patterns(
+    ".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "node_modules"
+)
 
 
 class ErroDeRegistro(Exception):
     """Registro inconsistente com o código (ex.: trecho a trocar não existe ou é ambíguo)."""
 
 
-def rodar(comando: list[str], cwd: Path, timeout_s: int, env: dict) -> tuple[str, float]:
-    """Executa e devolve ("passou" | "falhou" | "tempo", segundos). Mata o grupo no timeout."""
+def rodar(comando: list[str], cwd: Path, timeout_s: int, env: dict) -> tuple[str, float, str]:
+    """Executa e devolve ("passou" | "falhou" | "tempo", segundos, fim da saída).
+
+    Mata o grupo de processos no timeout (conta como mutante morto: o teste não passou)."""
     inicio = time.monotonic()
-    processo = subprocess.Popen(
-        comando,
-        cwd=cwd,
-        env=env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        start_new_session=True,
-    )
-    try:
-        codigo = processo.wait(timeout=timeout_s)
-    except subprocess.TimeoutExpired:
-        os.killpg(processo.pid, signal.SIGKILL)
-        processo.wait()
-        return "tempo", time.monotonic() - inicio
-    return ("passou" if codigo == 0 else "falhou"), time.monotonic() - inicio
+    with tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="replace") as saida:
+        processo = subprocess.Popen(
+            comando,
+            cwd=cwd,
+            env=env,
+            stdout=saida,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        try:
+            codigo = processo.wait(timeout=timeout_s)
+            resultado = "passou" if codigo == 0 else "falhou"
+        except subprocess.TimeoutExpired:
+            os.killpg(processo.pid, signal.SIGKILL)
+            processo.wait()
+            resultado = "tempo"
+        saida.seek(0)
+        fim = "".join(saida.readlines()[-30:])
+    return resultado, time.monotonic() - inicio, fim
 
 
 def aplicar_trocas(raiz: Path, trocas: list[dict], id_mutante: str) -> None:
@@ -77,6 +85,16 @@ def argumentos_de_teste(registro: dict, testes: list[str]) -> list[str]:
     """Traduz IDs do registro para a linha de comando do executor."""
     if registro["executor"] == "pytest":
         return list(testes)
+    if registro["executor"] == "vitest":
+        # ID "arquivo > nome do teste" (filtro de arquivo + nome exato em -t) ou caminho inteiro.
+        arquivos, nomes = set(), []
+        for teste in testes:
+            arquivo, _, nome = teste.partition(" > ")
+            arquivos.add(arquivo)
+            if nome:
+                nomes.append(re.escape(nome))
+        filtro_nome = ["-t", "^(?:" + "|".join(nomes) + ")$"] if nomes else []
+        return [*sorted(arquivos), *filtro_nome]
     raise ErroDeRegistro(f"executor desconhecido: {registro['executor']}")
 
 
@@ -86,6 +104,8 @@ def coletar_ids(registro: dict, base: Path, env: dict) -> set[str]:
     ).stdout
     if registro["executor"] == "pytest":
         return {re.sub(r"\[.*\]$", "", linha) for linha in saida.splitlines() if "::" in linha}
+    if registro["executor"] == "vitest":
+        return {f"{os.path.relpath(t['file'], base)} > {t['name']}" for t in json.loads(saida)}
     raise ErroDeRegistro(f"executor desconhecido: {registro['executor']}")
 
 
@@ -107,9 +127,12 @@ def main() -> int:
         return 1
 
     print(f"[base] suíte original em {base}")
-    resultado, _ = rodar(registro["comando_teste"], base, timeout_padrao * 3, ambiente_para(base, registro))
+    resultado, _, fim = rodar(
+        registro["comando_teste"], base, timeout_padrao * 3, ambiente_para(base, registro)
+    )
     if resultado != "passou":
-        print("ERRO: a suíte original não está verde; mutantes não significam nada.", file=sys.stderr)
+        print(fim, file=sys.stderr)
+        print("ERRO: suíte original vermelha; mutantes não significam nada.", file=sys.stderr)
         return 1
 
     problemas: list[str] = []
@@ -123,17 +146,20 @@ def main() -> int:
                 (raiz / "node_modules").symlink_to(base / "node_modules")
             try:
                 aplicar_trocas(raiz, mutante["trocas"], mutante["id"])
-                comando = registro["comando_teste"] + argumentos_de_teste(registro, mutante["testes"])
+                selecao = argumentos_de_teste(registro, mutante["testes"])
+                comando = registro["comando_teste"] + selecao
             except ErroDeRegistro as erro:
                 problemas.append(str(erro))
                 linhas.append((mutante["id"], mutante.get("requisito", "-"), "ERRO", 0.0))
                 continue
             timeout = mutante.get("timeout_s", timeout_padrao)
-            resultado, segundos = rodar(comando, raiz, timeout, ambiente_para(raiz, registro))
+            resultado, segundos, fim = rodar(comando, raiz, timeout, ambiente_para(raiz, registro))
         morto = resultado in ("falhou", "tempo")
         if espera == "sobrevive":
             ok = not morto
             situacao = "controle ok" if ok else "CONTROLE MORREU (harness/ambiente suspeito)"
+            if not ok:
+                print(fim, file=sys.stderr)
         else:
             ok = morto
             situacao = f"morto ({resultado})" if ok else "SOBREVIVEU (teste fraco)"
@@ -146,7 +172,12 @@ def main() -> int:
         print(f"{id_mutante:<{largura}}  {requisito:<10} {situacao:<45} {segundos:6.1f}s")
 
     if not args.so:
-        cobertos = {t for m in registro["mutantes"] if m.get("espera", "morre") == "morre" for t in m["testes"]}
+        cobertos = {
+            teste
+            for m in registro["mutantes"]
+            if m.get("espera", "morre") == "morre"
+            for teste in m["testes"]
+        }
         coletados = coletar_ids(registro, base, ambiente_para(base, registro))
         sem_mutante = sorted(coletados - cobertos)
         inexistentes = sorted(cobertos - coletados)
@@ -154,7 +185,8 @@ def main() -> int:
             problemas.append(f"teste sem mutante que o derrube: {teste}")
         for teste in inexistentes:
             problemas.append(f"registro cita teste inexistente: {teste}")
-        print(f"[cobertura] {len(coletados)} testes coletados, {len(coletados) - len(sem_mutante)} com mutante")
+        com_mutante = len(coletados) - len(sem_mutante)
+        print(f"[cobertura] {len(coletados)} testes coletados, {com_mutante} com mutante")
 
     if problemas:
         print("\nFALHOU:", file=sys.stderr)
