@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from jeje import conversa, eventos
 from jeje.db import EngineDep
+from jeje.interpretacao_modelo import Leitura
 from jeje.pre_caso_api import ID_PROPOSTA, Proposta
 from jeje.sessao_api import CORPO_ILEGIVEL, RESPOSTAS_SESSAO, SessaoDep
 
@@ -103,7 +104,7 @@ def enviar_mensagem(
 ) -> ResultadoDoTurno:
     """Um turno: a política decide com fatos verificados; efeito só com confirmação explícita."""
     config = request.app.state.settings
-    inicio = time.perf_counter()
+    inicio, leitura = time.perf_counter(), None
     try:
         with engine.connect() as conexao:
             preparo = conversa.preparar(conexao, ativa.customer_id, conversa_id)
@@ -124,7 +125,7 @@ def enviar_mensagem(
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None
     except SQLAlchemyError as erro:
         # Sem sucesso falso: o turno inteiro foi desfeito; reenviar a mesma mensagem é seguro.
-        _registrar_erro(engine, conversa_id, erro, inicio)
+        _registrar_erro(engine, conversa_id, erro, inicio, leitura)
         raise HTTPException(
             status_code=503, detail="Turno não registrado; nada foi criado. Tente de novo."
         ) from None
@@ -157,15 +158,19 @@ def enviar_mensagem(
     )
 
 
-def _registrar_erro(engine, conversa_id: str, erro: Exception, inicio: float) -> None:
-    """O turno foi desfeito; o erro fica registrado à parte (só a classe, sem texto nem dados).
-    Se nem isso grava (banco fora), o cliente continua recebendo o 503."""
+def _registrar_erro(
+    engine, conversa_id: str, erro: Exception, inicio: float, leitura: Leitura | None
+) -> None:
+    """O turno foi desfeito; o erro fica registrado à parte (só a classe, sem texto nem dados),
+    com a leitura já feita (a chamada ao modelo custou mesmo sem turno). Se nem isso grava
+    (banco fora), o cliente continua recebendo o 503."""
     log.warning("turno desfeito conversa=%s erro=%s", conversa_id, type(erro).__name__)
     evento = eventos.Evento(
         tipo="erro",
         latencia_ms=eventos.desde(inicio),
         conversa_id=conversa_id,
         erro=type(erro).__name__,
+        **conversa.rastro_da_leitura(leitura),
     )
     try:
         with engine.begin() as conexao:

@@ -285,6 +285,36 @@ def test_conversa_com_atendente_nao_chama_o_modelo(cenario_conversa):
     assert interpretacoes(cenario_conversa) == ["regras", "regras"]
 
 
+def test_turno_desfeito_ainda_registra_a_chamada_ao_modelo(cenario_conversa):
+    """DEV-015b: quando o turno falha ao gravar, a chamada ao modelo já foi feita e custou; ela
+    continua contada no evento de erro (quem leu, latência e tokens), sem o texto do cliente."""
+    with conexao(cenario_conversa) as con:
+        con.execute(
+            text(
+                "CREATE FUNCTION app.falhar() RETURNS trigger LANGUAGE plpgsql AS"
+                " $$ BEGIN RAISE EXCEPTION 'falha simulada ao gravar'; END $$;"
+                " CREATE TRIGGER falhar BEFORE INSERT ON app.turnos"
+                " FOR EACH ROW EXECUTE FUNCTION app.falhar()"
+            )
+        )
+    with (
+        ollama_falso(saida(intencao="contestar")) as (url, _),
+        cliente(com_modelo(cenario_conversa, url)) as http,
+    ):
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        falha = http.post(f"/conversas/{conversa}/turnos", json={"texto": VAGA}, headers=auth)
+    assert falha.status_code == 503
+    with conexao(cenario_conversa) as con:
+        erro = con.execute(
+            text(
+                "SELECT tipo, interpretacao, modelo_latencia_ms IS NOT NULL, modelo_tokens_entrada,"
+                " modelo_tokens_saida FROM app.eventos"
+            )
+        ).one()
+    assert tuple(erro) == ("erro", "ollama:modelo-teste", True, 120, 30)
+
+
 def test_modelo_fora_do_ar_a_conversa_segue_pelas_regras(cenario_conversa):
     with ollama_falso(saida()) as (url, _):
         pass  # servidor encerrado: a porta fica fechada

@@ -3687,7 +3687,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa_api.py",
-          "de": "        _registrar_erro(engine, conversa_id, erro, inicio)\n",
+          "de": "        _registrar_erro(engine, conversa_id, erro, inicio, leitura)\n",
           "para": ""
         }
       ],
@@ -4258,8 +4258,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            interpretacao=leitura.fonte,",
-          "para": "            interpretacao=None,"
+          "de": "    campos = {\"interpretacao\": leitura.fonte}",
+          "para": "    campos = {\"interpretacao\": None}"
         }
       ],
       "testes": [
@@ -4333,12 +4333,27 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            **_uso_do_modelo(leitura),\n",
-          "para": ""
+          "de": "    if leitura.chamada is not None:\n        campos |= {",
+          "para": "    if False:\n        campos |= {"
         }
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_na_conversa_o_modelo_so_le_e_cada_turno_registra_quem_leu"
+      ]
+    },
+    {
+      "id": "M-EVT-07",
+      "requisito": "R09",
+      "descricao": "Turno desfeito perde a chamada ao modelo já feita (evento de erro sem leitura, latência nem tokens)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        **conversa.rastro_da_leitura(leitura),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_turno_desfeito_ainda_registra_a_chamada_ao_modelo"
       ]
     },
     {

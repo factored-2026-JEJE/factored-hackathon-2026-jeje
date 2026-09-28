@@ -454,15 +454,19 @@ class _Turno:
         return [{"acao": a.acao, "resultado": a.resultado} for a in self.acoes]
 
 
-def _uso_do_modelo(leitura: Leitura) -> dict:
-    """Latência e tokens da chamada ao modelo neste turno (nada, se ele não foi chamado)."""
-    if leitura.chamada is None:
+def rastro_da_leitura(leitura: Leitura | None) -> dict:
+    """Quem leu a mensagem e o uso do modelo (latência e tokens, se ele foi chamado), para o evento
+    do turno ou do erro: toda chamada despachada fica contada, mesmo com o turno desfeito."""
+    if leitura is None:
         return {}
-    return {
-        "modelo_latencia_ms": leitura.chamada.latencia_ms,
-        "modelo_tokens_entrada": leitura.chamada.tokens_entrada,
-        "modelo_tokens_saida": leitura.chamada.tokens_saida,
-    }
+    campos = {"interpretacao": leitura.fonte}
+    if leitura.chamada is not None:
+        campos |= {
+            "modelo_latencia_ms": leitura.chamada.latencia_ms,
+            "modelo_tokens_entrada": leitura.chamada.tokens_entrada,
+            "modelo_tokens_saida": leitura.chamada.tokens_saida,
+        }
+    return campos
 
 
 def _so_foco(foco: str | None) -> dict:
@@ -579,8 +583,7 @@ def turno(
             acao=saida.acao,
             efeito=_efeito(saida),
             fontes=tuple(atual.fontes),
-            interpretacao=leitura.fonte,
-            **_uso_do_modelo(leitura),
+            **rastro_da_leitura(leitura),
         ),
     )
     return resultado
