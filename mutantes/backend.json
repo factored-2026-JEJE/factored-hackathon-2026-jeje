@@ -2550,6 +2550,81 @@
       ]
     },
     {
+      "id": "M-POL-18",
+      "requisito": "R03",
+      "descricao": "Identificador digitado atropela relato de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if intencao == \"fraude\":\n        return Decisao(\"POL-HUM-01\", \"humano\", \"relato de fraude\")\n",
+          "para": "    if id_digitado:\n        return Decisao(\"POL-ID-02\", \"recusar\", \"identificador digitado\")\n    if intencao == \"fraude\":\n        return Decisao(\"POL-HUM-01\", \"humano\", \"relato de fraude\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pedido_segue_a_matriz_com_seguranca_primeiro"
+      ]
+    },
+    {
+      "id": "M-POL-19",
+      "requisito": "R08",
+      "descricao": "Identificador digitado no chat segue para busca",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if id_digitado:\n        return Decisao(\"POL-ID-02\", \"recusar\", \"identificador digitado\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pedido_segue_a_matriz_com_seguranca_primeiro"
+      ]
+    },
+    {
+      "id": "M-POL-20",
+      "requisito": "R03",
+      "descricao": "Terceiro esclarecimento em vez de humano",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if ja_feitos >= ESCLARECIMENTOS_ATE_HUMANO:",
+          "para": "    if ja_feitos > ESCLARECIMENTOS_ATE_HUMANO:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_dois_esclarecimentos_sem_sucesso_levam_ao_humano"
+      ]
+    },
+    {
+      "id": "M-POL-21",
+      "requisito": "R03",
+      "descricao": "Pedido explícito de humano respondido pela automação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if intencao == \"humano\":\n        return Decisao(\"POL-HUM-03\", \"humano\", \"pedido explícito\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pedido_segue_a_matriz_com_seguranca_primeiro"
+      ]
+    },
+    {
+      "id": "M-POL-22",
+      "requisito": "R02",
+      "descricao": "Fora de escopo segue como consulta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if intencao == \"fora_de_escopo\":\n        return Decisao(\"POL-ESC-01\", \"recusar\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pedido_segue_a_matriz_com_seguranca_primeiro"
+      ]
+    },
+    {
       "id": "M-PAPI-05",
       "requisito": "R02",
       "descricao": "Situação de pendente/estornada sem dizer qual é o status",

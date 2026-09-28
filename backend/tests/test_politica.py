@@ -16,6 +16,8 @@ from jeje.politica import (
     Pista,
     decidir_consulta,
     decidir_contestacao,
+    decidir_esclarecimento,
+    decidir_pedido,
     resolver_transacao,
 )
 
@@ -128,3 +130,29 @@ def test_sem_pista_lista_no_maximo_o_limite_de_opcoes_na_ordem_recebida():
     assert resolver_transacao(muitas, Pista(), maximo_opcoes=5).transacoes == (
         "T1", "T2", "T3", "T4", "T5",
     )  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("intencao", "id_digitado", "esperado"),
+    [
+        ("fraude", False, Decisao("POL-HUM-01", "humano", "relato de fraude")),
+        ("fraude", True, Decisao("POL-HUM-01", "humano", "relato de fraude")),
+        ("humano", False, Decisao("POL-HUM-03", "humano", "pedido explícito")),
+        ("fora_de_escopo", False, Decisao("POL-ESC-01", "recusar")),
+        ("contestar", True, Decisao("POL-ID-02", "recusar", "identificador digitado")),
+        ("consultar", True, Decisao("POL-ID-02", "recusar", "identificador digitado")),
+        ("contestar", False, None),
+        ("consultar", False, None),
+        ("desconhecida", False, None),
+    ],
+)
+def test_pedido_segue_a_matriz_com_seguranca_primeiro(intencao, id_digitado, esperado):
+    assert decidir_pedido(intencao, id_digitado) == esperado
+
+
+def test_dois_esclarecimentos_sem_sucesso_levam_ao_humano():
+    assert decidir_esclarecimento(0) == Decisao("POL-CON-02", "esclarecer")
+    assert decidir_esclarecimento(1) == Decisao("POL-CON-02", "esclarecer")
+    assert decidir_esclarecimento(2) == Decisao(
+        "POL-HUM-03", "humano", "esclarecimentos sem sucesso"
+    )

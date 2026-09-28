@@ -65,6 +65,33 @@ def decidir_contestacao(
     return Decisao("POL-DISP-01", "propor_pre_caso")
 
 
+# ---- Pedido na conversa (POL-HUM-01/03, POL-ESC-01, POL-ID-02) ---------------------------------
+
+ESCLARECIMENTOS_ATE_HUMANO = 2  # POL-HUM-03: perguntas de esclarecimento sem sucesso
+
+
+def decidir_pedido(intencao: str, id_digitado: bool) -> Decisao | None:
+    """Regras que valem antes de olhar qualquer transação; None → segue para consulta ou
+    contestação. Segurança primeiro: relato de fraude vai para humano mesmo no meio de outro
+    assunto, e identificador digitado no chat nunca vira busca."""
+    if intencao == "fraude":
+        return Decisao("POL-HUM-01", "humano", "relato de fraude")
+    if intencao == "humano":
+        return Decisao("POL-HUM-03", "humano", "pedido explícito")
+    if intencao == "fora_de_escopo":
+        return Decisao("POL-ESC-01", "recusar")
+    if id_digitado:
+        return Decisao("POL-ID-02", "recusar", "identificador digitado")
+    return None
+
+
+def decidir_esclarecimento(ja_feitos: int) -> Decisao:
+    """Transação não identificada: pergunta de novo até o limite; depois, humano."""
+    if ja_feitos >= ESCLARECIMENTOS_ATE_HUMANO:
+        return Decisao("POL-HUM-03", "humano", "esclarecimentos sem sucesso")
+    return Decisao("POL-CON-02", "esclarecer")
+
+
 # ---- Desambiguação (POL-CON-02) ----------------------------------------------------------------
 
 
