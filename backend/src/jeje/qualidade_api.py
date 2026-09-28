@@ -1,9 +1,10 @@
-"""Rotas HTTP sobre a qualidade dos dados carregados (relatório da curadoria)."""
+"""Rotas HTTP sobre os dados carregados: relatório da curadoria e indicadores da EDA."""
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy import text
 
+from jeje import eda
 from jeje.dados.contratos import CONTRATOS
 from jeje.db import EngineDep
 
@@ -35,3 +36,10 @@ def relatorio_de_qualidade(engine: EngineDep) -> list[QualidadeTabela]:
             {"ordem": [contrato.tabela for contrato in CONTRATOS]},
         ).all()
     return [QualidadeTabela(**linha._mapping) for linha in linhas]
+
+
+@router.get("/dados/eda")
+def indicadores_da_eda(engine: EngineDep) -> list[eda.Resultado]:
+    """Indicadores da EDA calculados na hora sobre a carga atual, cada um com sua consulta."""
+    with engine.connect() as conexao:
+        return [eda.calcular(conexao, indicador) for indicador in eda.INDICADORES]

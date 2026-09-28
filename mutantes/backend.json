@@ -1593,6 +1593,141 @@
       "testes": [
         "tests/test_carga.py::test_lote_com_coluna_nova_e_recusado_e_a_versao_anterior_continua"
       ]
+    },
+    {
+      "id": "M-EDA-01",
+      "requisito": "R01",
+      "descricao": "Taxa calculada sobre o total geral em vez da base do próprio grupo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "        base = linha[\"base\"] if indicador.tipo == \"taxa\" else total",
+          "para": "        base = total"
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_resolucao_e_taxa_dentro_de_cada_motivo"
+      ]
+    },
+    {
+      "id": "M-EDA-02",
+      "requisito": "R01",
+      "descricao": "Duração inválida quebra a soma em vez de ser ignorada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "f\" sum({_valido('duration_seconds', 'double precision')}) AS soma\"",
+          "para": "\" sum(duration_seconds::double precision) AS soma\""
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_motivos_de_contato_contagem_e_tempo_ignorando_duracao_invalida"
+      ]
+    },
+    {
+      "id": "M-EDA-03",
+      "requisito": "R01",
+      "descricao": "Proporção do tempo dividida pelo número de contatos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "                proporcao_soma=_fracao(soma, total_soma),",
+          "para": "                proporcao_soma=_fracao(soma, total),"
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_motivos_de_contato_contagem_e_tempo_ignorando_duracao_invalida"
+      ]
+    },
+    {
+      "id": "M-EDA-04",
+      "requisito": "R01",
+      "descricao": "Códigos de recusa contam todas as transações",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "\" FROM curated.transactions WHERE transaction_status = 'Declined'\"",
+          "para": "\" FROM curated.transactions WHERE true\""
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_status_e_codigos_das_recusas"
+      ]
+    },
+    {
+      "id": "M-EDA-05",
+      "requisito": "R01",
+      "descricao": "Recusas sem código somem da conta (denominador errado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "\"SELECT coalesce(response_code, '(sem código)') AS grupo, count(*) AS contagem\"",
+          "para": "\"SELECT response_code AS grupo, count(*) AS contagem\""
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_status_e_codigos_das_recusas"
+      ]
+    },
+    {
+      "id": "M-EDA-06",
+      "requisito": "R01",
+      "descricao": "Subcategorias de todas as categorias misturadas às de transação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "\" FROM curated.complaints WHERE category = 'Transactions'\"",
+          "para": "\" FROM curated.complaints WHERE true\""
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_reclamacoes_por_categoria_e_subcategorias_de_transacao"
+      ]
+    },
+    {
+      "id": "M-EDA-07",
+      "requisito": "R01",
+      "descricao": "Idiomas lidos da coluna errada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "\"SELECT coalesce(detected_language, '(vazio)') AS grupo, count(*) AS contagem\"",
+          "para": "\"SELECT coalesce(detected_accent, '(vazio)') AS grupo, count(*) AS contagem\""
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_idiomas_das_transcricoes"
+      ]
+    },
+    {
+      "id": "M-EDA-08",
+      "requisito": "R01",
+      "descricao": "Rota publica uma consulta diferente da executada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "        consulta=indicador.consulta,",
+          "para": "        consulta=indicador.consulta.replace(\"ORDER BY 2 DESC, 1\", \"ORDER BY 1\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_rota_publica_a_consulta_que_de_fato_produziu_os_numeros"
+      ]
+    },
+    {
+      "id": "M-EDA-09",
+      "requisito": "R01",
+      "descricao": "Ordem das categorias por nome e não por volume",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eda.py",
+          "de": "\" FROM curated.complaints GROUP BY 1 ORDER BY 2 DESC, 1\"",
+          "para": "\" FROM curated.complaints GROUP BY 1 ORDER BY 1\""
+        }
+      ],
+      "testes": [
+        "tests/test_eda.py::test_reclamacoes_por_categoria_e_subcategorias_de_transacao"
+      ]
     }
   ]
 }

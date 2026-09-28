@@ -74,6 +74,29 @@
           }
         }
       }
+    },
+    "/dados/eda": {
+      "get": {
+        "summary": "Indicadores Da Eda",
+        "description": "Indicadores da EDA calculados na hora sobre a carga atual, cada um com sua consulta.",
+        "operationId": "indicadores_da_eda_dados_eda_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Resultado"
+                  },
+                  "type": "array",
+                  "title": "Response Indicadores Da Eda Dados Eda Get"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -101,6 +124,65 @@
           "loaded_at"
         ],
         "title": "DatasetInfo"
+      },
+      "Linha": {
+        "properties": {
+          "grupo": {
+            "type": "string",
+            "title": "Grupo"
+          },
+          "contagem": {
+            "type": "integer",
+            "title": "Contagem"
+          },
+          "base": {
+            "type": "integer",
+            "title": "Base"
+          },
+          "proporcao": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proporcao"
+          },
+          "soma": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Soma"
+          },
+          "proporcao_soma": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proporcao Soma"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grupo",
+          "contagem",
+          "base",
+          "proporcao",
+          "soma",
+          "proporcao_soma"
+        ],
+        "title": "Linha"
       },
       "Liveness": {
         "properties": {
@@ -215,6 +297,58 @@
           "dataset"
         ],
         "title": "Readiness"
+      },
+      "Resultado": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "pergunta": {
+            "type": "string",
+            "title": "Pergunta"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "distribuicao",
+              "taxa"
+            ],
+            "title": "Tipo"
+          },
+          "consulta": {
+            "type": "string",
+            "title": "Consulta"
+          },
+          "unidade_soma": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unidade Soma"
+          },
+          "linhas": {
+            "items": {
+              "$ref": "#/components/schemas/Linha"
+            },
+            "type": "array",
+            "title": "Linhas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pergunta",
+          "tipo",
+          "consulta",
+          "unidade_soma",
+          "linhas"
+        ],
+        "title": "Resultado"
       }
     }
   }
