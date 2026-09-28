@@ -4,26 +4,30 @@ type Persona = { customer_id: string; nome: string };
 const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
 /**
- * N-ésima transação que a política deixa contestar agora (POL-DISP-01). Cada navegador usa um N
- * diferente: os projetos rodam em paralelo contra o mesmo banco.
+ * Transação que a política deixa contestar agora (POL-DISP-01), numa partição estável por navegador:
+ * os projetos rodam em paralelo contra o mesmo banco. Já contestadas (POL-DISP-03) seguem contando
+ * na partição, para que um navegador confirmar primeiro não desloque a escolha do outro.
  */
-async function elegivel(request: APIRequestContext, pular: number) {
+async function elegivel(request: APIRequestContext, parte: number, partes: number) {
   const personas: Persona[] = await (await request.get("/api/personas")).json();
+  let posicao = 0;
   for (const persona of personas) {
     const { token } = await (await request.post("/api/sessoes", { data: { customer_id: persona.customer_id } })).json();
     const transacoes: { transaction_id: string }[] = await (
       await request.get("/api/minhas/transacoes?limite=20", { headers: auth(token) })
     ).json();
     for (const t of transacoes) {
-      const decisao = await (await request.get(`/api/minhas/transacoes/${t.transaction_id}/contestacao`, { headers: auth(token) })).json();
-      if (decisao.regra === "POL-DISP-01" && pular-- === 0) return { persona, transacao: t.transaction_id, token };
+      const { regra } = await (await request.get(`/api/minhas/transacoes/${t.transaction_id}/contestacao`, { headers: auth(token) })).json();
+      if (regra !== "POL-DISP-01" && regra !== "POL-DISP-03") continue;
+      if (posicao++ % partes === parte && regra === "POL-DISP-01") return { persona, transacao: t.transaction_id, token };
     }
   }
-  throw new Error("nenhuma transação elegível entre as personas");
+  throw new Error(`nenhuma transação elegível na parte ${parte} de ${partes}`);
 }
 
 test("contestar, confirmar, ver o protocolo e reencontrá-lo sem duplicar", async ({ page, request }, info) => {
-  const { persona, transacao, token } = await elegivel(request, info.project.name === "firefox" ? 1 : 0);
+  const projetos = info.config.projects.map((p) => p.name);
+  const { persona, transacao, token } = await elegivel(request, projetos.indexOf(info.project.name), projetos.length);
   await page.goto("/");
   await page.getByRole("button", { name: `Entrar como ${persona.nome}` }).click();
   const linhas = page.getByRole("table", { name: "Minhas transações" }).locator("tbody tr");
@@ -48,6 +52,7 @@ test("contestar, confirmar, ver o protocolo e reencontrá-lo sem duplicar", asyn
   await page.reload();
   await page.getByRole("table", { name: "Minhas transações" }).locator("tbody tr").nth(indice).getByRole("button", { name: "Contestar" }).click();
   await expect(page.getByText(`Já existe o pré-caso ${protocolo}`)).toBeVisible();
-  const depois: unknown[] = await (await request.get("/api/minhas/pre-casos", { headers: auth(token) })).json();
-  expect(depois.length).toBe(preCasos.length);
+  // Só os pré-casos desta transação: o outro navegador pode contestar outra da mesma persona.
+  const depois: { protocolo: string; transaction_id: string }[] = await (await request.get("/api/minhas/pre-casos", { headers: auth(token) })).json();
+  expect(depois.filter((p) => p.transaction_id === transacao)).toEqual([expect.objectContaining({ protocolo, transaction_id: transacao })]);
 });
