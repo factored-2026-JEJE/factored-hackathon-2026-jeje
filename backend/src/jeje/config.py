@@ -6,6 +6,7 @@ inicialização, em vez de o código assumir um valor que diverge do compose.
 """
 
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -28,3 +29,10 @@ class Settings(BaseSettings):
     limite_pre_caso_usd: Decimal = Field(gt=0)
     # Validade da proposta de pré-caso até a confirmação do cliente, em minutos.
     proposta_ttl_minutos: int = Field(gt=0)
+    # Leitura da mensagem: "regras" (sem modelo) ou "ollama" (modelo local só quando as regras não
+    # entendem; segurança e confirmação continuam das regras).
+    interpretador: Literal["regras", "ollama"]
+    # Servidor Ollama, modelo e tempo máximo por chamada (usados só com INTERPRETADOR=ollama).
+    ollama_url: str
+    ollama_modelo: str
+    ollama_timeout_s: float = Field(gt=0)
