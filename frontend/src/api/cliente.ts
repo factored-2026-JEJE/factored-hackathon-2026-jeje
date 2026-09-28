@@ -20,3 +20,12 @@ export async function buscarQualidade(sinal?: AbortSignal): Promise<QualidadeTab
   if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);
   return (await resposta.json()) as QualidadeTabela[];
 }
+
+export type IndicadorEda = components["schemas"]["Resultado"];
+
+/** Indicadores da EDA calculados sobre a carga atual, cada um com a consulta que o produziu. */
+export async function buscarEda(sinal?: AbortSignal): Promise<IndicadorEda[]> {
+  const resposta = await fetch("/api/dados/eda", { signal: sinal });
+  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);
+  return (await resposta.json()) as IndicadorEda[];
+}

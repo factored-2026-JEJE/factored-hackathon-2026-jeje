@@ -232,8 +232,8 @@
       "trocas": [
         {
           "arquivo": "src/api/cliente.ts",
-          "de": "  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);\n",
-          "para": ""
+          "de": "  const resposta = await fetch(\"/api/dados/qualidade\", { signal: sinal });\n  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);\n",
+          "para": "  const resposta = await fetch(\"/api/dados/qualidade\", { signal: sinal });\n"
         }
       ],
       "testes": [
@@ -268,6 +268,96 @@
       ],
       "testes": [
         "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
+      ]
+    },
+    {
+      "id": "M-WEB-17",
+      "requisito": "R01",
+      "descricao": "Taxa mostra só o numerador, sem a base do grupo",
+      "trocas": [
+        {
+          "arquivo": "src/IndicadoresDaEda.tsx",
+          "de": "? `${inteiro(linha.contagem)} de ${inteiro(linha.base)}`",
+          "para": "? inteiro(linha.contagem)"
+        }
+      ],
+      "testes": [
+        "src/IndicadoresDaEda.test.tsx > taxa mostra numerador e base do próprio grupo"
+      ]
+    },
+    {
+      "id": "M-WEB-18",
+      "requisito": "R01",
+      "descricao": "Percentuais arredondados sem casa decimal",
+      "trocas": [
+        {
+          "arquivo": "src/IndicadoresDaEda.tsx",
+          "de": "minimumFractionDigits: 1, maximumFractionDigits: 1",
+          "para": "minimumFractionDigits: 0, maximumFractionDigits: 0"
+        }
+      ],
+      "testes": [
+        "src/IndicadoresDaEda.test.tsx > distribuição mostra contagem, participação e participação no tempo"
+      ]
+    },
+    {
+      "id": "M-WEB-19",
+      "requisito": "R01",
+      "descricao": "Coluna de tempo repete a participação em registros",
+      "trocas": [
+        {
+          "arquivo": "src/IndicadoresDaEda.tsx",
+          "de": "{comSoma && <td>{percentual(linha.proporcao_soma)}</td>}",
+          "para": "{comSoma && <td>{percentual(linha.proporcao)}</td>}"
+        }
+      ],
+      "testes": [
+        "src/IndicadoresDaEda.test.tsx > distribuição mostra contagem, participação e participação no tempo"
+      ]
+    },
+    {
+      "id": "M-WEB-20",
+      "requisito": "R01",
+      "descricao": "Consulta SQL não é exibida",
+      "trocas": [
+        {
+          "arquivo": "src/IndicadoresDaEda.tsx",
+          "de": "        <pre>{indicador.consulta}</pre>\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/IndicadoresDaEda.test.tsx > cada indicador traz a consulta que o produziu"
+      ]
+    },
+    {
+      "id": "M-WEB-21",
+      "requisito": "R01",
+      "descricao": "Falha ao obter indicadores fica eternamente calculando",
+      "trocas": [
+        {
+          "arquivo": "src/IndicadoresDaEda.tsx",
+          "de": "        if (!controle.signal.aborted) setEstado({ tipo: \"erro\", detalhe: String(erro) });",
+          "para": "        void erro;"
+        }
+      ],
+      "testes": [
+        "src/IndicadoresDaEda.test.tsx > mostra erro quando os indicadores não podem ser obtidos"
+      ]
+    },
+    {
+      "id": "M-WEB-22",
+      "requisito": "R01",
+      "descricao": "Cliente aceita status HTTP de erro como indicadores",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "  const resposta = await fetch(\"/api/dados/eda\", { signal: sinal });\n  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);\n",
+          "para": "  const resposta = await fetch(\"/api/dados/eda\", { signal: sinal });\n"
+        }
+      ],
+      "testes": [
+        "src/IndicadoresDaEda.test.tsx > mostra erro quando os indicadores não podem ser obtidos"
       ]
     }
   ]

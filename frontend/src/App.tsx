@@ -1,3 +1,4 @@
+import { IndicadoresDaEda } from "./IndicadoresDaEda";
 import { QualidadeDosDados } from "./QualidadeDosDados";
 import { StatusDoSistema } from "./StatusDoSistema";
 
@@ -7,6 +8,7 @@ export function App() {
       <h1>JEJE</h1>
       <StatusDoSistema />
       <QualidadeDosDados />
+      <IndicadoresDaEda />
     </main>
   );
 }
