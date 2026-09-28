@@ -11,6 +11,7 @@ import {
   type Transacao,
 } from "./api/cliente";
 import { Contestacao } from "./Contestacao";
+import { Conversa } from "./Conversa";
 
 const CHAVE_SESSAO = "jeje.sessao";
 
@@ -135,13 +136,18 @@ function MinhasTransacoes({
   );
 }
 
-/** Acesso de teste por persona e área do cliente (a identidade vem só da sessão). */
-export function Atendimento() {
+/** Acesso de teste por persona e área do cliente (a identidade vem só da sessão). `aoMudar` avisa
+ * que a conversa criou algo (pré-caso, encaminhamento) para a fila e as métricas se atualizarem. */
+export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
   const [sessao, setSessao] = useState<Sessao | null>(null);
   const [personas, setPersonas] = useState<Persona[] | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [versaoPreCasos, setVersaoPreCasos] = useState(0);
   const preCasoRegistrado = useCallback(() => setVersaoPreCasos((v) => v + 1), []);
+  const conversaMudou = useCallback(() => {
+    preCasoRegistrado();
+    aoMudar();
+  }, [preCasoRegistrado, aoMudar]);
 
   const sair = useCallback((mensagem: string | null = null) => {
     guardarSessao(null);
@@ -171,18 +177,21 @@ export function Atendimento() {
 
   if (sessao) {
     return (
-      <section aria-label="Atendimento">
-        <h2>Olá, {sessao.cliente.nome}</h2>
-        <button type="button" onClick={() => sair()}>
-          Sair
-        </button>
+      <section aria-label="Atendimento" className="atendimento">
+        <div className="cabecalho">
+          <h2>Olá, {sessao.cliente.nome}</h2>
+          <button type="button" className="secundario" onClick={() => sair()}>
+            Sair
+          </button>
+        </div>
+        <Conversa token={sessao.token} aoExpirar={expirou} aoMudar={conversaMudou} />
         <MinhasTransacoes token={sessao.token} aoExpirar={expirou} aoRegistrar={preCasoRegistrado} />
         <MeusPreCasos token={sessao.token} versao={versaoPreCasos} />
       </section>
     );
   }
   return (
-    <section aria-label="Atendimento">
+    <section aria-label="Atendimento" className="atendimento cartao">
       <h2>Acesso de teste</h2>
       <p>Escolha um cliente de demonstração. Dados sintéticos do desafio; não é um login real.</p>
       {aviso && <p role="alert">{aviso}</p>}

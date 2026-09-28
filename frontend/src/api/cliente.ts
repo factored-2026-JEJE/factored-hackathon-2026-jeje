@@ -86,3 +86,49 @@ export async function confirmarProposta(token: string, propostaId: string): Prom
 export async function meusPreCasos(token: string): Promise<PreCaso[]> {
   return json<PreCaso[]>(await fetch("/api/minhas/pre-casos", { headers: comToken(token) }), 200);
 }
+
+export type Idioma = "es" | "pt";
+export type ConversaAberta = components["schemas"]["ConversaAberta"];
+export type ResultadoDoTurno = components["schemas"]["ResultadoDoTurno"];
+export type Historico = components["schemas"]["Historico"];
+export type Encaminhamento = components["schemas"]["Encaminhamento"];
+export type Metricas = components["schemas"]["Metricas"];
+
+/** Turno não registrado (503): a API desfez tudo, e reenviar a mesma mensagem é seguro. */
+export class NaoRegistrado extends Error {}
+
+const jsonComToken = (token: string) => ({ ...comToken(token), "Content-Type": "application/json" });
+
+export async function abrirConversa(token: string, idioma: Idioma): Promise<ConversaAberta> {
+  const resposta = await fetch("/api/conversas", {
+    method: "POST",
+    headers: jsonComToken(token),
+    body: JSON.stringify({ idioma }),
+  });
+  return json<ConversaAberta>(resposta, 201);
+}
+
+export async function enviarMensagem(token: string, conversaId: string, texto: string): Promise<ResultadoDoTurno> {
+  const resposta = await fetch(`/api/conversas/${encodeURIComponent(conversaId)}/turnos`, {
+    method: "POST",
+    headers: jsonComToken(token),
+    body: JSON.stringify({ texto }),
+  });
+  if (resposta.status === 503) throw new NaoRegistrado(((await resposta.json()) as { detail: string }).detail);
+  return json<ResultadoDoTurno>(resposta, 200);
+}
+
+/** Histórico da conversa guardada nesta aba; `null` se ela não existe (ou não é desta sessão). */
+export async function historicoDaConversa(token: string, conversaId: string): Promise<Historico | null> {
+  const resposta = await fetch(`/api/conversas/${encodeURIComponent(conversaId)}`, { headers: comToken(token) });
+  if (resposta.status === 404) return null;
+  return json<Historico>(resposta, 200);
+}
+
+export async function filaDoAtendimento(): Promise<Encaminhamento[]> {
+  return json<Encaminhamento[]>(await fetch("/api/atendimento/fila"), 200);
+}
+
+export async function buscarMetricas(): Promise<Metricas> {
+  return json<Metricas>(await fetch("/api/metricas"), 200);
+}
