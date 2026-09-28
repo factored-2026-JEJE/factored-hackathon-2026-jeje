@@ -1,5 +1,6 @@
 """Rotas da conversa sem modelo (G10): abrir, enviar mensagem (turno) e reabrir o histórico."""
 
+import time
 from datetime import datetime
 from typing import Annotated, Literal
 
@@ -7,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Path, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import SQLAlchemyError
 
-from jeje import conversa
+from jeje import conversa, eventos
 from jeje.db import EngineDep
 from jeje.pre_caso_api import ID_PROPOSTA, Proposta
 from jeje.sessao_api import CORPO_ILEGIVEL, RESPOSTAS_SESSAO, SessaoDep
@@ -100,6 +101,7 @@ def enviar_mensagem(
 ) -> ResultadoDoTurno:
     """Um turno: a política decide com fatos verificados; efeito só com confirmação explícita."""
     config = request.app.state.settings
+    inicio = time.perf_counter()
     try:
         with engine.begin() as conexao:
             resultado = conversa.turno(
@@ -112,8 +114,9 @@ def enviar_mensagem(
             )
     except conversa.ConversaNaoEncontrada:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None
-    except SQLAlchemyError:
+    except SQLAlchemyError as erro:
         # Sem sucesso falso: o turno inteiro foi desfeito; reenviar a mesma mensagem é seguro.
+        _registrar_erro(engine, conversa_id, erro, inicio)
         raise HTTPException(
             status_code=503, detail="Turno não registrado; nada foi criado. Tente de novo."
         ) from None
@@ -133,6 +136,22 @@ def enviar_mensagem(
         protocolo=saida.protocolo,
         atendimento=saida.atendimento,
     )
+
+
+def _registrar_erro(engine, conversa_id: str, erro: Exception, inicio: float) -> None:
+    """O turno foi desfeito; o erro fica registrado à parte (só a classe, sem texto nem dados).
+    Se nem isso grava (banco fora), o cliente continua recebendo o 503."""
+    evento = eventos.Evento(
+        tipo="erro",
+        latencia_ms=eventos.desde(inicio),
+        conversa_id=conversa_id,
+        erro=type(erro).__name__,
+    )
+    try:
+        with engine.begin() as conexao:
+            eventos.registrar(conexao, evento)
+    except SQLAlchemyError:
+        pass
 
 
 @router.get("/conversas/{conversa_id}", responses={404: {"description": NAO_ENCONTRADA}})

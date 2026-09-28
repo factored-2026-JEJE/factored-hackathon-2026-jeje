@@ -9,6 +9,7 @@ Falha ao gravar propaga: quem chama desfaz o turno inteiro, sem resposta de suce
 
 import json
 import secrets
+import time
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from functools import cached_property
@@ -16,7 +17,7 @@ from typing import Literal
 
 from sqlalchemy import Connection, text
 
-from jeje import consultas, handoff, politica, pre_caso
+from jeje import consultas, eventos, handoff, politica, pre_caso
 from jeje.interpretacao import Interpretacao, comercio_citado, interpretar
 from jeje.mensagens import (
     ESTADO,
@@ -133,6 +134,7 @@ class _Turno:
         self.lida, self.mensagem, self.idioma = lida, mensagem, lida.idioma
         self.limite_usd, self.ttl_minutos = limite_usd, ttl_minutos
         self.acoes: list[handoff.Acao] = [handoff.Acao(**a) for a in contexto.get("acoes", [])]
+        self.fontes: dict[str, None] = {}  # de onde vieram os fatos e onde houve escrita (trace)
 
     # ---- entrada -----------------------------------------------------------------------------
 
@@ -202,6 +204,7 @@ class _Turno:
         return self._resolver(intencao, novo_assunto=True)
 
     def _candidatas(self, status: str | None) -> list[politica.Candidata]:
+        self._fonte("curated.transactions")
         return consultas.candidatas_do_cliente(self.conexao, self.customer_id, status)
 
     @cached_property
@@ -262,6 +265,7 @@ class _Turno:
         return None
 
     def _verificada(self, transaction_id: str) -> TransacaoVerificada:
+        self._fonte("curated.transactions")
         t = consultas.transacao_do_cliente(self.conexao, self.customer_id, transaction_id)
         if t is None:  # só chegam aqui IDs lidos da curada para este cliente
             raise LookupError("transação do contexto não pertence ao cliente da sessão")
@@ -310,7 +314,9 @@ class _Turno:
             self.conexao, self.customer_id, t.transaction_id, self.limite_usd, self.ttl_minutos
         )
         self._anotar("avaliar_contestacao", f"{decisao.regra}: {decisao.detalhe or decisao.acao}")
+        self._fonte("app.pre_casos")
         if proposta is not None:
+            self._fonte("app.propostas_pre_caso")
             contexto = {
                 "proposta_id": proposta.id,
                 "transaction_id": t.transaction_id,
@@ -342,6 +348,7 @@ class _Turno:
     def _confirmar(self) -> Saida:
         """Confirmação explícita da proposta guardada no estado (nunca de outra)."""
         proposta_id, transaction_id = self.contexto["proposta_id"], self.contexto["transaction_id"]
+        self._fonte("app.pre_casos")
         try:
             registrado, _ = pre_caso.confirmar(
                 self.conexao, self.customer_id, proposta_id, self.limite_usd
@@ -368,6 +375,7 @@ class _Turno:
         )
 
     def _encaminhar(self, decisao: politica.Decisao, t: TransacaoVerificada | None) -> Saida:
+        self._fonte("app.handoffs")
         pendencia = PENDENCIAS[decisao.regra]
         if decisao.detalhe:
             pendencia = f"{pendencia} ({decisao.detalhe})"
@@ -398,6 +406,9 @@ class _Turno:
     def _anotar(self, acao: str, resultado: str) -> None:
         self.acoes.append(handoff.Acao(acao, resultado))
 
+    def _fonte(self, nome: str) -> None:
+        self.fontes[nome] = None
+
     def _acoes_json(self) -> list[dict]:
         return [{"acao": a.acao, "resultado": a.resultado} for a in self.acoes]
 
@@ -425,7 +436,8 @@ def turno(
     limite_usd: Decimal,
     ttl_minutos: int,
 ) -> ResultadoDoTurno:
-    """Processa uma mensagem do cliente da sessão na conversa dele e grava o turno."""
+    """Processa uma mensagem do cliente da sessão na conversa dele e grava o turno e o evento."""
+    inicio = time.perf_counter()
     linha = conexao.execute(
         text(
             "SELECT idioma, estado, contexto, turnos FROM app.conversas"
@@ -483,6 +495,20 @@ def turno(
             "transacao": saida.transaction_id,
             "efeito": _efeito(saida),
         },
+    )
+    eventos.registrar(
+        conexao,
+        eventos.Evento(
+            tipo="turno",
+            latencia_ms=eventos.desde(inicio),
+            conversa_id=conversa_id,
+            numero=numero,
+            intencao=lida.intencao,
+            regra=saida.regra,
+            acao=saida.acao,
+            efeito=_efeito(saida),
+            fontes=tuple(atual.fontes),
+        ),
     )
     return resultado
 

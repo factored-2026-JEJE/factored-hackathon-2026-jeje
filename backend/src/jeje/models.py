@@ -2,13 +2,17 @@
 com elas (verificado por `alembic check` nos testes)."""
 
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import (
+    BigInteger,
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Identity,
     Integer,
     MetaData,
+    Numeric,
     Sequence,
     SmallInteger,
     Text,
@@ -169,4 +173,29 @@ class Turno(Base):
     resposta: Mapped[str] = mapped_column(Text)
     transaction_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     efeito: Mapped[str | None] = mapped_column(Text, nullable=True)  # protocolo, atendimento…
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Evento(Base):
+    """Evento de atendimento (G11): o que cada turno fez e quanto levou; nunca token nem texto do
+    cliente. Erro de turno desfeito vira evento próprio, gravado fora da transação que falhou."""
+
+    __tablename__ = "eventos"
+    __table_args__ = (
+        CheckConstraint("tipo IN ('turno', 'erro')", name="tipo"),
+        CheckConstraint("latencia_ms >= 0", name="latencia"),
+        {"schema": "app"},
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    tipo: Mapped[str] = mapped_column(Text)
+    conversa_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    numero: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    intencao: Mapped[str | None] = mapped_column(Text, nullable=True)
+    regra: Mapped[str | None] = mapped_column(Text, nullable=True)
+    acao: Mapped[str | None] = mapped_column(Text, nullable=True)
+    efeito: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fontes: Mapped[list] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
+    erro: Mapped[str | None] = mapped_column(Text, nullable=True)  # classe do erro, sem mensagem
+    latencia_ms: Mapped[Decimal] = mapped_column(Numeric(12, 3))
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
