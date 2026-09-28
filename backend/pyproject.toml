@@ -36,6 +36,9 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 # Aviso vira erro: depreciação ou dependência errada aparece no teste, não em produção (DEV-020c).
 filterwarnings = ["error"]
+# A exploração aleatória do contrato fica fora do gate (ACH-027): make contrato-explorar.
+addopts = "-m 'not exploracao'"
+markers = ["exploracao: exploração aleatória do contrato, fora do gate"]
 
 [tool.ruff]
 target-version = "py312"

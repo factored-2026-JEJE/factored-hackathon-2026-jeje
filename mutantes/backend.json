@@ -339,6 +339,21 @@
       ]
     },
     {
+      "id": "M-CONTRATO-04",
+      "requisito": "R06",
+      "descricao": "Contrato do gate volta a ser aleatório (verde que não se repete no clone limpo)",
+      "trocas": [
+        {
+          "arquivo": "tests/test_contrato.py",
+          "de": "DETERMINISTICO = settings(derandomize=True, database=None)",
+          "para": "DETERMINISTICO = settings(database=None)"
+        }
+      ],
+      "testes": [
+        "tests/test_contrato.py::test_contrato_do_gate_e_deterministico"
+      ]
+    },
+    {
       "id": "M-PARAM-01",
       "requisito": "R06",
       "descricao": "Parâmetro repetido volta a passar: verificação fora da aplicação (ACH-027)",
