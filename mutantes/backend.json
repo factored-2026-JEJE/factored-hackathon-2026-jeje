@@ -3211,6 +3211,186 @@
       ]
     },
     {
+      "id": "M-EVT-01",
+      "requisito": "R09",
+      "descricao": "Latência do turno não medida (≈ 0)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            latencia_ms=eventos.desde(inicio),",
+          "para": "            latencia_ms=eventos.desde(time.perf_counter()),"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_latencia_e_medida_no_turno"
+      ]
+    },
+    {
+      "id": "M-EVT-02",
+      "requisito": "R06",
+      "descricao": "Erro de turno desfeito sem evento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        _registrar_erro(engine, conversa_id, erro, inicio)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_erro_de_turno_desfeito_vira_evento_so_com_a_classe"
+      ]
+    },
+    {
+      "id": "M-EVT-03",
+      "requisito": "R08",
+      "descricao": "Evento de erro leva o texto do erro (com dados do cliente)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        erro=type(erro).__name__,",
+          "para": "        erro=str(erro),"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_erro_de_turno_desfeito_vira_evento_so_com_a_classe"
+      ]
+    },
+    {
+      "id": "M-EVT-04",
+      "requisito": "R09",
+      "descricao": "Evento sem as fontes dos fatos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            fontes=tuple(atual.fontes),",
+          "para": "            fontes=(),"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_cada_turno_gera_um_evento_com_o_que_ele_fez"
+      ]
+    },
+    {
+      "id": "M-EVT-05",
+      "requisito": "R08",
+      "descricao": "Evento leva a mensagem do cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            intencao=lida.intencao,",
+          "para": "            intencao=mensagem,"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_evento_nao_carrega_token_nem_texto_nem_cliente"
+      ]
+    },
+    {
+      "id": "M-MET-01",
+      "requisito": "R09",
+      "descricao": "p95 calculado como máximo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "percentile_cont(0.95)",
+          "para": "percentile_cont(1.0)"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_metricas_recomputadas_dos_eventos"
+      ]
+    },
+    {
+      "id": "M-MET-02",
+      "requisito": "R09",
+      "descricao": "Taxa de encaminhamento sobre turnos, não sobre conversas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "_taxa(geral.encaminhadas, geral.conversas)",
+          "para": "_taxa(geral.encaminhadas, geral.turnos)"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_metricas_recomputadas_dos_eventos"
+      ]
+    },
+    {
+      "id": "M-MET-03",
+      "requisito": "R09",
+      "descricao": "Contagem de pré-casos fixa, não recomputada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "        \"pre_casos_registrados\": geral.pre_casos,",
+          "para": "        \"pre_casos_registrados\": 1,"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_sem_eventos_nao_inventa_taxa_nem_latencia"
+      ]
+    },
+    {
+      "id": "M-MET-04",
+      "requisito": "R09",
+      "descricao": "Erros contados a partir dos turnos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": " count(*) FILTER (WHERE tipo = 'erro') AS erros,",
+          "para": " count(*) FILTER (WHERE tipo = 'turno') AS erros,"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_metricas_recomputadas_dos_eventos"
+      ]
+    },
+    {
+      "id": "M-MET-05",
+      "requisito": "R09",
+      "descricao": "Taxa sem guarda: sem eventos, divide por zero",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "    return None if todo == 0 else parte / todo",
+          "para": "    return parte / todo"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_sem_eventos_nao_inventa_taxa_nem_latencia"
+      ]
+    },
+    {
+      "id": "M-MET-06",
+      "requisito": "R06",
+      "descricao": "Linha de comando lê um banco fixo em vez do configurado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "    engine = create_db_engine(Settings())",
+          "para": "    engine = create_db_engine(Settings(database_url=\"postgresql+psycopg://jeje:jeje@db:5432/jeje\"))"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_linha_de_comando_da_os_mesmos_numeros_da_api"
+      ]
+    },
+    {
+      "id": "M-MET-07",
+      "requisito": "R09",
+      "descricao": "Encaminhamento contado por turno com humano, não por conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": " count(DISTINCT conversa_id) FILTER (WHERE tipo = 'turno' AND acao = 'humano')",
+          "para": " count(*) FILTER (WHERE tipo = 'turno' AND acao IN ('humano', 'aguardar_humano'))"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_metricas_de_conversas_reais_pela_api"
+      ]
+    },
+    {
       "id": "M-ITP-01",
       "requisito": "R03",
       "descricao": "Intenções avaliadas de trás para frente (autosserviço antes de segurança)",
