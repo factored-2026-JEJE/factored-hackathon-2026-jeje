@@ -101,3 +101,21 @@ def test_erro_de_turno_desfeito_vira_evento_so_com_a_classe(cenario_conversa):
     )  # fmt: skip
     assert erro["latencia_ms"] > 0
     assert "disco cheio" not in json.dumps(registrados, default=str)
+
+
+def test_evento_guarda_o_id_da_requisicao_que_liga_resposta_log_e_trace(cenario_conversa):
+    """Quem relata um problema entrega o X-Request-ID da resposta: ele leva às linhas do log e ao
+    evento do turno no banco (auditoria sem o texto do cliente)."""
+    with cliente(cenario_conversa) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        informado = http.post(
+            f"/conversas/{conversa}/turnos",
+            json={"texto": PEDIDO},
+            headers={**auth, "X-Request-ID": "auditoria-123"},
+        )
+        gerado = http.post(f"/conversas/{conversa}/turnos", json={"texto": "no"}, headers=auth)
+    with conexao(cenario_conversa) as con:
+        ids = list(con.execute(text("SELECT requisicao FROM app.eventos ORDER BY id")).scalars())
+    assert informado.headers["X-Request-ID"] == "auditoria-123"
+    assert ids == ["auditoria-123", gerado.headers["X-Request-ID"]]

@@ -1,5 +1,6 @@
 """Eventos de atendimento (G11): o trace de cada turno — regra, ação, efeito, fontes, erro e
-latência. Nunca carrega token, mensagem do cliente nem texto de erro (só a classe)."""
+latência — com o id da requisição que o gerou (o mesmo das linhas do log e do X-Request-ID da
+resposta). Nunca carrega token, mensagem do cliente nem texto de erro (só a classe)."""
 
 import json
 import time
@@ -8,6 +9,8 @@ from decimal import Decimal
 from typing import Literal
 
 from sqlalchemy import Connection, text
+
+from jeje.logs import id_da_requisicao
 
 
 @dataclass(frozen=True)
@@ -34,13 +37,15 @@ def desde(inicio: float) -> Decimal:
 
 
 def registrar(conexao: Connection, e: Evento) -> None:
+    # Fora de uma requisição (ex.: a carga dos dados) não há id: fica nulo.
+    requisicao = id_da_requisicao.get()
     conexao.execute(
         text(
             "INSERT INTO app.eventos (tipo, conversa_id, numero, intencao, regra, acao, efeito,"
             " fontes, erro, latencia_ms, interpretacao, modelo_latencia_ms, modelo_tokens_entrada,"
-            " modelo_tokens_saida) VALUES (:tipo, :conversa, :numero, :intencao, :regra, :acao,"
-            " :efeito, CAST(:fontes AS jsonb), :erro, :latencia, :interpretacao, :modelo_ms,"
-            " :tokens_entrada, :tokens_saida)"
+            " modelo_tokens_saida, requisicao) VALUES (:tipo, :conversa, :numero, :intencao,"
+            " :regra, :acao, :efeito, CAST(:fontes AS jsonb), :erro, :latencia, :interpretacao,"
+            " :modelo_ms, :tokens_entrada, :tokens_saida, :requisicao)"
         ),
         {
             "tipo": e.tipo,
@@ -57,5 +62,6 @@ def registrar(conexao: Connection, e: Evento) -> None:
             "modelo_ms": e.modelo_latencia_ms,
             "tokens_entrada": e.modelo_tokens_entrada,
             "tokens_saida": e.modelo_tokens_saida,
+            "requisicao": None if requisicao == "-" else requisicao,
         },
     )

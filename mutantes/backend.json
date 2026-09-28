@@ -3817,6 +3817,21 @@
       ]
     },
     {
+      "id": "M-MIG-07",
+      "requisito": "R09",
+      "descricao": "Migration não cria a coluna do id da requisição no evento",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0014_eventos_requisicao.py",
+          "de": "    op.add_column(\"eventos\", sa.Column(\"requisicao\", sa.Text(), nullable=True), schema=\"app\")\n",
+          "para": "    pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
       "id": "M-EVT-01",
       "requisito": "R09",
       "descricao": "Latência do turno não medida (≈ 0)",
@@ -4595,6 +4610,21 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_turno_desfeito_ainda_registra_a_chamada_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-EVT-08",
+      "requisito": "R09",
+      "descricao": "Evento sem o id da requisição: log e trace do banco não se ligam",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "            \"requisicao\": None if requisicao == \"-\" else requisicao,\n",
+          "para": "            \"requisicao\": None,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_evento_guarda_o_id_da_requisicao_que_liga_resposta_log_e_trace"
       ]
     },
     {

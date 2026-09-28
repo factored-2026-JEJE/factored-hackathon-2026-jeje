@@ -210,4 +210,6 @@ class Evento(Base):
     modelo_tokens_entrada: Mapped[int | None] = mapped_column(Integer, nullable=True)
     modelo_tokens_saida: Mapped[int | None] = mapped_column(Integer, nullable=True)
     latencia_ms: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    # X-Request-ID da requisição que gerou o evento: liga a resposta, o log e este trace.
+    requisicao: Mapped[str | None] = mapped_column(Text, nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
