@@ -3917,6 +3917,21 @@
       ]
     },
     {
+      "id": "M-LLM-11",
+      "requisito": "R03",
+      "descricao": "Leitura do modelo vale como confirmação (instrução injetada registra o pré-caso)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "            intencao=saida.intencao,\n",
+          "para": "            intencao=saida.intencao,\n            resposta=\"sim\" if saida.intencao == \"contestar\" else regras.resposta,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_instrucao_injetada_na_mensagem_nao_vira_acao"
+      ]
+    },
+    {
       "id": "M-EVT-06",
       "requisito": "R09",
       "descricao": "Evento do turno sem o uso do modelo",
