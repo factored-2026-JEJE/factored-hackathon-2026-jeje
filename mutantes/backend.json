@@ -1211,8 +1211,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/qualidade.py",
-          "de": "WHERE currency = 'USD' AND amount_usd IS NULL",
-          "para": "WHERE amount_usd IS NULL"
+          "de": "            quando=\"av.currency = 'USD' AND av.amount_usd IS NULL\",",
+          "para": "            quando=\"av.amount_usd IS NULL\","
         }
       ],
       "testes": [
@@ -1427,6 +1427,36 @@
       ],
       "testes": [
         "tests/test_qualidade_api.py::test_sem_carga_o_relatorio_e_vazio"
+      ]
+    },
+    {
+      "id": "M-QUAL-16",
+      "requisito": "R08",
+      "descricao": "FKs removidas para a carga não são recriadas: banco deixa de proteger a propriedade",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            sql.SQL(\"ALTER TABLE {} ADD CONSTRAINT {} {}\").format(",
+          "para": "            sql.SQL(\"SELECT 1 /* {} {} {} */\").format("
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_chaves_estrangeiras_voltam_depois_da_curadoria_e_seguem_valendo"
+      ]
+    },
+    {
+      "id": "M-QUAL-17",
+      "requisito": "R04",
+      "descricao": "Pré-filtro de repetidas ignora pares (só trata 3 ou mais)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            \" GROUP BY {chave} HAVING count(*) > 1\"",
+          "para": "            \" GROUP BY {chave} HAVING count(*) > 2\""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade.py::test_copia_exata_fica_uma_so_e_e_contada"
       ]
     }
   ]

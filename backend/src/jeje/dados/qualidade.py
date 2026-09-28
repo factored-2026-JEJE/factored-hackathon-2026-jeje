@@ -21,14 +21,25 @@ from jeje.dados.contratos import CONTRATOS, POR_TABELA, Contrato, Referencia, co
 from jeje.dados.curado import SCHEMA, SCHEMA_QUALIDADE
 from jeje.dados.raw import SCHEMA as SCHEMA_RAW
 
-# Normalizações explícitas aplicadas à curada, por tabela: (código, comando).
-NORMALIZACOES: dict[str, list[tuple[str, str]]] = {
+
+@dataclass(frozen=True)
+class Normalizacao:
+    """Regra explícita aplicada ao gravar a curada: `coluna` recebe `valor` quando `quando`."""
+
+    codigo: str
+    coluna: str
+    quando: str  # condição SQL sobre o registro raw `av`
+    valor: str  # expressão SQL sobre `av`
+
+
+NORMALIZACOES: dict[str, list[Normalizacao]] = {
     # ACH-019: amount_usd vem vazio quando a moeda já é USD; o valor em dólar é o próprio amount.
     "transactions": [
-        (
-            "N-USD:amount_usd",
-            "UPDATE curated.transactions SET amount_usd = amount "
-            "WHERE currency = 'USD' AND amount_usd IS NULL",
+        Normalizacao(
+            codigo="N-USD:amount_usd",
+            coluna="amount_usd",
+            quando="av.currency = 'USD' AND av.amount_usd IS NULL",
+            valor="av.amount",
         )
     ],
 }
@@ -109,6 +120,11 @@ def _acessoria(contrato: Contrato, coluna: str) -> Referencia | None:
 
 def _valor_curado(contrato: Contrato, coluna: str) -> sql.Composed:
     valor: sql.Composable = _col(coluna)
+    for regra in NORMALIZACOES.get(contrato.tabela, []):
+        if regra.coluna == coluna:
+            valor = sql.SQL("CASE WHEN {} THEN {} ELSE {} END").format(
+                sql.SQL(regra.quando), sql.SQL(regra.valor), valor
+            )
     referencia = _acessoria(contrato, coluna)
     if referencia is not None:
         quebrada: sql.Composable = _inexistente(referencia)
@@ -135,9 +151,19 @@ def _avaliar(cursor: Cursor, contrato: Contrato) -> None:
             sql.Identifier(SCHEMA_RAW, contrato.tabela),
         )
     )
+    # Só chaves repetidas podem ter conflito ou cópia; sem repetição (o caso comum) nada a fazer.
+    cursor.execute(
+        sql.SQL(
+            "CREATE TEMP TABLE repetidas AS SELECT {chave} FROM av WHERE motivos = '{{}}'"
+            " GROUP BY {chave} HAVING count(*) > 1"
+        ).format(chave=chave)
+    )
+    if _contar(cursor, sql.SQL("SELECT count(*) FROM repetidas")) == 0:
+        cursor.execute("DROP TABLE repetidas")
+        return
     conflitantes = sql.SQL(
-        "SELECT {chave} FROM av WHERE motivos = '{{}}' GROUP BY {chave}"
-        " HAVING count(DISTINCT ROW({dados})) > 1"
+        "SELECT {chave} FROM av WHERE motivos = '{{}}' AND ({chave}) IN (SELECT * FROM repetidas)"
+        " GROUP BY {chave} HAVING count(DISTINCT ROW({dados})) > 1"
     ).format(chave=chave, dados=dados)
     cursor.execute(
         sql.SQL(
@@ -145,14 +171,15 @@ def _avaliar(cursor: Cursor, contrato: Contrato) -> None:
         ).format(chave, conflitantes)
     )
     repetidas = sql.SQL(
-        "SELECT ctid AS id, row_number() OVER (PARTITION BY {} ORDER BY _arquivo, _linha) n"
-        " FROM av WHERE motivos = '{{}}'"
-    ).format(chave)
+        "SELECT ctid AS id, row_number() OVER (PARTITION BY {chave} ORDER BY _arquivo, _linha) n"
+        " FROM av WHERE motivos = '{{}}' AND ({chave}) IN (SELECT * FROM repetidas)"
+    ).format(chave=chave)
     cursor.execute(
         sql.SQL("UPDATE av SET copia = true FROM ({}) x WHERE av.ctid = x.id AND x.n > 1").format(
             repetidas
         )
     )
+    cursor.execute("DROP TABLE repetidas")
 
 
 def _gravar_quarentena(cursor: Cursor, tabela: str) -> None:
@@ -195,12 +222,16 @@ def _gravar_curado(cursor: Cursor, contrato: Contrato) -> None:
     )
 
 
-def _normalizar(cursor: Cursor, tabela: str) -> dict[str, int]:
-    normalizacoes: dict[str, int] = {}
-    for codigo, comando in NORMALIZACOES.get(tabela, []):
-        cursor.execute(comando)
-        normalizacoes[codigo] = cursor.rowcount
-    return normalizacoes
+def _contar_normalizacoes(cursor: Cursor, tabela: str) -> dict[str, int]:
+    return {
+        regra.codigo: _contar(
+            cursor,
+            sql.SQL("SELECT count(*) FROM av WHERE {} AND {}").format(
+                VALIDOS, sql.SQL(regra.quando)
+            ),
+        )
+        for regra in NORMALIZACOES.get(tabela, [])
+    }
 
 
 def curar_tabela(cursor: Cursor, contrato: Contrato) -> Resumo:
@@ -208,8 +239,8 @@ def curar_tabela(cursor: Cursor, contrato: Contrato) -> Resumo:
     _avaliar(cursor, contrato)
     _gravar_quarentena(cursor, tabela)
     anulacoes = _contar_anulacoes(cursor, contrato)
+    normalizacoes = _contar_normalizacoes(cursor, tabela)
     _gravar_curado(cursor, contrato)
-    normalizacoes = _normalizar(cursor, tabela)
 
     cursor.execute("SELECT m, count(*) FROM av, unnest(motivos) m GROUP BY m ORDER BY m")
     motivos = dict(cursor.fetchall())
@@ -244,13 +275,43 @@ def curar_tabela(cursor: Cursor, contrato: Contrato) -> Resumo:
     return resumo
 
 
+def _chaves_estrangeiras(cursor: Cursor) -> list[tuple[str, str, str]]:
+    """(tabela, nome, definição) das FKs da curada, lidas do catálogo (fonte: as migrations)."""
+    cursor.execute(
+        "SELECT c.conrelid::regclass::text, c.conname, pg_get_constraintdef(c.oid)"
+        " FROM pg_constraint c JOIN pg_namespace n ON n.oid = c.connamespace"
+        " WHERE c.contype = 'f' AND n.nspname = %s ORDER BY c.conname",
+        (SCHEMA,),
+    )
+    return cursor.fetchall()
+
+
 def curar(cursor: Cursor, tabelas: list[str]) -> dict[str, Resumo]:
-    """Refaz a camada curada e a qualidade a partir da raw atual (na transação do chamador)."""
+    """Refaz a camada curada e a qualidade a partir da raw atual (na transação do chamador).
+
+    As FKs da curada saem durante a gravação e voltam no fim, validadas numa só consulta por
+    restrição (em vez de um gatilho por linha): mesma garantia, muito menos tempo. Se algum
+    registro violasse uma FK, recriá-la falharia e a transação inteira seria desfeita.
+    """
     todas = [sql.Identifier(SCHEMA, c.tabela) for c in CONTRATOS]
     todas += [sql.Identifier(SCHEMA_QUALIDADE, t) for t in ("quarentena", "relatorio")]
     cursor.execute(sql.SQL("TRUNCATE {}").format(sql.SQL(", ").join(todas)))
-    return {
+    chaves = _chaves_estrangeiras(cursor)
+    for tabela, nome, _ in chaves:
+        cursor.execute(
+            sql.SQL("ALTER TABLE {} DROP CONSTRAINT {}").format(
+                sql.SQL(tabela), sql.Identifier(nome)
+            )
+        )
+    resumos = {
         contrato.tabela: curar_tabela(cursor, contrato)
         for contrato in CONTRATOS
         if contrato.tabela in tabelas
     }
+    for tabela, nome, definicao in chaves:
+        cursor.execute(
+            sql.SQL("ALTER TABLE {} ADD CONSTRAINT {} {}").format(
+                sql.SQL(tabela), sql.Identifier(nome), sql.SQL(definicao)
+            )
+        )
+    return resumos

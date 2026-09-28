@@ -10,6 +10,7 @@ from decimal import Decimal
 import pytest
 from conftest import conexao
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from jeje.dados.qualidade import curar
 
@@ -228,3 +229,28 @@ def test_relatorio_fecha_raw_igual_a_curado_mais_quarentena_mais_copias(base):
     assert por_tabela["transactions"] == (3, 1, 1, 1)
     assert por_tabela["customers"] == (2, 2, 0, 0)
     assert all(r == c + q + d for r, c, q, d in por_tabela.values())
+
+
+def test_chaves_estrangeiras_voltam_depois_da_curadoria_e_seguem_valendo(base):
+    consulta = text(
+        "select c.conname from pg_constraint c join pg_namespace n on n.oid = c.connamespace"
+        " where c.contype = 'f' and n.nspname = 'curated'"
+    )
+    with conexao(base) as con:
+        antes = set(con.execute(consulta).scalars())
+    curar_tudo(base)
+    with conexao(base) as con:
+        depois = set(con.execute(consulta).scalars())
+    assert depois == antes
+    assert "fk_transactions_product_id_dono" in depois
+    with (
+        pytest.raises(IntegrityError, match="fk_transactions_product_id_dono"),
+        conexao(base) as con,
+    ):
+        con.execute(
+            text(
+                "insert into curated.transactions (transaction_id, transaction_date, customer_id,"
+                " product_id, amount, currency, transaction_status, _arquivo, _linha) values"
+                " ('TRX-X', '2025-03-10', 'CLI-B', 'PRD-A', 1, 'USD', 'Approved', 'f', 1)"
+            )
+        )
