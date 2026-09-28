@@ -2,11 +2,10 @@
 
 A carga troca a curada inteira numa transação e, nela mesma, encerra o atendimento em curso: nada
 do que foi montado com a versão anterior (foco, opções, proposta, sessão) atravessa a troca. Uma
-trava consultiva única separa essa troca do
-atendimento: toda transação da API pega a trava compartilhada sem esperar (ocupada → 503 na hora,
-com Retry-After), e a carga pega a exclusiva antes de qualquer outra trava. Como a API nunca espera
-por ela e a carga a pega primeiro, não há ciclo de espera possível, e nenhuma requisição fica
-pendurada durante a recarga.
+trava consultiva única separa essa troca do atendimento: toda transação da API pega a trava
+compartilhada sem esperar (ocupada → 503 na hora, com Retry-After), e a carga pega a exclusiva antes
+de qualquer outra trava. Como a API nunca espera por ela e a carga a pega primeiro, não há ciclo de
+espera possível, e nenhuma requisição fica pendurada durante a recarga.
 """
 
 import logging
