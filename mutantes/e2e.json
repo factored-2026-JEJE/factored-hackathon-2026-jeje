@@ -217,6 +217,36 @@
       "testes": [
         "politica.spec.ts > situação de cada transação das personas segue a matriz e contestação só avança para Approved"
       ]
+    },
+    {
+      "id": "M-E2E-12",
+      "requisito": "R02",
+      "descricao": "Backend devolve protocolo inventado sem reler o banco",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/pre_caso.py",
+          "de": "    registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if registrado is None:\n        raise RuntimeError(\"pré-caso não encontrado na releitura; nada foi confirmado\")",
+          "para": "    registrado = PreCaso(protocolo=\"PC-99999999\", transaction_id=proposta.transaction_id, estado=\"recebido\", criado_em=datetime.now())"
+        }
+      ],
+      "testes": [
+        "pre_caso.spec.ts > contestar, confirmar, ver o protocolo e reencontrá-lo sem duplicar"
+      ]
+    },
+    {
+      "id": "M-E2E-13",
+      "requisito": "R02",
+      "descricao": "Página mostra pré-caso recebido sem pedir confirmação",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Contestacao.tsx",
+          "de": "      if (avaliacao.proposta) setEstado({ tipo: \"proposta\", propostaId: avaliacao.proposta.id });",
+          "para": "      if (avaliacao.proposta) setEstado({ tipo: \"registrado\", preCaso: { protocolo: avaliacao.proposta.id, transaction_id: transacao.transaction_id, estado: \"recebido\", criado_em: \"\" }, novo: true });"
+        }
+      ],
+      "testes": [
+        "pre_caso.spec.ts > contestar, confirmar, ver o protocolo e reencontrá-lo sem duplicar"
+      ]
     }
   ]
 }
