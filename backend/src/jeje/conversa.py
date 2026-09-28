@@ -19,7 +19,7 @@ from sqlalchemy import Connection, text
 
 from jeje import consultas, eventos, handoff, politica, pre_caso
 from jeje.interpretacao import Interpretacao, comercio_citado
-from jeje.interpretacao_modelo import Interpretador, pelas_regras
+from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
     ESTADO,
     MOTIVO_DO_CODIGO,
@@ -414,6 +414,17 @@ class _Turno:
         return [{"acao": a.acao, "resultado": a.resultado} for a in self.acoes]
 
 
+def _uso_do_modelo(leitura: Leitura) -> dict:
+    """Latência e tokens da chamada ao modelo neste turno (nada, se ele não foi chamado)."""
+    if leitura.chamada is None:
+        return {}
+    return {
+        "modelo_latencia_ms": leitura.chamada.latencia_ms,
+        "modelo_tokens_entrada": leitura.chamada.tokens_entrada,
+        "modelo_tokens_saida": leitura.chamada.tokens_saida,
+    }
+
+
 def _so_foco(foco: str | None) -> dict:
     return {} if foco is None else {"foco": foco}
 
@@ -513,6 +524,7 @@ def turno(
             efeito=_efeito(saida),
             fontes=tuple(atual.fontes),
             interpretacao=leitura.fonte,
+            **_uso_do_modelo(leitura),
         ),
     )
     return resultado

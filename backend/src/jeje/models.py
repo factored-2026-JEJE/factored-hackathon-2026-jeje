@@ -199,5 +199,9 @@ class Evento(Base):
     erro: Mapped[str | None] = mapped_column(Text, nullable=True)  # classe do erro, sem mensagem
     # Quem leu a mensagem: "regras", "ollama:<modelo>" ou "regras (fallback: <motivo>)".
     interpretacao: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Chamada ao modelo neste turno (só quando houve): latência e tokens informados pelo servidor.
+    modelo_latencia_ms: Mapped[Decimal | None] = mapped_column(Numeric(12, 3), nullable=True)
+    modelo_tokens_entrada: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    modelo_tokens_saida: Mapped[int | None] = mapped_column(Integer, nullable=True)
     latencia_ms: Mapped[Decimal] = mapped_column(Numeric(12, 3))
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

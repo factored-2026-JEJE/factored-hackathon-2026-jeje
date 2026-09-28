@@ -23,6 +23,9 @@ class Evento:
     fontes: tuple[str, ...] = ()
     erro: str | None = None
     interpretacao: str | None = None
+    modelo_latencia_ms: Decimal | None = None
+    modelo_tokens_entrada: int | None = None
+    modelo_tokens_saida: int | None = None
 
 
 def desde(inicio: float) -> Decimal:
@@ -34,9 +37,10 @@ def registrar(conexao: Connection, e: Evento) -> None:
     conexao.execute(
         text(
             "INSERT INTO app.eventos (tipo, conversa_id, numero, intencao, regra, acao, efeito,"
-            " fontes, erro, latencia_ms, interpretacao) VALUES (:tipo, :conversa, :numero,"
-            " :intencao, :regra, :acao, :efeito, CAST(:fontes AS jsonb), :erro, :latencia,"
-            " :interpretacao)"
+            " fontes, erro, latencia_ms, interpretacao, modelo_latencia_ms, modelo_tokens_entrada,"
+            " modelo_tokens_saida) VALUES (:tipo, :conversa, :numero, :intencao, :regra, :acao,"
+            " :efeito, CAST(:fontes AS jsonb), :erro, :latencia, :interpretacao, :modelo_ms,"
+            " :tokens_entrada, :tokens_saida)"
         ),
         {
             "tipo": e.tipo,
@@ -50,5 +54,8 @@ def registrar(conexao: Connection, e: Evento) -> None:
             "erro": e.erro,
             "latencia": e.latencia_ms,
             "interpretacao": e.interpretacao,
+            "modelo_ms": e.modelo_latencia_ms,
+            "tokens_entrada": e.modelo_tokens_entrada,
+            "tokens_saida": e.modelo_tokens_saida,
         },
     )
