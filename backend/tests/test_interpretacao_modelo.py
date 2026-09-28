@@ -30,16 +30,21 @@ def saida(**campos) -> str:
     return json.dumps({**base, **campos})
 
 
+USO = {"prompt_eval_count": 120, "eval_count": 30}
+
+
 @contextmanager
-def ollama_falso(conteudo: str, atraso_s: float = 0, status: int = 200):
-    """Stub da fronteira externa (o modelo): devolve `conteudo` e guarda cada pedido recebido."""
+def ollama_falso(conteudo: str, atraso_s: float = 0, status: int = 200, uso: dict = USO):
+    """Stub da fronteira externa (o modelo): devolve `conteudo` (e os tokens em `uso`) e guarda
+    cada pedido recebido."""
     pedidos: list[dict] = []
 
     class Resposta(BaseHTTPRequestHandler):
         def do_POST(self):
             pedidos.append(json.loads(self.rfile.read(int(self.headers["Content-Length"]))))
             time.sleep(atraso_s)
-            corpo = json.dumps({"message": {"role": "assistant", "content": conteudo}}).encode()
+            resposta = {"message": {"role": "assistant", "content": conteudo}, **uso}
+            corpo = json.dumps(resposta).encode()
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(corpo)))
@@ -71,7 +76,7 @@ def test_o_que_as_regras_entendem_nem_chega_ao_modelo(texto):
     with ollama_falso(saida(intencao="desconhecida")) as (url, pedidos):
         leitura = ler(url, texto)
     assert pedidos == []
-    assert leitura.fonte == "regras"
+    assert (leitura.fonte, leitura.chamada) == ("regras", None)
     assert leitura.lida == interpretar(texto, "es", REFERENCIA)
 
 
@@ -132,6 +137,25 @@ def test_modelo_lento_fora_do_ar_ou_com_erro_fica_com_as_regras():
     assert lento.lida == com_erro.lida == fora.lida == interpretar(VAGA, "es", REFERENCIA)
 
 
+def test_toda_chamada_despachada_e_contada_mesmo_quando_cai_no_fallback():
+    with ollama_falso(saida()) as (url, _):
+        certa = ler(url, VAGA)
+    with ollama_falso("não é JSON") as (url, _):
+        invalida = ler(url, VAGA)
+    with ollama_falso(saida(), uso={}) as (url, _):
+        sem_contagem = ler(url, VAGA)
+    with ollama_falso(saida()) as (url, _):
+        pass  # porta fechada: a chamada foi tentada e falhou na conexão
+    fora = ler(url, VAGA)
+    assert (certa.chamada.tokens_entrada, certa.chamada.tokens_saida) == (120, 30)
+    # Saída inválida também custou a chamada: os tokens informados são contados.
+    assert (invalida.chamada.tokens_entrada, invalida.chamada.tokens_saida) == (120, 30)
+    # Servidor que não informa tokens, ou fora do ar: custo desconhecido fica desconhecido.
+    assert (sem_contagem.chamada.tokens_entrada, sem_contagem.chamada.tokens_saida) == (None, None)
+    assert (fora.chamada.tokens_entrada, fora.chamada.tokens_saida) == (None, None)
+    assert all(x.chamada.latencia_ms >= 0 for x in (certa, invalida, sem_contagem, fora))
+
+
 # ---- Na conversa: o modelo lê, a política decide ------------------------------------------------
 
 
@@ -168,6 +192,14 @@ def test_na_conversa_o_modelo_so_le_e_cada_turno_registra_quem_leu(cenario_conve
     assert len(pedidos) == 1
     assert interpretacoes(cenario_conversa) == ["ollama:modelo-teste", "regras"]
     assert pre_casos(cenario_conversa) == 0
+    with conexao(cenario_conversa) as con:
+        uso = con.execute(
+            text(
+                "SELECT modelo_latencia_ms IS NOT NULL, modelo_tokens_entrada, modelo_tokens_saida"
+                " FROM app.eventos WHERE tipo = 'turno' ORDER BY id"
+            )
+        ).all()
+    assert [tuple(u) for u in uso] == [(True, 120, 30), (False, None, None)]
 
 
 def test_instrucao_injetada_na_mensagem_nao_vira_acao(cenario_conversa):

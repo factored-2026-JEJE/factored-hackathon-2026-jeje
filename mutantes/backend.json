@@ -3481,6 +3481,36 @@
       ]
     },
     {
+      "id": "M-MET-08",
+      "requisito": "R09",
+      "descricao": "Chamadas sem contagem de tokens somem da métrica (custo desconhecido vira zero)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "            \" count(*) FILTER (WHERE modelo_latencia_ms IS NOT NULL AND\"\n            \"   (modelo_tokens_entrada IS NULL OR modelo_tokens_saida IS NULL)) AS sem_contagem,\"",
+          "para": "            \" 0 AS sem_contagem,\""
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_uso_do_modelo_conta_toda_chamada_e_nao_estima_tokens"
+      ]
+    },
+    {
+      "id": "M-MET-09",
+      "requisito": "R09",
+      "descricao": "Chamada que caiu no fallback não conta como chamada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas.py",
+          "de": "count(*) FILTER (WHERE modelo_latencia_ms IS NOT NULL) AS chamadas,",
+          "para": "count(*) FILTER (WHERE interpretacao LIKE 'ollama:%') AS chamadas,"
+        }
+      ],
+      "testes": [
+        "tests/test_metricas.py::test_uso_do_modelo_conta_toda_chamada_e_nao_estima_tokens"
+      ]
+    },
+    {
       "id": "M-ITP-01",
       "requisito": "R03",
       "descricao": "Intenções avaliadas de trás para frente (autosserviço antes de segurança)",
@@ -3854,6 +3884,51 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem"
+      ]
+    },
+    {
+      "id": "M-LLM-09",
+      "requisito": "R09",
+      "descricao": "Chamada que caiu no fallback não é contabilizada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "            return Leitura(regras, fallback, self._chamada(inicio, uso))",
+          "para": "            return Leitura(regras, fallback)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_toda_chamada_despachada_e_contada_mesmo_quando_cai_no_fallback"
+      ]
+    },
+    {
+      "id": "M-LLM-10",
+      "requisito": "R09",
+      "descricao": "Tokens só contados quando a saída é válida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        uso[\"entrada\"], uso[\"saida\"] = dados.get(\"prompt_eval_count\"), dados.get(\"eval_count\")\n        return SaidaDoModelo.model_validate_json(dados[\"message\"][\"content\"])",
+          "para": "        saida = SaidaDoModelo.model_validate_json(dados[\"message\"][\"content\"])\n        uso[\"entrada\"], uso[\"saida\"] = dados.get(\"prompt_eval_count\"), dados.get(\"eval_count\")\n        return saida"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_toda_chamada_despachada_e_contada_mesmo_quando_cai_no_fallback"
+      ]
+    },
+    {
+      "id": "M-EVT-06",
+      "requisito": "R09",
+      "descricao": "Evento do turno sem o uso do modelo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            **_uso_do_modelo(leitura),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_na_conversa_o_modelo_so_le_e_cada_turno_registra_quem_leu"
       ]
     }
   ]

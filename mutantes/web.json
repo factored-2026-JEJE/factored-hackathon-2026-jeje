@@ -277,6 +277,21 @@
       ]
     },
     {
+      "id": "M-WEB-54",
+      "requisito": "R09",
+      "descricao": "Tela mostra chamadas ao modelo sem os fallbacks",
+      "trocas": [
+        {
+          "arquivo": "src/MetricasDoAtendimento.tsx",
+          "de": "`${metricas.modelo.chamadas} (${metricas.modelo.fallbacks} com fallback)`",
+          "para": "`${metricas.modelo.chamadas}`"
+        }
+      ],
+      "testes": [
+        "src/MetricasDoAtendimento.test.tsx > mostra os números da API com taxas em porcentagem e latências em ms"
+      ]
+    },
+    {
       "id": "CONTROLE-web",
       "espera": "sobrevive",
       "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",
