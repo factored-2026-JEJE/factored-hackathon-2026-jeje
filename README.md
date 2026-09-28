@@ -34,6 +34,14 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 Em português também: "Não reconheço a cobrança…", "Por que recusaram minha compra?", "Roubaram
 meu cartão". As métricas do atendimento (encaminhamentos, pré-casos, latência) ficam ao lado.
 
+## Modelo local (opcional)
+
+A conversa funciona sem modelo. Com `INTERPRETADOR: "ollama"` no `compose.yaml`, as frases que as
+regras não entendem vão para um modelo local (Ollama, `qwen2.5:7b` por padrão), que só classifica:
+sim/não, fraude e identificadores continuam com as regras, e a política decide o que fazer. Modelo
+fora do ar ou saída inválida → segue pelas regras, e o trace do turno diz quem leu a mensagem. O
+Ollama do host precisa aceitar conexões dos containers (ex.: `OLLAMA_HOST=0.0.0.0:11434`).
+
 ## Testar
 
 ```bash
