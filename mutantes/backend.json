@@ -1023,6 +1023,66 @@
       "testes": [
         "tests/test_contratos.py::test_colunas_curadas_sao_as_da_raw_na_mesma_ordem"
       ]
+    },
+    {
+      "id": "M-CUR-01",
+      "requisito": "R08",
+      "descricao": "FK de transação→produto sem o dono: banco aceita produto de outro cliente",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0003_curated.py",
+          "de": "CONSTRAINT fk_transactions_product_id_dono FOREIGN KEY(product_id, customer_id) REFERENCES curated.products (product_id, customer_id)",
+          "para": "CONSTRAINT fk_transactions_product_id_dono FOREIGN KEY(product_id) REFERENCES curated.products (product_id)"
+        }
+      ],
+      "testes": [
+        "tests/test_curado_esquema.py::test_banco_recusa_transacao_com_produto_de_outro_cliente"
+      ]
+    },
+    {
+      "id": "M-CUR-02",
+      "requisito": "R08",
+      "descricao": "Reclamação pode ligar produto de terceiro (ACH-016) no banco",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0003_curated.py",
+          "de": "CONSTRAINT fk_complaints_affected_product_id_dono FOREIGN KEY(affected_product_id, customer_id) REFERENCES curated.products (product_id, customer_id)",
+          "para": "CONSTRAINT fk_complaints_affected_product_id_dono FOREIGN KEY(affected_product_id) REFERENCES curated.products (product_id)"
+        }
+      ],
+      "testes": [
+        "tests/test_curado_esquema.py::test_banco_recusa_reclamacao_ligada_a_produto_de_outro_cliente"
+      ]
+    },
+    {
+      "id": "M-CUR-03",
+      "requisito": "R04",
+      "descricao": "Coluna obrigatória da transação vira anulável no banco",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0003_curated.py",
+          "de": "\tproduct_id TEXT NOT NULL,\n\tcustomer_id TEXT NOT NULL,\n\ttransaction_type",
+          "para": "\tproduct_id TEXT,\n\tcustomer_id TEXT NOT NULL,\n\ttransaction_type"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
+      "id": "M-CUR-04",
+      "requisito": "R08",
+      "descricao": "Transação válida do próprio cliente é recusada (FK apontando a coluna errada)",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0003_curated.py",
+          "de": "CONSTRAINT fk_transactions_product_id_dono FOREIGN KEY(product_id, customer_id) REFERENCES curated.products (product_id, customer_id)",
+          "para": "CONSTRAINT fk_transactions_product_id_dono FOREIGN KEY(product_id, customer_id) REFERENCES curated.products (product_id, product_id)"
+        }
+      ],
+      "testes": [
+        "tests/test_curado_esquema.py::test_transacao_com_produto_do_proprio_cliente_e_aceita"
+      ]
     }
   ]
 }

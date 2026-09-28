@@ -2,13 +2,14 @@
 
 from alembic import context
 
+import jeje.dados.curado
 import jeje.dados.raw  # noqa: F401  (registra as tabelas raw no metadata)
 from jeje.config import Settings
 from jeje.db import create_db_engine
 from jeje.models import Base
 
 # Schemas do produto; o restante do banco (ex.: public) não é gerenciado aqui.
-SCHEMAS = {"meta", "raw"}
+SCHEMAS = {"meta", "raw", "curated", "quality"}
 
 
 def incluir(nome, tipo, pais) -> bool:
