@@ -8,7 +8,10 @@ Política por regra (códigos estáveis, usados na quarentena e no relatório):
 - `Q-REF:<col>`      referência essencial inexistente → quarentena;
 - `Q-PROP:<col>`     referência essencial a registro de outro cliente → quarentena;
 - `A-REF:<col>`      referência acessória inexistente → campo anulado e contabilizado;
-- `A-PROP:<col>`     referência acessória a registro de outro cliente → anulado (ACH-016, R08).
+- `A-PROP:<col>`     referência acessória a registro de outro cliente → anulado (ACH-016, R08);
+- `Q-PK-CONFLITO`    mesma chave com conteúdos diferentes sem data que os ordene → quarentena;
+- `R-REVISAO-SUBSTITUIDA` mesma chave republicada num `process_date` posterior: a versão antiga
+  sai da curada e fica auditável na quarentena (revisão / chegada tardia, DEV-004).
 
 Domínios são os valores observados na entrega real (inventário de 28/09/2026); valor novo
 precisa de decisão explícita, não entra em silêncio. Referências acessórias com quebra massiva

@@ -1181,8 +1181,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/qualidade.py",
-          "de": "UPDATE av SET motivos = array_append(motivos, 'Q-PK-CONFLITO') WHERE ({}) IN ({})",
-          "para": "UPDATE av SET motivos = motivos WHERE ({}) IN ({})"
+          "de": "            \"UPDATE av SET motivos = array_append(motivos, 'Q-PK-CONFLITO')\"\n            \" WHERE motivos = '{{}}' AND ({}) IN ({})\"",
+          "para": "            \"UPDATE av SET motivos = motivos\"\n            \" WHERE motivos = '{{}}' AND ({}) IN ({})\""
         }
       ],
       "testes": [
@@ -1457,6 +1457,111 @@
       ],
       "testes": [
         "tests/test_qualidade.py::test_copia_exata_fica_uma_so_e_e_contada"
+      ]
+    },
+    {
+      "id": "M-REV-01",
+      "requisito": "R04",
+      "descricao": "Revisão mantém a versão mais antiga em vez da mais recente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "\" WHERE av.motivos = '{{}}' AND {iguais} AND av.process_date::date < x.recente\"",
+          "para": "\" WHERE av.motivos = '{{}}' AND {iguais} AND av.process_date::date > (SELECT min(process_date::date) FROM av a2 WHERE a2.motivos = '{{}}')\""
+        }
+      ],
+      "testes": [
+        "tests/test_revisoes.py::test_revisao_mais_recente_substitui_a_anterior"
+      ]
+    },
+    {
+      "id": "M-REV-02",
+      "requisito": "R04",
+      "descricao": "Sem regra de revisão: republicação vira conflito e some da curada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "        _marcar_revisoes(cursor, contrato, conflitantes)",
+          "para": "        pass"
+        }
+      ],
+      "testes": [
+        "tests/test_revisoes.py::test_revisao_com_copia_exata_da_versao_nova"
+      ]
+    },
+    {
+      "id": "M-REV-03",
+      "requisito": "R04",
+      "descricao": "Empate na data mais recente resolvido em silêncio (sem conflito)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            \"UPDATE av SET motivos = array_append(motivos, 'Q-PK-CONFLITO')\"\n            \" WHERE motivos = '{{}}' AND ({}) IN ({})\"",
+          "para": "            \"UPDATE av SET motivos = motivos\"\n            \" WHERE motivos = '{{}}' AND ({}) IN ({})\""
+        }
+      ],
+      "testes": [
+        "tests/test_revisoes.py::test_empate_na_data_mais_recente_e_conflito"
+      ]
+    },
+    {
+      "id": "M-REV-04",
+      "requisito": "R04",
+      "descricao": "Revisão considera também registros já inválidos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "\" WHERE av.motivos = '{{}}' AND {iguais} AND av.process_date::date < x.recente\"",
+          "para": "\" WHERE {iguais} AND av.process_date::date < x.recente\""
+        }
+      ],
+      "testes": [
+        "tests/test_revisoes.py::test_versao_com_data_invalida_nao_substitui_nem_e_substituida"
+      ]
+    },
+    {
+      "id": "M-REV-05",
+      "requisito": "R04",
+      "descricao": "Conflito marca também a versão já substituída (motivo duplo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "            \" WHERE motivos = '{{}}' AND ({}) IN ({})\"",
+          "para": "            \" WHERE ({}) IN ({})\""
+        }
+      ],
+      "testes": [
+        "tests/test_revisoes.py::test_empate_na_data_mais_recente_e_conflito"
+      ]
+    },
+    {
+      "id": "M-REV-06",
+      "requisito": "R04",
+      "descricao": "Regra de revisão invertida, pega só pela propriedade de ordem de chegada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "\" WHERE av.motivos = '{{}}' AND {iguais} AND av.process_date::date < x.recente\"",
+          "para": "\" WHERE av.motivos = '{{}}' AND {iguais} AND av.process_date::date > (SELECT min(process_date::date) FROM av a2 WHERE a2.motivos = '{{}}')\""
+        }
+      ],
+      "testes": [
+        "tests/test_revisoes.py::test_resultado_nao_depende_da_ordem_de_chegada"
+      ]
+    },
+    {
+      "id": "M-REV-07",
+      "requisito": "R04",
+      "descricao": "Tabela sem process_date passa a ser tratada como revisão (erro de coluna)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "    if \"process_date\" in colunas(contrato):",
+          "para": "    if True:"
+        }
+      ],
+      "testes": [
+        "tests/test_revisoes.py::test_tabela_sem_process_date_nao_tem_revisao_so_conflito"
       ]
     }
   ]

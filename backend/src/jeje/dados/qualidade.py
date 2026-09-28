@@ -165,9 +165,13 @@ def _avaliar(cursor: Cursor, contrato: Contrato) -> None:
         "SELECT {chave} FROM av WHERE motivos = '{{}}' AND ({chave}) IN (SELECT * FROM repetidas)"
         " GROUP BY {chave} HAVING count(DISTINCT ROW({dados})) > 1"
     ).format(chave=chave, dados=dados)
+    if "process_date" in colunas(contrato):
+        _marcar_revisoes(cursor, contrato, conflitantes)
+    # Conteúdos diferentes que sobraram (sem data que os ordene) não são escolhidos em silêncio.
     cursor.execute(
         sql.SQL(
-            "UPDATE av SET motivos = array_append(motivos, 'Q-PK-CONFLITO') WHERE ({}) IN ({})"
+            "UPDATE av SET motivos = array_append(motivos, 'Q-PK-CONFLITO')"
+            " WHERE motivos = '{{}}' AND ({}) IN ({})"
         ).format(chave, conflitantes)
     )
     repetidas = sql.SQL(
@@ -180,6 +184,24 @@ def _avaliar(cursor: Cursor, contrato: Contrato) -> None:
         )
     )
     cursor.execute("DROP TABLE repetidas")
+
+
+def _marcar_revisoes(cursor: Cursor, contrato: Contrato, conflitantes: sql.Composable) -> None:
+    """Revisão (DEV-004): mesma chave publicada de novo num `process_date` posterior substitui a
+    anterior. Versões anteriores à mais recente saem da curada como `R-REVISAO-SUBSTITUIDA`
+    (auditáveis na quarentena); empate na data mais recente continua conflito."""
+    chave = sql.SQL(", ").join(map(sql.Identifier, contrato.chave))
+    iguais = sql.SQL(" AND ").join(
+        sql.SQL("av.{c} = x.{c}").format(c=sql.Identifier(c)) for c in contrato.chave
+    )
+    cursor.execute(
+        sql.SQL(
+            "UPDATE av SET motivos = array_append(motivos, 'R-REVISAO-SUBSTITUIDA')"
+            " FROM (SELECT {chave}, max(process_date::date) AS recente FROM av"
+            "       WHERE motivos = '{{}}' AND ({chave}) IN ({conflitantes}) GROUP BY {chave}) x"
+            " WHERE av.motivos = '{{}}' AND {iguais} AND av.process_date::date < x.recente"
+        ).format(chave=chave, conflitantes=conflitantes, iguais=iguais)
+    )
 
 
 def _gravar_quarentena(cursor: Cursor, tabela: str) -> None:
