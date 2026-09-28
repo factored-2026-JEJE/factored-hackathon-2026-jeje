@@ -9,6 +9,7 @@ from jeje import (
     __version__,
     conversa_api,
     health,
+    metricas_api,
     pre_caso_api,
     qualidade_api,
     sessao_api,
@@ -37,4 +38,5 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(transacoes_api.router)
     app.include_router(pre_caso_api.router)
     app.include_router(conversa_api.router)
+    app.include_router(metricas_api.router)
     return app

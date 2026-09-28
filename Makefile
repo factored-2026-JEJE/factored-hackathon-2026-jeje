@@ -8,7 +8,7 @@ TESTE := docker compose -p $(PROJETO_TESTE) --profile test
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
 .PHONY: up up-fixture down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
-	contrato check gate
+	metricas contrato check gate
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env): http://localhost:8080
 	docker compose up -d --build --wait
@@ -50,6 +50,9 @@ e2e: up ## Jornadas no navegador contra a stack em execução
 
 mutantes-e2e: ## Mutantes E2E: uma stack isolada por mutante
 	docker compose --profile mutantes-e2e run --rm --build mutantes-e2e
+
+metricas: ## Métricas do atendimento recomputadas dos eventos da stack em execução
+	docker compose exec -T api python -m jeje.metricas
 
 contrato: build ## Regenera o OpenAPI versionado e os tipos TypeScript
 	$(TESTE) run --rm --no-deps -T test python -m jeje.contrato > contrato/openapi.json

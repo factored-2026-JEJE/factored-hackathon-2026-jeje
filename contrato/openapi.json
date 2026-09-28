@@ -733,6 +733,24 @@
           }
         }
       }
+    },
+    "/metricas": {
+      "get": {
+        "summary": "Calcular Metricas",
+        "operationId": "calcular_metricas_metricas_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Metricas"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -894,6 +912,50 @@
         ],
         "title": "Historico"
       },
+      "Latencia": {
+        "properties": {
+          "p50": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50"
+          },
+          "p95": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          }
+        },
+        "type": "object",
+        "required": [
+          "p50",
+          "p95",
+          "max"
+        ],
+        "title": "Latencia"
+      },
       "Linha": {
         "properties": {
           "grupo": {
@@ -986,6 +1048,83 @@
           "texto"
         ],
         "title": "Mensagem"
+      },
+      "Metricas": {
+        "properties": {
+          "turnos": {
+            "type": "integer",
+            "title": "Turnos"
+          },
+          "erros": {
+            "type": "integer",
+            "title": "Erros"
+          },
+          "taxa_de_erro": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxa De Erro"
+          },
+          "conversas": {
+            "type": "integer",
+            "title": "Conversas"
+          },
+          "conversas_encaminhadas": {
+            "type": "integer",
+            "title": "Conversas Encaminhadas"
+          },
+          "taxa_de_encaminhamento": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxa De Encaminhamento"
+          },
+          "pre_casos_registrados": {
+            "type": "integer",
+            "title": "Pre Casos Registrados"
+          },
+          "latencia_ms": {
+            "$ref": "#/components/schemas/Latencia"
+          },
+          "acoes": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Acoes"
+          },
+          "regras": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Regras"
+          }
+        },
+        "type": "object",
+        "required": [
+          "turnos",
+          "erros",
+          "taxa_de_erro",
+          "conversas",
+          "conversas_encaminhadas",
+          "taxa_de_encaminhamento",
+          "pre_casos_registrados",
+          "latencia_ms",
+          "acoes",
+          "regras"
+        ],
+        "title": "Metricas"
       },
       "NovaConversa": {
         "properties": {
