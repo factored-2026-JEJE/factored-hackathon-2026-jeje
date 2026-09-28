@@ -1,0 +1,89 @@
+/* Estilo mínimo e legível; cores em tokens com modo escuro pelo sistema. */
+:root {
+  --fundo: #f6f7f9;
+  --cartao: #ffffff;
+  --texto: #1c2430;
+  --suave: #5b6675;
+  --borda: #d9dee5;
+  --destaque: #1f5fbf;
+  --destaque-texto: #ffffff;
+  --cliente: #e8f0fc;
+  --sucesso: #e6f4ea;
+  --sucesso-borda: #2e7d32;
+  --aviso: #fff4e0;
+  --aviso-borda: #b26a00;
+  --erro: #fdecea;
+  --erro-borda: #c62828;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.45;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #12161c;
+    --cartao: #1b2129;
+    --texto: #e6e9ee;
+    --suave: #a3adba;
+    --borda: #2f3843;
+    --destaque: #6ea2f2;
+    --destaque-texto: #0b1220;
+    --cliente: #1f3050;
+    --sucesso: #16301c;
+    --aviso: #3a2a10;
+    --erro: #3a1717;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--texto); }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 0.5rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.05rem; }
+
+.topo { padding: 1rem 1.5rem; border-bottom: 1px solid var(--borda); background: var(--cartao); }
+.topo p { margin: 0; color: var(--suave); }
+.pagina { max-width: 1200px; margin: 0 auto; padding: 1rem; display: grid; gap: 1rem; }
+.colunas { display: grid; gap: 1rem; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+.lateral, .atendimento { display: grid; gap: 1rem; }
+.dados { display: grid; gap: 1rem; }
+@media (max-width: 860px) { .colunas { grid-template-columns: 1fr; } }
+
+.cartao, .dados > section, .atendimento > table {
+  background: var(--cartao); border: 1px solid var(--borda); border-radius: 10px; padding: 1rem;
+}
+.cabecalho { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.nota { color: var(--suave); font-size: 0.9rem; }
+
+button {
+  font: inherit; cursor: pointer; border-radius: 8px; padding: 0.45rem 0.9rem;
+  border: 1px solid var(--destaque); background: var(--destaque); color: var(--destaque-texto);
+}
+button.secundario { background: transparent; color: var(--destaque); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+.acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0; }
+.acoes.coluna { flex-direction: column; align-items: stretch; }
+.acoes.coluna button { text-align: left; }
+
+.mensagens { max-height: 26rem; overflow-y: auto; border: 1px solid var(--borda); border-radius: 8px; padding: 0.5rem; }
+.mensagens ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.fala { max-width: 85%; padding: 0.5rem 0.75rem; border-radius: 10px; border: 1px solid var(--borda); }
+.fala p { margin: 0.2rem 0 0; white-space: pre-line; }
+.fala .autor { font-size: 0.75rem; color: var(--suave); }
+.fala-cliente { justify-self: end; background: var(--cliente); }
+.fala-assistente { justify-self: start; background: var(--cartao); }
+
+.sucesso, .aviso, .erro { padding: 0.5rem 0.75rem; border-radius: 8px; border-left: 4px solid; }
+.sucesso { background: var(--sucesso); border-color: var(--sucesso-borda); }
+.aviso { background: var(--aviso); border-color: var(--aviso-borda); }
+.erro { background: var(--erro); border-color: var(--erro-borda); }
+.erro p { margin: 0 0 0.4rem; }
+
+.envio { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+.envio label { position: absolute; left: -9999px; }
+.envio input { flex: 1; min-width: 0; font: inherit; padding: 0.45rem 0.6rem; border-radius: 8px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--borda); vertical-align: top; }
+.fila { padding-left: 1.2rem; display: grid; gap: 0.75rem; }
+.fila p { margin: 0.15rem 0; }
