@@ -308,11 +308,25 @@ def _chaves_estrangeiras(cursor: Cursor) -> list[tuple[str, str, str]]:
     return cursor.fetchall()
 
 
+def _indices_secundarios(cursor: Cursor) -> list[tuple[str, str]]:
+    """(nome, definição) dos índices da curada que não sustentam chave (nem PK nem UNIQUE), lidos
+    do catálogo (fonte: as migrations)."""
+    cursor.execute(
+        "SELECT i.indexrelid::regclass::text, pg_get_indexdef(i.indexrelid)"
+        " FROM pg_index i JOIN pg_class t ON t.oid = i.indrelid"
+        " JOIN pg_namespace n ON n.oid = t.relnamespace"
+        " WHERE n.nspname = %s AND NOT i.indisprimary AND NOT i.indisunique ORDER BY 1",
+        (SCHEMA,),
+    )
+    return cursor.fetchall()
+
+
 def curar(cursor: Cursor, tabelas: list[str]) -> dict[str, Resumo]:
     """Refaz a camada curada e a qualidade a partir da raw atual (na transação do chamador).
 
-    As FKs da curada saem durante a gravação e voltam no fim, validadas numa só consulta por
-    restrição (em vez de um gatilho por linha): mesma garantia, muito menos tempo. Se algum
+    As FKs e os índices secundários da curada saem durante a gravação e voltam no fim: FK
+    validada numa só consulta por restrição (em vez de um gatilho por linha) e índice construído
+    de uma vez (em vez de atualizado a cada linha); mesma garantia, muito menos tempo. Se algum
     registro violasse uma FK, recriá-la falharia e a transação inteira seria desfeita.
     """
     todas = [sql.Identifier(SCHEMA, c.tabela) for c in CONTRATOS]
@@ -325,11 +339,16 @@ def curar(cursor: Cursor, tabelas: list[str]) -> dict[str, Resumo]:
                 sql.SQL(tabela), sql.Identifier(nome)
             )
         )
+    indices = _indices_secundarios(cursor)
+    for nome, _ in indices:
+        cursor.execute(sql.SQL("DROP INDEX {}").format(sql.SQL(nome)))
     resumos = {
         contrato.tabela: curar_tabela(cursor, contrato)
         for contrato in CONTRATOS
         if contrato.tabela in tabelas
     }
+    for _, definicao in indices:
+        cursor.execute(definicao)
     for tabela, nome, definicao in chaves:
         cursor.execute(
             sql.SQL("ALTER TABLE {} ADD CONSTRAINT {} {}").format(

@@ -14,6 +14,7 @@ from sqlalchemy import (
     DateTime,
     Double,
     ForeignKeyConstraint,
+    Index,
     Integer,
     Numeric,
     PrimaryKeyConstraint,
@@ -40,6 +41,10 @@ TIPO_SQLALCHEMY = {
     "time": Time,
     "boolean": Boolean,
 }
+
+# Tabelas que o atendimento consulta pelo cliente da sessão (jeje.consultas): índice em
+# customer_id, senão cada consulta varre a tabela inteira (353 ms nos 4,4 mi de transações).
+CONSULTADAS_POR_CLIENTE = ("transactions",)
 
 # Tabelas referenciadas com exigência de mesmo cliente precisam de UNIQUE (chave, customer_id).
 REFERENCIADAS_POR_CLIENTE = {
@@ -76,6 +81,8 @@ def _tabela(contrato: Contrato) -> Table:
                     name=f"fk_{nome}_{referencia.coluna}",
                 )
             )
+    if nome in CONSULTADAS_POR_CLIENTE:
+        restricoes.append(Index(f"ix_{SCHEMA}_{nome}_customer_id", "customer_id"))
     return Table(
         nome,
         Base.metadata,

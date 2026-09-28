@@ -262,3 +262,20 @@ def test_lote_com_coluna_nova_e_recusado_e_a_versao_anterior_continua(banco_migr
     with conexao(banco_migrado) as con:
         versao = con.execute(text("select version from meta.dataset_version")).scalar_one()
     assert versao == anterior.versao
+
+
+def test_carga_mantem_o_indice_por_cliente_da_curada(banco_migrado, tmp_path):
+    """O atendimento filtra a curada pelo cliente da sessão em toda consulta: sem índice, cada uma
+    varre a tabela inteira (353 ms nos dados reais). A carga refaz a curada, e o índice continua."""
+    raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
+    tabelas = ["customers", "products", "transactions"]
+    _base_transacional(raiz)
+    escrever_csv(raiz, "transactions/year=2025/month=03/day=10/t10.csv", "transactions",
+                 [_trx("TRX-1", "2025-03-10", "10.00")])  # fmt: skip
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas))
+    carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1")
+    with conexao(banco_migrado) as con:
+        con.execute(text("SET LOCAL enable_seqscan = off"))
+        consulta = "EXPLAIN SELECT * FROM curated.transactions WHERE customer_id = 'CLI-A'"
+        plano = "\n".join(con.execute(text(consulta)).scalars())
+    assert "ix_curated_transactions_customer_id" in plano

@@ -1192,6 +1192,36 @@
       ]
     },
     {
+      "id": "M-CUR-05",
+      "requisito": "R06",
+      "descricao": "Carga refaz a curada e não recria o índice por cliente (toda consulta do atendimento volta a varrer a tabela)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/qualidade.py",
+          "de": "    for _, definicao in indices:\n        cursor.execute(definicao)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_carga_mantem_o_indice_por_cliente_da_curada"
+      ]
+    },
+    {
+      "id": "M-CUR-06",
+      "requisito": "R06",
+      "descricao": "Índice por cliente fora da declaração das tabelas curadas (modelo e migrations divergem)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/curado.py",
+          "de": "CONSULTADAS_POR_CLIENTE = (\"transactions\",)",
+          "para": "CONSULTADAS_POR_CLIENTE = ()"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
       "id": "M-QUAL-01",
       "requisito": "R04",
       "descricao": "Sem checagem de tipo: valor inválido quebra a carga em vez de ir para a quarentena",
@@ -3724,6 +3754,21 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_conversa_encerrada_so_avisa_e_nao_chama_o_modelo"
+      ]
+    },
+    {
+      "id": "M-MIG-06",
+      "requisito": "R06",
+      "descricao": "Migration não cria o índice por cliente da curada",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0013_indice_por_cliente.py",
+          "de": "    op.create_index(\n        \"ix_curated_transactions_customer_id\", \"transactions\", [\"customer_id\"], schema=\"curated\"\n    )\n",
+          "para": "    pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
       ]
     },
     {
