@@ -451,6 +451,96 @@
       "testes": [
         "tests/test_manifesto.py::test_gerar_tabela_sem_arquivos_falha"
       ]
+    },
+    {
+      "id": "M-INT-01",
+      "requisito": "R04",
+      "descricao": "Não confere o sha256: conteúdo adulterado com mesmo tamanho passa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/integridade.py",
+          "de": "    if sha256_de(caminho) != esperado.sha256:\n        return [f\"{esperado.caminho}: sha256 divergente do manifesto\"]\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_integridade.py::test_conteudo_alterado_com_mesmo_tamanho_e_detectado"
+      ]
+    },
+    {
+      "id": "M-INT-02",
+      "requisito": "R04",
+      "descricao": "Não confere o tamanho: arquivo truncado só pego pelo hash com mensagem errada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/integridade.py",
+          "de": "    if tamanho != esperado.bytes:\n",
+          "para": "    if tamanho < 0:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_integridade.py::test_arquivo_truncado_e_detectado_pelo_tamanho"
+      ]
+    },
+    {
+      "id": "M-INT-03",
+      "requisito": "R04",
+      "descricao": "Arquivo ausente é ignorado em silêncio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/integridade.py",
+          "de": "        return [f\"{esperado.caminho}: ausente\"]",
+          "para": "        return []"
+        }
+      ],
+      "testes": [
+        "tests/test_integridade.py::test_arquivo_ausente_e_todos_os_problemas_sao_listados"
+      ]
+    },
+    {
+      "id": "M-INT-04",
+      "requisito": "R04",
+      "descricao": "Para no primeiro problema em vez de listar todos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/integridade.py",
+          "de": "    return [\n        problema\n        for arquivos in manifesto.values()\n        for esperado in arquivos\n        for problema in problemas_do_arquivo(diretorio_raw, esperado)\n    ]",
+          "para": "    for arquivos in manifesto.values():\n        for esperado in arquivos:\n            if problemas := problemas_do_arquivo(diretorio_raw, esperado):\n                return problemas\n    return []"
+        }
+      ],
+      "testes": [
+        "tests/test_integridade.py::test_arquivo_ausente_e_todos_os_problemas_sao_listados"
+      ]
+    },
+    {
+      "id": "M-INT-05",
+      "requisito": "R04",
+      "descricao": "Cabeçalho comparado só pela quantidade de colunas (renomeação passa)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/integridade.py",
+          "de": "    if cabecalho(caminho) != COLUNAS[tabela]:",
+          "para": "    if len(cabecalho(caminho)) != len(COLUNAS[tabela]):"
+        }
+      ],
+      "testes": [
+        "tests/test_integridade.py::test_cabecalho_diferente_das_colunas_raw_e_detectado"
+      ]
+    },
+    {
+      "id": "M-INT-06",
+      "requisito": "R04",
+      "descricao": "BOM não é removido: primeira coluna nunca bate e tudo vira problema",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/integridade.py",
+          "de": "    with caminho.open(encoding=\"utf-8-sig\", newline=\"\") as arquivo:",
+          "para": "    with caminho.open(encoding=\"utf-8\", newline=\"\") as arquivo:"
+        }
+      ],
+      "testes": [
+        "tests/test_integridade.py::test_arquivos_iguais_ao_manifesto_nao_tem_problemas"
+      ]
     }
   ]
 }
