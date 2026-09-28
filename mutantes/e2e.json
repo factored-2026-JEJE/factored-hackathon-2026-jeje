@@ -202,6 +202,21 @@
       "testes": [
         "acesso.spec.ts > entrar como persona mostra na tela exatamente as transações da sessão"
       ]
+    },
+    {
+      "id": "M-E2E-11",
+      "requisito": "R03",
+      "descricao": "Contestação de transação não aprovada avança para pré-caso (ACH-001)",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/politica.py",
+          "de": "    if fatos.status != \"Approved\":\n        return Decisao(\"POL-DISP-02\", \"humano\", fatos.status)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "politica.spec.ts > situação de cada transação das personas segue a matriz e contestação só avança para Approved"
+      ]
     }
   ]
 }
