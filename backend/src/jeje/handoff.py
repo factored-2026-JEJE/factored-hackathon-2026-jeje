@@ -69,12 +69,43 @@ def registrar(conexao: Connection, e: Encaminhamento) -> str:
     ).scalar_one()
 
 
+class NaoEncontrado(Exception):
+    """Encaminhamento inexistente."""
+
+
+class JaAssumido(Exception):
+    """Outro atendente já assumiu este encaminhamento."""
+
+
+COLUNAS = "id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado, criado_em"
+
+
+def assumir(conexao: Connection, handoff_id: str) -> dict:
+    """Um atendente assume o encaminhamento aberto: sai da fila; ninguém assume duas vezes."""
+    linha = (
+        conexao.execute(
+            text(
+                "UPDATE app.handoffs SET estado = 'em_atendimento'"
+                f" WHERE id = :id AND estado = 'aberto' RETURNING {COLUNAS}"
+            ),
+            {"id": handoff_id},
+        )
+        .mappings()
+        .first()
+    )
+    if linha is not None:
+        return dict(linha)
+    existe = conexao.execute(
+        text("SELECT 1 FROM app.handoffs WHERE id = :id"), {"id": handoff_id}
+    ).first()
+    raise JaAssumido(handoff_id) if existe else NaoEncontrado(handoff_id)
+
+
 def fila(conexao: Connection, limite: int) -> list[dict]:
     """Encaminhamentos abertos, mais antigos primeiro (ordem de atendimento)."""
     linhas = conexao.execute(
         text(
-            "SELECT id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado,"
-            " criado_em FROM app.handoffs WHERE estado = 'aberto'"
+            f"SELECT {COLUNAS} FROM app.handoffs WHERE estado = 'aberto'"
             " ORDER BY criado_em, id LIMIT :limite"
         ),
         {"limite": limite},

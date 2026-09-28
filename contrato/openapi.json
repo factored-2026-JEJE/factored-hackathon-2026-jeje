@@ -801,6 +801,53 @@
           }
         }
       }
+    },
+    "/atendimento/fila/{handoff_id}/assumir": {
+      "post": {
+        "summary": "Assumir",
+        "description": "O atendente assume o caso: ele sai da fila aberta, com o mesmo resumo.",
+        "operationId": "assumir_atendimento_fila__handoff_id__assumir_post",
+        "parameters": [
+          {
+            "name": "handoff_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Handoff Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Encaminhamento"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou encaminhamento inexistente"
+          },
+          "409": {
+            "description": "Encaminhamento já assumido por outro atendente"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

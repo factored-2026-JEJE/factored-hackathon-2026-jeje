@@ -2926,6 +2926,66 @@
       ]
     },
     {
+      "id": "M-FILA-03",
+      "requisito": "R03",
+      "descricao": "Encaminhamento assumido de novo por outro atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "f\" WHERE id = :id AND estado = 'aberto' RETURNING {COLUNAS}\"",
+          "para": "f\" WHERE id = :id RETURNING {COLUNAS}\""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_assumir_tira_da_fila_e_ninguem_assume_duas_vezes"
+      ]
+    },
+    {
+      "id": "M-FILA-04",
+      "requisito": "R07",
+      "descricao": "Fila continua mostrando encaminhamento já assumido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "f\"SELECT {COLUNAS} FROM app.handoffs WHERE estado = 'aberto'\"",
+          "para": "f\"SELECT {COLUNAS} FROM app.handoffs WHERE true\""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_assumir_tira_da_fila_e_ninguem_assume_duas_vezes"
+      ]
+    },
+    {
+      "id": "M-FILA-05",
+      "requisito": "R08",
+      "descricao": "Assumir funciona sem o modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "    \"/atendimento/fila/{handoff_id}/assumir\",\n    dependencies=[Depends(exige_modo_demo)],\n",
+          "para": "    \"/atendimento/fila/{handoff_id}/assumir\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_assumir_nao_existe_fora_do_modo_demo"
+      ]
+    },
+    {
+      "id": "M-FILA-06",
+      "requisito": "R03",
+      "descricao": "Confere e depois atualiza (dois atendentes assumem o mesmo caso)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    linha = (\n        conexao.execute(\n            text(\n                \"UPDATE app.handoffs SET estado = 'em_atendimento'\"\n                f\" WHERE id = :id AND estado = 'aberto' RETURNING {COLUNAS}\"\n            ),\n            {\"id\": handoff_id},\n        )",
+          "para": "    aberto = conexao.execute(\n        text(\"SELECT 1 FROM app.handoffs WHERE id = :id AND estado = 'aberto'\"), {\"id\": handoff_id}\n    ).first()\n    import time\n\n    time.sleep(0.3)\n    linha = (\n        conexao.execute(\n            text(\n                \"UPDATE app.handoffs SET estado = 'em_atendimento'\"\n                f\" WHERE id = :id AND {bool(aberto)} RETURNING {COLUNAS}\"\n            ),\n            {\"id\": handoff_id},\n        )"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_dois_atendentes_ao_mesmo_tempo_so_um_assume"
+      ]
+    },
+    {
       "id": "M-CONV-01",
       "requisito": "R03",
       "descricao": "Confirmação por palavra solta em qualquer frase (\"¿y si...?\")",
