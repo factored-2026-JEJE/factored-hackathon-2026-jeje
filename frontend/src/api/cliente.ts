@@ -37,9 +37,13 @@ export type Transacao = components["schemas"]["Transacao"];
 /** Sessão recusada pela API (ausente, inválida ou expirada). */
 export class SessaoExpirada extends Error {}
 
-async function json<T>(resposta: Response, esperado: number): Promise<T> {
+/** Pedido recusado por regra de negócio (ex.: proposta vencida), com a explicação da API. */
+export class Recusado extends Error {}
+
+async function json<T>(resposta: Response, ...esperados: number[]): Promise<T> {
   if (resposta.status === 401) throw new SessaoExpirada("sessão expirada");
-  if (resposta.status !== esperado) throw new Error(`HTTP ${resposta.status}`);
+  if (resposta.status === 409) throw new Recusado(((await resposta.json()) as { detail: string }).detail);
+  if (!esperados.includes(resposta.status)) throw new Error(`HTTP ${resposta.status}`);
   return (await resposta.json()) as T;
 }
 
@@ -64,4 +68,21 @@ export async function sessaoAtual(token: string): Promise<Persona> {
 
 export async function minhasTransacoes(token: string): Promise<Transacao[]> {
   return json<Transacao[]>(await fetch("/api/minhas/transacoes", { headers: comToken(token) }), 200);
+}
+
+export type AvaliacaoDeContestacao = components["schemas"]["AvaliacaoDeContestacao"];
+export type PreCaso = components["schemas"]["PreCaso"];
+
+export async function proporContestacao(token: string, transacaoId: string): Promise<AvaliacaoDeContestacao> {
+  const url = `/api/minhas/transacoes/${encodeURIComponent(transacaoId)}/contestacao/proposta`;
+  return json<AvaliacaoDeContestacao>(await fetch(url, { method: "POST", headers: comToken(token) }), 200, 201);
+}
+
+export async function confirmarProposta(token: string, propostaId: string): Promise<PreCaso> {
+  const url = `/api/minhas/propostas/${encodeURIComponent(propostaId)}/confirmacao`;
+  return json<PreCaso>(await fetch(url, { method: "POST", headers: comToken(token) }), 200, 201);
+}
+
+export async function meusPreCasos(token: string): Promise<PreCaso[]> {
+  return json<PreCaso[]>(await fetch("/api/minhas/pre-casos", { headers: comToken(token) }), 200);
 }

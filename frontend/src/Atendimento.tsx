@@ -2,12 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import {
   abrirSessao,
   listarPersonas,
+  meusPreCasos,
   minhasTransacoes,
   type Persona,
+  type PreCaso,
   SessaoExpirada,
   sessaoAtual,
   type Transacao,
 } from "./api/cliente";
+import { Contestacao } from "./Contestacao";
 
 const CHAVE_SESSAO = "jeje.sessao";
 
@@ -49,7 +52,41 @@ function guardarSessao(token: string | null) {
   }
 }
 
-function MinhasTransacoes({ token, aoExpirar }: { token: string; aoExpirar: () => void }) {
+function MeusPreCasos({ token, versao }: { token: string; versao: number }) {
+  const [preCasos, setPreCasos] = useState<PreCaso[]>([]);
+  useEffect(() => {
+    let ativo = true;
+    meusPreCasos(token)
+      .then((lista) => ativo && setPreCasos(lista))
+      .catch(() => ativo && setPreCasos([]));
+    return () => {
+      ativo = false;
+    };
+  }, [token, versao]);
+  if (preCasos.length === 0) return null;
+  return (
+    <section aria-label="Meus pré-casos">
+      <h3>Meus pré-casos</h3>
+      <ul>
+        {preCasos.map((p) => (
+          <li key={p.protocolo}>
+            {p.protocolo} — transação {p.transaction_id} ({p.estado})
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function MinhasTransacoes({
+  token,
+  aoExpirar,
+  aoRegistrar,
+}: {
+  token: string;
+  aoExpirar: () => void;
+  aoRegistrar: () => void;
+}) {
   const [transacoes, setTransacoes] = useState<Transacao[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -78,6 +115,7 @@ function MinhasTransacoes({ token, aoExpirar }: { token: string; aoExpirar: () =
           <th scope="col">Descrição</th>
           <th scope="col">Valor</th>
           <th scope="col">Situação</th>
+          <th scope="col">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -87,6 +125,9 @@ function MinhasTransacoes({ token, aoExpirar }: { token: string; aoExpirar: () =
             <th scope="row">{t.merchant_name ?? t.transaction_type ?? t.transaction_id}</th>
             <td>{valor(t)}</td>
             <td>{STATUS[t.transaction_status] ?? t.transaction_status}</td>
+            <td>
+              <Contestacao token={token} transacao={t} aoRegistrar={aoRegistrar} aoExpirar={aoExpirar} />
+            </td>
           </tr>
         ))}
       </tbody>
@@ -99,6 +140,8 @@ export function Atendimento() {
   const [sessao, setSessao] = useState<Sessao | null>(null);
   const [personas, setPersonas] = useState<Persona[] | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [versaoPreCasos, setVersaoPreCasos] = useState(0);
+  const preCasoRegistrado = useCallback(() => setVersaoPreCasos((v) => v + 1), []);
 
   const sair = useCallback((mensagem: string | null = null) => {
     guardarSessao(null);
@@ -133,7 +176,8 @@ export function Atendimento() {
         <button type="button" onClick={() => sair()}>
           Sair
         </button>
-        <MinhasTransacoes token={sessao.token} aoExpirar={expirou} />
+        <MinhasTransacoes token={sessao.token} aoExpirar={expirou} aoRegistrar={preCasoRegistrado} />
+        <MeusPreCasos token={sessao.token} versao={versaoPreCasos} />
       </section>
     );
   }
