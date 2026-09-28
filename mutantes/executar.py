@@ -14,6 +14,7 @@ Uso: python executar.py <registro.json> [--so ID ...]
 """
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -25,9 +26,18 @@ import tempfile
 import time
 from pathlib import Path
 
-IGNORAR = shutil.ignore_patterns(
-    ".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "node_modules"
-)
+# Nunca copiados para a área do mutante: caches, dependências, histórico, segredos e dados brutos.
+NOMES_IGNORADOS = {
+    ".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "node_modules", ".git", ".env",
+    "test-results", "playwright-report",
+}  # fmt: skip
+
+
+def ignorar(diretorio: str, nomes: list[str]) -> set[str]:
+    ignorados = {nome for nome in nomes if nome in NOMES_IGNORADOS}
+    if Path(diretorio).name == "data" and "raw" in nomes:
+        ignorados.add("raw")
+    return ignorados
 
 
 class ErroDeRegistro(Exception):
@@ -74,11 +84,53 @@ def aplicar_trocas(raiz: Path, trocas: list[dict], id_mutante: str) -> None:
         arquivo.write_text(conteudo.replace(troca["de"], troca["para"]), encoding="utf-8")
 
 
-def ambiente_para(raiz: Path, registro: dict) -> dict:
+def ambiente_para(raiz: Path, registro: dict, extra: dict | None = None) -> dict:
     env = dict(os.environ)
     for chave, valor in registro.get("ambiente", {}).items():
         env[chave] = valor.replace("{raiz}", str(raiz))
+    env.update(extra or {})
     return env
+
+
+class StackIndisponivel(Exception):
+    """A stack do mutante não subiu: o mutante é inválido, não conta como detectado."""
+
+
+@contextlib.contextmanager
+def stack(registro: dict, raiz: Path, rotulo: str):
+    """Sobe uma stack compose isolada (projeto, imagens e rede próprios) e a destrói ao final."""
+    projeto = "jejemut-" + re.sub(r"[^a-z0-9]+", "-", rotulo.lower()).strip("-")
+    env = ambiente_para(raiz, registro, {"MUTANTE_TAG": projeto})
+    compose = ["docker", "compose", "-p", projeto, *registro["compose_args"]]
+    try:
+        resultado, _, fim = rodar(
+            [*compose, "up", "-d", "--build", "--wait", *registro["servicos_stack"]],
+            raiz,
+            registro["timeout_stack_s"],
+            env,
+        )
+        if resultado != "passou":
+            raise StackIndisponivel(f"{rotulo}: stack não subiu ({resultado})\n{fim}")
+        yield compose, env
+    finally:
+        subprocess.run(
+            [*compose, "--profile", "e2e", "down", "-v", "--remove-orphans"],
+            cwd=raiz, env=env, capture_output=True, check=False,
+        )  # fmt: skip
+        remover_imagens_do_projeto(projeto)
+
+
+def executar_testes(
+    registro: dict, raiz: Path, testes: list[str] | None, timeout_s: int, rotulo: str
+) -> tuple[str, float, str]:
+    """Roda a suíte (testes=None) ou a seleção indicada no código em `raiz`."""
+    selecao = argumentos_de_teste(registro, testes) if testes else []
+    if registro["executor"] != "playwright-stack":
+        comando = registro["comando_teste"] + selecao
+        return rodar(comando, raiz, timeout_s, ambiente_para(raiz, registro))
+    with stack(registro, raiz, rotulo) as (compose, env):
+        comando = [*compose, "--profile", "e2e", *registro["comando_teste"], *selecao]
+        return rodar(comando, raiz, timeout_s, env)
 
 
 def argumentos_de_teste(registro: dict, testes: list[str]) -> list[str]:
@@ -95,18 +147,78 @@ def argumentos_de_teste(registro: dict, testes: list[str]) -> list[str]:
                 nomes.append(re.escape(nome))
         filtro_nome = ["-t", "^(?:" + "|".join(nomes) + ")$"] if nomes else []
         return [*sorted(arquivos), *filtro_nome]
+    if registro["executor"] == "playwright-stack":
+        # ID "arquivo > título": arquivo como filtro e título em --grep (caminho completo).
+        arquivos, titulos = set(), []
+        for teste in testes:
+            arquivo, _, titulo = teste.partition(" > ")
+            arquivos.add(re.escape(arquivo))
+            if titulo:
+                titulos.append(re.escape(titulo))
+        filtro_titulo = ["--grep", "|".join(titulos)] if titulos else []
+        return [*sorted(arquivos), *filtro_titulo]
     raise ErroDeRegistro(f"executor desconhecido: {registro['executor']}")
 
 
-def coletar_ids(registro: dict, base: Path, env: dict) -> set[str]:
-    saida = subprocess.run(
-        registro["comando_coleta"], cwd=base, env=env, capture_output=True, text=True, check=True
-    ).stdout
+def remover_imagens_do_projeto(projeto: str) -> None:
+    imagens = subprocess.run(
+        ["docker", "images", "-q", "--filter", f"reference=*:{projeto}"],
+        capture_output=True, text=True, check=False,
+    ).stdout.split()  # fmt: skip
+    if imagens:
+        subprocess.run(["docker", "rmi", "-f", *imagens], capture_output=True, check=False)
+
+
+def coletar_ids(registro: dict, raiz: Path) -> set[str]:
+    """IDs de todos os testes existentes, no mesmo formato usado no registro."""
+    comando = registro["comando_coleta"]
+    env = ambiente_para(raiz, registro)
+    if registro["executor"] == "playwright-stack":
+        projeto = "jejemut-coleta"
+        env["MUTANTE_TAG"] = projeto
+        comando = ["docker", "compose", "-p", projeto, *registro["compose_args"], *comando]
+    try:
+        saida = subprocess.run(
+            comando, cwd=raiz, env=env, capture_output=True, text=True, check=True
+        ).stdout
+    finally:
+        if registro["executor"] == "playwright-stack":
+            subprocess.run(
+                ["docker", "compose", "-p", "jejemut-coleta", *registro["compose_args"],
+                 "--profile", "e2e", "down", "-v", "--remove-orphans"],
+                cwd=raiz, env=env, capture_output=True, check=False,
+            )  # fmt: skip
+            remover_imagens_do_projeto("jejemut-coleta")
     if registro["executor"] == "pytest":
         return {re.sub(r"\[.*\]$", "", linha) for linha in saida.splitlines() if "::" in linha}
     if registro["executor"] == "vitest":
-        return {f"{os.path.relpath(t['file'], base)} > {t['name']}" for t in json.loads(saida)}
+        return {f"{os.path.relpath(t['file'], raiz)} > {t['name']}" for t in json.loads(saida)}
+    if registro["executor"] == "playwright-stack":
+        ids: set[str] = set()
+        pendentes = list(json.loads(saida[saida.index("{") :])["suites"])
+        while pendentes:
+            suite = pendentes.pop()
+            pendentes.extend(suite.get("suites", []))
+            ids.update(f"{spec['file']} > {spec['title']}" for spec in suite.get("specs", []))
+        return ids
     raise ErroDeRegistro(f"executor desconhecido: {registro['executor']}")
+
+
+def copiar(base: Path, destino: Path) -> None:
+    shutil.copytree(base, destino, ignore=ignorar, symlinks=True)
+    if (base / "node_modules").exists():
+        (destino / "node_modules").symlink_to(base / "node_modules")
+
+
+def avaliar(mutante: dict, resultado: str) -> tuple[bool, str]:
+    morto = resultado in ("falhou", "tempo")
+    if mutante.get("espera", "morre") == "sobrevive":
+        if morto:
+            return False, "CONTROLE MORREU (harness/ambiente suspeito)"
+        return True, "controle ok"
+    if morto:
+        return True, f"morto ({resultado})"
+    return False, "SOBREVIVEU (teste fraco)"
 
 
 def main() -> int:
@@ -118,72 +230,65 @@ def main() -> int:
     registro = json.loads(Path(args.registro).read_text(encoding="utf-8"))
     base = Path(registro["diretorio"])
     timeout_padrao = registro["timeout_s"]
-    mutantes = registro["mutantes"]
-    if args.so:
-        mutantes = [m for m in mutantes if m["id"] in set(args.so)]
     ids = [m["id"] for m in registro["mutantes"]]
     if len(ids) != len(set(ids)):
         print("ERRO: IDs de mutante repetidos", file=sys.stderr)
         return 1
-
-    print(f"[base] suíte original em {base}")
-    resultado, _, fim = rodar(
-        registro["comando_teste"], base, timeout_padrao * 3, ambiente_para(base, registro)
-    )
-    if resultado != "passou":
-        print(fim, file=sys.stderr)
-        print("ERRO: suíte original vermelha; mutantes não significam nada.", file=sys.stderr)
-        return 1
+    mutantes = [m for m in registro["mutantes"] if not args.so or m["id"] in set(args.so)]
 
     problemas: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="mut-base-") as tmp:
+        raiz_base = Path(tmp) / "codigo"
+        copiar(base, raiz_base)
+        print(f"[base] suíte original de {base}")
+        try:
+            resultado, _, fim = executar_testes(registro, raiz_base, None, timeout_padrao, "base")
+        except StackIndisponivel as erro:
+            print(erro, file=sys.stderr)
+            return 1
+        if resultado != "passou":
+            print(fim, file=sys.stderr)
+            print("ERRO: suíte original vermelha; mutantes não significam nada.", file=sys.stderr)
+            return 1
+        coletados = None if args.so else coletar_ids(registro, raiz_base)
+
     linhas = []
     for mutante in mutantes:
-        espera = mutante.get("espera", "morre")
         with tempfile.TemporaryDirectory(prefix=f"mut-{mutante['id']}-") as tmp:
             raiz = Path(tmp) / "codigo"
-            shutil.copytree(base, raiz, ignore=IGNORAR, symlinks=True)
-            if (base / "node_modules").exists():
-                (raiz / "node_modules").symlink_to(base / "node_modules")
+            copiar(base, raiz)
             try:
                 aplicar_trocas(raiz, mutante["trocas"], mutante["id"])
-                selecao = argumentos_de_teste(registro, mutante["testes"])
-                comando = registro["comando_teste"] + selecao
-            except ErroDeRegistro as erro:
+                timeout = mutante.get("timeout_s", timeout_padrao)
+                resultado, segundos, fim = executar_testes(
+                    registro, raiz, mutante["testes"], timeout, mutante["id"]
+                )
+            except (ErroDeRegistro, StackIndisponivel) as erro:
                 problemas.append(str(erro))
                 linhas.append((mutante["id"], mutante.get("requisito", "-"), "ERRO", 0.0))
                 continue
-            timeout = mutante.get("timeout_s", timeout_padrao)
-            resultado, segundos, fim = rodar(comando, raiz, timeout, ambiente_para(raiz, registro))
-        morto = resultado in ("falhou", "tempo")
-        if espera == "sobrevive":
-            ok = not morto
-            situacao = "controle ok" if ok else "CONTROLE MORREU (harness/ambiente suspeito)"
-            if not ok:
-                print(fim, file=sys.stderr)
-        else:
-            ok = morto
-            situacao = f"morto ({resultado})" if ok else "SOBREVIVEU (teste fraco)"
+        ok, situacao = avaliar(mutante, resultado)
         if not ok:
             problemas.append(f"{mutante['id']}: {situacao}")
+            if mutante.get("espera") == "sobrevive":
+                print(fim, file=sys.stderr)
         linhas.append((mutante["id"], mutante.get("requisito", "-"), situacao, segundos))
 
     largura = max((len(linha[0]) for linha in linhas), default=10)
     for id_mutante, requisito, situacao, segundos in linhas:
         print(f"{id_mutante:<{largura}}  {requisito:<10} {situacao:<45} {segundos:6.1f}s")
 
-    if not args.so:
+    if coletados is not None:
         cobertos = {
             teste
             for m in registro["mutantes"]
             if m.get("espera", "morre") == "morre"
             for teste in m["testes"]
         }
-        coletados = coletar_ids(registro, base, ambiente_para(base, registro))
         sem_mutante = sorted(coletados - cobertos)
-        inexistentes = sorted(cobertos - coletados)
         for teste in sem_mutante:
             problemas.append(f"teste sem mutante que o derrube: {teste}")
-        for teste in inexistentes:
+        for teste in sorted(cobertos - coletados):
             problemas.append(f"registro cita teste inexistente: {teste}")
         com_mutante = len(coletados) - len(sem_mutante)
         print(f"[cobertura] {len(coletados)} testes coletados, {com_mutante} com mutante")

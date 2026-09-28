@@ -1,0 +1,15 @@
+# Override para stacks de mutantes E2E: nada de portas publicadas (convive com o ambiente de
+# desenvolvimento) e imagens com tag própria (nunca sobrescreve jeje-*:local).
+services:
+  db:
+    ports: !reset []
+  migrate:
+    image: jeje-mut-api:${MUTANTE_TAG:?defina MUTANTE_TAG}
+  api:
+    image: jeje-mut-api:${MUTANTE_TAG:?defina MUTANTE_TAG}
+    ports: !reset []
+  web:
+    image: jeje-mut-web:${MUTANTE_TAG:?defina MUTANTE_TAG}
+    ports: !reset []
+  e2e:
+    image: jeje-mut-e2e:${MUTANTE_TAG:?defina MUTANTE_TAG}
