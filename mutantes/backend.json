@@ -3735,6 +3735,126 @@
       "testes": [
         "tests/test_interpretacao.py::test_intencao_por_lingua"
       ]
+    },
+    {
+      "id": "M-LLM-01",
+      "requisito": "R06",
+      "descricao": "Modelo consultado mesmo quando as regras já entenderam",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        if entendida(regras):\n            return Leitura(regras, \"regras\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-LLM-02",
+      "requisito": "R08",
+      "descricao": "Saída do modelo com campo a mais (transação, cliente) aceita",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    model_config = ConfigDict(extra=\"forbid\")",
+          "para": "    model_config = ConfigDict(extra=\"ignore\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_saida_invalida_ou_com_campo_a_mais_fica_com_as_regras"
+      ]
+    },
+    {
+      "id": "M-LLM-03",
+      "requisito": "R06",
+      "descricao": "Sem fallback: saída inválida do modelo derruba o turno",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        except (OSError, ValueError, KeyError, ValidationError) as erro:",
+          "para": "        except KeyError as erro:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_saida_invalida_ou_com_campo_a_mais_fica_com_as_regras"
+      ]
+    },
+    {
+      "id": "M-LLM-04",
+      "requisito": "R06",
+      "descricao": "Chamada ao modelo sem tempo máximo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "urlopen(pedido, timeout=self.timeout_s)",
+          "para": "urlopen(pedido)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_modelo_lento_fora_do_ar_ou_com_erro_fica_com_as_regras"
+      ]
+    },
+    {
+      "id": "M-LLM-05",
+      "requisito": "R08",
+      "descricao": "Identificador digitado vai para o modelo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "lida.intencao != \"desconhecida\" or lida.id_digitado or any(",
+          "para": "lida.intencao != \"desconhecida\" or any("
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-LLM-06",
+      "requisito": "R06",
+      "descricao": "INTERPRETADOR=ollama ignorado (sempre só regras)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    if settings.interpretador == \"ollama\":",
+          "para": "    if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_na_conversa_o_modelo_so_le_e_cada_turno_registra_quem_leu"
+      ]
+    },
+    {
+      "id": "M-LLM-07",
+      "requisito": "R09",
+      "descricao": "Turno não registra quem leu a mensagem",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            interpretacao=leitura.fonte,",
+          "para": "            interpretacao=None,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_modelo_fora_do_ar_a_conversa_segue_pelas_regras"
+      ]
+    },
+    {
+      "id": "M-LLM-08",
+      "requisito": "R08",
+      "descricao": "Modelo recebe a mensagem como instrução de sistema",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "                {\"role\": \"user\", \"content\": texto},",
+          "para": "                {\"role\": \"system\", \"content\": texto},"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem"
+      ]
     }
   ]
 }
