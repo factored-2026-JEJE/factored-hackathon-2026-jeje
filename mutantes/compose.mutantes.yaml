@@ -5,6 +5,8 @@ services:
     ports: !reset []
   migrate:
     image: jeje-mut-api:${MUTANTE_TAG:?defina MUTANTE_TAG}
+  seed:
+    image: jeje-mut-api:${MUTANTE_TAG:?defina MUTANTE_TAG}
   api:
     image: jeje-mut-api:${MUTANTE_TAG:?defina MUTANTE_TAG}
     ports: !reset []
