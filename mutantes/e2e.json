@@ -142,6 +142,36 @@
       "testes": [
         "qualidade.spec.ts > painel de qualidade mostra os números da API e fecha a conta de cada tabela"
       ]
+    },
+    {
+      "id": "M-E2E-07",
+      "requisito": "R01",
+      "descricao": "Status das transações contados na raw (inclui revisão substituída e quarentena)",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/eda.py",
+          "de": "            \" FROM curated.transactions GROUP BY 1 ORDER BY 2 DESC, 1\"",
+          "para": "            \" FROM raw.transactions GROUP BY 1 ORDER BY 2 DESC, 1\""
+        }
+      ],
+      "testes": [
+        "eda.spec.ts > EDA bate com o oráculo independente da origem carregada"
+      ]
+    },
+    {
+      "id": "M-E2E-08",
+      "requisito": "R01",
+      "descricao": "Página arredonda participações sem casa decimal",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/IndicadoresDaEda.tsx",
+          "de": "minimumFractionDigits: 1, maximumFractionDigits: 1",
+          "para": "minimumFractionDigits: 0, maximumFractionDigits: 0"
+        }
+      ],
+      "testes": [
+        "eda.spec.ts > seção da EDA mostra exatamente os números e as consultas da API"
+      ]
     }
   ]
 }
