@@ -339,6 +339,51 @@
       ]
     },
     {
+      "id": "M-PARAM-01",
+      "requisito": "R06",
+      "descricao": "Parâmetro repetido volta a passar: verificação fora da aplicação (ACH-027)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "        dependencies=[Depends(parametros.sem_parametro_repetido)],\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_parametros.py::test_parametro_de_consulta_repetido_e_recusado"
+      ]
+    },
+    {
+      "id": "M-PARAM-02",
+      "requisito": "R06",
+      "descricao": "Só três ou mais repetições são recusadas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/parametros.py",
+          "de": "nome for nome in _declarados(dependente) if len(request.query_params.getlist(nome)) > 1",
+          "para": "nome for nome in _declarados(dependente) if len(request.query_params.getlist(nome)) > 2"
+        }
+      ],
+      "testes": [
+        "tests/test_parametros.py::test_parametro_de_consulta_repetido_e_recusado"
+      ]
+    },
+    {
+      "id": "M-PARAM-03",
+      "requisito": "R06",
+      "descricao": "Parâmetro não declarado repetido também é recusado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/parametros.py",
+          "de": "nome for nome in _declarados(dependente) if len(request.query_params.getlist(nome)) > 1",
+          "para": "nome for nome in request.query_params.keys() if len(request.query_params.getlist(nome)) > 1"
+        }
+      ],
+      "testes": [
+        "tests/test_parametros.py::test_parametro_unico_ou_nao_declarado_segue_normal"
+      ]
+    },
+    {
       "id": "M-RAW-01",
       "requisito": "R04",
       "descricao": "Migration raw esquece uma coluna do arquivo (response_code das transações)",

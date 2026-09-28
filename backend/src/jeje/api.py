@@ -4,7 +4,7 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
 from jeje import (
     __version__,
@@ -14,6 +14,7 @@ from jeje import (
     interpretacao_modelo,
     logs,
     metricas_api,
+    parametros,
     pre_caso_api,
     qualidade_api,
     sessao_api,
@@ -43,7 +44,11 @@ async def ciclo_de_vida(app: FastAPI) -> AsyncIterator[None]:
 def create_app(settings: Settings) -> FastAPI:
     logs.configurar(settings.log_level)
     app = FastAPI(
-        title="JEJE", version=__version__, root_path=settings.api_root_path, lifespan=ciclo_de_vida
+        title="JEJE",
+        version=__version__,
+        root_path=settings.api_root_path,
+        lifespan=ciclo_de_vida,
+        dependencies=[Depends(parametros.sem_parametro_repetido)],
     )
     app.state.settings = settings
     app.state.engine = create_db_engine(settings)
