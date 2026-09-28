@@ -3,25 +3,8 @@
 import pytest
 from conftest import conexao
 from sqlalchemy import text
-from test_qualidade import base, cliente, curar_tudo, produto, transacao
 
 from jeje import sessao
-
-__all__ = ["base"]  # fixture importada da suíte de qualidade
-
-
-@pytest.fixture
-def curada(base):
-    with conexao(base) as con:
-        cliente(con, "CLI-C", first_name="Ana", last_name="Souza")
-        produto(con, "PRD-C", "CLI-C")
-        transacao(con, "TRX-A1", "CLI-A", "PRD-A")
-        transacao(con, "TRX-A2", "CLI-A", "PRD-A", transaction_status="Declined")
-        transacao(con, "TRX-C1", "CLI-C", "PRD-C")
-        transacao(con, "TRX-C2", "CLI-C", "PRD-C", transaction_status="Pending")
-        transacao(con, "TRX-B1", "CLI-B", "PRD-B")
-    curar_tudo(base)
-    return base
 
 
 def personas(settings) -> list[tuple]:

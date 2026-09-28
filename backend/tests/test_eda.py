@@ -2,20 +2,17 @@
 
 import pytest
 from conftest import cliente as cliente_http
-from conftest import conexao
+from conftest import conexao, curar_tudo, inserir_raw, raw_transacao
 from sqlalchemy import text
-from test_qualidade import base, curar_tudo, raw, transacao
 
 from jeje import eda
-
-__all__ = ["base"]  # fixture importada da suíte de qualidade
 
 
 @pytest.fixture
 def cenario(base):
     with conexao(base) as con:
         for duracao, resolvido in (("100", "True"), ("200", "True"), ("300", "False")):
-            raw(
+            inserir_raw(
                 con,
                 "call_center_interactions",
                 interaction_id=f"INT-T{duracao}",
@@ -23,7 +20,7 @@ def cenario(base):
                 duration_seconds=duracao,
                 was_resolved=resolvido,
             )
-        raw(
+        inserir_raw(
             con,
             "call_center_interactions",
             interaction_id="INT-Q1",
@@ -31,7 +28,7 @@ def cenario(base):
             duration_seconds="400",
             was_resolved="False",
         )
-        raw(
+        inserir_raw(
             con,
             "call_center_interactions",
             interaction_id="INT-Q2",
@@ -39,16 +36,18 @@ def cenario(base):
             duration_seconds="x",
             was_resolved="False",
         )
-        transacao(con, "TRX-1", "CLI-A", "PRD-A")
-        transacao(con, "TRX-2", "CLI-A", "PRD-A")
-        transacao(con, "TRX-3", "CLI-A", "PRD-A", transaction_status="Declined", response_code="51")
-        transacao(con, "TRX-4", "CLI-A", "PRD-A", transaction_status="Declined")
+        raw_transacao(con, "TRX-1", "CLI-A", "PRD-A")
+        raw_transacao(con, "TRX-2", "CLI-A", "PRD-A")
+        raw_transacao(
+            con, "TRX-3", "CLI-A", "PRD-A", transaction_status="Declined", response_code="51"
+        )
+        raw_transacao(con, "TRX-4", "CLI-A", "PRD-A", transaction_status="Declined")
         for cid, categoria, sub in (
             ("C1", "Transactions", "Cargo no reconocido"),
             ("C2", "Transactions", None),
             ("C3", "Fees", None),
         ):
-            raw(
+            inserir_raw(
                 con,
                 "complaints",
                 complaint_id=cid,
@@ -60,7 +59,7 @@ def cenario(base):
                 subcategory=sub,
             )
         for tid, idioma in (("T1", "es"), ("T2", "es"), ("T3", "pt")):
-            raw(con, "call_transcripts", transcript_id=tid, detected_language=idioma)
+            inserir_raw(con, "call_transcripts", transcript_id=tid, detected_language=idioma)
     curar_tudo(base)
     return base
 

@@ -76,6 +76,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/personas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Personas
+         * @description Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado).
+         */
+        get: operations["listar_personas_personas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Abrir Sessao */
+        post: operations["abrir_sessao_sessoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sessao Atual
+         * @description Quem está na sessão (o nome vem da persona provisionada).
+         */
+        get: operations["sessao_atual_sessao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/minhas/transacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Minhas Transacoes */
+        get: operations["minhas_transacoes_minhas_transacoes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/minhas/transacoes/{transaction_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Minha Transacao */
+        get: operations["minha_transacao_minhas_transacoes__transaction_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -91,6 +182,11 @@ export interface components {
              * Format: date-time
              */
             loaded_at: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
         };
         /** Linha */
         Linha: {
@@ -116,6 +212,18 @@ export interface components {
             status: "ok";
             /** Version */
             version: string;
+        };
+        /** PedidoDeSessao */
+        PedidoDeSessao: {
+            /** Customer Id */
+            customer_id: string;
+        };
+        /** Persona */
+        Persona: {
+            /** Customer Id */
+            customer_id: string;
+            /** Nome */
+            nome: string;
         };
         /** QualidadeTabela */
         QualidadeTabela: {
@@ -173,6 +281,54 @@ export interface components {
             unidade_soma: string | null;
             /** Linhas */
             linhas: components["schemas"]["Linha"][];
+        };
+        /** SessaoAberta */
+        SessaoAberta: {
+            /** Token */
+            token: string;
+            /**
+             * Expira Em
+             * Format: date-time
+             */
+            expira_em: string;
+            cliente: components["schemas"]["Persona"];
+        };
+        /** Transacao */
+        Transacao: {
+            /** Transaction Id */
+            transaction_id: string;
+            /**
+             * Transaction Date
+             * Format: date-time
+             */
+            transaction_date: string;
+            /** Amount */
+            amount: string;
+            /** Currency */
+            currency: string;
+            /** Transaction Status */
+            transaction_status: string;
+            /** Response Code */
+            response_code: string | null;
+            /** Transaction Type */
+            transaction_type: string | null;
+            /** Merchant Name */
+            merchant_name: string | null;
+            /** Channel */
+            channel: string | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -268,6 +424,190 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Resultado"][];
+                };
+            };
+        };
+    };
+    listar_personas_personas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Persona"][];
+                };
+            };
+            /** @description Modo demo desligado ou persona não provisionada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    abrir_sessao_sessoes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PedidoDeSessao"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessaoAberta"];
+                };
+            };
+            /** @description Corpo ilegível (não é JSON UTF-8) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Modo demo desligado ou persona não provisionada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sessao_atual_sessao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Persona"];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    minhas_transacoes_minhas_transacoes_get: {
+        parameters: {
+            query?: {
+                limite?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Transacao"][];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    minha_transacao_minhas_transacoes__transaction_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Transacao"];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Transação não encontrada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

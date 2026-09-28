@@ -97,6 +97,207 @@
           }
         }
       }
+    },
+    "/personas": {
+      "get": {
+        "summary": "Listar Personas",
+        "description": "Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado).",
+        "operationId": "listar_personas_personas_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Persona"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Personas Personas Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou persona não provisionada"
+          }
+        }
+      }
+    },
+    "/sessoes": {
+      "post": {
+        "summary": "Abrir Sessao",
+        "operationId": "abrir_sessao_sessoes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDeSessao"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessaoAberta"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou persona não provisionada"
+          },
+          "400": {
+            "description": "Corpo ilegível (não é JSON UTF-8)"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessao": {
+      "get": {
+        "summary": "Sessao Atual",
+        "description": "Quem está na sessão (o nome vem da persona provisionada).",
+        "operationId": "sessao_atual_sessao_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Persona"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/minhas/transacoes": {
+      "get": {
+        "summary": "Minhas Transacoes",
+        "operationId": "minhas_transacoes_minhas_transacoes_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transacao"
+                  },
+                  "title": "Response Minhas Transacoes Minhas Transacoes Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/minhas/transacoes/{transaction_id}": {
+      "get": {
+        "summary": "Minha Transacao",
+        "operationId": "minha_transacao_minhas_transacoes__transaction_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Transaction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "404": {
+            "description": "Transação não encontrada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -124,6 +325,19 @@
           "loaded_at"
         ],
         "title": "DatasetInfo"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
       },
       "Linha": {
         "properties": {
@@ -202,6 +416,37 @@
           "version"
         ],
         "title": "Liveness"
+      },
+      "PedidoDeSessao": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id"
+        ],
+        "title": "PedidoDeSessao"
+      },
+      "Persona": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id",
+          "nome"
+        ],
+        "title": "Persona"
       },
       "QualidadeTabela": {
         "properties": {
@@ -349,6 +594,159 @@
           "linhas"
         ],
         "title": "Resultado"
+      },
+      "SessaoAberta": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "expira_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expira Em"
+          },
+          "cliente": {
+            "$ref": "#/components/schemas/Persona"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "expira_em",
+          "cliente"
+        ],
+        "title": "SessaoAberta"
+      },
+      "Transacao": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Transaction Date"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "transaction_status": {
+            "type": "string",
+            "title": "Transaction Status"
+          },
+          "response_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Code"
+          },
+          "transaction_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transaction Type"
+          },
+          "merchant_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchant Name"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "transaction_date",
+          "amount",
+          "currency",
+          "transaction_status",
+          "response_code",
+          "transaction_type",
+          "merchant_name",
+          "channel"
+        ],
+        "title": "Transacao"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "description": "Token da sessão de teste (POST /sessoes)",
+        "scheme": "bearer"
       }
     }
   }

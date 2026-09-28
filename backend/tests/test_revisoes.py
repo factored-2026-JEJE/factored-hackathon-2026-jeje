@@ -3,13 +3,10 @@ conflito, e o resultado não depende da ordem em que os registros chegaram."""
 
 from decimal import Decimal
 
-from conftest import conexao
+from conftest import conexao, curar_tudo, quarentena, raw_cliente, raw_transacao
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 from sqlalchemy import text
-from test_qualidade import base, cliente, curar_tudo, quarentena, transacao
-
-__all__ = ["base"]  # fixture importada da suíte de qualidade
 
 
 def curadas(settings) -> dict[str, Decimal]:
@@ -21,8 +18,8 @@ def curadas(settings) -> dict[str, Decimal]:
 
 def test_revisao_mais_recente_substitui_a_anterior(base):
     with conexao(base) as con:
-        transacao(con, "TRX-1", "CLI-A", "PRD-A", process_date="2025-03-10", amount="10.00")
-        transacao(con, "TRX-1", "CLI-A", "PRD-A", process_date="2025-03-12", amount="12.00")
+        raw_transacao(con, "TRX-1", "CLI-A", "PRD-A", process_date="2025-03-10", amount="10.00")
+        raw_transacao(con, "TRX-1", "CLI-A", "PRD-A", process_date="2025-03-12", amount="12.00")
     resumo = curar_tudo(base)["transactions"]
     assert curadas(base) == {"TRX-1": Decimal("12.00")}
     assert resumo.motivos == {"R-REVISAO-SUBSTITUIDA": 1}
@@ -33,9 +30,9 @@ def test_revisao_mais_recente_substitui_a_anterior(base):
 
 def test_empate_na_data_mais_recente_e_conflito(base):
     with conexao(base) as con:
-        transacao(con, "TRX-2", "CLI-A", "PRD-A", process_date="2025-03-10", amount="1.00")
-        transacao(con, "TRX-2", "CLI-A", "PRD-A", process_date="2025-03-11", amount="2.00")
-        transacao(con, "TRX-2", "CLI-A", "PRD-A", process_date="2025-03-11", amount="3.00")
+        raw_transacao(con, "TRX-2", "CLI-A", "PRD-A", process_date="2025-03-10", amount="1.00")
+        raw_transacao(con, "TRX-2", "CLI-A", "PRD-A", process_date="2025-03-11", amount="2.00")
+        raw_transacao(con, "TRX-2", "CLI-A", "PRD-A", process_date="2025-03-11", amount="3.00")
     resumo = curar_tudo(base)["transactions"]
     assert curadas(base) == {}
     assert resumo.motivos == {"R-REVISAO-SUBSTITUIDA": 1, "Q-PK-CONFLITO": 2}
@@ -43,9 +40,9 @@ def test_empate_na_data_mais_recente_e_conflito(base):
 
 def test_revisao_com_copia_exata_da_versao_nova(base):
     with conexao(base) as con:
-        transacao(con, "TRX-3", "CLI-A", "PRD-A", process_date="2025-03-10", amount="5.00")
-        transacao(con, "TRX-3", "CLI-A", "PRD-A", process_date="2025-03-11", amount="6.00")
-        transacao(con, "TRX-3", "CLI-A", "PRD-A", process_date="2025-03-11", amount="6.00")
+        raw_transacao(con, "TRX-3", "CLI-A", "PRD-A", process_date="2025-03-10", amount="5.00")
+        raw_transacao(con, "TRX-3", "CLI-A", "PRD-A", process_date="2025-03-11", amount="6.00")
+        raw_transacao(con, "TRX-3", "CLI-A", "PRD-A", process_date="2025-03-11", amount="6.00")
     resumo = curar_tudo(base)["transactions"]
     assert curadas(base) == {"TRX-3": Decimal("6.00")}
     assert (resumo.quarentena, resumo.copias_descartadas) == (1, 1)
@@ -53,17 +50,17 @@ def test_revisao_com_copia_exata_da_versao_nova(base):
 
 def test_tabela_sem_process_date_nao_tem_revisao_so_conflito(base):
     with conexao(base) as con:
-        cliente(con, "CLI-C", segment="Basic")
-        cliente(con, "CLI-C", segment="Plus")
+        raw_cliente(con, "CLI-C", segment="Basic")
+        raw_cliente(con, "CLI-C", segment="Plus")
     curar_tudo(base)
     assert quarentena(base, "customers") == {"CLI-C": ["Q-PK-CONFLITO"]}
 
 
 def test_versao_com_data_invalida_nao_substitui_nem_e_substituida(base):
     with conexao(base) as con:
-        transacao(con, "TRX-4", "CLI-A", "PRD-A", process_date="2025-03-10", amount="7.00")
-        transacao(con, "TRX-4", "CLI-A", "PRD-A", process_date="2025-03-12", amount="9.00")
-        transacao(con, "TRX-4", "CLI-A", "PRD-A", process_date="amanhã", amount="8.00")
+        raw_transacao(con, "TRX-4", "CLI-A", "PRD-A", process_date="2025-03-10", amount="7.00")
+        raw_transacao(con, "TRX-4", "CLI-A", "PRD-A", process_date="2025-03-12", amount="9.00")
+        raw_transacao(con, "TRX-4", "CLI-A", "PRD-A", process_date="amanhã", amount="8.00")
     curar_tudo(base)
     assert curadas(base) == {"TRX-4": Decimal("9.00")}
     with conexao(base) as con:
@@ -107,6 +104,6 @@ def test_resultado_nao_depende_da_ordem_de_chegada(base, versoes, ordem):
     with conexao(base) as con:
         con.execute(text("truncate raw.transactions"))
         for chave, dia, valor in embaralhadas:
-            transacao(con, chave, "CLI-A", "PRD-A", process_date=dia, amount=valor)
+            raw_transacao(con, chave, "CLI-A", "PRD-A", process_date=dia, amount=valor)
     curar_tudo(base)
     assert curadas(base) == oraculo(versoes)

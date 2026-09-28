@@ -1853,6 +1853,156 @@
       "testes": [
         "tests/test_dados_cli.py::test_preparar_provisiona_personas_mesmo_quando_a_carga_e_pulada"
       ]
+    },
+    {
+      "id": "M-API-01",
+      "requisito": "R08",
+      "descricao": "Listagem sem filtro de dono (vê transações de todos)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "            f\"SELECT {COLUNAS} FROM curated.transactions WHERE customer_id = :cliente\"\n            \" ORDER BY",
+          "para": "            f\"SELECT {COLUNAS} FROM curated.transactions WHERE :cliente = :cliente\"\n            \" ORDER BY"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_sessao_identifica_o_cliente_e_lista_so_as_transacoes_dele"
+      ]
+    },
+    {
+      "id": "M-API-02",
+      "requisito": "R08",
+      "descricao": "Detalhe sem filtro de dono (revela transação alheia)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "\" WHERE customer_id = :cliente AND transaction_id = :transacao\"",
+          "para": "\" WHERE :cliente = :cliente AND transaction_id = :transacao\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_transacao_de_outro_cliente_responde_igual_a_inexistente"
+      ]
+    },
+    {
+      "id": "M-API-03",
+      "requisito": "R08",
+      "descricao": "Token não validado: qualquer valor vira sessão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "    if ativa is None:\n        raise HTTPException(",
+          "para": "    if ativa is None and False:\n        raise HTTPException("
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_sem_sessao_valida_nao_ha_dados"
+      ]
+    },
+    {
+      "id": "M-API-04",
+      "requisito": "R08",
+      "descricao": "Cliente escolhido pela URL quando informado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "    ativa: SessaoDep, engine: EngineDep, limite: Annotated[int, Query(ge=1, le=100)] = 20\n) -> list[consultas.Transacao]:\n    with engine.connect() as conexao:\n        return consultas.transacoes_do_cliente(conexao, ativa.customer_id, limite)",
+          "para": "    ativa: SessaoDep, engine: EngineDep, limite: Annotated[int, Query(ge=1, le=100)] = 20,\n    customer_id: str | None = None,\n) -> list[consultas.Transacao]:\n    with engine.connect() as conexao:\n        return consultas.transacoes_do_cliente(conexao, customer_id or ativa.customer_id, limite)"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_cliente_escolhido_na_url_e_ignorado"
+      ]
+    },
+    {
+      "id": "M-API-05",
+      "requisito": "R08",
+      "descricao": "Modo demo desligado não bloqueia sessões",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "    if not _settings(request).modo_demo:",
+          "para": "    if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_modo_demo_desligado_esconde_personas_e_sessoes"
+      ]
+    },
+    {
+      "id": "M-API-06",
+      "requisito": "R08",
+      "descricao": "401 sem o cabeçalho WWW-Authenticate",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "        raise HTTPException(status_code=401, detail=\"Sessão ausente\", headers=NAO_AUTENTICADO)",
+          "para": "        raise HTTPException(status_code=401, detail=\"Sessão ausente\")"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_sem_sessao_valida_nao_ha_dados"
+      ]
+    },
+    {
+      "id": "M-API-07",
+      "requisito": "R08",
+      "descricao": "Limite da listagem ignorado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "\" ORDER BY transaction_date DESC, transaction_id LIMIT :limite\"",
+          "para": "\" ORDER BY transaction_date DESC, transaction_id LIMIT 100 + 0 * :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_limite_restringe_a_listagem"
+      ]
+    },
+    {
+      "id": "M-API-08",
+      "requisito": "R08",
+      "descricao": "Persona inexistente abre sessão de outra persona",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "            token, expira_em = sessao.abrir(\n                conexao, pedido.customer_id, _settings(request).sessao_ttl_minutos\n            )",
+          "para": "            token, expira_em = sessao.abrir(\n                conexao, \"CLI-A\", _settings(request).sessao_ttl_minutos\n            )"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_so_persona_provisionada_abre_sessao"
+      ]
+    },
+    {
+      "id": "M-API-09",
+      "requisito": "R08",
+      "descricao": "Personas listadas fora da ordem provisionada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "text(\"SELECT customer_id, nome FROM app.personas ORDER BY ordem\")",
+          "para": "text(\"SELECT customer_id, nome FROM app.personas ORDER BY customer_id DESC\")"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_personas_listadas_na_ordem_provisionada"
+      ]
+    },
+    {
+      "id": "M-API-10",
+      "requisito": "R08",
+      "descricao": "Sessão expirada aceita pela API (validação ignora validade)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h AND expira_em > now()\"",
+          "para": "\"SELECT customer_id FROM app.sessoes WHERE token_hash = :h\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_sessao_expirada_e_recusada"
+      ]
     }
   ]
 }
