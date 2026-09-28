@@ -29,10 +29,12 @@ from jeje.mensagens import (
     descrever,
     marcadores,
 )
+from jeje.models import ESTADOS_DA_CONVERSA
 
-Estado = Literal["livre", "esclarecendo", "confirmando", "oferecendo_humano", "com_humano"]
-# Estados em que a automação não responde mais ao pedido (só lembra quem está com o caso).
-SEM_LEITURA_DO_MODELO: frozenset[Estado] = frozenset({"com_humano"})
+Estado = Literal[ESTADOS_DA_CONVERSA]
+# Estados em que a automação não age mais: com humano (só lembra quem está com o caso) ou
+# encerrada pela recarga dos dados. O modelo não é chamado, e a recarga não os toca.
+TERMINAIS: frozenset[Estado] = frozenset({"com_humano", "encerrada"})
 
 LIMITE_MENSAGEM = 500
 MAXIMO_OPCOES = 5
@@ -165,6 +167,10 @@ class _Turno:
     # ---- entrada -----------------------------------------------------------------------------
 
     def executar(self) -> Saida:
+        if self.estado == "encerrada":
+            # A recarga dos dados encerrou a conversa: nada do contexto vale mais (PRD-002).
+            aviso = texto("ENCERRADA", self.idioma)
+            return Saida("ENCERRADA", "encerrada", (aviso,), "encerrada")
         if self.estado == "com_humano":
             # A automação não responde mais nada: só lembra quem está com o caso.
             atendimento = self.contexto["atendimento"]
@@ -504,7 +510,7 @@ def ler(preparo: Preparo, mensagem: str, interpretador: Interpretador) -> Leitur
     """A leitura da mensagem pelo interpretador configurado (regras ou cascata com o modelo).
     Em estado onde a leitura não decide nada, bastam as regras (língua da resposta): o modelo não
     é chamado."""
-    if preparo.estado in SEM_LEITURA_DO_MODELO:
+    if preparo.estado in TERMINAIS:
         return pelas_regras(mensagem, preparo.idioma, preparo.hoje)
     return interpretador(mensagem, preparo.idioma, preparo.hoje)
 

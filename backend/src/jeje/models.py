@@ -130,6 +130,13 @@ class Handoff(Base):
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+# Estados da conversa (fonte única: o tipo `conversa.Estado` e o CHECK do banco saem daqui).
+# `encerrada`: a recarga dos dados encerrou o atendimento em curso (PRD-002, DEV-020i).
+ESTADOS_DA_CONVERSA = (
+    "livre", "esclarecendo", "confirmando", "oferecendo_humano", "com_humano", "encerrada",
+)  # fmt: skip
+
+
 class Conversa(Base):
     """Conversa de atendimento (G10): estado entre turnos, sempre de um cliente da sessão."""
 
@@ -137,8 +144,7 @@ class Conversa(Base):
     __table_args__ = (
         CheckConstraint("idioma IN ('es', 'pt')", name="idioma"),
         CheckConstraint(
-            "estado IN ('livre', 'esclarecendo', 'confirmando', 'oferecendo_humano', 'com_humano')",
-            name="estado",
+            "estado IN (" + ", ".join(f"'{e}'" for e in ESTADOS_DA_CONVERSA) + ")", name="estado"
         ),
         {"schema": "app"},
     )

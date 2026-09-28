@@ -149,6 +149,12 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Referencia de la atención: {atendimento}.",
         "pt": "Referência do atendimento: {atendimento}.",
     },
+    "ENCERRADA": {
+        "es": "Esta conversación se cerró porque los datos se actualizaron. Abre una nueva "
+        "conversación para seguir.",
+        "pt": "Esta conversa foi encerrada porque os dados foram atualizados. Abra uma nova "
+        "conversa para continuar.",
+    },
     "COM-HUMANO": {
         "es": "Tu caso ya está con un agente (referencia {atendimento}); la conversación sigue con "
         "esa persona.",

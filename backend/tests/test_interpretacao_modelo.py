@@ -324,6 +324,36 @@ def test_conversa_com_atendente_nao_chama_o_modelo(cenario_conversa):
     assert interpretacoes(cenario_conversa) == ["regras", "regras"]
 
 
+ENCERRAR = "UPDATE app.conversas SET estado = 'encerrada', contexto = '{}' WHERE id = :id"
+
+
+def test_conversa_encerrada_so_avisa_e_nao_chama_o_modelo(cenario_conversa):
+    """Conversa encerrada pela recarga dos dados (PRD-002): nada do contexto vale mais. O turno só
+    diz que ela foi encerrada, sem dado nenhum, e o histórico continua legível para o dono."""
+    with (
+        ollama_falso(saida(intencao="contestar")) as (url, pedidos),
+        cliente(com_modelo(cenario_conversa, url)) as http,
+    ):
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        dizer(http, auth, conversa, ENTENDIDA)  # proposta pendente no contexto
+        with conexao(cenario_conversa) as con:  # estado que a recarga deixa (ver test_recarga)
+            con.execute(text(ENCERRAR), {"id": conversa})
+        depois = dizer(http, auth, conversa, VAGA)
+        historico = http.get(f"/conversas/{conversa}", headers=auth).json()
+    assert (depois["regra"], depois["acao"], depois["estado"]) == (
+        "ENCERRADA", "encerrada", "encerrada"
+    )  # fmt: skip
+    assert depois["resposta"] == (
+        "Esta conversa foi encerrada porque os dados foram atualizados. "
+        "Abra uma nova conversa para continuar."
+    )
+    assert (depois["transaction_id"], depois["opcoes"], depois["proposta"]) == (None, [], None)
+    assert pedidos == []
+    assert historico["estado"] == "encerrada" and len(historico["turnos"]) == 2
+    assert pre_casos(cenario_conversa) == 0
+
+
 def test_turno_desfeito_ainda_registra_a_chamada_ao_modelo(cenario_conversa):
     """DEV-015b: quando o turno falha ao gravar, a chamada ao modelo já foi feita e custou; ela
     continua contada no evento de erro (quem leu, latência e tokens), sem o texto do cliente."""

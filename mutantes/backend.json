@@ -3653,16 +3653,61 @@
     {
       "id": "M-CONV-26",
       "requisito": "R06",
-      "descricao": "Conversa com atendente ainda chama o modelo a cada mensagem (custo sem uso)",
+      "descricao": "Conversa terminal (com atendente ou encerrada) ainda chama o modelo a cada mensagem (custo sem uso)",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "    if preparo.estado in SEM_LEITURA_DO_MODELO:\n        return pelas_regras(mensagem, preparo.idioma, preparo.hoje)\n",
+          "de": "    if preparo.estado in TERMINAIS:\n        return pelas_regras(mensagem, preparo.idioma, preparo.hoje)\n",
           "para": ""
         }
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_conversa_com_atendente_nao_chama_o_modelo"
+      ]
+    },
+    {
+      "id": "M-CONV-27",
+      "requisito": "R08",
+      "descricao": "Conversa encerrada pela recarga volta a processar pedidos (contexto de outra versão dos dados)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"encerrada\":\n            # A recarga dos dados encerrou a conversa: nada do contexto vale mais (PRD-002).\n            aviso = texto(\"ENCERRADA\", self.idioma)\n            return Saida(\"ENCERRADA\", \"encerrada\", (aviso,), \"encerrada\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_conversa_encerrada_so_avisa_e_nao_chama_o_modelo"
+      ]
+    },
+    {
+      "id": "M-CONV-28",
+      "requisito": "R06",
+      "descricao": "Conversa encerrada ainda chama o modelo (encerrada fora dos estados terminais)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "TERMINAIS: frozenset[Estado] = frozenset({\"com_humano\", \"encerrada\"})",
+          "para": "TERMINAIS: frozenset[Estado] = frozenset({\"com_humano\"})"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_conversa_encerrada_so_avisa_e_nao_chama_o_modelo"
+      ]
+    },
+    {
+      "id": "M-MIG-05",
+      "requisito": "R08",
+      "descricao": "Migration não aceita o estado encerrada (a recarga não consegue encerrar as conversas)",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0012_conversa_encerrada.py",
+          "de": "DEPOIS = (*ANTES, \"encerrada\")",
+          "para": "DEPOIS = ANTES"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_conversa_encerrada_so_avisa_e_nao_chama_o_modelo"
       ]
     },
     {
