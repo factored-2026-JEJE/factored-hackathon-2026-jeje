@@ -4484,8 +4484,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "urlopen(pedido, timeout=self.timeout_s)",
-          "para": "urlopen(pedido)"
+          "de": "        dados = json.loads(self._postar(\"/api/chat\", corpo, self.timeout_s))",
+          "para": "        dados = json.loads(self._postar(\"/api/chat\", corpo, 60))"
         }
       ],
       "testes": [

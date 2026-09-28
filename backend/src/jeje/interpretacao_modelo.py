@@ -142,19 +142,23 @@ class Ollama:
         mensagem não pagar a carga fria. Só registra o resultado: falha não impede nada."""
         inicio = time.perf_counter()
         corpo = {"model": self.modelo, "keep_alive": self.keep_alive}
-        pedido = urllib.request.Request(
-            f"{self.url}/api/generate",
-            data=json.dumps(corpo).encode(),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
         try:
-            with urllib.request.urlopen(pedido, timeout=timeout_s) as resposta:
-                resposta.read()
+            self._postar("/api/generate", corpo, timeout_s)
         except Exception as erro:
             log.warning("modelo indisponivel modelo=%s erro=%s", self.modelo, type(erro).__name__)
             return
         log.info("modelo pronto modelo=%s ms=%.0f", self.modelo, eventos.desde(inicio))
+
+    def _postar(self, caminho: str, corpo: dict, timeout_s: float) -> bytes:
+        """Um pedido JSON ao Ollama, com tempo máximo; devolve o corpo da resposta."""
+        pedido = urllib.request.Request(
+            f"{self.url}{caminho}",
+            data=json.dumps(corpo).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(pedido, timeout=timeout_s) as resposta:
+            return resposta.read()
 
     @staticmethod
     def _chamada(inicio: float, uso: dict) -> Chamada:
@@ -175,14 +179,7 @@ class Ollama:
             "keep_alive": self.keep_alive,
             "options": {"temperature": 0},
         }
-        pedido = urllib.request.Request(
-            f"{self.url}/api/chat",
-            data=json.dumps(corpo).encode(),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(pedido, timeout=self.timeout_s) as resposta:
-            dados = json.loads(resposta.read())
+        dados = json.loads(self._postar("/api/chat", corpo, self.timeout_s))
         # Contado antes de validar: saída inválida também custou a chamada.
         uso["entrada"], uso["saida"] = dados.get("prompt_eval_count"), dados.get("eval_count")
         return SaidaDoModelo.model_validate_json(dados["message"]["content"])
