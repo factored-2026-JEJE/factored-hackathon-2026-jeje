@@ -933,6 +933,21 @@
       "testes": [
         "tests/test_dados_cli.py::test_cli_devolve_erro_e_mensagem_quando_arquivo_diverge"
       ]
+    },
+    {
+      "id": "M-DOWN-10",
+      "requisito": "R04",
+      "descricao": "Arquivo local existente é aceito sem conferir tamanho nem hash",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/download.py",
+          "de": "    return (\n        caminho.is_file()\n        and caminho.stat().st_size == esperado.bytes\n        and sha256_de(caminho) == esperado.sha256\n    )",
+          "para": "    return caminho.is_file()"
+        }
+      ],
+      "testes": [
+        "tests/test_download.py::test_arquivo_local_corrompido_e_baixado_de_novo"
+      ]
     }
   ]
 }
