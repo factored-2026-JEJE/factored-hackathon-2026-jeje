@@ -14,6 +14,10 @@ make up                # ou: docker compose up -d --build --wait
 
 Abra **http://localhost:8080**.
 
+Na primeira vez o `make up` baixa o dataset dos organizadores (~1,6 GB, ~5 min), confere cada
+arquivo pelo manifesto versionado em `data/manifesto/` e carrega o banco. Depois sobe em segundos.
+Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
+
 ## Testar
 
 ```bash
@@ -30,5 +34,7 @@ make gate    # check + jornadas no navegador + mutantes de ponta a ponta
 - `e2e/` — jornadas no navegador (Playwright, Chromium e Firefox).
 - `mutantes/` — defeitos deliberados que cada teste precisa detectar.
 
-Estado atual: fundação (API, banco, interface de status e testes). O atendimento ainda não está
+- `data/manifesto/` — versão dos dados (hash de cada arquivo); `data/fixture/` — dataset sintético.
+
+Estado atual: fundação e dados brutos carregados (camada raw). O atendimento ainda não está
 implementado.
