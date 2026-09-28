@@ -684,8 +684,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/carga.py",
-          "de": "                {\"versao\": versao, \"origem\": origem},",
-          "para": "                {\"versao\": versao, \"origem\": \"s3\"},"
+          "de": "{\"versao\": versao, \"origem\": origem, \"pipeline\": pipeline}",
+          "para": "{\"versao\": versao, \"origem\": \"s3\", \"pipeline\": pipeline}"
         }
       ],
       "testes": [
