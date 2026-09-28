@@ -1,0 +1,25 @@
+[project]
+name = "jeje"
+version = "0.1.0"
+description = "Backend do produto JEJE — Factored AI & Data Hackathon 2026"
+requires-python = ">=3.12"
+# Versões fixadas iguais ao lock do ambiente local do time (vault, scripts/ambiente/requirements.lock).
+dependencies = [
+  "fastapi==0.141.1",
+  "pydantic==2.13.5",
+  "uvicorn==0.54.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "httpx==0.28.1"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
