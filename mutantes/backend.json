@@ -1876,8 +1876,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/consultas.py",
-          "de": "\" WHERE customer_id = :cliente AND transaction_id = :transacao\"",
-          "para": "\" WHERE :cliente = :cliente AND transaction_id = :transacao\""
+          "de": "                f\"SELECT {COLUNAS} FROM curated.transactions\"\n                \" WHERE customer_id = :cliente AND transaction_id = :transacao\"",
+          "para": "                f\"SELECT {COLUNAS} FROM curated.transactions\"\n                \" WHERE :cliente = :cliente AND transaction_id = :transacao\""
         }
       ],
       "testes": [
@@ -2026,8 +2026,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/transacoes_api.py",
-          "de": "    transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)], ativa: SessaoDep, engine: EngineDep",
-          "para": "    transaction_id: Annotated[str, Path()], ativa: SessaoDep, engine: EngineDep"
+          "de": "def minha_transacao(\n    transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)], ativa: SessaoDep, engine: EngineDep",
+          "para": "def minha_transacao(\n    transaction_id: Annotated[str, Path()], ativa: SessaoDep, engine: EngineDep"
         }
       ],
       "testes": [
@@ -2537,6 +2537,36 @@
       ],
       "testes": [
         "tests/test_pre_caso.py::test_confirmacoes_concorrentes_criam_um_unico_pre_caso"
+      ]
+    },
+    {
+      "id": "M-POL-17",
+      "requisito": "R03",
+      "descricao": "Contestação elegível nunca vira proposta (tudo vai para humano)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return Decisao(\"POL-DISP-01\", \"propor_pre_caso\")",
+          "para": "    return Decisao(\"POL-HUM-02\", \"humano\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_contestacao_de_aprovada_dentro_do_limite_propoe_pre_caso"
+      ]
+    },
+    {
+      "id": "M-PAPI-05",
+      "requisito": "R02",
+      "descricao": "Situação de pendente/estornada sem dizer qual é o status",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        return Decisao(\"POL-CON-05\", \"responder\", fatos.status)",
+          "para": "        return Decisao(\"POL-CON-05\", \"responder\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_situacao_de_pendente_informa_sem_prometer"
       ]
     }
   ]
