@@ -2,18 +2,16 @@
 
 import pytest
 from alembic import command
-from conftest import alembic_config
+from conftest import alembic_config, conexao
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-
-from jeje.db import create_db_engine
 
 SCHEMAS_DO_PRODUTO = ("meta",)
 
 
 def tabelas_do_produto(settings) -> set[str]:
-    with create_db_engine(settings).connect() as conexao:
-        linhas = conexao.execute(
+    with conexao(settings) as con:
+        linhas = con.execute(
             text(
                 "select table_schema || '.' || table_name from information_schema.tables "
                 "where table_schema = any(:schemas)"
@@ -24,8 +22,8 @@ def tabelas_do_produto(settings) -> set[str]:
 
 
 def schemas_existentes(settings) -> set[str]:
-    with create_db_engine(settings).connect() as conexao:
-        linhas = conexao.execute(text("select schema_name from information_schema.schemata"))
+    with conexao(settings) as con:
+        linhas = con.execute(text("select schema_name from information_schema.schemata"))
         return {linha[0] for linha in linhas}
 
 
@@ -48,11 +46,10 @@ def test_dataset_version_aceita_uma_unica_linha(banco_migrado):
     inserir = text(
         "insert into meta.dataset_version (id, version, source) values (:id, :v, 'fixture')"
     )
-    engine = create_db_engine(banco_migrado)
-    with engine.begin() as conexao:
-        conexao.execute(inserir, {"id": 1, "v": "v1"})
-    with pytest.raises(IntegrityError), engine.begin() as conexao:
-        conexao.execute(inserir, {"id": 2, "v": "v2"})
+    with conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": 1, "v": "v1"})
+    with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": 2, "v": "v2"})
 
 
 def test_modelos_coincidem_com_as_migrations(banco_migrado):
