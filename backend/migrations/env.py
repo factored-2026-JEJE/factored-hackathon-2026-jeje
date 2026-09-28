@@ -19,16 +19,20 @@ def incluir(nome, tipo, pais) -> bool:
 
 def executar() -> None:
     settings = context.config.attributes.get("settings") or Settings()
-    with create_db_engine(settings).connect() as conexao:
-        context.configure(
-            connection=conexao,
-            target_metadata=Base.metadata,
-            include_schemas=True,
-            include_name=incluir,
-            compare_type=True,
-        )
-        with context.begin_transaction():
-            context.run_migrations()
+    engine = create_db_engine(settings)
+    try:
+        with engine.connect() as conexao:
+            context.configure(
+                connection=conexao,
+                target_metadata=Base.metadata,
+                include_schemas=True,
+                include_name=incluir,
+                compare_type=True,
+            )
+            with context.begin_transaction():
+                context.run_migrations()
+    finally:
+        engine.dispose()
 
 
 executar()
