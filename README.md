@@ -1,25 +1,34 @@
 # jeje-product-v1
 
-Produto do time **JEJE** (Jader, Erik, João e Enzo) para o Factored AI & Data Hackathon 2026: atendimento bancário ES/PT com política determinística, IA via contratos e handoff humano.
+Atendimento bancário em espanhol e português do time **JEJE** (Jader, Erik, João e Enzo) —
+Factored AI & Data Hackathon 2026.
 
-> Estado: fundação inicial. Nenhuma funcionalidade de atendimento implementada ainda.
+## Ligar tudo
 
-## Estrutura
-
-- `backend/` — Python 3.12 + FastAPI + Pydantic (pacote `jeje`).
-
-Frontend (React + TypeScript + Vite), PostgreSQL e Docker Compose entram nos próximos incrementos.
-
-## Rodar
-
-Pré-requisito: Python 3.12.
+Precisa só de **Docker**.
 
 ```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'
-pytest                                   # testes
-API_ROOT_PATH= uvicorn jeje.main:app   # API em http://127.0.0.1:8000/health
+cp .env.example .env   # cole as chaves do dataset (página 2 do dicionário)
+make up                # ou: docker compose up -d --build --wait
 ```
 
-No PC de desenvolvimento do time há um ambiente pronto: `source <vault>/scripts/ambiente/ativar.sh`, depois `cd backend && pytest`.
+Abra **http://localhost:8080**.
+
+## Testar
+
+```bash
+make check   # lint + testes + prova de que cada teste pega um defeito real (mutantes)
+make gate    # check + jornadas no navegador + mutantes de ponta a ponta
+```
+
+## Onde fica cada coisa
+
+- `compose.yaml` — **toda** a configuração não secreta (flags, portas, timeouts, testes).
+  `.env` guarda só segredos e nunca vai para o Git.
+- `backend/` — API Python (FastAPI) e migrations (Alembic).
+- `frontend/` — interface React; tipos gerados de `contrato/openapi.json` (`make contrato`).
+- `e2e/` — jornadas no navegador (Playwright, Chromium e Firefox).
+- `mutantes/` — defeitos deliberados que cada teste precisa detectar.
+
+Estado atual: fundação (API, banco, interface de status e testes). O atendimento ainda não está
+implementado.
