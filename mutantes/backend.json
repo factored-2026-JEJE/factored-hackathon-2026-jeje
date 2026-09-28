@@ -541,6 +541,156 @@
       "testes": [
         "tests/test_integridade.py::test_arquivos_iguais_ao_manifesto_nao_tem_problemas"
       ]
+    },
+    {
+      "id": "M-CARGA-01",
+      "requisito": "R04",
+      "descricao": "Sempre recarrega, mesmo com a versão já no banco (reexecução não é idempotente)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "            if versao_carregada(conexao) == versao:",
+          "para": "            if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_mesma_versao_nao_recarrega_nem_duplica"
+      ]
+    },
+    {
+      "id": "M-CARGA-02",
+      "requisito": "R04",
+      "descricao": "Não trunca antes de copiar: nova versão acumula sobre a anterior",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "            cursor.execute(sql.SQL(\"TRUNCATE {}\").format(todas))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_nova_versao_substitui_a_anterior_sem_sobras"
+      ]
+    },
+    {
+      "id": "M-CARGA-03",
+      "requisito": "R04",
+      "descricao": "Trunca só as tabelas selecionadas: tabela removida da seleção guarda dados velhos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "sql.Identifier(SCHEMA, tabela) for tabela in COLUNAS",
+          "para": "sql.Identifier(SCHEMA, tabela) for tabela in esperado"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_tabela_fora_da_selecao_fica_vazia_na_nova_versao"
+      ]
+    },
+    {
+      "id": "M-CARGA-04",
+      "requisito": "R04",
+      "descricao": "Não confere contagem por arquivo contra o manifesto",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "                    if lidos != arquivo.registros:",
+          "para": "                    if lidos < 0:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_falha_no_meio_da_carga_mantem_a_versao_anterior_inteira"
+      ]
+    },
+    {
+      "id": "M-CARGA-05",
+      "requisito": "R04",
+      "descricao": "Commit por arquivo: falha no meio deixa versão misturada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "                    if lidos != arquivo.registros:",
+          "para": "                    conexao.commit()\n                    if lidos != arquivo.registros:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_falha_no_meio_da_carga_mantem_a_versao_anterior_inteira"
+      ]
+    },
+    {
+      "id": "M-CARGA-06",
+      "requisito": "R04",
+      "descricao": "Pula a verificação de integridade: arquivo adulterado chega ao banco",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "        problemas = integridade.verificar(diretorio_raw, esperado)",
+          "para": "        problemas = []"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_arquivo_adulterado_e_recusado_antes_de_gravar"
+      ]
+    },
+    {
+      "id": "M-CARGA-07",
+      "requisito": "R04",
+      "descricao": "Campo vazio gravado como texto vazio em vez de NULL",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "[valor if valor != \"\" else None for valor in valores] + [relativo, registros]",
+          "para": "list(valores) + [relativo, registros]"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_carga_grava_registros_texto_nulos_linhagem_e_versao"
+      ]
+    },
+    {
+      "id": "M-CARGA-08",
+      "requisito": "R04",
+      "descricao": "Linhagem aponta a linha errada (começa em zero)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "        for registros, valores in enumerate(leitor, start=1):",
+          "para": "        for registros, valores in enumerate(leitor):"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_carga_grava_registros_texto_nulos_linhagem_e_versao"
+      ]
+    },
+    {
+      "id": "M-CARGA-09",
+      "requisito": "R04",
+      "descricao": "Registro malformado vai direto ao COPY (erro genérico, sem local do defeito)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "            if len(valores) != len(colunas):",
+          "para": "            if len(valores) > len(colunas) * 10:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_registro_com_campos_a_menos_e_recusado_com_local_exato"
+      ]
+    },
+    {
+      "id": "M-CARGA-10",
+      "requisito": "R04",
+      "descricao": "Versão gravada com origem fixa, ignorando fixture versus S3",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "                {\"versao\": versao, \"origem\": origem},",
+          "para": "                {\"versao\": versao, \"origem\": \"s3\"},"
+        }
+      ],
+      "testes": [
+        "tests/test_carga.py::test_carga_grava_registros_texto_nulos_linhagem_e_versao"
+      ]
     }
   ]
 }
