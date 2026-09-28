@@ -48,6 +48,35 @@ def test_intencao_por_lingua(texto, intencao):
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # ACH-101: perda, extravio e assalto são relato de fraude já no primeiro turno.
+        ("¡Mi tarjeta está perdida! ¿Qué puedo hacer?", "fraude"),
+        ("Meu cartão foi perdido! O que posso fazer?", "fraude"),
+        ("fui assaltado e levaram a carteira com os cartões", "fraude"),
+        ("me asaltaron y se llevaron la billetera", "fraude"),
+        ("perdí mi celular con la app del banco", "fraude"),
+        ("extravié la tarjeta ayer", "fraude"),
+        ("não encontro meu cartão", "fraude"),
+        ("perdi o meu cartão ontem", "fraude"),
+        ("mi tarjeta de crédito está perdida", "fraude"),
+        # Pedido de humano pelo cargo de quem atende.
+        ("posso falar com um gerente? é urgente", "humano"),
+        ("quiero hablar con un ejecutivo", "humano"),
+        ("necesito un supervisor", "humano"),
+        # Perda sem cartão, carteira ou celular perto não é relato de fraude.
+        ("perdí la conexión en la app", "desconhecida"),
+        ("perdi o prazo do pagamento", "consultar"),
+        ("perdi o prazo do pagamento do cartão", "consultar"),
+        ("No encuentro la compra en mi tarjeta", "consultar"),
+        ("não encontro a transação no meu cartão", "consultar"),
+    ],
+)
+def test_perda_assalto_e_cargo_de_quem_atende(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         ("no reconozco el cobro, me robaron la tarjeta", "fraude"),
         ("não reconheço a compra, quero falar com um atendente", "humano"),
         ("quero um empréstimo pra pagar a compra", "fora_de_escopo"),

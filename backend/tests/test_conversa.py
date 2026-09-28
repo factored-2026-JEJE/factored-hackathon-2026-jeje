@@ -262,6 +262,24 @@ def test_caminho_humano_fraude_encaminha_e_a_automacao_para(cenario, idioma):
     assert contar(cenario, "propostas_pre_caso") == 0 and pre_casos(cenario) == []
 
 
+@pytest.mark.parametrize(
+    "mensagem",
+    [
+        "¡Mi tarjeta está perdida! ¿Qué puedo hacer?",
+        "fui assaltado e levaram a carteira com os cartões",
+    ],
+)
+def test_perda_ou_assalto_encaminha_como_fraude_no_primeiro_turno(cenario, mensagem):
+    """ACH-101: relato de cartão perdido ou de assalto vai para o atendente logo no primeiro turno,
+    pela regra de fraude (não depois de três "não entendi")."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "es"), mensagem)
+    assert (resposta["regra"], resposta["acao"], resposta["estado"]) == (
+        "POL-HUM-01", "humano", "com_humano"
+    )  # fmt: skip
+
+
 def test_contestacao_acima_do_limite_encaminha_com_fatos_e_acoes(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")

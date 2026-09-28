@@ -4433,6 +4433,98 @@
       ]
     },
     {
+      "id": "M-ITP-20",
+      "requisito": "R07",
+      "descricao": "Cartão perdido, extraviado ou celular com o app perdido não é reconhecido como fraude (ACH-101)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"asalt*\", \"assalt*\", PERDA_DE_MEIO,",
+          "para": "\"asalt*\", \"assalt*\","
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_perda_ou_assalto_encaminha_como_fraude_no_primeiro_turno",
+        "tests/test_interpretacao.py::test_perda_assalto_e_cargo_de_quem_atende"
+      ]
+    },
+    {
+      "id": "M-ITP-21",
+      "requisito": "R07",
+      "descricao": "Assalto não é reconhecido como fraude (ACH-101)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"invadiram\", \"asalt*\", \"assalt*\", PERDA_DE_MEIO,",
+          "para": "\"invadiram\", PERDA_DE_MEIO,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_assalto_e_cargo_de_quem_atende"
+      ]
+    },
+    {
+      "id": "M-ITP-22",
+      "requisito": "R07",
+      "descricao": "Perda e cartão longe na frase ainda viram fraude (\"no encuentro la compra en mi tarjeta\" encaminha para atendente)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "PALAVRAS_ENTRE = 3",
+          "para": "PALAVRAS_ENTRE = 9"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_assalto_e_cargo_de_quem_atende"
+      ]
+    },
+    {
+      "id": "M-ITP-23",
+      "requisito": "R07",
+      "descricao": "Pedido de gerente, executivo ou supervisor não é reconhecido como pedido de humano (ACH-101)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"operador\", \"gerente\", \"ejecutivo\",\n                \"supervisor\", \"persona real\",",
+          "para": "\"operador\", \"persona real\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_assalto_e_cargo_de_quem_atende"
+      ]
+    },
+    {
+      "id": "M-ITP-24",
+      "requisito": "R07",
+      "descricao": "Janela curta: \"mi tarjeta de crédito está perdida\" deixa de ser relato de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "PALAVRAS_ENTRE = 3",
+          "para": "PALAVRAS_ENTRE = 2"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_assalto_e_cargo_de_quem_atende"
+      ]
+    },
+    {
+      "id": "M-ITP-25",
+      "requisito": "R07",
+      "descricao": "Composto só numa ordem: \"¡Mi tarjeta está perdida!\" (cartão antes da perda) deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if re.search(f\"{x}{entre}{y}|{y}{entre}{x}\", limpo):",
+          "para": "        if re.search(f\"{x}{entre}{y}\", limpo):"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_perda_ou_assalto_encaminha_como_fraude_no_primeiro_turno",
+        "tests/test_interpretacao.py::test_perda_assalto_e_cargo_de_quem_atende"
+      ]
+    },
+    {
       "id": "M-LLM-01",
       "requisito": "R06",
       "descricao": "Modelo consultado mesmo quando as regras já entenderam",

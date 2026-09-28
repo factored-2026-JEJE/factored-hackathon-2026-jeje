@@ -12,6 +12,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from itertools import product
 from typing import Literal
 
 from jeje.mensagens import Idioma
@@ -40,23 +41,58 @@ def normalizar(texto: str) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", sem_acento))
 
 
-def _casa(termo: str, limpo: str) -> bool:
-    """Termo inteiro (ou prefixo, com `*` no fim) numa mensagem normalizada."""
+def _padrao(termo: str) -> str:
+    """Termo inteiro (ou prefixo, com `*` no fim) como expressão sobre a mensagem normalizada."""
     if termo.endswith("*"):
-        return re.search(rf"(?<![a-z0-9]){re.escape(termo[:-1])}", limpo) is not None
-    return re.search(rf"(?<![a-z0-9]){re.escape(termo)}(?![a-z0-9])", limpo) is not None
+        return rf"(?<![a-z0-9]){re.escape(termo[:-1])}[a-z0-9]*"
+    return rf"(?<![a-z0-9]){re.escape(termo)}(?![a-z0-9])"
 
+
+def _casa(termo: str, limpo: str) -> bool:
+    return re.search(_padrao(termo), limpo) is not None
+
+
+@dataclass(frozen=True)
+class Perto:
+    """Termo composto: um termo de cada grupo, em qualquer ordem, separados por no máximo
+    `PALAVRAS_ENTRE` palavras."""
+
+    um: tuple[str, ...]
+    outro: tuple[str, ...]
+
+
+PALAVRAS_ENTRE = 3
+
+
+def _casou(termo: str | Perto, limpo: str) -> str | None:
+    """O termo que casou na mensagem (no composto, o par, unido por `+`) ou None."""
+    if isinstance(termo, str):
+        return termo if _casa(termo, limpo) else None
+    entre = rf"(?: [a-z0-9]+){{0,{PALAVRAS_ENTRE}}} "
+    for a, b in product(termo.um, termo.outro):
+        x, y = _padrao(a), _padrao(b)
+        if re.search(f"{x}{entre}{y}|{y}{entre}{x}", limpo):
+            return f"{a}+{b}"
+    return None
+
+
+# Perda ou extravio só é relato de fraude com cartão, carteira ou celular perto: "perdí la
+# conexión" e "no encuentro la compra en mi tarjeta" continuam consulta (ACH-101).
+PERDA_DE_MEIO = Perto(
+    ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*"),
+    ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular"),
+)
 
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
-TERMOS: tuple[tuple[Intencao, tuple[str, ...]], ...] = (
+TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("fraude", ("fraude", "robaron", "robo de", "un robo", "robada", "robado", "roubaram",
                 "roubo", "roubado", "roubada", "clonaron", "clonada", "clonado", "clonaram",
-                "hackearon", "hackearam", "invadiram", "perdi mi tarjeta", "perdi la tarjeta",
-                "perdi meu cartao", "perdi o cartao", "tarjeta perdida", "cartao perdido",
+                "hackearon", "hackearam", "invadiram", "asalt*", "assalt*", PERDA_DE_MEIO,
                 "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
                 "alguem usou meu cartao",
                 "no fui yo", "nao fui eu")),
-    ("humano", ("agente", "asesor", "atendente", "humano", "operador", "persona real",
+    ("humano", ("agente", "asesor", "atendente", "humano", "operador", "gerente", "ejecutivo",
+                "supervisor", "persona real",
                 "pessoa de verdade", "hablar con alguien", "falar com alguem",
                 "hablar con una persona", "falar com uma pessoa", "una persona", "uma pessoa",
                 "alguien", "alguem")),
@@ -252,7 +288,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "id_digitado": IDENTIFICADOR.search(texto) is not None,
     }
     for intencao, termos in TERMOS:
-        casados = tuple(t for t in termos if _casa(t, limpo))
+        casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
         if casados:
             return Interpretacao(intencao=intencao, sinais=casados, **pistas)
     return Interpretacao(intencao="desconhecida", **pistas)
