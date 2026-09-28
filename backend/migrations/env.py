@@ -10,7 +10,8 @@ from jeje.models import Base
 SCHEMAS = {"meta"}
 
 
-def incluir(objeto, nome, tipo, reflected, comparado_com):
+def incluir(nome, tipo, pais) -> bool:
+    """Filtro do autogenerate: só compara schemas do produto (o default chega como None)."""
     if tipo == "schema":
         return nome in SCHEMAS
     return True
