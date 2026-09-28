@@ -130,6 +130,11 @@ class Handoff(Base):
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+def _um_de(coluna: str, valores: tuple[str, ...]) -> str:
+    """Expressão do CHECK que limita a coluna a uma lista fechada de valores."""
+    return f"{coluna} IN (" + ", ".join(f"'{v}'" for v in valores) + ")"
+
+
 # Estados da conversa (fonte única: o tipo `conversa.Estado` e o CHECK do banco saem daqui).
 # `encerrada`: a recarga dos dados encerrou o atendimento em curso (PRD-002, DEV-020i).
 ESTADOS_DA_CONVERSA = (
@@ -143,9 +148,7 @@ class Conversa(Base):
     __tablename__ = "conversas"
     __table_args__ = (
         CheckConstraint("idioma IN ('es', 'pt')", name="idioma"),
-        CheckConstraint(
-            "estado IN (" + ", ".join(f"'{e}'" for e in ESTADOS_DA_CONVERSA) + ")", name="estado"
-        ),
+        CheckConstraint(_um_de("estado", ESTADOS_DA_CONVERSA), name="estado"),
         {"schema": "app"},
     )
 
@@ -194,9 +197,7 @@ class Evento(Base):
 
     __tablename__ = "eventos"
     __table_args__ = (
-        CheckConstraint(
-            "tipo IN (" + ", ".join(f"'{t}'" for t in TIPOS_DE_EVENTO) + ")", name="tipo"
-        ),
+        CheckConstraint(_um_de("tipo", TIPOS_DE_EVENTO), name="tipo"),
         CheckConstraint("latencia_ms >= 0", name="latencia"),
         {"schema": "app"},
     )
