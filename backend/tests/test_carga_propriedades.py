@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 from conftest import conexao
-from hypothesis import HealthCheck, given, settings
+from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 from sqlalchemy import text
 from test_carga import escrever_csv
@@ -35,6 +35,9 @@ TEXTO = st.text(
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 @given(textos=st.lists(TEXTO, min_size=1, max_size=15))
+# Casos perigosos garantidos em toda execução (o sorteio sozinho pode não produzi-los):
+# \r e \r\n dentro do campo, aspas, separadores e acentos ES/PT.
+@example(textos=["linha\r\nquebrada", "só\rretorno", 'aspas "duplas", vírgula; e ç', "¿Qué? ñ ã"])
 def test_texto_arbitrario_volta_do_banco_identico(banco_migrado, textos):
     with tempfile.TemporaryDirectory() as tmp:
         raiz, manifestos = Path(tmp) / "raw", Path(tmp) / "manifesto"
