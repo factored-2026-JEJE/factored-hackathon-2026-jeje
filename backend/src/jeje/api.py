@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from jeje import __version__, health
+from jeje import __version__, health, qualidade_api
 from jeje.config import Settings
 from jeje.db import create_db_engine
 
@@ -23,4 +23,5 @@ def create_app(settings: Settings) -> FastAPI:
     )
     app.state.engine = create_db_engine(settings)
     app.include_router(health.router)
+    app.include_router(qualidade_api.router)
     return app

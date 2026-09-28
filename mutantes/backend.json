@@ -1368,6 +1368,66 @@
       "testes": [
         "tests/test_dados_cli.py::test_preparar_recarrega_quando_o_pipeline_gravado_e_antigo"
       ]
+    },
+    {
+      "id": "M-QAPI-01",
+      "requisito": "R04",
+      "descricao": "Relatório em ordem alfabética, não na ordem de dependência",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qualidade_api.py",
+          "de": "                \" order by array_position(cast(:ordem as text[]), tabela)\"",
+          "para": "                \" order by tabela, array_length(cast(:ordem as text[]), 1)\""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade_api.py::test_relatorio_mostra_a_curadoria_da_ultima_carga_na_ordem_dos_contratos"
+      ]
+    },
+    {
+      "id": "M-QAPI-02",
+      "requisito": "R04",
+      "descricao": "Relatório esconde tabelas sem quarentena",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qualidade_api.py",
+          "de": "                \" normalizacoes from quality.relatorio\"",
+          "para": "                \" normalizacoes from quality.relatorio where quarentena > 0\""
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade_api.py::test_relatorio_mostra_a_curadoria_da_ultima_carga_na_ordem_dos_contratos"
+      ]
+    },
+    {
+      "id": "M-QAPI-03",
+      "requisito": "R04",
+      "descricao": "Relatório omite as anulações de referência",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qualidade_api.py",
+          "de": "    return [QualidadeTabela(**linha._mapping) for linha in linhas]",
+          "para": "    return [QualidadeTabela(**{**linha._mapping, \"anulacoes\": {}}) for linha in linhas]"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade_api.py::test_relatorio_mostra_a_curadoria_da_ultima_carga_na_ordem_dos_contratos"
+      ]
+    },
+    {
+      "id": "M-QAPI-04",
+      "requisito": "R04",
+      "descricao": "Rota devolve relatório fixo mesmo sem carga",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qualidade_api.py",
+          "de": "    return [QualidadeTabela(**linha._mapping) for linha in linhas]",
+          "para": "    return [QualidadeTabela(**linha._mapping) for linha in linhas] or [QualidadeTabela(tabela=\"branches\", raw=0, curado=0, quarentena=0, copias_descartadas=0, motivos={}, anulacoes={}, normalizacoes={})]"
+        }
+      ],
+      "testes": [
+        "tests/test_qualidade_api.py::test_sem_carga_o_relatorio_e_vazio"
+      ]
     }
   ]
 }

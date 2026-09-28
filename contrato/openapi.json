@@ -51,6 +51,29 @@
           }
         }
       }
+    },
+    "/dados/qualidade": {
+      "get": {
+        "summary": "Relatorio De Qualidade",
+        "description": "Relatório da última carga, na ordem de dependência dos contratos.",
+        "operationId": "relatorio_de_qualidade_dados_qualidade_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QualidadeTabela"
+                  },
+                  "type": "array",
+                  "title": "Response Relatorio De Qualidade Dados Qualidade Get"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -97,6 +120,63 @@
           "version"
         ],
         "title": "Liveness"
+      },
+      "QualidadeTabela": {
+        "properties": {
+          "tabela": {
+            "type": "string",
+            "title": "Tabela"
+          },
+          "raw": {
+            "type": "integer",
+            "title": "Raw"
+          },
+          "curado": {
+            "type": "integer",
+            "title": "Curado"
+          },
+          "quarentena": {
+            "type": "integer",
+            "title": "Quarentena"
+          },
+          "copias_descartadas": {
+            "type": "integer",
+            "title": "Copias Descartadas"
+          },
+          "motivos": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Motivos"
+          },
+          "anulacoes": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Anulacoes"
+          },
+          "normalizacoes": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Normalizacoes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tabela",
+          "raw",
+          "curado",
+          "quarentena",
+          "copias_descartadas",
+          "motivos",
+          "anulacoes",
+          "normalizacoes"
+        ],
+        "title": "QualidadeTabela"
       },
       "Readiness": {
         "properties": {
