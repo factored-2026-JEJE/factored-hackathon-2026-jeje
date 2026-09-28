@@ -14,7 +14,7 @@ Precisa só de **Docker**.
 
 ```bash
 cp .env.example .env   # cole as chaves do dataset (página 2 do dicionário)
-make up                # ou: docker compose up -d --build --wait
+make up                # ou: docker compose --profile modelo up -d --build --wait
 ```
 
 Abra **http://localhost:8080**, entre como um cliente de demonstração e converse.
@@ -34,13 +34,22 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 Em português também: "Não reconheço a cobrança…", "Por que recusaram minha compra?", "Roubaram
 meu cartão". As métricas do atendimento (encaminhamentos, pré-casos, latência) ficam ao lado.
 
-## Modelo local (opcional)
+## Modelo local
 
-A conversa funciona sem modelo. Com `INTERPRETADOR: "ollama"` no `compose.yaml`, as frases que as
-regras não entendem vão para um modelo local (Ollama, `qwen2.5:7b` por padrão), que só classifica:
-sim/não, fraude e identificadores continuam com as regras, e a política decide o que fazer. Modelo
-fora do ar ou saída inválida → segue pelas regras, e o trace do turno diz quem leu a mensagem. O
-Ollama do host precisa aceitar conexões dos containers (ex.: `OLLAMA_HOST=0.0.0.0:11434`).
+`make up` liga o modo modelo: as frases que as regras não entendem vão para um modelo local
+(Ollama do host, `qwen2.5:7b`), que só classifica. Sim/não, fraude, pedido de atendente e
+identificadores continuam com as regras, e a política decide o que fazer. A API lê a mensagem antes
+de travar a conversa (esperar o modelo não prende o banco), pede a carga do modelo ao iniciar (log
+`modelo pronto` ou `modelo indisponivel`) e o mantém carregado (`OLLAMA_KEEP_ALIVE`). Qualquer falha
+— modelo fora do ar, lento, resposta fora do formato — segue pelas regras, e o trace do turno
+(`app.eventos.interpretacao`, `make metricas`) diz quem leu cada mensagem e quanto o modelo custou.
+
+- O Ollama do host continua escutando só em `127.0.0.1`. A ponte `ollama-ponte` (profile `modelo`)
+  escuta só no IP do host na rede do Docker (172.17.0.1) e repassa: nada fica exposto na rede e o
+  Ollama não é reconfigurado.
+- Sem modelo: `INTERPRETADOR: "regras"` no serviço `api` do `compose.yaml`. Testes, fixture, CI e
+  mutantes já rodam com regras (`compose.ci.yaml`).
+- `make testar-modelo`: integração real com o Ollama (fora do gate; precisa da stack no ar).
 
 ## Logs
 
@@ -68,6 +77,7 @@ make check          # segredos + lint + testes + mutantes (cada teste precisa pe
 make e2e            # jornadas no navegador (Chromium e Firefox) contra a stack no ar
 make gate           # check + e2e + mutantes de ponta a ponta
 make metricas       # métricas recomputadas dos eventos de cada turno
+make testar-modelo  # integração real com o Ollama pela ponte (fora do gate)
 scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos os gates
 ```
 
