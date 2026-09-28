@@ -2383,7 +2383,7 @@
     {
       "id": "M-PRE-01",
       "requisito": "R03",
-      "descricao": "Confirmação repetida responde como se tivesse criado de novo",
+      "descricao": "Sem a trava por cliente, a confirmação repetida responde como se tivesse criado de novo (rowcount ignorado; a trava esconderia o defeito)",
       "trocas": [
         {
           "arquivo": "src/jeje/pre_caso.py",
@@ -2394,6 +2394,11 @@
           "arquivo": "src/jeje/pre_caso.py",
           "de": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
           "para": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
+        },
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    conexao.execute(\n        text(\"SELECT pg_advisory_xact_lock(hashtext(:cliente))\"), {\"cliente\": customer_id}\n    )\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -2548,7 +2553,7 @@
     {
       "id": "M-PRE-11",
       "requisito": "R03",
-      "descricao": "Sem trava nem unicidade: confirmações simultâneas duplicam o pré-caso",
+      "descricao": "Sem nenhuma trava nem unicidade: confirmações simultâneas duplicam o pré-caso",
       "trocas": [
         {
           "arquivo": "migrations/versions/0006_pre_casos.py",
@@ -2569,6 +2574,11 @@
           "arquivo": "src/jeje/pre_caso.py",
           "de": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n",
           "para": "    ja_registrado = pre_caso_da_transacao(conexao, customer_id, proposta.transaction_id)\n    if ja_registrado is not None:\n        return ja_registrado, False\n    import time\n\n    time.sleep(0.3)\n"
+        },
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    conexao.execute(\n        text(\"SELECT pg_advisory_xact_lock(hashtext(:cliente))\"), {\"cliente\": customer_id}\n    )\n",
+          "para": ""
         }
       ],
       "testes": [
