@@ -100,6 +100,49 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Solo puedo ayudar con consultas y solicitudes de revisión de tus transacciones.",
         "pt": "Só consigo ajudar com consultas e pedidos de revisão das suas transações.",
     },
+    "POL-ID-02": {
+        "es": "Por seguridad no busco transacciones por identificadores escritos en el chat. "
+        "¿Me indicas el valor, la fecha o el comercio?",
+        "pt": "Por segurança, não busco transações por identificadores escritos no chat. "
+        "Pode me dizer o valor, a data ou o estabelecimento?",
+    },
+    # Mensagens de fluxo da conversa (G10): não decidem nada, só conduzem o próximo passo.
+    "SAUDACAO": {
+        "es": "Hola. Puedo consultar el estado de tus transacciones y registrar una solicitud de "
+        "revisión de un cobro que no reconoces. ¿En qué te ayudo?",
+        "pt": "Olá. Posso consultar a situação das suas transações e registrar um pedido de "
+        "revisão de uma cobrança que você não reconhece. Como posso ajudar?",
+    },
+    "AJUDA": {
+        "es": "No entendí tu pedido. Puedo consultar una transacción o registrar una solicitud de "
+        "revisión. ¿Me indicas el valor, la fecha o el comercio?",
+        "pt": "Não entendi o seu pedido. Posso consultar uma transação ou registrar um pedido de "
+        "revisão. Pode me dizer o valor, a data ou o estabelecimento?",
+    },
+    "CONFIRMACAO-PENDENTE": {
+        "es": "¿Confirmas el registro de la solicitud de revisión de la transacción {transacao}? "
+        "Responde sí o no.",
+        "pt": "Você confirma o registro do pedido de revisão da transação {transacao}? "
+        "Responda sim ou não.",
+    },
+    "PROPOSTA-VENCIDA": {
+        "es": "La confirmación anterior ya no es válida; revisé de nuevo la transacción.",
+        "pt": "A confirmação anterior não vale mais; conferi a transação de novo.",
+    },
+    "CANCELADO": {
+        "es": "Listo, no registré nada. ¿Te ayudo con algo más?",
+        "pt": "Tudo bem, não registrei nada. Posso ajudar com mais alguma coisa?",
+    },
+    "ATENDIMENTO": {
+        "es": "Referencia de la atención: {atendimento}.",
+        "pt": "Referência do atendimento: {atendimento}.",
+    },
+    "COM-HUMANO": {
+        "es": "Tu caso ya está con un agente (referencia {atendimento}); la conversación sigue con "
+        "esa persona.",
+        "pt": "Seu caso já está com um atendente (referência {atendimento}); a conversa segue com "
+        "essa pessoa.",
+    },
 }
 
 
