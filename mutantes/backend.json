@@ -2896,6 +2896,321 @@
       ]
     },
     {
+      "id": "M-CONV-01",
+      "requisito": "R03",
+      "descricao": "Confirmação por palavra solta em qualquer frase (\"¿y si...?\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando\" and self.lida.resposta is not None:\n            return self._confirmar() if self.lida.resposta == \"sim\" else self._cancelar()",
+          "para": "        solta = \"si\" in self.mensagem.lower().split() or \"sí\" in self.mensagem.lower()\n        if self.estado == \"confirmando\" and (solta or self.lida.resposta is not None):\n            return self._confirmar() if solta or self.lida.resposta == \"sim\" else self._cancelar()"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_efeito_so_com_sim_explicito"
+      ]
+    },
+    {
+      "id": "M-CONV-02",
+      "requisito": "R03",
+      "descricao": "Turnos da mesma conversa sem trava (estado lido por dois ao mesmo tempo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            \" WHERE id = :id AND customer_id = :cliente FOR UPDATE\"\n        ),\n        {\"id\": conversa_id, \"cliente\": customer_id},\n    ).first()\n",
+          "para": "            \" WHERE id = :id AND customer_id = :cliente\"\n        ),\n        {\"id\": conversa_id, \"cliente\": customer_id},\n    ).first()\n    import time\n\n    time.sleep(0.3)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_turnos_simultaneos_na_mesma_conversa_sao_serializados"
+      ]
+    },
+    {
+      "id": "M-CONV-03",
+      "requisito": "R03",
+      "descricao": "Automação volta a responder depois do encaminhamento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"com_humano\":\n            # A automação não responde mais nada: só lembra quem está com o caso.\n            atendimento = self.contexto[\"atendimento\"]\n            return Saida(\n                \"COM-HUMANO\",\n                \"aguardar_humano\",\n                (texto(\"COM-HUMANO\", self.idioma, atendimento=atendimento),),\n                \"com_humano\",\n                self.contexto,\n                atendimento=atendimento,\n            )\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caminho_humano_fraude_encaminha_e_a_automacao_para"
+      ]
+    },
+    {
+      "id": "M-CONV-04",
+      "requisito": "R08",
+      "descricao": "Desambiguação considera transações de outro cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "            \" FROM curated.transactions WHERE customer_id = :cliente\"\n            \" AND (CAST(:status AS text) IS NULL OR transaction_status = :status)\"",
+          "para": "            \" FROM curated.transactions\"\n            \" WHERE (CAST(:status AS text) IS NULL OR transaction_status = :status)\""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caminho_ambiguo_so_age_depois_que_o_cliente_escolhe"
+      ]
+    },
+    {
+      "id": "M-CONV-05",
+      "requisito": "R02",
+      "descricao": "Várias transações candidatas: segue com a primeira sem perguntar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if resolucao.tipo == \"unica\":",
+          "para": "        if resolucao.tipo != \"nenhuma\":"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caminho_ambiguo_so_age_depois_que_o_cliente_escolhe"
+      ]
+    },
+    {
+      "id": "M-CONV-06",
+      "requisito": "R07",
+      "descricao": "Resposta sempre em espanhol, qualquer que seja a língua do cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        self.lida, self.mensagem, self.idioma = lida, mensagem, lida.idioma",
+          "para": "        self.lida, self.mensagem, self.idioma = lida, mensagem, \"es\""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_lingua_da_resposta_segue_a_do_cliente"
+      ]
+    },
+    {
+      "id": "M-CONV-07",
+      "requisito": "R02",
+      "descricao": "Falha de gravação respondida como sucesso (200)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        raise HTTPException(\n            status_code=503, detail=\"Turno não registrado; nada foi criado. Tente de novo.\"\n        ) from None",
+          "para": "        raise HTTPException(status_code=200, detail=\"ok\") from None"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_falha_ao_gravar_desfaz_o_turno_e_o_reenvio_registra_um"
+      ]
+    },
+    {
+      "id": "M-CONV-08",
+      "requisito": "R07",
+      "descricao": "Encaminhamento sem as ações tentadas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                acoes=tuple(self.acoes),",
+          "para": "                acoes=(),"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_contestacao_acima_do_limite_encaminha_com_fatos_e_acoes"
+      ]
+    },
+    {
+      "id": "M-CONV-09",
+      "requisito": "R03",
+      "descricao": "Esclarecimento sem fim: o contador não avança",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            \"esclarecimentos\": feitos + 1,",
+          "para": "            \"esclarecimentos\": feitos,"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_dois_esclarecimentos_sem_sucesso_encaminham_para_humano"
+      ]
+    },
+    {
+      "id": "M-CONV-10",
+      "requisito": "R03",
+      "descricao": "Recusa de fora de escopo desfaz a confirmação pendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            return Saida(decisao.regra, \"recusar\", (recusa,), self.estado, self.contexto)",
+          "para": "            return Saida(decisao.regra, \"recusar\", (recusa,), \"livre\")"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_fora_de_escopo_recusa_sem_desfazer_a_confirmacao_pendente"
+      ]
+    },
+    {
+      "id": "M-CONV-11",
+      "requisito": "R08",
+      "descricao": "Identificador digitado no chat vira busca na conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if id_digitado:\n        return Decisao(\"POL-ID-02\", \"recusar\", \"identificador digitado\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_identificador_digitado_nao_busca_nem_revela_nada"
+      ]
+    },
+    {
+      "id": "M-CONV-12",
+      "requisito": "R08",
+      "descricao": "Turno aceito em conversa de outro cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            \" WHERE id = :id AND customer_id = :cliente FOR UPDATE\"",
+          "para": "            \" WHERE id = :id FOR UPDATE\""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_conversa_de_outro_cliente_e_igual_a_inexistente"
+      ]
+    },
+    {
+      "id": "M-CONV-13",
+      "requisito": "R08",
+      "descricao": "Histórico da conversa sem filtro de dono",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                \" WHERE id = :id AND customer_id = :cliente\"\n",
+          "para": "                \" WHERE id = :id\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_conversa_de_outro_cliente_e_igual_a_inexistente"
+      ]
+    },
+    {
+      "id": "M-CONV-14",
+      "requisito": "R03",
+      "descricao": "Oferta de atendente aceita mesmo com \"não\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if self.lida.resposta == \"nao\":\n                return self._cancelar()\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_recusa_sem_motivo_oferece_atendente_e_so_encaminha_com_sim"
+      ]
+    },
+    {
+      "id": "M-CONV-15",
+      "requisito": "R03",
+      "descricao": "Estado da conversa não persiste entre turnos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "\"UPDATE app.conversas SET idioma = :idioma, estado = :estado,\"",
+          "para": "\"UPDATE app.conversas SET idioma = :idioma, estado = estado,\""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_estado_persiste_entre_turnos_e_o_historico_reabre_a_conversa"
+      ]
+    },
+    {
+      "id": "M-CONV-16",
+      "requisito": "R07",
+      "descricao": "Status traduzido sempre em espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            disponiveis[\"estado\"] = ESTADO[t.transaction_status][idioma]",
+          "para": "            disponiveis[\"estado\"] = ESTADO[t.transaction_status][\"es\"]"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pendente_informa_o_status_sem_prometer_prazo"
+      ]
+    },
+    {
+      "id": "M-CONV-17",
+      "requisito": "R07",
+      "descricao": "Motivo do código sempre em espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "MOTIVO_DO_CODIGO[codigo][self.idioma]",
+          "para": "MOTIVO_DO_CODIGO[codigo][\"es\"]"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caminho_normal_consulta_de_recusa_explica_o_codigo"
+      ]
+    },
+    {
+      "id": "M-CONV-18",
+      "requisito": "R02",
+      "descricao": "Nenhuma transação casa: responde sobre a mais recente (inventa)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if resolucao.tipo == \"unica\":\n            return self._agir(intencao, resolucao.transacoes[0])",
+          "para": "        if resolucao.tipo == \"nenhuma\":\n            return self._agir(intencao, self._candidatas(status)[0].transaction_id)\n        if resolucao.tipo == \"unica\":\n            return self._agir(intencao, resolucao.transacoes[0])"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_valor_que_nao_casa_pede_dados_sem_inventar_transacao"
+      ]
+    },
+    {
+      "id": "M-CONV-19",
+      "requisito": "R06",
+      "descricao": "Mensagem sem limite de tamanho nem mínimo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "    texto: str = Field(min_length=1, max_length=conversa.LIMITE_MENSAGEM)",
+          "para": "    texto: str"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_mensagem_vazia_ou_longa_demais_e_recusada_na_borda"
+      ]
+    },
+    {
+      "id": "M-CONV-20",
+      "requisito": "R03",
+      "descricao": "Pré-caso gravado sem esperar a confirmação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if proposta is not None:\n            contexto = {",
+          "para": "        if proposta is not None:\n            pre_caso.confirmar(self.conexao, self.customer_id, proposta.id, self.limite_usd)\n            contexto = {"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caminho_normal_propoe_confirma_e_registra_um_pre_caso_relido"
+      ]
+    },
+    {
+      "id": "M-CONV-21",
+      "requisito": "R07",
+      "descricao": "Contestação de recusada encaminha sem explicar o status",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "CLAUSULA_DO_HUMANO = {\"POL-CON-04\": \"POL-HUM-02\"}",
+          "para": "CLAUSULA_DO_HUMANO = {\"POL-CON-04\": \"POL-HUM-02\", \"POL-DISP-02\": \"POL-HUM-02\"}"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_contestacao_de_recusada_explica_e_encaminha_sem_pre_caso"
+      ]
+    },
+    {
       "id": "M-ITP-01",
       "requisito": "R03",
       "descricao": "Intenções avaliadas de trás para frente (autosserviço antes de segurança)",
