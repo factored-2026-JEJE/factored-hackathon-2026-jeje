@@ -827,6 +827,112 @@
       "testes": [
         "tests/test_download.py::test_baixa_todos_os_arquivos_identicos_aos_originais"
       ]
+    },
+    {
+      "id": "M-CLI-01",
+      "requisito": "ENG-003",
+      "descricao": "Fonte s3 aceita sem URI do bucket (falha só depois, no download)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/config.py",
+          "de": "        if self.dataset_source == \"s3\" and not self.dataset_s3_uri:",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_config_s3_sem_uri_falha_explicando_o_env"
+      ]
+    },
+    {
+      "id": "M-CLI-02",
+      "requisito": "ENG-003",
+      "descricao": "Tabela desconhecida na configuração é aceita",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/config.py",
+          "de": "        if desconhecidas:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_config_recusa_tabela_que_nao_existe_na_camada_raw"
+      ]
+    },
+    {
+      "id": "M-CLI-03",
+      "requisito": "ENG-003",
+      "descricao": "Espaços da lista de tabelas não são removidos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/config.py",
+          "de": "            return [tabela.strip() for tabela in valor.split(\",\") if tabela.strip()]",
+          "para": "            return [tabela for tabela in valor.split(\",\") if tabela]"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_config_separa_tabelas_por_virgula"
+      ]
+    },
+    {
+      "id": "M-CLI-04",
+      "requisito": "R06",
+      "descricao": "Não consulta a versão no banco antes de baixar (toda subida depende do bucket)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "    if versao_no_banco(settings) == versao:",
+          "para": "    if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_preparar_s3_baixa_carrega_e_depois_nao_consulta_o_bucket",
+        "tests/test_dados_cli.py::test_preparar_fixture_carrega_so_as_tabelas_configuradas_e_e_idempotente"
+      ]
+    },
+    {
+      "id": "M-CLI-05",
+      "requisito": "R04",
+      "descricao": "Carga ignora a seleção e usa todas as tabelas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "    tabelas = config.dataset_tables\n",
+          "para": "    tabelas = config.dataset_tables + [\"customers\"]\n"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_preparar_fixture_carrega_so_as_tabelas_configuradas_e_e_idempotente"
+      ]
+    },
+    {
+      "id": "M-CLI-06",
+      "requisito": "R06",
+      "descricao": "Fonte fixture tenta baixar do S3",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "    if config.dataset_source == \"s3\":\n        esperado",
+          "para": "    if True:\n        esperado"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_preparar_fixture_carrega_so_as_tabelas_configuradas_e_e_idempotente"
+      ]
+    },
+    {
+      "id": "M-CLI-07",
+      "requisito": "R06",
+      "descricao": "CLI engole o erro e sai com sucesso (seed verde com dados ruins)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "        print(f\"[dados] ERRO: {erro}\", file=sys.stderr)\n        return 1",
+          "para": "        print(f\"[dados] ERRO: {erro}\", file=sys.stderr)\n        return 0"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_cli_devolve_erro_e_mensagem_quando_arquivo_diverge"
+      ]
     }
   ]
 }
