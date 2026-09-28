@@ -1,4 +1,5 @@
 # Fonte única de execução e de toda configuração não secreta do produto (ENG-003).
+# JEJE_TAG (padrão "local") separa as imagens de execuções paralelas, ex.: gate num worktree.
 # Segredos (chaves do S3) ficam só no .env, fora do Git. Suba tudo com: docker compose up --build
 name: jeje
 
@@ -22,7 +23,7 @@ x-backend-test: &backend-test
   build:
     context: ./backend
     target: test
-  image: jeje-test:local
+  image: jeje-test:${JEJE_TAG:-local}
   profiles: ["test"]
   volumes:
     - ./contrato:/contrato:ro
@@ -44,7 +45,7 @@ x-web-test: &web-test
   build:
     context: ./frontend
     target: test
-  image: jeje-web-test:local
+  image: jeje-web-test:${JEJE_TAG:-local}
   profiles: ["test"]
 
 services:
@@ -71,7 +72,7 @@ services:
     build:
       context: ./backend
       target: runtime
-    image: jeje-api:local
+    image: jeje-api:${JEJE_TAG:-local}
     command: ["alembic", "upgrade", "head"]
     environment:
       <<: *app-env
@@ -82,7 +83,7 @@ services:
   # Baixa do S3 só o que falta (conferido pelo manifesto versionado) e carrega a camada raw numa
   # transação. Se a versão do manifesto já está no banco, termina na hora.
   seed:
-    image: jeje-api:local
+    image: jeje-api:${JEJE_TAG:-local}
     command: ["python", "-m", "jeje.dados", "preparar"]
     environment:
       <<: *app-env
@@ -105,7 +106,7 @@ services:
         condition: service_completed_successfully
 
   api:
-    image: jeje-api:local
+    image: jeje-api:${JEJE_TAG:-local}
     environment:
       <<: *app-env
     depends_on:
@@ -123,7 +124,7 @@ services:
     build:
       context: ./frontend
       target: runtime
-    image: jeje-web:local
+    image: jeje-web:${JEJE_TAG:-local}
     environment:
       API_UPSTREAM: api:8000
     depends_on:
@@ -203,7 +204,7 @@ services:
   e2e:
     build:
       context: ./e2e
-    image: jeje-e2e:local
+    image: jeje-e2e:${JEJE_TAG:-local}
     profiles: ["e2e"]
     environment:
       BASE_URL: http://web:8080
@@ -221,7 +222,7 @@ services:
   mutantes-e2e:
     build:
       context: ./mutantes
-    image: jeje-mutantes-e2e:local
+    image: jeje-mutantes-e2e:${JEJE_TAG:-local}
     profiles: ["mutantes-e2e"]
     working_dir: /repo
     environment:
@@ -230,7 +231,7 @@ services:
       TMPDIR: /tmp/jeje-mutantes
       # Prefixo dos projetos das stacks; outra execução em paralelo usa outro valor
       # (docker compose run -e MUTANTES_PREFIXO=... mutantes-e2e).
-      MUTANTES_PREFIXO: jejemut
+      MUTANTES_PREFIXO: ${MUTANTES_PREFIXO:-jejemut}
     volumes:
       - .:/repo:ro
       - /var/run/docker.sock:/var/run/docker.sock
