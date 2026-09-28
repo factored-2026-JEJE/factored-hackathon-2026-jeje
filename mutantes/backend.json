@@ -660,6 +660,7 @@
         }
       ],
       "testes": [
+        "tests/test_recarga.py::test_recarga_da_mesma_versao_nao_encerra_nada",
         "tests/test_carga.py::test_mesma_versao_nao_recarrega_nem_duplica"
       ]
     },
@@ -4839,6 +4840,81 @@
       ],
       "testes": [
         "tests/test_recarga.py::test_carga_desiste_sem_alterar_nada_se_a_api_segura_os_dados_alem_do_limite"
+      ]
+    },
+    {
+      "id": "M-REC-07",
+      "requisito": "R08",
+      "descricao": "Recarga não encerra as conversas: contexto da versão anterior vira 500 ou dado errado (ACH-031)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/recarga.py",
+          "de": "    conversas = conexao.execute(\n        text(\n            \"UPDATE app.conversas SET estado = 'encerrada', contexto = '{}', atualizada_em = now()\"\n            \" WHERE estado <> ALL(:terminais)\"\n        ),\n        {\"terminais\": sorted(TERMINAIS)},\n    ).rowcount\n",
+          "para": "    conversas = 0\n"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha"
+      ]
+    },
+    {
+      "id": "M-REC-08",
+      "requisito": "R03",
+      "descricao": "Recarga não vence as propostas pendentes: confirmação depois dela registra pré-caso sobre fatos que mudaram",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/recarga.py",
+          "de": "    propostas = conexao.execute(\n        text(\"UPDATE app.propostas_pre_caso SET expira_em = now() WHERE expira_em > now()\")\n    ).rowcount\n",
+          "para": "    propostas = 0\n"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha"
+      ]
+    },
+    {
+      "id": "M-REC-09",
+      "requisito": "R08",
+      "descricao": "Recarga não derruba as sessões abertas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/recarga.py",
+          "de": "    sessoes = conexao.execute(text(\"DELETE FROM app.sessoes\")).rowcount\n",
+          "para": "    sessoes = 0\n"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha"
+      ]
+    },
+    {
+      "id": "M-REC-10",
+      "requisito": "R07",
+      "descricao": "Recarga encerra também a conversa que está com atendente (cliente perde o número do caso)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/recarga.py",
+          "de": "        {\"terminais\": sorted(TERMINAIS)},",
+          "para": "        {\"terminais\": [\"encerrada\"]},"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha"
+      ]
+    },
+    {
+      "id": "M-REC-11",
+      "requisito": "R08",
+      "descricao": "Carga não chama o encerramento do atendimento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "            encerrado = recarga.encerrar_atendimento(conexao)\n",
+          "para": "            encerrado = recarga.Encerramento(0, 0, 0)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha"
       ]
     }
   ]

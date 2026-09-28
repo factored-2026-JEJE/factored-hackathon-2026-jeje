@@ -9,11 +9,11 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-from conftest import abrir_conversa, autenticar, cliente, conexao, registrar_dataset
+from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, registrar_dataset
 from sqlalchemy import text
 from test_carga import escrever_csv
 
-from jeje import recarga
+from jeje import recarga, sessao
 from jeje.dados import manifesto
 from jeje.dados.carga import CargaInvalida, carregar
 from jeje.db import create_db_engine
@@ -124,3 +124,109 @@ def test_carga_desiste_sem_alterar_nada_se_a_api_segura_os_dados_alem_do_limite(
     finally:
         api.dispose()
     assert tuple(versao_carregada(banco_migrado)) == anterior
+
+
+# ---- Recarga com ID reaproveitado (aceite do DEV-020i) ------------------------------------------
+
+TABELAS = ["customers", "products", "transactions"]
+CLIENTES = [
+    {"customer_id": "CLI-A", "first_name": "Ana", "last_name": "Alves"},
+    {"customer_id": "CLI-B", "first_name": "Bia", "last_name": "Borges"},
+]
+PRODUTOS = [
+    {"product_id": f"PRD-{c}", "customer_id": f"CLI-{c}", "product_type": "Cuenta Ahorro",
+     "currency": "USD", "product_status": "Active"}
+    for c in "AB"
+]  # fmt: skip
+
+
+def _trx(tid: str, dono: str, valor: str, comercio: str, quando: str) -> dict:
+    return {
+        "transaction_id": tid, "customer_id": f"CLI-{dono}", "product_id": f"PRD-{dono}",
+        "transaction_date": quando, "amount": valor, "currency": "USD",
+        "merchant_name": comercio, "transaction_status": "Approved",
+    }  # fmt: skip
+
+
+def publicar(raiz, manifestos, transacoes: list[dict]) -> None:
+    escrever_csv(raiz, "customers.csv", "customers", CLIENTES)
+    escrever_csv(raiz, "products.csv", "products", PRODUTOS)
+    escrever_csv(raiz, "transactions/year=2025/month=03/day=10/t.csv", "transactions", transacoes)
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, TABELAS))
+
+
+def test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha(banco_migrado, tmp_path):
+    """A TRX-X de A passa a ser de B e a TRX-Z de A muda de valor. Depois da recarga: a conversa
+    de A está encerrada e não mostra nada de B, a proposta de A não vira pré-caso, a sessão de A
+    caiu, a conversa de B com atendente continua, B contesta a TRX-X normalmente e nada dá 500."""
+    raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
+    publicar(raiz, manifestos, [
+        _trx("TRX-X", "A", "45.90", "Loja Um", "2025-03-10 14:00:00"),
+        _trx("TRX-Z", "A", "30.00", "Loja Dois", "2025-03-10 15:00:00"),
+        _trx("TRX-B1", "B", "80.00", "Loja Tres", "2025-03-10 16:00:00"),
+    ])  # fmt: skip
+    carregar(banco_migrado, raiz, manifestos, TABELAS, "fixture", "p1")
+    with conexao(banco_migrado) as con:
+        sessao.provisionar_personas(con, 2)
+    registrar = "No reconozco el cobro de 45,90 en Loja Um"
+    with cliente(banco_migrado) as http:
+        antes_a, antes_b = autenticar(http, "CLI-A"), autenticar(http, "CLI-B")
+        conversa_a = abrir_conversa(http, antes_a, "es")
+        assert dizer(http, antes_a, conversa_a, registrar)["acao"] == "propor_pre_caso"
+        proposta_z = http.post("/minhas/transacoes/TRX-Z/contestacao/proposta", headers=antes_a)
+        conversa_b = abrir_conversa(http, antes_b, "es")
+        assert dizer(http, antes_b, conversa_b, "Me robaron la tarjeta")["estado"] == "com_humano"
+
+        publicar(raiz, manifestos, [
+            _trx("TRX-X", "B", "45.90", "Loja Um", "2025-03-10 14:00:00"),
+            _trx("TRX-Z", "A", "31.00", "Loja Dois", "2025-03-10 15:00:00"),
+            _trx("TRX-B1", "B", "80.00", "Loja Tres", "2025-03-10 16:00:00"),
+        ])  # fmt: skip
+        assert carregar(banco_migrado, raiz, manifestos, TABELAS, "fixture", "p1").carregou
+
+        sessao_velha = http.get("/sessao", headers=antes_a)
+        a, b = autenticar(http, "CLI-A"), autenticar(http, "CLI-B")
+        historico_a = http.get(f"/conversas/{conversa_a}", headers=a)
+        sim = http.post(f"/conversas/{conversa_a}/turnos", json={"texto": "sí"}, headers=a)
+        confirmacao_z = http.post(
+            f"/minhas/propostas/{proposta_z.json()['proposta']['id']}/confirmacao", headers=a
+        )
+        de_a = http.get("/minhas/transacoes", headers=a)
+        x_para_a = http.get("/minhas/transacoes/TRX-X", headers=a)
+        com_humano = http.post(f"/conversas/{conversa_b}/turnos", json={"texto": "hola"}, headers=b)
+        conversa_nova_b = abrir_conversa(http, b, "es")
+        proposta_b = dizer(http, b, conversa_nova_b, registrar)
+        registrado_b = dizer(http, b, conversa_nova_b, "sí")
+    assert proposta_z.status_code == 201
+    assert (sim.status_code, sim.json()["regra"], sim.json()["transaction_id"]) == (
+        200, "ENCERRADA", None
+    )  # fmt: skip
+    assert historico_a.json()["estado"] == "encerrada"
+    assert sessao_velha.status_code == 401
+    assert "Loja Um" not in sim.json()["resposta"]
+    assert confirmacao_z.status_code == 409
+    assert [t["transaction_id"] for t in de_a.json()] == ["TRX-Z"]
+    assert x_para_a.status_code == 404
+    assert (com_humano.status_code, com_humano.json()["regra"]) == (200, "COM-HUMANO")
+    assert (proposta_b["transaction_id"], registrado_b["acao"]) == ("TRX-X", "registrar_pre_caso")
+    with conexao(banco_migrado) as con:
+        pre_casos = con.execute(text("SELECT customer_id, transaction_id FROM app.pre_casos"))
+        assert [tuple(p) for p in pre_casos] == [("CLI-B", "TRX-X")]
+
+
+def test_recarga_da_mesma_versao_nao_encerra_nada(banco_migrado, tmp_path):
+    raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
+    publicar(raiz, manifestos, [
+        _trx("TRX-Z", "A", "30.00", "Loja Dois", "2025-03-10 15:00:00"),
+        _trx("TRX-B1", "B", "80.00", "Loja Tres", "2025-03-10 16:00:00"),
+    ])  # fmt: skip
+    carregar(banco_migrado, raiz, manifestos, TABELAS, "fixture", "p1")
+    with conexao(banco_migrado) as con:
+        sessao.provisionar_personas(con, 2)
+    with cliente(banco_migrado) as http:
+        a = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, a, "es")
+        dizer(http, a, conversa, "No reconozco el cobro de 30,00 en Loja Dois")
+        assert not carregar(banco_migrado, raiz, manifestos, TABELAS, "fixture", "p1").carregou
+        continua = http.get(f"/conversas/{conversa}", headers=a)
+    assert (continua.status_code, continua.json()["estado"]) == (200, "confirmando")

@@ -111,6 +111,12 @@ def carregar(
                 print(f"[carga] {tabela}: {registros[tabela]} registros em "
                       f"{time.monotonic() - inicio:.1f}s", flush=True)  # fmt: skip
             resumos = qualidade.curar(cursor, tabelas)
+            encerrado = recarga.encerrar_atendimento(conexao)
+            print(
+                f"[recarga] atendimento encerrado: {encerrado.conversas} conversas, "
+                f"{encerrado.propostas} propostas, {encerrado.sessoes} sessões",
+                flush=True,
+            )
             for tabela, resumo in resumos.items():
                 print(
                     f"[qualidade] {tabela}: {resumo.curado} curados, {resumo.quarentena} em "
