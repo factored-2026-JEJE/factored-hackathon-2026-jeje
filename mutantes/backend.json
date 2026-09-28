@@ -346,6 +346,111 @@
       "testes": [
         "tests/test_migrations.py::test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema"
       ]
+    },
+    {
+      "id": "M-MAN-01",
+      "requisito": "R04",
+      "descricao": "Conta linhas físicas em vez de registros CSV (quebra de linha em campo entre aspas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "        return sum(1 for _ in csv.reader(arquivo)) - 1",
+          "para": "        return sum(1 for _ in arquivo) - 1"
+        }
+      ],
+      "testes": [
+        "tests/test_manifesto.py::test_gerar_conta_registros_csv_e_nao_linhas"
+      ]
+    },
+    {
+      "id": "M-MAN-02",
+      "requisito": "R04",
+      "descricao": "Contagem inclui o cabeçalho como registro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "        return sum(1 for _ in csv.reader(arquivo)) - 1",
+          "para": "        return sum(1 for _ in csv.reader(arquivo))"
+        }
+      ],
+      "testes": [
+        "tests/test_manifesto.py::test_gerar_trata_bom_e_arquivo_unico"
+      ]
+    },
+    {
+      "id": "M-MAN-03",
+      "requisito": "R04",
+      "descricao": "Hash com algoritmo mais fraco (md5) no lugar de sha256",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "    resumo = hashlib.sha256()\n    with caminho.open(\"rb\")",
+          "para": "    resumo = hashlib.md5()\n    with caminho.open(\"rb\")"
+        }
+      ],
+      "testes": [
+        "tests/test_manifesto.py::test_gerar_conta_registros_csv_e_nao_linhas"
+      ]
+    },
+    {
+      "id": "M-MAN-04",
+      "requisito": "R04",
+      "descricao": "Leitura perde a contagem de registros (lê bytes no lugar)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "                    registros=int(linha[\"registros\"]),",
+          "para": "                    registros=int(linha[\"bytes\"]),"
+        }
+      ],
+      "testes": [
+        "tests/test_manifesto.py::test_escrever_e_ler_preservam_o_manifesto"
+      ]
+    },
+    {
+      "id": "M-MAN-05",
+      "requisito": "R04",
+      "descricao": "Versão ignora a seleção de tabelas (usa sempre todas as presentes)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "    for tabela in sorted(tabelas):\n        resumo.update(f\"{tabela}\\n\".encode())",
+          "para": "    for tabela in sorted(p.stem for p in diretorio_manifesto.glob(\"*.csv\")):\n        resumo.update(f\"{tabela}\\n\".encode())"
+        }
+      ],
+      "testes": [
+        "tests/test_manifesto.py::test_versao_muda_com_arquivo_e_com_selecao_de_tabelas"
+      ]
+    },
+    {
+      "id": "M-MAN-06",
+      "requisito": "R04",
+      "descricao": "Tabela sem manifesto vira lista vazia silenciosamente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "        if not caminho.is_file():\n            raise ManifestoInvalido(f\"manifesto de {tabela} ausente em {diretorio_manifesto}\")",
+          "para": "        if not caminho.is_file():\n            manifesto[tabela] = []\n            continue"
+        }
+      ],
+      "testes": [
+        "tests/test_manifesto.py::test_ler_tabela_sem_manifesto_falha_nomeando_a_tabela"
+      ]
+    },
+    {
+      "id": "M-MAN-07",
+      "requisito": "R04",
+      "descricao": "Tabela sem arquivos gera manifesto vazio em vez de falhar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/manifesto.py",
+          "de": "        if not caminhos:\n            raise ManifestoInvalido(f\"nenhum arquivo da tabela {tabela} em {diretorio_raw}\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_manifesto.py::test_gerar_tabela_sem_arquivos_falha"
+      ]
     }
   ]
 }
