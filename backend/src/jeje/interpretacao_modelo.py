@@ -3,8 +3,9 @@
 Cascata: as regras leem primeiro; o modelo só é consultado quando elas não entendem a mensagem
 (intenção desconhecida, sem pista e sem sinal de segurança). Mesmo então ele só preenche intenção,
 língua e pistas — sim/não explícito, identificador digitado e relato de fraude continuam das
-regras, e quem decide o que fazer é a política. Saída inválida, com campo a mais, lenta ou servidor
-fora → vale a leitura das regras, com o motivo registrado no trace do turno.
+regras, e quem decide o que fazer é a política. Qualquer falha — saída inválida ou com campo a
+mais, resposta fora do formato, corpo cortado, lentidão ou servidor fora — vale a leitura das
+regras, com o motivo registrado no trace do turno.
 """
 
 import json
@@ -17,7 +18,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field
 
 from jeje import eventos
 from jeje.config import Settings
@@ -111,7 +112,9 @@ class Ollama:
         inicio, uso = time.perf_counter(), {}
         try:
             saida = self._perguntar(texto, uso)
-        except (OSError, ValueError, KeyError, ValidationError) as erro:
+        # Fronteira externa e opcional: qualquer falha ao obter uma leitura válida (rede, tempo,
+        # resposta fora do formato, corpo cortado, saída inválida) vale a leitura das regras.
+        except Exception as erro:
             fallback = f"regras (fallback: {type(erro).__name__})"
             # Só a classe do erro: a mensagem do cliente nunca vai para o log.
             log.warning(

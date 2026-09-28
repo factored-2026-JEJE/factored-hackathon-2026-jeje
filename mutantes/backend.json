@@ -4198,7 +4198,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "        except (OSError, ValueError, KeyError, ValidationError) as erro:",
+          "de": "        except Exception as erro:",
           "para": "        except KeyError as erro:"
         }
       ],
@@ -4324,6 +4324,21 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_instrucao_injetada_na_mensagem_nao_vira_acao"
+      ]
+    },
+    {
+      "id": "M-LLM-12",
+      "requisito": "R06",
+      "descricao": "Fallback só para rede e JSON: resposta fora do formato ou corpo cortado derruba o turno com 500",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        except Exception as erro:",
+          "para": "        except (OSError, ValueError, KeyError) as erro:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_resposta_do_servidor_fora_do_formato_fica_com_as_regras"
       ]
     },
     {

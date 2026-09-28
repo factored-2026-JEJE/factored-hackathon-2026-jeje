@@ -39,10 +39,18 @@ USO = {"prompt_eval_count": 120, "eval_count": 30}
 
 @contextmanager
 def ollama_falso(
-    conteudo: str, atraso_s: float = 0, status: int = 200, uso: dict = USO, ao_receber=None
+    conteudo: str,
+    atraso_s: float = 0,
+    status: int = 200,
+    uso: dict = USO,
+    ao_receber=None,
+    corpo: bytes | None = None,
+    declarado: int | None = None,
 ):
     """Stub da fronteira externa (o modelo): devolve `conteudo` (e os tokens em `uso`) e guarda
-    cada pedido recebido. `ao_receber` roda enquanto o "modelo pensa", antes da resposta."""
+    cada pedido recebido. `ao_receber` roda enquanto o "modelo pensa", antes da resposta.
+    `corpo` troca a resposta inteira (envelope fora do formato) e `declarado`, o Content-Length
+    anunciado (maior que o corpo: conexão cortada no meio da resposta)."""
     pedidos: list[dict] = []
 
     class Resposta(BaseHTTPRequestHandler):
@@ -52,12 +60,12 @@ def ollama_falso(
                 ao_receber()
             time.sleep(atraso_s)
             resposta = {"message": {"role": "assistant", "content": conteudo}, **uso}
-            corpo = json.dumps(resposta).encode()
+            enviado = json.dumps(resposta).encode() if corpo is None else corpo
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(corpo)))
+            self.send_header("Content-Length", str(declarado or len(enviado)))
             self.end_headers()
-            self.wfile.write(corpo)
+            self.wfile.write(enviado)
 
         def log_message(self, *_):
             pass
@@ -125,6 +133,21 @@ def test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem():
 )
 def test_saida_invalida_ou_com_campo_a_mais_fica_com_as_regras(conteudo):
     with ollama_falso(conteudo) as (url, _):
+        leitura = ler(url, VAGA)
+    assert leitura.fonte.startswith("regras (fallback: ")
+    assert leitura.lida == interpretar(VAGA, "es", REFERENCIA)
+
+
+@pytest.mark.parametrize(
+    ("corpo", "declarado"),
+    [
+        (b"[]", None),  # JSON de outra forma
+        (b'{"message": null}', None),  # envelope sem a mensagem
+        (b'{"message": {"role": "assistant", "content": "{\\"idioma\\": "}}', 500),  # cortado
+    ],
+)
+def test_resposta_do_servidor_fora_do_formato_fica_com_as_regras(corpo, declarado):
+    with ollama_falso(saida(), corpo=corpo, declarado=declarado) as (url, _):
         leitura = ler(url, VAGA)
     assert leitura.fonte.startswith("regras (fallback: ")
     assert leitura.lida == interpretar(VAGA, "es", REFERENCIA)
