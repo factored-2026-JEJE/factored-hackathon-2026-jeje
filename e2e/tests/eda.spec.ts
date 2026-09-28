@@ -59,7 +59,7 @@ test("EDA bate com o oráculo independente da origem carregada", async ({ reques
 
   if (prontidao.dataset.source === "fixture") {
     const status = Object.fromEntries(por["status-das-transacoes"]!.linhas.map((l) => [l.grupo, l.contagem]));
-    expect(status).toEqual({ Approved: 2, Declined: 1, Pending: 1 });
+    expect(status).toEqual({ Approved: 3, Declined: 1, Pending: 1 });
     expect(grupo("reclamacoes-por-categoria", "Transactions").contagem).toBe(1);
     expect(grupo("reclamacoes-por-categoria", "Transactions").base).toBe(2);
   } else {

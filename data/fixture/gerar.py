@@ -92,6 +92,12 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
              "process_date": "2025-03-11", "product_id": "PRD-FX00000001", "customer_id": "CLI-FX00000001",
              "transaction_type": "Payment", "amount": "55000.00", "currency": "COP", "channel": "App",
              "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
+            # Aprovada em USD abaixo do limite simulado: caso elegível para pré-caso (POL-DISP-01).
+            {"transaction_id": "TRX-FX0000000000000006", "transaction_date": "2025-03-11 20:15:00",
+             "process_date": "2025-03-11", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",
+             "transaction_type": "Purchase", "amount": "45.90", "currency": "USD", "channel": "Web",
+             "merchant_name": "Streaming Plus", "transaction_country": "México",
+             "transaction_status": "Approved", "response_code": "00", "is_fraud": "False"},
             # Defeito deliberado (Q-TIPO:amount): vírgula decimal não é um número válido.
             {"transaction_id": "TRX-FX0000000000000004", "transaction_date": "2025-03-11 11:30:00",
              "process_date": "2025-03-11", "product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002",
