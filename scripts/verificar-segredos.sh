@@ -12,8 +12,17 @@ docker run --rm -v "$PWD":/repo:ro \
 if [ -f .env ]; then
   valores=$(mktemp)
   trap 'rm -f "$valores"' EXIT
-  sed -n 's/^[A-Z_][A-Z0-9_]*=\(..*\)$/\1/p' .env > "$valores"
-  sed -n 's|^DATASET_S3_URI=s3://\([^/]*\).*|\1|p' .env >> "$valores"
+  # Valores com 8+ caracteres sem espaço (chaves, URI e o nome do bucket isolado). Vazios ou
+  # curtos não são segredo e, numa lista de padrões, casariam com qualquer linha (DEV-020d).
+  {
+    sed -n 's/^[A-Z_][A-Z0-9_]*=[[:space:]]*\([^[:space:]]*\)[[:space:]]*$/\1/p' .env
+    sed -n 's|^DATASET_S3_URI=[[:space:]]*s3://\([^/[:space:]]*\).*|\1|p' .env
+  } | grep -E '^.{8,}$' > "$valores" || true
+  if [ ! -s "$valores" ]; then
+    echo "segredos: .env sem valores para procurar"
+    echo "segredos: ok"
+    exit 0
+  fi
   if git log --all -p | grep -q -F -f "$valores"; then
     echo "ERRO: valor do .env aparece no histórico Git" >&2
     exit 1

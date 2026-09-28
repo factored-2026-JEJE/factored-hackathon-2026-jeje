@@ -54,6 +54,7 @@ contrato: build ## Regenera o OpenAPI versionado e os tipos TypeScript
 	$(TESTE) run --rm --no-deps -T web-test node scripts/gerar-tipos.ts /contrato/openapi.json /dev/stdout > frontend/src/api/schema.d.ts
 
 segredos: ## Nenhuma chave nem valor do .env no histórico Git (gitleaks + busca dos valores)
+	./scripts/testar-verificar-segredos.sh
 	./scripts/verificar-segredos.sh
 
 check: segredos lint test mutantes ## Tudo que não precisa da stack no ar
