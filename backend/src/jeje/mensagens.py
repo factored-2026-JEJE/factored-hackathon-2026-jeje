@@ -92,6 +92,18 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Esta solicitud necesita la revisión de un agente. Ya le paso el resumen.",
         "pt": "Este pedido precisa da revisão de um atendente. Já passo o resumo para ele.",
     },
+    "POL-HUM-04": {
+        "es": "Por seguridad, las solicitudes sobre transacciones hechas de noche por la app o la "
+        "web por encima del límite automático las revisa un agente. Ya le paso el resumen.",
+        "pt": "Por segurança, pedidos sobre transações feitas à noite pelo app ou pela web acima "
+        "do limite automático são revisados por um atendente. Já passo o resumo para ele.",
+    },
+    "POL-SEG-01": {
+        "es": "Las transferencias de alto valor pasan por un análisis de seguridad. Un agente de "
+        "seguridad va a revisar tu caso; ya le paso el resumen.",
+        "pt": "Transferências de alto valor passam por uma análise de segurança. Um atendente da "
+        "segurança vai revisar o seu caso; já passo o resumo para ele.",
+    },
     "POL-HUM-03": {
         "es": "Te comunico con un agente. Ya le paso el resumen de la conversación.",
         "pt": "Vou passar você para um atendente. Já envio o resumo da conversa.",

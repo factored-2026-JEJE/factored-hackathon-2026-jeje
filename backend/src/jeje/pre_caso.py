@@ -52,16 +52,47 @@ def pre_caso_da_transacao(conexao: Connection, customer_id: str, transaction_id:
     return None if linha is None else PreCaso(**linha._mapping)
 
 
-def propor(
-    conexao: Connection, customer_id: str, transaction_id: str, limite: Decimal, ttl_minutos: int
-) -> tuple[politica.Decisao, Proposta | None]:
+def noturno_digital_hoje(
+    conexao: Connection, customer_id: str, limites: politica.Limites
+) -> Decimal:
+    """Quanto o assistente já registrou hoje, em USD, de transações noturnas em canal digital do
+    cliente: é a base do limite do dia de POL-HUM-04."""
+    return sum(
+        (
+            f.amount_usd
+            for f in consultas.fatos_dos_pre_casos_de_hoje(conexao, customer_id)
+            if f.amount_usd is not None and politica.noturna_digital(f, limites)
+        ),
+        Decimal("0"),
+    )
+
+
+def avaliar(
+    conexao: Connection, customer_id: str, transaction_id: str, limites: politica.Limites
+) -> tuple[politica.Fatos, politica.Decisao]:
+    """Decisão da política para contestar a transação agora, com o pré-caso existente e o total
+    noturno digital do dia. Transação inexistente ou de outro cliente: NaoEncontrada."""
     fatos = consultas.fatos_da_transacao(conexao, customer_id, transaction_id)
     if fatos is None:
         raise NaoEncontrada(transaction_id)
     existente = pre_caso_da_transacao(conexao, customer_id, transaction_id)
     decisao = politica.decidir_contestacao(
-        fatos, limite, existente.protocolo if existente else None
+        fatos,
+        limites,
+        existente.protocolo if existente else None,
+        noturno_digital_hoje(conexao, customer_id, limites),
     )
+    return fatos, decisao
+
+
+def propor(
+    conexao: Connection,
+    customer_id: str,
+    transaction_id: str,
+    limites: politica.Limites,
+    ttl_minutos: int,
+) -> tuple[politica.Decisao, Proposta | None]:
+    fatos, decisao = avaliar(conexao, customer_id, transaction_id, limites)
     if decisao.acao != "propor_pre_caso":
         return decisao, None
     proposta_id = secrets.token_urlsafe(16)
@@ -93,9 +124,14 @@ def _fatos_json(fatos: politica.Fatos) -> str:
 
 
 def confirmar(
-    conexao: Connection, customer_id: str, proposta_id: str, limite: Decimal
+    conexao: Connection, customer_id: str, proposta_id: str, limites: politica.Limites
 ) -> tuple[PreCaso, bool]:
     """Devolve (pré-caso relido, criado_agora). Idempotente por proposta e por transação."""
+    # Uma confirmação por cliente de cada vez: o limite do dia (POL-HUM-04) soma o que já foi
+    # registrado, e duas confirmações simultâneas não podem ver o mesmo total.
+    conexao.execute(
+        text("SELECT pg_advisory_xact_lock(hashtext(:cliente))"), {"cliente": customer_id}
+    )
     proposta = conexao.execute(
         text(
             "SELECT transaction_id, expira_em > now() AS valida FROM app.propostas_pre_caso"
@@ -113,7 +149,12 @@ def confirmar(
     fatos = consultas.fatos_da_transacao(conexao, customer_id, proposta.transaction_id)
     if fatos is None:
         raise Conflito("a transação não está mais disponível")
-    decisao = politica.decidir_contestacao(fatos, limite, protocolo_existente=None)
+    decisao = politica.decidir_contestacao(
+        fatos,
+        limites,
+        protocolo_existente=None,
+        noturno_no_dia_usd=noturno_digital_hoje(conexao, customer_id, limites),
+    )
     if decisao.acao != "propor_pre_caso":
         raise Conflito(f"situação da transação mudou ({decisao.regra})")
     inserido = conexao.execute(

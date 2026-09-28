@@ -109,7 +109,7 @@ def enviar_mensagem(
                 ativa.customer_id,
                 conversa_id,
                 mensagem.texto,
-                config.limite_pre_caso_usd,
+                config.limites(),
                 config.proposta_ttl_minutos,
                 request.app.state.interpretador,
             )

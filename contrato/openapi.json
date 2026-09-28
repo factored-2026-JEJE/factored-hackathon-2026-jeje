@@ -355,7 +355,7 @@
     "/minhas/transacoes/{transaction_id}/contestacao": {
       "get": {
         "summary": "Avaliar Contestacao",
-        "description": "Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso.",
+        "description": "Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso (a mesma\navaliação da proposta: pré-caso existente, limites e total noturno do dia).",
         "operationId": "avaliar_contestacao_minhas_transacoes__transaction_id__contestacao_get",
         "security": [
           {

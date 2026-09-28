@@ -212,3 +212,52 @@ def test_avaliacao_reconhece_pre_caso_ja_aberto(cenario):
         ]
         avaliacao = http.get("/minhas/transacoes/TRX-OK/contestacao", headers=auth).json()
     assert avaliacao == {"regra": "POL-DISP-03", "acao": "responder", "detalhe": protocolo}
+
+
+@pytest.fixture
+def noturnas(base):
+    """Duas compras de USD 600 pelo app à noite: cada uma cabe no limite por transação (1.000),
+    as duas juntas passam do limite do dia (1.000) do compose."""
+    with conexao(base) as con:
+        for tid, hora in (("TRX-N1", "21:00:00"), ("TRX-N2", "23:30:00")):
+            raw_transacao(
+                con, tid, "CLI-A", "PRD-A", amount="600.00", channel="App",
+                transaction_date=f"2025-03-10 {hora}",
+            )  # fmt: skip
+    curar_tudo(base)
+    with conexao(base) as con:
+        sessao.provisionar_personas(con, 2)
+    return base
+
+
+def test_limite_do_dia_soma_o_que_ja_foi_registrado_hoje(noturnas):
+    with cliente(noturnas) as http:
+        auth = autenticar(http, "CLI-A")
+        primeira = http.post(PROPOR.format("TRX-N1"), headers=auth).json()
+        assert primeira["decisao"]["regra"] == "POL-DISP-01"
+        assert (
+            http.post(CONFIRMAR.format(primeira["proposta"]["id"]), headers=auth).status_code == 201
+        )
+        segunda = http.post(PROPOR.format("TRX-N2"), headers=auth).json()
+        avaliacao = http.get("/minhas/transacoes/TRX-N2/contestacao", headers=auth).json()
+    esperado = {"regra": "POL-HUM-04", "acao": "humano",
+                "detalhe": "noturna digital acima do limite do dia"}  # fmt: skip
+    assert (segunda["decisao"], segunda["proposta"]) == (esperado, None)
+    assert avaliacao == esperado  # a avaliação sem efeito diz o mesmo que a proposta
+    assert pre_casos(noturnas) == [("CLI-A", "TRX-N1")]
+
+
+def test_confirmacoes_simultaneas_nao_estouram_o_limite_do_dia(noturnas):
+    with servidor_http(noturnas) as url, httpx.Client(base_url=url) as http:
+        auth = autenticar(http, "CLI-A")
+        # As duas propostas nascem antes de qualquer registro: cada uma, sozinha, cabe no dia.
+        propostas = [
+            http.post(PROPOR.format(t), headers=auth).json()["proposta"]["id"]
+            for t in ("TRX-N1", "TRX-N2")
+        ]
+        with ThreadPoolExecutor(max_workers=2) as grupo:
+            respostas = list(
+                grupo.map(lambda p: http.post(CONFIRMAR.format(p), headers=auth), propostas)
+            )
+    assert sorted(r.status_code for r in respostas) == [201, 409]
+    assert len(pre_casos(noturnas)) == 1

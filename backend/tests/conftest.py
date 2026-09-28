@@ -225,7 +225,7 @@ def cenario_conversa(base):
             "TRX-A4",
             **a,
             transaction_date="2025-03-15 11:00:00",
-            amount="5000.00",
+            amount="7500.00",
             merchant_name="Boutique Moda",
         )
         raw_transacao(
@@ -244,6 +244,17 @@ def cenario_conversa(base):
             transaction_date="2025-03-11 20:00:00",
             amount="45.90",
             merchant_name="Cine Premium",
+        )
+        # Compra noturna pelo app acima do limite noturno por transação (POL-HUM-04), mais antiga
+        # que as outras: não entra nas listas de opções dos demais testes.
+        raw_transacao(
+            con,
+            "TRX-A7",
+            **a,
+            transaction_date="2025-03-09 23:10:00",
+            amount="1500.00",
+            merchant_name="Farmacia Salud",
+            channel="App",
         )
         # Mesmo valor, data e comércio do TRX-A1, mas de outro cliente.
         raw_transacao(con, "TRX-B1", "CLI-B", "PRD-B", transaction_date="2025-03-10 14:09:12",

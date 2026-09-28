@@ -196,7 +196,8 @@ export interface paths {
         };
         /**
          * Avaliar Contestacao
-         * @description Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso.
+         * @description Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso (a mesma
+         *     avaliação da proposta: pré-caso existente, limites e total noturno do dia).
          */
         get: operations["avaliar_contestacao_minhas_transacoes__transaction_id__contestacao_get"];
         put?: never;

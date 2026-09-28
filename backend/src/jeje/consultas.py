@@ -60,25 +60,48 @@ def transacao_do_cliente(
     return None if linha is None else Transacao(**linha)
 
 
-def fatos_da_transacao(conexao: Connection, customer_id: str, transaction_id: str) -> Fatos | None:
-    """Fatos verificados para a política; `amount_usd` vem normalizado da curada (N-USD) e fica
-    None quando não há conversão confiável — nunca usa o valor em moeda local como dólar."""
-    linha = conexao.execute(
-        text(
-            "SELECT transaction_id, transaction_status, response_code, amount_usd"
-            " FROM curated.transactions"
-            " WHERE customer_id = :cliente AND transaction_id = :transacao"
-        ),
-        {"cliente": customer_id, "transacao": transaction_id},
-    ).first()
-    if linha is None:
-        return None
+COLUNAS_DOS_FATOS = (
+    "t.transaction_id, t.transaction_status, t.response_code, t.amount_usd, t.transaction_type,"
+    " t.channel, t.transaction_date"
+)
+
+
+def _fatos(linha) -> Fatos:
     return Fatos(
         transaction_id=linha.transaction_id,
         status=linha.transaction_status,
         response_code=linha.response_code,
         amount_usd=linha.amount_usd,
+        transaction_type=linha.transaction_type,
+        channel=linha.channel,
+        transaction_date=linha.transaction_date,
     )
+
+
+def fatos_da_transacao(conexao: Connection, customer_id: str, transaction_id: str) -> Fatos | None:
+    """Fatos verificados para a política; `amount_usd` vem normalizado da curada (N-USD) e fica
+    None quando não há conversão confiável — nunca usa o valor em moeda local como dólar."""
+    linha = conexao.execute(
+        text(
+            f"SELECT {COLUNAS_DOS_FATOS} FROM curated.transactions t"
+            " WHERE t.customer_id = :cliente AND t.transaction_id = :transacao"
+        ),
+        {"cliente": customer_id, "transacao": transaction_id},
+    ).first()
+    return None if linha is None else _fatos(linha)
+
+
+def fatos_dos_pre_casos_de_hoje(conexao: Connection, customer_id: str) -> list[Fatos]:
+    """Transações do cliente com pré-caso registrado hoje (relógio do banco)."""
+    linhas = conexao.execute(
+        text(
+            f"SELECT {COLUNAS_DOS_FATOS} FROM app.pre_casos p JOIN curated.transactions t"
+            " ON t.customer_id = p.customer_id AND t.transaction_id = p.transaction_id"
+            " WHERE p.customer_id = :cliente AND p.criado_em >= current_date"
+        ),
+        {"cliente": customer_id},
+    )
+    return [_fatos(linha) for linha in linhas]
 
 
 def candidatas_do_cliente(

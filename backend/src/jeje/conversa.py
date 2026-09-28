@@ -11,7 +11,6 @@ import json
 import secrets
 import time
 from dataclasses import dataclass, field, replace
-from decimal import Decimal
 from functools import cached_property
 from typing import Literal
 
@@ -39,6 +38,8 @@ MAXIMO_OPCOES = 5
 PENDENCIAS = {
     "POL-HUM-01": "Tratar relato de fraude: bloqueio e análise do cartão",
     "POL-HUM-02": "Revisar contestação que a automação não pode registrar",
+    "POL-HUM-04": "Revisar contestação de transação noturna por celular ou computador",
+    "POL-SEG-01": "Análise de segurança de transferência de alto valor",
     "POL-HUM-03": "Atender o cliente no pedido abaixo",
     "POL-DISP-02": "Orientar sobre contestação de transação não aprovada",
     "POL-CON-04": "Explicar transação sem status ou motivo reconhecido",
@@ -127,13 +128,13 @@ class _Turno:
         contexto: dict,
         lida: Interpretacao,
         mensagem: str,
-        limite_usd: Decimal,
+        limites: politica.Limites,
         ttl_minutos: int,
     ) -> None:
         self.conexao, self.customer_id = conexao, customer_id
         self.estado, self.contexto = estado, contexto
         self.lida, self.mensagem, self.idioma = lida, mensagem, lida.idioma
-        self.limite_usd, self.ttl_minutos = limite_usd, ttl_minutos
+        self.limites, self.ttl_minutos = limites, ttl_minutos
         self.acoes: list[handoff.Acao] = [handoff.Acao(**a) for a in contexto.get("acoes", [])]
         self.fontes: dict[str, None] = {}  # de onde vieram os fatos e onde houve escrita (trace)
 
@@ -287,7 +288,7 @@ class _Turno:
 
     def _consultar(self, t: TransacaoVerificada) -> Saida:
         fatos = consultas.fatos_da_transacao(self.conexao, self.customer_id, t.transaction_id)
-        decisao = politica.decidir_consulta(fatos)
+        decisao = politica.decidir_consulta(fatos, self.limites)
         self._anotar("consultar_situacao", decisao.regra)
         if decisao.acao == "humano":
             return self._encaminhar(decisao, t)
@@ -312,7 +313,7 @@ class _Turno:
 
     def _contestar(self, t: TransacaoVerificada) -> Saida:
         decisao, proposta = pre_caso.propor(
-            self.conexao, self.customer_id, t.transaction_id, self.limite_usd, self.ttl_minutos
+            self.conexao, self.customer_id, t.transaction_id, self.limites, self.ttl_minutos
         )
         self._anotar("avaliar_contestacao", f"{decisao.regra}: {decisao.detalhe or decisao.acao}")
         self._fonte("app.pre_casos")
@@ -352,7 +353,7 @@ class _Turno:
         self._fonte("app.pre_casos")
         try:
             registrado, _ = pre_caso.confirmar(
-                self.conexao, self.customer_id, proposta_id, self.limite_usd
+                self.conexao, self.customer_id, proposta_id, self.limites
             )
         except pre_caso.Conflito:
             # Vencida ou situação mudou: reavalia a mesma transação com os fatos de agora.
@@ -445,7 +446,7 @@ def turno(
     customer_id: str,
     conversa_id: str,
     mensagem: str,
-    limite_usd: Decimal,
+    limites: politica.Limites,
     ttl_minutos: int,
     interpretador: Interpretador = pelas_regras,
 ) -> ResultadoDoTurno:
@@ -471,7 +472,7 @@ def turno(
         dict(linha.contexto),
         lida,
         mensagem,
-        limite_usd,
+        limites,
         ttl_minutos,
     )
     saida = atual.executar()

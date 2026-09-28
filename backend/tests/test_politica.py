@@ -13,15 +13,27 @@ from jeje.politica import (
     Candidata,
     Decisao,
     Fatos,
+    Limites,
     Pista,
     decidir_consulta,
     decidir_contestacao,
     decidir_esclarecimento,
     decidir_pedido,
+    noturna_digital,
     resolver_transacao,
 )
 
-LIMITE = Decimal("1000.00")
+# Limites do próprio teste (não os do compose): números diferentes para cada regra.
+LIMITES = Limites(
+    padrao_usd=Decimal("1000.00"),
+    noturno_usd=Decimal("200.00"),
+    noturno_dia_usd=Decimal("500.00"),
+    noturno_inicio_h=20,
+    noturno_fim_h=6,
+    canais_digitais=frozenset({"App", "Web"}),
+    seguranca_transferencia_usd=Decimal("50000.00"),
+)
+LIMITE = LIMITES.padrao_usd
 
 
 def fatos(status: str = "Approved", codigo: str | None = None, usd: str | None = "50.00") -> Fatos:
@@ -41,16 +53,16 @@ def fatos(status: str = "Approved", codigo: str | None = None, usd: str | None =
     ],
 )
 def test_consulta_segue_a_matriz_por_status_e_codigo(status, codigo, esperado):
-    assert decidir_consulta(fatos(status, codigo)) == esperado
+    assert decidir_consulta(fatos(status, codigo), LIMITES) == esperado
 
 
 def test_contestacao_de_aprovada_dentro_do_limite_propoe_pre_caso():
-    assert decidir_contestacao(fatos(), LIMITE, None) == Decisao("POL-DISP-01", "propor_pre_caso")
+    assert decidir_contestacao(fatos(), LIMITES, None) == Decisao("POL-DISP-01", "propor_pre_caso")
 
 
 def test_contestacao_no_limite_exato_ainda_propoe_e_um_centavo_acima_nao():
-    assert decidir_contestacao(fatos(usd="1000.00"), LIMITE, None).acao == "propor_pre_caso"
-    assert decidir_contestacao(fatos(usd="1000.01"), LIMITE, None) == Decisao(
+    assert decidir_contestacao(fatos(usd="1000.00"), LIMITES, None).acao == "propor_pre_caso"
+    assert decidir_contestacao(fatos(usd="1000.01"), LIMITES, None) == Decisao(
         "POL-HUM-02", "humano", "acima do limite simulado"
     )
 
@@ -58,19 +70,19 @@ def test_contestacao_no_limite_exato_ainda_propoe_e_um_centavo_acima_nao():
 @pytest.mark.parametrize("status", ["Declined", "Pending", "Reversed"])
 def test_contestacao_de_transacao_nao_aprovada_vai_para_humano_sem_pre_caso(status):
     """ACH-001: recusa não vira disputa em silêncio."""
-    assert decidir_contestacao(fatos(status), LIMITE, None) == Decisao(
+    assert decidir_contestacao(fatos(status), LIMITES, None) == Decisao(
         "POL-DISP-02", "humano", status
     )
 
 
 def test_contestacao_sem_valor_em_usd_vai_para_humano():
-    assert decidir_contestacao(fatos(usd=None), LIMITE, None) == Decisao(
+    assert decidir_contestacao(fatos(usd=None), LIMITES, None) == Decisao(
         "POL-HUM-02", "humano", "valor em USD indisponível"
     )
 
 
 def test_pre_caso_existente_devolve_o_protocolo_sem_propor_outro():
-    assert decidir_contestacao(fatos(), LIMITE, "PC-000123") == Decisao(
+    assert decidir_contestacao(fatos(), LIMITES, "PC-000123") == Decisao(
         "POL-DISP-03", "responder", "PC-000123"
     )
 
@@ -83,7 +95,7 @@ def test_pre_caso_existente_devolve_o_protocolo_sem_propor_outro():
 # Caso que a busca aleatória pode não sortear: tudo permitiria, menos o pré-caso já aberto.
 @example(status="Approved", valor=Decimal("50.00"), existente="PC-1")
 def test_propriedade_so_propoe_pre_caso_quando_toda_a_regra_permite(status, valor, existente):
-    decisao = decidir_contestacao(Fatos("T", status, None, valor), LIMITE, existente)
+    decisao = decidir_contestacao(Fatos("T", status, None, valor), LIMITES, existente)
     assert decisao.regra.startswith("POL-")
     if decisao.acao == "propor_pre_caso":
         assert status == "Approved" and valor is not None and valor <= LIMITE
@@ -157,4 +169,90 @@ def test_dois_esclarecimentos_sem_sucesso_levam_ao_humano():
     assert decidir_esclarecimento(1) == Decisao("POL-CON-02", "esclarecer")
     assert decidir_esclarecimento(2) == Decisao(
         "POL-HUM-03", "humano", "esclarecimentos sem sucesso"
+    )
+
+
+# ---- Limites por horário, canal e tipo (PRD-001) ------------------------------------------------
+
+
+def em(hora: str, canal: str | None = "App", usd: str = "150.00", tipo: str = "Purchase",
+       status: str = "Approved") -> Fatos:  # fmt: skip
+    return Fatos(
+        "TRX-N", status, None, Decimal(usd), tipo, canal,
+        datetime.fromisoformat(f"2025-03-10T{hora}"),
+    )  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("hora", "canal", "noturna"),
+    [
+        ("20:00:00", "App", True), ("19:59:59", "App", False), ("05:59:59", "Web", True),
+        ("06:00:00", "Web", False), ("23:30:00", "POS", False), ("02:00:00", "ATM", False),
+        ("03:00:00", None, False),
+    ],
+)  # fmt: skip
+def test_noturna_digital_pelo_horario_e_pelo_canal(hora, canal, noturna):
+    assert noturna_digital(em(hora, canal), LIMITES) is noturna
+
+
+def test_sem_data_ou_com_janela_no_mesmo_dia():
+    assert (
+        noturna_digital(Fatos("T", "Approved", None, Decimal("10"), None, "App"), LIMITES) is False
+    )
+    madrugada = Limites(**{**LIMITES.__dict__, "noturno_inicio_h": 1, "noturno_fim_h": 5})
+    assert noturna_digital(em("03:00:00"), madrugada) is True
+    assert noturna_digital(em("23:00:00"), madrugada) is False
+
+
+@pytest.mark.parametrize(
+    ("usd", "no_dia", "esperado"),
+    [
+        ("200.00", "0", Decisao("POL-DISP-01", "propor_pre_caso")),
+        ("200.01", "0",
+         Decisao("POL-HUM-04", "humano", "noturna digital acima do limite por transação")),
+        ("100.00", "400.00", Decisao("POL-DISP-01", "propor_pre_caso")),
+        ("100.01", "400.00",
+         Decisao("POL-HUM-04", "humano", "noturna digital acima do limite do dia")),
+    ],
+)  # fmt: skip
+def test_noturna_digital_tem_limite_por_transacao_e_por_dia(usd, no_dia, esperado):
+    assert (
+        decidir_contestacao(em("22:00:00", "Web", usd), LIMITES, None, Decimal(no_dia)) == esperado
+    )
+
+
+def test_de_dia_ou_em_canal_fisico_vale_so_o_limite_padrao():
+    ja_no_dia = Decimal("400")
+    assert decidir_contestacao(em("14:00:00", "App", "900.00"), LIMITES, None, ja_no_dia).regra == (
+        "POL-DISP-01"
+    )
+    assert decidir_contestacao(em("22:00:00", "POS", "900.00"), LIMITES, None, ja_no_dia).regra == (
+        "POL-DISP-01"
+    )
+    assert decidir_contestacao(em("22:00:00", "POS", "1000.01"), LIMITES, None).regra == (
+        "POL-HUM-02"
+    )
+
+
+@pytest.mark.parametrize(
+    ("tipo", "usd", "status", "regra"),
+    [
+        ("Transfer", "50000.01", "Approved", "POL-SEG-01"),
+        ("Transfer", "50000.00", "Approved", "POL-HUM-02"),  # no limite: não é atípica
+        ("Transfer", "60000.00", "Declined", "POL-SEG-01"),  # segurança antes do status
+        ("Payment", "60000.00", "Approved", "POL-HUM-02"),  # só transferência
+    ],
+)
+def test_transferencia_atipica_vai_para_seguranca_na_contestacao(tipo, usd, status, regra):
+    fatos = em("11:00:00", "Web", usd, tipo, status)
+    assert decidir_contestacao(fatos, LIMITES, None).regra == regra
+
+
+def test_transferencia_atipica_vai_para_seguranca_tambem_na_consulta():
+    atipica = em("11:00:00", "Web", "60000.00", "Transfer", "Declined")
+    assert decidir_consulta(atipica, LIMITES) == Decisao(
+        "POL-SEG-01", "humano", "transferência acima do limite de segurança"
+    )
+    assert decidir_consulta(em("11:00:00", "Web", "60000.00", "Payment"), LIMITES).regra == (
+        "POL-CON-01"
     )

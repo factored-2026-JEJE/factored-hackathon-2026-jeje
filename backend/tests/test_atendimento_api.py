@@ -24,7 +24,7 @@ def test_fila_mostra_os_encaminhamentos_com_o_resumo_na_ordem(cenario_conversa):
         "POL-HUM-02", "CLI-A", "aberto"
     )  # fmt: skip
     assert segundo["transacao"] == {
-        "transaction_id": "TRX-A4", "data": "2025-03-15T11:00:00", "valor": "5000.00",
+        "transaction_id": "TRX-A4", "data": "2025-03-15T11:00:00", "valor": "7500.00",
         "moeda": "USD", "comercio": "Boutique Moda", "status": "Approved",
     }  # fmt: skip
     assert segundo["acoes"] == [

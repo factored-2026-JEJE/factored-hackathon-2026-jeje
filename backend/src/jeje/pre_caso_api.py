@@ -58,7 +58,7 @@ def propor(
                 conexao,
                 ativa.customer_id,
                 transaction_id,
-                config.limite_pre_caso_usd,
+                config.limites(),
                 config.proposta_ttl_minutos,
             )
         except pre_caso.NaoEncontrada:
@@ -92,7 +92,7 @@ def confirmar(
     try:
         with engine.begin() as conexao:
             registrado, criado_agora = pre_caso.confirmar(
-                conexao, ativa.customer_id, proposta_id, _settings(request).limite_pre_caso_usd
+                conexao, ativa.customer_id, proposta_id, _settings(request).limites()
             )
     except pre_caso.NaoEncontrada:
         raise HTTPException(status_code=404, detail="Proposta não encontrada") from None

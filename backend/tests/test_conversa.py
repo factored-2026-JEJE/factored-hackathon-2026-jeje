@@ -273,12 +273,33 @@ def test_contestacao_acima_do_limite_encaminha_com_fatos_e_acoes(cenario):
     )  # fmt: skip
     [registro] = handoffs(cenario)
     assert registro["transacao"] == {
-        "transaction_id": "TRX-A4", "data": "2025-03-15T11:00:00", "valor": "5000.00",
+        "transaction_id": "TRX-A4", "data": "2025-03-15T11:00:00", "valor": "7500.00",
         "moeda": "USD", "comercio": "Boutique Moda", "status": "Approved",
     }  # fmt: skip
     assert registro["acoes"] == [
         {"acao": "identificar_transacao", "resultado": "TRX-A4 (Approved)"},
         {"acao": "avaliar_contestacao", "resultado": "POL-HUM-02: acima do limite simulado"},
+    ]
+    assert pre_casos(cenario) == [] and contar(cenario, "propostas_pre_caso") == 0
+
+
+def test_contestacao_noturna_pelo_app_acima_do_limite_vai_para_humano(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        resposta = dizer(
+            http, auth, abrir_conversa(http, auth, "es"), "No reconozco la compra en Farmacia Salud"
+        )
+    assert (resposta["regra"], resposta["acao"], resposta["transaction_id"]) == (
+        "POL-HUM-04", "humano", "TRX-A7"
+    )  # fmt: skip
+    assert resposta["resposta"].startswith(
+        "Por seguridad, las solicitudes sobre transacciones hechas de noche por la app o la web "
+        "por encima del límite automático las revisa un agente."
+    )
+    [registro] = handoffs(cenario)
+    assert registro["pendencias"] == [
+        "Revisar contestação de transação noturna por celular ou computador "
+        "(noturna digital acima do limite por transação)"
     ]
     assert pre_casos(cenario) == [] and contar(cenario, "propostas_pre_caso") == 0
 

@@ -98,6 +98,51 @@
       ]
     },
     {
+      "id": "M-CFG-03",
+      "requisito": "R06",
+      "descricao": "Limite noturno por transação lido do campo do limite padrão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/config.py",
+          "de": "            noturno_usd=self.limite_noturno_usd,",
+          "para": "            noturno_usd=self.limite_pre_caso_usd,"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_limites_noturnos_vem_da_configuracao"
+      ]
+    },
+    {
+      "id": "M-CFG-04",
+      "requisito": "R06",
+      "descricao": "Canais digitais fixos, ignorando o compose",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/config.py",
+          "de": "            canais_digitais=frozenset(\n                c.strip() for c in self.canais_digitais.split(\",\") if c.strip()\n            ),",
+          "para": "            canais_digitais=frozenset({\"App\", \"Web\"}),"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_limites_noturnos_vem_da_configuracao"
+      ]
+    },
+    {
+      "id": "M-CFG-05",
+      "requisito": "R06",
+      "descricao": "Limite de segurança fixo, ignorando o compose",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/config.py",
+          "de": "            seguranca_transferencia_usd=self.limite_seguranca_transferencia_usd,",
+          "para": "            seguranca_transferencia_usd=Decimal(\"50000\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_limite_de_seguranca_vem_da_configuracao"
+      ]
+    },
+    {
       "id": "M-DB-01",
       "requisito": "ENG-003",
       "descricao": "Engine usa URL fixa no código em vez da configuração",
@@ -2132,8 +2177,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/politica.py",
-          "de": "    if fatos.amount_usd > limite_usd:",
-          "para": "    if fatos.amount_usd >= limite_usd:"
+          "de": "    if fatos.amount_usd > limites.padrao_usd:",
+          "para": "    if fatos.amount_usd >= limites.padrao_usd:"
         }
       ],
       "testes": [
@@ -2147,8 +2192,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/politica.py",
-          "de": "    if fatos.amount_usd > limite_usd:",
-          "para": "    if fatos.amount_usd > limite_usd * 1000:"
+          "de": "    if fatos.amount_usd > limites.padrao_usd:",
+          "para": "    if fatos.amount_usd > limites.padrao_usd * 1000:"
         }
       ],
       "testes": [
@@ -2282,8 +2327,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/consultas.py",
-          "de": "            \" WHERE customer_id = :cliente AND transaction_id = :transacao\"\n        ),\n        {\"cliente\": customer_id, \"transacao\": transaction_id},\n    ).first()",
-          "para": "            \" WHERE :cliente = :cliente AND transaction_id = :transacao\"\n        ),\n        {\"cliente\": customer_id, \"transacao\": transaction_id},\n    ).first()"
+          "de": "            \" WHERE t.customer_id = :cliente AND t.transaction_id = :transacao\"",
+          "para": "            \" WHERE :cliente = :cliente AND t.transaction_id = :transacao\""
         }
       ],
       "testes": [
@@ -2297,8 +2342,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/consultas.py",
-          "de": "            \"SELECT transaction_id, transaction_status, response_code, amount_usd\"",
-          "para": "            \"SELECT transaction_id, transaction_status, response_code, amount AS amount_usd\""
+          "de": "    \"t.transaction_id, t.transaction_status, t.response_code, t.amount_usd, t.transaction_type,\"",
+          "para": "    \"t.transaction_id, t.transaction_status, t.response_code, t.amount AS amount_usd, t.transaction_type,\""
         }
       ],
       "testes": [
@@ -2311,14 +2356,9 @@
       "descricao": "Limite fixo no código, ignorando a configuração",
       "trocas": [
         {
-          "arquivo": "src/jeje/transacoes_api.py",
-          "de": "    limite = request.app.state.settings.limite_pre_caso_usd",
-          "para": "    limite = Decimal(\"1000\")"
-        },
-        {
-          "arquivo": "src/jeje/transacoes_api.py",
-          "de": "from fastapi import APIRouter, HTTPException, Path, Query, Request\n",
-          "para": "from decimal import Decimal\n\nfrom fastapi import APIRouter, HTTPException, Path, Query, Request\n"
+          "arquivo": "src/jeje/config.py",
+          "de": "            padrao_usd=self.limite_pre_caso_usd,",
+          "para": "            padrao_usd=Decimal(\"5000\"),"
         }
       ],
       "testes": [
@@ -2332,8 +2372,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/transacoes_api.py",
-          "de": "decisao=decisao_para_resposta(politica.decidir_consulta(fatos))",
-          "para": "decisao=decisao_para_resposta(politica.decidir_contestacao(fatos, fatos.amount_usd, None))"
+          "de": "        decisao=decisao_para_resposta(politica.decidir_consulta(fatos, limites)),",
+          "para": "        decisao=decisao_para_resposta(politica.decidir_contestacao(fatos, limites, None)),"
         }
       ],
       "testes": [
@@ -2457,8 +2497,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/pre_caso.py",
-          "de": "    decisao = politica.decidir_contestacao(\n        fatos, limite, existente.protocolo if existente else None\n    )",
-          "para": "    decisao = politica.decidir_contestacao(fatos, limite, None)"
+          "de": "        existente.protocolo if existente else None,\n",
+          "para": "        None,\n"
         }
       ],
       "testes": [
@@ -2626,6 +2666,141 @@
       ]
     },
     {
+      "id": "M-POL-23",
+      "requisito": "R03",
+      "descricao": "Período noturno começa uma hora depois (20h não conta)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        return hora >= inicio or hora < fim",
+          "para": "        return hora > inicio or hora < fim"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_noturna_digital_pelo_horario_e_pelo_canal"
+      ]
+    },
+    {
+      "id": "M-POL-24",
+      "requisito": "R03",
+      "descricao": "Regra noturna ignora o canal (POS e ATM contam como celular)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if fatos.transaction_date is None or fatos.channel not in limites.canais_digitais:",
+          "para": "    if fatos.transaction_date is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_noturna_digital_pelo_horario_e_pelo_canal"
+      ]
+    },
+    {
+      "id": "M-POL-25",
+      "requisito": "R03",
+      "descricao": "Limite do dia ignora o que já foi registrado hoje",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        if noturno_no_dia_usd + fatos.amount_usd > limites.noturno_dia_usd:",
+          "para": "        if fatos.amount_usd > limites.noturno_dia_usd:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_noturna_digital_tem_limite_por_transacao_e_por_dia"
+      ]
+    },
+    {
+      "id": "M-POL-26",
+      "requisito": "R03",
+      "descricao": "Noturna digital usa o limite padrão por transação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        if fatos.amount_usd > limites.noturno_usd:",
+          "para": "        if fatos.amount_usd > limites.padrao_usd:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_noturna_digital_tem_limite_por_transacao_e_por_dia"
+      ]
+    },
+    {
+      "id": "M-POL-27",
+      "requisito": "R03",
+      "descricao": "Status avaliado antes da segurança (transferência atípica recusada não vai para análise)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if transferencia_atipica(fatos, limites):\n        return SEGURANCA\n    if fatos.status != \"Approved\":\n        return Decisao(\"POL-DISP-02\", \"humano\", fatos.status)\n",
+          "para": "    if fatos.status != \"Approved\":\n        return Decisao(\"POL-DISP-02\", \"humano\", fatos.status)\n    if transferencia_atipica(fatos, limites):\n        return SEGURANCA\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_transferencia_atipica_vai_para_seguranca_na_contestacao"
+      ]
+    },
+    {
+      "id": "M-POL-28",
+      "requisito": "R03",
+      "descricao": "Transferência exatamente no limite de segurança tratada como atípica",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        and fatos.amount_usd > limites.seguranca_transferencia_usd",
+          "para": "        and fatos.amount_usd >= limites.seguranca_transferencia_usd"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_transferencia_atipica_vai_para_seguranca_na_contestacao"
+      ]
+    },
+    {
+      "id": "M-POL-29",
+      "requisito": "R03",
+      "descricao": "Consulta de transferência atípica respondida sem análise de segurança",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if transferencia_atipica(fatos, limites):\n        return SEGURANCA\n    if fatos.status == \"Approved\":",
+          "para": "    if fatos.status == \"Approved\":"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_transferencia_atipica_vai_para_seguranca_tambem_na_consulta"
+      ]
+    },
+    {
+      "id": "M-POL-30",
+      "requisito": "R03",
+      "descricao": "Janela noturna no mesmo dia tratada como se atravessasse a meia-noite",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return inicio <= hora < fim",
+          "para": "    return hora >= inicio or hora < fim"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_sem_data_ou_com_janela_no_mesmo_dia"
+      ]
+    },
+    {
+      "id": "M-POL-31",
+      "requisito": "R03",
+      "descricao": "Regra noturna vale o dia inteiro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        return hora >= inicio or hora < fim",
+          "para": "        return True"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_de_dia_ou_em_canal_fisico_vale_so_o_limite_padrao"
+      ]
+    },
+    {
       "id": "M-PAPI-05",
       "requisito": "R02",
       "descricao": "Situação de pendente/estornada sem dizer qual é o status",
@@ -2641,14 +2816,34 @@
       ]
     },
     {
+      "id": "M-PAPI-06",
+      "requisito": "R03",
+      "descricao": "Situação de transferência atípica sem a regra de segurança na API",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "        decisao=decisao_para_resposta(politica.decidir_consulta(fatos, limites)),",
+          "para": "        decisao=decisao_para_resposta(politica.decidir_consulta(fatos, replace(limites, seguranca_transferencia_usd=Decimal(10**12)))),"
+        },
+        {
+          "arquivo": "src/jeje/transacoes_api.py",
+          "de": "from typing import Annotated\n",
+          "para": "from dataclasses import replace\nfrom decimal import Decimal\nfrom typing import Annotated\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica_api.py::test_transferencia_atipica_vai_para_seguranca_tambem_na_situacao"
+      ]
+    },
+    {
       "id": "M-PRE-12",
       "requisito": "R03",
       "descricao": "Avaliação ignora pré-caso já aberto e diz que ainda pode contestar",
       "trocas": [
         {
-          "arquivo": "src/jeje/transacoes_api.py",
-          "de": "        fatos, limite, protocolo_existente=existente.protocolo if existente else None",
-          "para": "        fatos, limite, protocolo_existente=None"
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "        existente.protocolo if existente else None,\n",
+          "para": "        None,\n"
         }
       ],
       "testes": [
@@ -2668,6 +2863,41 @@
       ],
       "testes": [
         "tests/test_pre_caso.py::test_proposta_confirmada_gera_um_protocolo_relido_do_banco"
+      ]
+    },
+    {
+      "id": "M-PRE-14",
+      "requisito": "R03",
+      "descricao": "Total noturno do dia sempre zero",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "            if f.amount_usd is not None and politica.noturna_digital(f, limites)",
+          "para": "            if False"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_limite_do_dia_soma_o_que_ja_foi_registrado_hoje"
+      ]
+    },
+    {
+      "id": "M-PRE-15",
+      "requisito": "R03",
+      "descricao": "Confirmações do mesmo cliente sem trava (as duas veem o mesmo total do dia)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "    conexao.execute(\n        text(\"SELECT pg_advisory_xact_lock(hashtext(:cliente))\"), {\"cliente\": customer_id}\n    )\n",
+          "para": ""
+        },
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "        raise Conflito(f\"situação da transação mudou ({decisao.regra})\")\n",
+          "para": "        raise Conflito(f\"situação da transação mudou ({decisao.regra})\")\n    import time\n\n    time.sleep(0.3)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_confirmacoes_simultaneas_nao_estouram_o_limite_do_dia"
       ]
     },
     {
@@ -3278,7 +3508,7 @@
         {
           "arquivo": "src/jeje/conversa.py",
           "de": "        if proposta is not None:\n            self._fonte(\"app.propostas_pre_caso\")\n",
-          "para": "        if proposta is not None:\n            self._fonte(\"app.propostas_pre_caso\")\n            pre_caso.confirmar(self.conexao, self.customer_id, proposta.id, self.limite_usd)\n"
+          "para": "        if proposta is not None:\n            self._fonte(\"app.propostas_pre_caso\")\n            pre_caso.confirmar(self.conexao, self.customer_id, proposta.id, self.limites)\n"
         }
       ],
       "testes": [
@@ -3298,6 +3528,21 @@
       ],
       "testes": [
         "tests/test_conversa.py::test_contestacao_de_recusada_explica_e_encaminha_sem_pre_caso"
+      ]
+    },
+    {
+      "id": "M-CONV-22",
+      "requisito": "R07",
+      "descricao": "Noturna digital encaminha com a cláusula genérica de revisão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "CLAUSULA_DO_HUMANO = {\"POL-CON-04\": \"POL-HUM-02\"}",
+          "para": "CLAUSULA_DO_HUMANO = {\"POL-CON-04\": \"POL-HUM-02\", \"POL-HUM-04\": \"POL-HUM-02\"}"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_contestacao_noturna_pelo_app_acima_do_limite_vai_para_humano"
       ]
     },
     {

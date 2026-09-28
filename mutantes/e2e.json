@@ -256,7 +256,7 @@
       "trocas": [
         {
           "arquivo": "backend/src/jeje/conversa.py",
-          "de": "            registrado, _ = pre_caso.confirmar(\n                self.conexao, self.customer_id, proposta_id, self.limite_usd\n            )",
+          "de": "            registrado, _ = pre_caso.confirmar(\n                self.conexao, self.customer_id, proposta_id, self.limites\n            )",
           "para": "            registrado = pre_caso.PreCaso(\"PC-00000077\", transaction_id, \"recebido\", None)"
         }
       ],

@@ -34,10 +34,51 @@ class Fatos:
     status: str
     response_code: str | None
     amount_usd: Decimal | None  # None quando não há conversão confiável (ACH-019)
+    transaction_type: str | None = None
+    channel: str | None = None
+    transaction_date: datetime | None = None  # horário local da transação
 
 
-def decidir_consulta(fatos: Fatos) -> Decisao:
+@dataclass(frozen=True)
+class Limites:
+    """Limites da política simulada do banco (PRD-001, decididos por Jader), em USD, do compose."""
+
+    padrao_usd: Decimal  # POL-HUM-02: por transação
+    noturno_usd: Decimal  # POL-HUM-04: por transação noturna em canal digital
+    noturno_dia_usd: Decimal  # POL-HUM-04: soma do dia das noturnas digitais já registradas
+    noturno_inicio_h: int  # começo do período noturno (inclusive)
+    noturno_fim_h: int  # fim do período noturno (exclusive)
+    canais_digitais: frozenset[str]  # celular e computador
+    seguranca_transferencia_usd: Decimal  # POL-SEG-01
+
+
+def noturna_digital(fatos: Fatos, limites: Limites) -> bool:
+    """Feita à noite por celular ou computador. A base não diz se o dispositivo é cadastrado:
+    todo acesso digital noturno conta como não cadastrado (PRD-001, conservador)."""
+    if fatos.transaction_date is None or fatos.channel not in limites.canais_digitais:
+        return False
+    hora, inicio, fim = fatos.transaction_date.hour, limites.noturno_inicio_h, limites.noturno_fim_h
+    if inicio > fim:  # atravessa a meia-noite (ex.: das 20h às 6h)
+        return hora >= inicio or hora < fim
+    return inicio <= hora < fim
+
+
+def transferencia_atipica(fatos: Fatos, limites: Limites) -> bool:
+    """Transferência acima do limite de segurança: vai para análise (consulta ou contestação)."""
+    return (
+        fatos.transaction_type == "Transfer"
+        and fatos.amount_usd is not None
+        and fatos.amount_usd > limites.seguranca_transferencia_usd
+    )
+
+
+SEGURANCA = Decisao("POL-SEG-01", "humano", "transferência acima do limite de segurança")
+
+
+def decidir_consulta(fatos: Fatos, limites: Limites) -> Decisao:
     """O que responder sobre a situação de uma transação."""
+    if transferencia_atipica(fatos, limites):
+        return SEGURANCA
     if fatos.status == "Approved":
         return Decisao("POL-CON-01", "responder")
     if fatos.status == "Declined":
@@ -51,16 +92,27 @@ def decidir_consulta(fatos: Fatos) -> Decisao:
 
 
 def decidir_contestacao(
-    fatos: Fatos, limite_usd: Decimal, protocolo_existente: str | None
+    fatos: Fatos,
+    limites: Limites,
+    protocolo_existente: str | None,
+    noturno_no_dia_usd: Decimal = Decimal("0"),
 ) -> Decisao:
-    """Pedido de contestação: pré-caso só para Approved do cliente, dentro do limite simulado."""
+    """Pedido de contestação: pré-caso só para Approved do cliente, dentro dos limites simulados.
+    `noturno_no_dia_usd` é o que o assistente já registrou hoje de noturnas digitais do cliente."""
     if protocolo_existente is not None:
         return Decisao("POL-DISP-03", "responder", protocolo_existente)
+    if transferencia_atipica(fatos, limites):
+        return SEGURANCA
     if fatos.status != "Approved":
         return Decisao("POL-DISP-02", "humano", fatos.status)
     if fatos.amount_usd is None:
         return Decisao("POL-HUM-02", "humano", "valor em USD indisponível")
-    if fatos.amount_usd > limite_usd:
+    if noturna_digital(fatos, limites):
+        if fatos.amount_usd > limites.noturno_usd:
+            return Decisao("POL-HUM-04", "humano", "noturna digital acima do limite por transação")
+        if noturno_no_dia_usd + fatos.amount_usd > limites.noturno_dia_usd:
+            return Decisao("POL-HUM-04", "humano", "noturna digital acima do limite do dia")
+    if fatos.amount_usd > limites.padrao_usd:
         return Decisao("POL-HUM-02", "humano", "acima do limite simulado")
     return Decisao("POL-DISP-01", "propor_pre_caso")
 

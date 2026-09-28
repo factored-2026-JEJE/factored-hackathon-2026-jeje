@@ -45,14 +45,6 @@ class Situacao(BaseModel):
     decisao: DecisaoDaPolitica
 
 
-def _fatos_ou_404(engine, customer_id: str, transaction_id: str) -> politica.Fatos:
-    with engine.connect() as conexao:
-        fatos = consultas.fatos_da_transacao(conexao, customer_id, transaction_id)
-    if fatos is None:
-        raise HTTPException(status_code=404, detail=NAO_ENCONTRADA)
-    return fatos
-
-
 def decisao_para_resposta(decisao: politica.Decisao) -> DecisaoDaPolitica:
     return DecisaoDaPolitica(regra=decisao.regra, acao=decisao.acao, detalhe=decisao.detalhe)
 
@@ -61,7 +53,10 @@ def decisao_para_resposta(decisao: politica.Decisao) -> DecisaoDaPolitica:
     "/minhas/transacoes/{transaction_id}/situacao", responses={404: {"description": NAO_ENCONTRADA}}
 )
 def situacao(
-    transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)], ativa: SessaoDep, engine: EngineDep
+    transaction_id: Annotated[str, Path(pattern=ID_DA_BASE)],
+    ativa: SessaoDep,
+    engine: EngineDep,
+    request: Request,
 ) -> Situacao:
     """Fatos da transação e a decisão da política para uma consulta sobre ela (POL-CON-*)."""
     with engine.connect() as conexao:
@@ -69,8 +64,10 @@ def situacao(
         transacao = consultas.transacao_do_cliente(conexao, ativa.customer_id, transaction_id)
     if fatos is None or transacao is None:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA)
+    limites = request.app.state.settings.limites()
     return Situacao(
-        transacao=transacao, decisao=decisao_para_resposta(politica.decidir_consulta(fatos))
+        transacao=transacao,
+        decisao=decisao_para_resposta(politica.decidir_consulta(fatos, limites)),
     )
 
 
@@ -84,12 +81,12 @@ def avaliar_contestacao(
     engine: EngineDep,
     request: Request,
 ) -> DecisaoDaPolitica:
-    """Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso."""
-    fatos = _fatos_ou_404(engine, ativa.customer_id, transaction_id)
+    """Avalia, sem criar nada, se uma contestação desta transação pode virar pré-caso (a mesma
+    avaliação da proposta: pré-caso existente, limites e total noturno do dia)."""
+    limites = request.app.state.settings.limites()
     with engine.connect() as conexao:
-        existente = pre_caso.pre_caso_da_transacao(conexao, ativa.customer_id, transaction_id)
-    limite = request.app.state.settings.limite_pre_caso_usd
-    decisao = politica.decidir_contestacao(
-        fatos, limite, protocolo_existente=existente.protocolo if existente else None
-    )
+        try:
+            _, decisao = pre_caso.avaliar(conexao, ativa.customer_id, transaction_id, limites)
+        except pre_caso.NaoEncontrada:
+            raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None
     return decisao_para_resposta(decisao)

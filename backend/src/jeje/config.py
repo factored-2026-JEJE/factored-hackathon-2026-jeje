@@ -11,6 +11,8 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from jeje.politica import Limites
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=False, extra="ignore")
@@ -25,8 +27,17 @@ class Settings(BaseSettings):
     sessao_ttl_minutos: int = Field(gt=0)
     # Liga a abertura de sessão por persona de demonstração (DEV-008); desligado, só 404.
     modo_demo: bool
-    # Valor máximo (USD) de contestação que vira pré-caso automático (POL-HUM-02, simulado).
+    # Limites da política simulada do pré-caso (PRD-001), em USD. Padrão por transação (POL-HUM-02).
     limite_pre_caso_usd: Decimal = Field(gt=0)
+    # À noite, em canal digital (celular ou computador): por transação e soma do dia (POL-HUM-04).
+    limite_noturno_usd: Decimal = Field(gt=0)
+    limite_noturno_dia_usd: Decimal = Field(gt=0)
+    # Período noturno [início, fim) em horas locais da transação e canais digitais (vírgulas).
+    noturno_inicio_h: int = Field(ge=0, le=23)
+    noturno_fim_h: int = Field(ge=0, le=23)
+    canais_digitais: str
+    # Transferência acima disto vai para análise de segurança (POL-SEG-01).
+    limite_seguranca_transferencia_usd: Decimal = Field(gt=0)
     # Validade da proposta de pré-caso até a confirmação do cliente, em minutos.
     proposta_ttl_minutos: int = Field(gt=0)
     # Leitura da mensagem: "regras" (sem modelo) ou "ollama" (modelo local só quando as regras não
@@ -36,3 +47,17 @@ class Settings(BaseSettings):
     ollama_url: str
     ollama_modelo: str
     ollama_timeout_s: float = Field(gt=0)
+
+    def limites(self) -> Limites:
+        """Os limites da política, na forma que ela usa."""
+        return Limites(
+            padrao_usd=self.limite_pre_caso_usd,
+            noturno_usd=self.limite_noturno_usd,
+            noturno_dia_usd=self.limite_noturno_dia_usd,
+            noturno_inicio_h=self.noturno_inicio_h,
+            noturno_fim_h=self.noturno_fim_h,
+            canais_digitais=frozenset(
+                c.strip() for c in self.canais_digitais.split(",") if c.strip()
+            ),
+            seguranca_transferencia_usd=self.limite_seguranca_transferencia_usd,
+        )
