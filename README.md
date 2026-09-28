@@ -26,6 +26,26 @@ explícita. Com os limites da política, 86,3% das transações aprovadas em USD
 contestação registrada sem atendente; o resto vai para um atendente com o resumo pronto. A base não
 tem conversas em português (transcrições 100% em espanhol): os casos em português são do time.
 
+## Como funciona
+
+```mermaid
+flowchart LR
+  navegador[Navegador<br/>React] -->|/api| caddy[Caddy]
+  caddy --> api[API FastAPI]
+  api --> sessao[Sessão de teste<br/>quem é o cliente]
+  api --> leitura[Leitura da mensagem<br/>regras primeiro]
+  leitura -. só o que as regras<br/>não entendem .-> ollama[(Ollama do host<br/>pela ponte)]
+  api --> politica[Política determinística<br/>regras POL-*]
+  politica --> acoes[Consulta · pré-caso<br/>encaminhamento]
+  acoes --> banco[(PostgreSQL<br/>curada + atendimento<br/>+ eventos)]
+  seed[Seed: S3 → manifesto<br/>→ raw → curada] --> banco
+```
+
+Toda consulta e ação leva o cliente da sessão (dado de outro cliente é igual a inexistente). O texto
+do cliente só escolhe a pergunta feita à política; o modelo só classifica, nunca decide nem executa.
+Efeito (pré-caso) só com um “sim” explícito ligado à proposta, gravado sem duplicar e relido antes
+de responder.
+
 ## Ligar tudo
 
 Precisa só de **Docker**.
@@ -152,7 +172,7 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
 - `e2e/` — jornadas no navegador; `mutantes/` — defeitos deliberados que os testes precisam pegar.
 - `data/manifesto/` — versão dos dados (hash de cada arquivo); `data/fixture/` — dataset sintético.
 
-## Limites
+## Operação e limites
 
 - Política **simulada** e rotulada, com limites decididos pelo time (todos no `compose.yaml`): o
   assistente registra sozinho a contestação de transação aprovada até USD 5.000; à noite
@@ -163,3 +183,16 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
 - Motivo de recusa usa o significado genérico dos códigos ISO 8583, rotulado como tal.
 - Acesso por cliente de demonstração (sem senha) e console do atendente existem só com
   `MODO_DEMO` ligado; num banco real, os dois exigiriam autenticação.
+- Versão dos dados: o hash dos manifestos e o do código do pipeline ficam em `meta.dataset_version`
+  (mostrados na página de status); mudou qualquer um, o `make up` recarrega (ver Recarga dos dados).
+- Retenção: conversas, turnos, eventos, pré-casos e encaminhamentos ficam no banco sem expiração
+  automática (demonstração); sessões valem 60 min e caem na recarga; propostas vencem em 10 min.
+  Um banco real precisaria de prazo de retenção definido.
+- Minimização: o modelo recebe só a mensagem, nunca cliente, transação ou sessão; os logs não
+  guardam mensagem, token nem cliente; o encaminhamento leva o pedido cortado em 280 caracteres e só
+  fatos verificados da transação.
+- Capacidade medida neste PC (uma API, dados reais): turno lido pelas regras ~10 ms; com o modelo
+  local carregado ~1,5 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa
+  ~5 min. Não medido: muitos clientes ao mesmo tempo e o servidor de publicação.
+- Falta: publicação (destino por decidir), integração do classificador de intenção do time e a
+  validação independente em andamento.
