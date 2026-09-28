@@ -691,6 +691,36 @@
       "testes": [
         "tests/test_carga.py::test_carga_grava_registros_texto_nulos_linhagem_e_versao"
       ]
+    },
+    {
+      "id": "M-PROP-01",
+      "requisito": "R07",
+      "descricao": "Carga lê o CSV como latin-1: acentos ES/PT corrompidos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "    with caminho.open(encoding=\"utf-8-sig\", newline=\"\") as arquivo, cursor.copy(comando) as copia:",
+          "para": "    with caminho.open(encoding=\"latin-1\", newline=\"\") as arquivo, cursor.copy(comando) as copia:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga_propriedades.py::test_texto_arbitrario_volta_do_banco_identico"
+      ]
+    },
+    {
+      "id": "M-PROP-02",
+      "requisito": "R04",
+      "descricao": "Carga abre o CSV sem newline='': \\r dentro de campo vira \\n",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "    with caminho.open(encoding=\"utf-8-sig\", newline=\"\") as arquivo, cursor.copy(comando) as copia:",
+          "para": "    with caminho.open(encoding=\"utf-8-sig\") as arquivo, cursor.copy(comando) as copia:"
+        }
+      ],
+      "testes": [
+        "tests/test_carga_propriedades.py::test_texto_arbitrario_volta_do_banco_identico"
+      ]
     }
   ]
 }
