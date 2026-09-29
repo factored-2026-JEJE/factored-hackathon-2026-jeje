@@ -11,6 +11,18 @@ RUN pip install --no-cache-dir uv==0.12.19
 WORKDIR /app
 COPY pyproject.toml uv.lock .python-version ./
 
+# Leitor e5: baixa o corpus e os pesos fixados por commit e sha256 e treina (CPU, alguns minutos).
+# Copia só o código que o treino usa, para o cache do Docker não retreinar a cada mudança no resto
+# do backend. Saída em /opt/modelos: os pesos do e5 e o artefato do classificador.
+FROM base AS modelo
+RUN uv sync --frozen --no-dev --group leitor --group modelo --no-install-project
+COPY src/jeje/__init__.py ./src/jeje/
+COPY src/jeje/dados/__init__.py src/jeje/dados/manifesto.py ./src/jeje/dados/
+COPY src/jeje/leitor ./src/jeje/leitor
+RUN PYTHONPATH=src python -m jeje.leitor treinar /tmp/corpus /opt/modelos/e5 \
+        /opt/modelos/leitor.joblib \
+    && rm -rf /tmp/corpus
+
 # Execução: só dependências de produção, usuário sem privilégio.
 FROM base AS runtime
 RUN uv sync --frozen --no-dev --no-install-project
