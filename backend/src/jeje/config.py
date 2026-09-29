@@ -69,8 +69,8 @@ class Settings(BaseSettings):
     ollama_carga_timeout_s: float = Field(gt=0)
     # Reviews das conversas de teste: quem pode avaliar (logins do GitHub separados por vírgula;
     # vazio: ninguém), o repositório onde cada review vira Issue e a API do GitHub. Sem repositório
-    # ou sem token, a review fica só no banco. O token é segredo: vem do ambiente (no Codespace, o
-    # dele).
+    # ou sem token, a review fica só no banco. O token é segredo: vem do ambiente de quem sobe a
+    # stack (make exportar-reviews).
     testadores: str
     reviews_repo: str
     github_api_url: str
