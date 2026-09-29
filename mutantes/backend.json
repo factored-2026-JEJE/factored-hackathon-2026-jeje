@@ -6246,6 +6246,21 @@
       "testes": [
         "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
       ]
+    },
+    {
+      "id": "M-ITP-35",
+      "requisito": "R02",
+      "descricao": "Ramo do comércio ignorado: \"numa ótica\", \"los pasajes\", \"loja de roupa\" não acham Óptica Visión, Viajes, Boutique Moda",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        ramo = [t for p in palavras for t in RAMO.get(p, ())]",
+          "para": "        ramo = []"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
     }
   ]
 }

@@ -335,14 +335,41 @@ COMUNS = frozenset(
 )  # fmt: skip
 
 
+# O que o cliente diz do comércio sem dizer o nome ("numa ótica", "los pasajes", "loja de roupa"):
+# palavra do nome → como o cliente fala dela, em ES e PT. Os nomes da base já dizem o ramo
+# ("Óptica Visión", "Viajes El Cóndor", "Boutique Moda"); o e5 sem treino, medido nas conversas da
+# QA, trocava "a compra da viagem" e "la ropa" por Uber, então aqui é vocabulário, não modelo.
+RAMO: dict[str, tuple[str, ...]] = {
+    "optica": ("otica", "oculos", "lentes", "gafas", "anteojos"),
+    "farmacia": ("drogaria", "drogueria", "remedio*", "medicamento*"),
+    "ferreteria": ("ferragem", "ferragens", "herramienta*", "ferramenta*"),
+    "viajes": ("viagem", "viagens", "viaje", "pasaje*", "passage*", "vuelo*", "voo", "voos"),
+    "cine": ("cinema", "pelicula*", "filme*"),
+    "cafe": ("cafezinho", "cafeteria"),
+    "moda": ("roupa*", "ropa", "vestido*"),
+    "boutique": ("roupa*", "ropa", "vestido*"),
+    "restaurante": ("almuerzo", "almoco", "jantar"),
+    "gasolinera": ("gasolina", "combustivel", "combustible"),
+    "clinica": ("medico", "doctor"),
+    "conciertos": ("concierto", "show", "shows"),
+    "streaming": ("assinatura", "suscripcion"),
+    "telefonica": ("telefone", "telefono"),
+    "mercado": ("supermercado", "mercearia"),
+    "super": ("supermercado",),
+}
+
+
 def comercio_citado(texto: str, comercios: Iterable[str]) -> str | None:
-    """Comércio (dentre os das transações do próprio cliente) citado na mensagem: nome inteiro ou
-    palavra distintiva dele. Mais de um citado → nenhum (quem escolhe é o cliente)."""
+    """Comércio (dentre os das transações do próprio cliente) citado na mensagem: nome inteiro,
+    palavra distintiva dele ou o ramo que o nome diz (RAMO). Mais de um citado → nenhum (quem
+    escolhe é o cliente)."""
     limpo = normalizar(texto)
     citados = set()
     for nome in comercios:
         nome_limpo = normalizar(nome)
-        distintivas = [p for p in nome_limpo.split() if len(p) >= 4 and p not in COMUNS]
-        if _casa(nome_limpo, limpo) or any(_casa(p, limpo) for p in distintivas):
+        palavras = nome_limpo.split()
+        distintivas = [p for p in palavras if len(p) >= 4 and p not in COMUNS]
+        ramo = [t for p in palavras for t in RAMO.get(p, ())]
+        if _casa(nome_limpo, limpo) or any(_casa(p, limpo) for p in (*distintivas, *ramo)):
             citados.add(nome)
     return citados.pop() if len(citados) == 1 else None
