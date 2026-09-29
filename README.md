@@ -75,6 +75,28 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 Em português também: "Não reconheço a cobrança…", "Por que recusaram minha compra?", "Roubaram
 meu cartão". As métricas do atendimento (encaminhamentos, pré-casos, latência) ficam ao lado.
 
+## Testar em grupo (Codespace e reviews)
+
+O time conversa com o assistente num site só dele e avalia cada conversa; cada avaliação vira uma
+Issue neste repositório, com a transcrição, para o erro ser discutido e corrigido.
+
+1. **Subir:** Code > Codespaces > *Create codespace on …* (máquina de 4 núcleos). O
+   `.devcontainer/subir.sh` sobe a stack sozinho: com os segredos de Codespace do repositório
+   (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DATASET_S3_URI`), com os dados do desafio (a
+   primeira carga leva alguns minutos); sem eles, com a fixture sintética.
+2. **Entrar:** o script deixa a porta 8080 visível só para membros da organização e imprime o
+   endereço. Cada pessoa abre o endereço logada no próprio GitHub (quem não é da organização não
+   entra). Se a visibilidade não mudar sozinha: aba *Portas* > 8080 > *Visibilidade* > *Organização*.
+3. **Conversar e avaliar:** escolha um cliente, converse, e no fim preencha *Avaliar esta conversa*:
+   quem está testando, nota de 1 a 5, se o assistente resolveu e o que deu errado ou como deveria
+   ter sido. A review fica no banco e vira Issue com a etiqueta `review-teste`.
+4. **Sem permissão de Issue:** se o token do Codespace não puder criar Issues, a review fica só no
+   banco; com um token que possa (segredo `REVIEWS_GITHUB_TOKEN`, ou `GITHUB_TOKEN=… make
+   exportar-reviews`), as pendentes são publicadas.
+
+Quem pode avaliar é `TESTADORES` no `compose.yaml`. O Codespace desliga sozinho depois de um tempo
+sem uso; para testar de novo, é só ligá-lo (os dados e as reviews continuam no volume do banco).
+
 ## Recarga dos dados
 
 Quando a versão dos dados (`data/manifesto/`) ou o código do pipeline mudam, o `make up` recarrega
