@@ -8,21 +8,46 @@ dependencies = [
   "alembic==1.20.0",
   "boto3==1.43.103",
   "fastapi==0.141.1",
+  "joblib==1.6.0",
+  "numpy==2.5.3",
   "psycopg[binary]==3.3.6",
   "pydantic==2.13.5",
   "pydantic-settings==2.15.0",
+  "scikit-learn==1.9.1",
+  "scipy==1.18.1",
   "sqlalchemy==2.1.1",
   "uvicorn==0.54.0",
 ]
 
 [dependency-groups]
+# Leitor e5 (INTERPRETADOR=leitor): só na imagem de execução e no treino, nunca na de testes (os
+# testes usam um codificador falso). No Linux o torch vem do índice só-CPU do PyTorch: o do PyPI
+# puxa os pacotes CUDA da NVIDIA (vários GB) que a demo não usa.
+leitor = [
+  "sentence-transformers==6.1.0",
+  "torch==2.14.0",
+]
+# Treino do leitor (estágio `modelo` da imagem): lê o MInDS-14, que é publicado em parquet.
+modelo = [
+  "pyarrow==25.0.1",
+]
 dev = [
   "pytest==9.1.1",
+  # Testes do corpus do leitor escrevem um parquet no formato do MInDS-14.
+  "pyarrow==25.0.1",
   "httpx2==2.13.1",
   "hypothesis==6.168.2",
   "ruff==0.16.9",
   "schemathesis==4.28.0",
 ]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [build-system]
 requires = ["setuptools>=69"]
