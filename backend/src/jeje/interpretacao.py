@@ -89,6 +89,15 @@ PEDIDO_DE_CARGO = Perto(
      "quiero", "quero", "necesito", "preciso", "contactar", "contatar"),
     ("gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
+# Cobrança repetida é contestação quando o verbo de cobrar (ou de aparecer no extrato) está perto:
+# "me cobraron dos veces", "a Streaming Plus me cobrou 2x"; "intenté dos veces y me rechazaron"
+# continua consulta.
+COBRANCA_REPETIDA = Perto(
+    ("cobr*", "carg*", "debit*", "descont*", "sale", "salen", "salio", "aparece*", "aparecio",
+     "caiu", "cayo", "vino", "veio"),
+    ("dos veces", "2 veces", "duas vezes", "2 vezes", "2x", "doble", "dobro", "duplicad*",
+     "repetid*"),
+)  # fmt: skip
 
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
 TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
@@ -111,7 +120,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("contestar", ("no reconozco", "no la reconozco", "no lo reconozco", "nao reconheco",
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
-                   "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei")),
+                   "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
+                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar")),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
                    "negaram", "pendiente*", "pendente*", "revertid*", "estornad*", "estado",
@@ -221,6 +231,10 @@ MESES = {
 }  # fmt: skip
 DATA_NUMERICA = re.compile(r"(?<![\d.,])(\d{1,2})[/-](\d{1,2})(?:[/-](\d{4}|\d{2}))?(?![\d/-])")
 DATA_POR_EXTENSO = re.compile(r"(?<!\d)(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?(?!\d)")
+# Contagem não é valor: "me aparece 2 veces", "salen 2 cobros".
+CONTAGEM = re.compile(
+    r"(?<![\w.,])[1-9]\s*(?:veces|vezes|cobros?|cobran[çc]as?|cargos?)(?!\w)", re.IGNORECASE
+)
 VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
 # Identificadores do sistema (prefixos da base e dos protocolos) ou código longo com dígitos.
 IDENTIFICADOR = re.compile(
@@ -264,13 +278,13 @@ def _data(texto: str, referencia: date) -> date | None:
 
 
 def _valor(texto: str) -> Decimal | None:
-    """Primeiro número que não é data nem parte de identificador; milhar com ponto ou espaço e
-    decimal com vírgula ou ponto ("COP 189.900,55", "45.90", "USD 12")."""
+    """Primeiro número que não é data, contagem nem parte de identificador; milhar com ponto ou
+    espaço e decimal com vírgula ou ponto ("COP 189.900,55", "45.90", "USD 12")."""
     sem_datas = DATA_NUMERICA.sub(" ", texto)
     sem_datas = DATA_POR_EXTENSO.sub(
         lambda m: " " if normalizar(m.group(2)) in MESES else m.group(0), sem_datas
     )
-    achado = VALOR.search(IDENTIFICADOR.sub(" ", sem_datas))
+    achado = VALOR.search(IDENTIFICADOR.sub(" ", CONTAGEM.sub(" ", sem_datas)))
     if achado is None:
         return None
     inteiro, fracao = achado.groups()

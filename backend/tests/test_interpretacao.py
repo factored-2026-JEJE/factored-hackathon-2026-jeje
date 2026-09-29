@@ -93,6 +93,27 @@ def test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer(texto, intencao):
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # Cobrança repetida, com o verbo de cobrar ou de aparecer perto, é contestação.
+        ("me cobraron dos veces el streaming", "contestar"),
+        ("a Streaming Plus me cobrou 2x no cartão", "contestar"),
+        ("ya pero me aparece 2 veces", "contestar"),
+        ("veio uma cobrança em dobro", "contestar"),
+        ("el cargo salió duplicado", "contestar"),
+        # Pedir que revisem a cobrança também.
+        ("yo quiero q la revisen pq no es normal", "contestar"),
+        ("quero reclamar dessa compra", "contestar"),
+        # Tentar duas vezes, sem cobrança repetida, continua consulta.
+        ("intenté dos veces y me rechazaron el pago", "consultar"),
+        ("tentei 2 vezes pagar e foi recusado", "consultar"),
+    ],
+)
+def test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         # Cargo de quem atende citado de passagem não é pedido de humano (ACH-104).
         ("El gerente de la tienda dice que el pago no pasó, ¿por qué?", "consultar"),
         ("O gerente da loja disse que meu cartão foi recusado, por quê?", "consultar"),
@@ -181,6 +202,10 @@ def test_escolha_so_em_resposta_curta(texto, escolha):
         ("la compra del 10/03/2025", None),
         ("la compra del 5 de marzo", None),
         ("TRX-FX6", None),
+        # Contagem não é valor.
+        ("me aparece 2 veces", None),
+        ("pq salen 2 cobros? son de 45,90", Decimal("45.90")),
+        ("caiu 2 vezes", None),
         ("soy CLI-00AAKZ5VX42P", None),
     ],
 )
