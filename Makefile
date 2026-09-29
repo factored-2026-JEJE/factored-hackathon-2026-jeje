@@ -7,7 +7,7 @@ TESTE := docker compose -p $(PROJETO_TESTE) --profile test
 # Roda um serviço de teste e sempre derruba o projeto de testes (banco efêmero incluso).
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
-.PHONY: up up-fixture down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
+.PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	metricas exportar-reviews avaliar-leitor contrato contrato-explorar testar-modelo check gate
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
@@ -15,6 +15,18 @@ up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do
 
 up-fixture: ## Sobe a stack com a fixture sintética (sem .env, sem download)
 	docker compose -f compose.yaml -f compose.ci.yaml up -d --build --wait
+
+# Demonstração para o time: stack própria (jeje-demo) com a fixture e o leitor, publicada por um
+# quick tunnel do cloudflared (grátis, sem conta; o endereço muda a cada vez que o túnel sobe).
+DEMO := docker compose -p jeje-demo -f compose.yaml -f compose.demo.yaml
+DEMO_PORTA ?= 8082
+
+demo: ## Sobe a demonstração e abre o túnel (precisa do cloudflared); o endereço sai no log do túnel
+	DEMO_PORTA=$(DEMO_PORTA) $(DEMO) up -d --build --wait
+	cloudflared tunnel --no-autoupdate --url http://localhost:$(DEMO_PORTA)
+
+demo-down: ## Para a demonstração (mantém o banco e as reviews)
+	$(DEMO) down
 
 down: ## Para a stack (mantém o banco)
 	docker compose --profile modelo down

@@ -51,8 +51,8 @@ x-app-env: &app-env
   # A API pede a carga do modelo ao iniciar, em segundo plano (a primeira mensagem já o acha pronto).
   OLLAMA_CARGA_TIMEOUT_S: "120"
   # Reviews das conversas de teste (MODO_DEMO): quem do time pode avaliar e o repositório onde cada
-  # review vira Issue. O token só existe no ambiente de quem sobe a stack (no Codespace, o dele);
-  # sem ele, a review fica só no banco.
+  # review vira Issue. O token só existe no ambiente de quem sobe a stack; sem ele (a demonstração
+  # do make demo não passa nenhum), a review fica só no banco.
   TESTADORES: "enzo200325,Grochowicz,majinaru,Prism411"
   REVIEWS_REPO: factored-2026-JEJE/jeje-product-v1
   GITHUB_API_URL: https://api.github.com
