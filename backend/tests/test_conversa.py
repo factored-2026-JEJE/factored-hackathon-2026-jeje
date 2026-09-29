@@ -45,6 +45,8 @@ A1 = {
     "pt": "em Streaming Plus de USD 45,90 (10/03/2025)",
 }
 
+OFERTA_ES = "Si no es eso, ¿quieres que te comunique con un agente?"
+
 # ---- Caminho normal ---------------------------------------------------------------------------
 
 NORMAL = {
@@ -178,25 +180,48 @@ def test_caminho_ambiguo_so_age_depois_que_o_cliente_escolhe(cenario, idioma):
         assert pre_casos(cenario) == []
 
 
-def test_dois_esclarecimentos_sem_sucesso_encaminham_para_humano(cenario):
+def test_mensagem_fora_da_escolha_resume_e_so_encaminha_com_sim(cenario):
+    """O que não cabe na etapa (nem escolha, nem pista, nem pedido novo) é respondido com o que foi
+    entendido e a oferta do atendente: "no" volta às mesmas opções, "sí" encaminha."""
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         conversa = abrir_conversa(http, auth, "es")
         primeira = dizer(http, auth, conversa, "No reconozco un cobro de 45,90")
-        segunda = dizer(http, auth, conversa, "no sé")
-        terceira = dizer(http, auth, conversa, "ni idea")
-    assert [t["regra"] for t in (primeira, segunda, terceira)] == [
-        "POL-CON-02", "POL-CON-02", "POL-HUM-03"
-    ]  # fmt: skip
-    assert segunda["opcoes"] == primeira["opcoes"]
-    assert terceira["acao"] == "humano" and terceira["estado"] == "com_humano"
-    [encaminhado] = handoffs(cenario)
-    assert (encaminhado["regra"], encaminhado["pedido"]) == (
-        "POL-HUM-03", "No reconozco un cobro de 45,90"
+        resumo = dizer(http, auth, conversa, "no sé")
+        de_volta = dizer(http, auth, conversa, "no")
+        dizer(http, auth, conversa, "ni idea")
+        aceita = dizer(http, auth, conversa, "sí")
+    assert (resumo["regra"], resumo["acao"], resumo["estado"]) == (
+        "RESUMO", "oferecer_humano", "oferecendo_humano"
     )  # fmt: skip
-    assert encaminhado["pendencias"] == [
-        "Atender o cliente no pedido abaixo (esclarecimentos sem sucesso)"
-    ]
+    assert resumo["resposta"] == (
+        "Entendí que quieres pedir la revisión de un cobro y estoy buscando la transacción, pero "
+        "todavía no la identifiqué.\nSi no es eso, ¿quieres que te comunique con un agente?"
+    )
+    assert (de_volta["estado"], de_volta["opcoes"]) == ("esclarecendo", primeira["opcoes"])
+    assert de_volta["resposta"].startswith("Está bien, sigamos.\nEncontré más de una")
+    assert (aceita["regra"], aceita["acao"], aceita["estado"]) == (
+        "POL-HUM-03", "humano", "com_humano"
+    )  # fmt: skip
+    [encaminhado] = handoffs(cenario)
+    assert encaminhado["pedido"] == "No reconozco un cobro de 45,90"
+
+
+def test_pistas_que_nao_casam_ate_o_limite_oferecem_o_atendente(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        respostas = [
+            dizer(http, auth, conversa, m)
+            for m in ("No reconozco un cobro de 999,99", "de 888,88", "de 777,77")
+        ]
+    assert [r["regra"] for r in respostas] == ["POL-CON-02", "POL-CON-02", "POL-HUM-03"]
+    assert (respostas[2]["acao"], respostas[2]["estado"]) == (
+        "oferecer_humano",
+        "oferecendo_humano",
+    )
+    assert respostas[2]["resposta"].endswith(OFERTA_ES)
+    assert handoffs(cenario) == []  # só com o sim
 
 
 def test_valor_que_nao_casa_pede_dados_sem_inventar_transacao(cenario):
@@ -212,6 +237,74 @@ def test_valor_que_nao_casa_pede_dados_sem_inventar_transacao(cenario):
         "Não encontrei essa transação na sua conta. Pode me dizer o valor, a data ou o "
         "estabelecimento?"
     )
+
+
+def test_pista_durante_contestacao_continua_a_contestacao(cenario):
+    """ "La compra del …" é lida como consulta pela palavra "compra"; no meio da busca da
+    transação de uma contestação, é mais uma pista dela."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        primeira = dizer(http, auth, conversa, "No reconozco un cobro de 45,90")
+        segunda = dizer(http, auth, conversa, "la compra del 10/03/2025")
+    assert [o["transaction_id"] for o in primeira["opcoes"]] == ["TRX-A6", "TRX-A1"]
+    assert (segunda["regra"], segunda["acao"], segunda["transaction_id"]) == (
+        "POL-DISP-01", "propor_pre_caso", "TRX-A1"
+    )  # fmt: skip
+
+
+def test_status_citado_durante_contestacao_e_pergunta_nova(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco un cobro de 45,90")
+        segunda = dizer(http, auth, conversa, "¿y la rechazada?")
+    # Consulta das recusadas, mais recentes primeiro; não a contestação de 45,90 de novo.
+    assert [o["transaction_id"] for o in segunda["opcoes"]] == ["TRX-A3", "TRX-A2"]
+
+
+def test_pistas_se_somam_ao_longo_da_busca(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        primeira = dizer(http, auth, conversa, "não reconheço uma cobrança da Cine Premium")
+        segunda = dizer(http, auth, conversa, "a de 45,90")
+    assert [o["transaction_id"] for o in primeira["opcoes"]] == ["TRX-A6", "TRX-A8"]
+    # Só 45,90 seriam TRX-A6 e TRX-A1; com Cine Premium, dita antes, é uma só.
+    assert (segunda["regra"], segunda["transaction_id"]) == ("POL-DISP-01", "TRX-A6")
+
+
+def test_pista_nova_que_nao_casa_com_as_anteriores_vale_sozinha(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco un cobro de 45,90")
+        segunda = dizer(http, auth, conversa, "no, fue en Boutique Moda")
+    # 45,90 na Boutique Moda não existe: vale o que o cliente disse agora (e a política decide:
+    # acima do limite, atendente).
+    assert (segunda["regra"], segunda["transaction_id"]) == ("POL-HUM-02", "TRX-A4")
+
+
+def test_status_citado_que_nao_casa_e_pista_e_a_resposta_diz_o_verdadeiro(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        resposta = dizer(
+            http, auth, abrir_conversa(http, auth, "es"), "¿Por qué rechazaron lo de Boutique Moda?"
+        )
+    assert (resposta["regra"], resposta["transaction_id"]) == ("POL-CON-01", "TRX-A4")
+    assert resposta["resposta"] == (
+        "La transacción en Boutique Moda de USD 7.500,00 (15/03/2025) fue aprobada."
+    )
+
+
+def test_cobranca_repetida_sobre_a_transacao_em_foco_propoe_revisao(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        consulta = dizer(http, auth, conversa, "¿qué pasó con el cobro de Streaming Plus?")
+        repetida = dizer(http, auth, conversa, "ya pero me aparece 2 veces, quiero que la revisen")
+    assert (consulta["regra"], consulta["transaction_id"]) == ("POL-CON-01", "TRX-A1")
+    assert (repetida["regra"], repetida["transaction_id"]) == ("POL-DISP-01", "TRX-A1")
 
 
 # ---- Caminho humano ---------------------------------------------------------------------------
@@ -322,34 +415,85 @@ def test_contestacao_noturna_pelo_app_acima_do_limite_vai_para_humano(cenario):
     assert pre_casos(cenario) == [] and contar(cenario, "propostas_pre_caso") == 0
 
 
-def test_mensagens_nao_entendidas_seguidas_encaminham_para_humano(cenario):
-    """ACH-029: 'no entendí' também é esclarecimento; o terceiro seguido vai para humano."""
+def test_mensagens_nao_entendidas_seguidas_oferecem_o_humano(cenario):
+    """ACH-029: 'no entendí' também é esclarecimento; no terceiro seguido o atendente é oferecido,
+    e só o sim encaminha."""
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         conversa = abrir_conversa(http, auth, "es")
         respostas = [dizer(http, auth, conversa, m) for m in ("asdf", "zzzz", "???")]
+        assert handoffs(cenario) == []
+        aceita = dizer(http, auth, conversa, "sí")
     assert [r["regra"] for r in respostas] == ["AJUDA", "AJUDA", "POL-HUM-03"]
-    assert (respostas[2]["acao"], respostas[2]["estado"]) == ("humano", "com_humano")
+    assert (respostas[2]["acao"], respostas[2]["estado"]) == (
+        "oferecer_humano",
+        "oferecendo_humano",
+    )
+    assert respostas[2]["resposta"] == (
+        "No logré entender tu pedido. ¿Quieres que te comunique con un agente?"
+    )
+    assert (aceita["acao"], aceita["estado"]) == ("humano", "com_humano")
     [registro] = handoffs(cenario)
     assert (registro["regra"], registro["pedido"]) == ("POL-HUM-03", "asdf")
     assert registro["acoes"] == [
         {"acao": "esclarecer", "resultado": "2 mensagens seguidas não entendidas"}
     ]
     assert registro["pendencias"] == [
-        "Atender o cliente no pedido abaixo (esclarecimentos sem sucesso)"
+        "Atender o cliente no pedido abaixo (aceitou o atendente oferecido)"
     ]
 
 
 def test_pedido_entendido_no_meio_zera_a_contagem(cenario):
+    """O "no entendí" de antes não conta para o esclarecimento do pedido entendido depois: duas
+    pistas que não casam ainda pedem os dados de novo, sem oferecer o atendente antes da hora."""
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         conversa = abrir_conversa(http, auth, "es")
-        dizer(http, auth, conversa, "asdf")
-        consulta = dizer(http, auth, conversa, "¿Por qué rechazaron mi compra en Almacenes Éxito?")
-        depois = [dizer(http, auth, conversa, m) for m in ("zzzz", "???")]
-    assert consulta["regra"] == "POL-CON-03"
-    assert [r["regra"] for r in depois] == ["AJUDA", "AJUDA"]
+        ajuda = dizer(http, auth, conversa, "asdf")
+        respostas = [
+            dizer(http, auth, conversa, m) for m in ("No reconozco un cobro de 999,99", "de 888,88")
+        ]
+    assert ajuda["regra"] == "AJUDA"
+    assert [(r["regra"], r["acao"]) for r in respostas] == [
+        ("POL-CON-02", "esclarecer"), ("POL-CON-02", "esclarecer")
+    ]  # fmt: skip
     assert handoffs(cenario) == []
+
+
+def test_sobre_a_transacao_respondida_diz_o_que_consta_e_oferece_o_atendente(cenario):
+    """ "¿Y ahora qué hago?" depois da resposta não é pedido fora de escopo nem "no entendí": é
+    sobre a transação em foco, e o registro não tem mais nada a dizer."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "¿Por qué rechazaron mi compra en Almacenes Éxito?")
+        resumo = dizer(http, auth, conversa, "¿y ahora qué hago?")
+        de_volta = dizer(http, auth, conversa, "no, gracias")
+    assert (resumo["regra"], resumo["estado"], resumo["transaction_id"]) == (
+        "RESUMO", "oferecendo_humano", "TRX-A2"
+    )  # fmt: skip
+    assert resumo["resposta"] == (
+        "Sobre la transacción en Almacenes Éxito de COP 189.900,55 (12/03/2025): en el registro "
+        f"consta que está rechazada, y no tengo más información que esa.\n{OFERTA_ES}"
+    )
+    assert (de_volta["regra"], de_volta["estado"]) == ("RETOMAR", "livre")
+    assert de_volta["resposta"] == "Está bien. ¿En qué más te ayudo?"
+
+
+def test_fora_de_escopo_sem_etapa_recusa_e_oferece_o_atendente(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        oferta = dizer(http, auth, conversa, "quero um empréstimo")
+        aceita = dizer(http, auth, conversa, "sim")
+    assert (oferta["regra"], oferta["acao"], oferta["estado"]) == (
+        "POL-ESC-01", "oferecer_humano", "oferecendo_humano"
+    )  # fmt: skip
+    assert oferta["resposta"] == (
+        "Só consigo ajudar com consultas e pedidos de revisão das suas transações.\n"
+        "Para isso, quer que eu passe você para um atendente?"
+    )
+    assert (aceita["acao"], aceita["estado"]) == ("humano", "com_humano")
 
 
 def test_contestacao_de_recusada_explica_e_encaminha_sem_pre_caso(cenario):
@@ -412,21 +556,37 @@ def test_efeito_so_com_sim_explicito(cenario, mensagem):
     assert pre_casos(cenario) == []
 
 
-def test_fora_de_escopo_recusa_sem_desfazer_a_confirmacao_pendente(cenario):
+def test_fora_de_escopo_no_meio_da_confirmacao_resume_sem_desfazer_a_proposta(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         conversa = abrir_conversa(http, auth, "es")
         dizer(http, auth, conversa, NORMAL["es"]["pedido"])
-        recusa = dizer(http, auth, conversa, "¿y me dan un préstamo?")
+        resumo = dizer(http, auth, conversa, "¿y me dan un préstamo?")
+        assert pre_casos(cenario) == [] and handoffs(cenario) == []
+        de_volta = dizer(http, auth, conversa, "no")
         registrado = dizer(http, auth, conversa, "sí")
-    assert (recusa["regra"], recusa["acao"], recusa["estado"]) == (
-        "POL-ESC-01", "recusar", "confirmando"
+    assert (resumo["regra"], resumo["acao"], resumo["estado"]) == (
+        "RESUMO", "oferecer_humano", "oferecendo_humano"
     )  # fmt: skip
-    assert recusa["resposta"] == (
-        "Solo puedo ayudar con consultas y solicitudes de revisión de tus transacciones."
+    assert resumo["resposta"] == (
+        "Estoy esperando tu confirmación para registrar la solicitud de revisión de la "
+        f"transacción {A1['es']}.\n{OFERTA_ES}"
     )
+    assert (de_volta["estado"], de_volta["transaction_id"]) == ("confirmando", "TRX-A1")
+    assert de_volta["resposta"].startswith("Está bien, sigamos.\n¿Confirmas el registro")
     assert registrado["acao"] == "registrar_pre_caso"
     assert len(pre_casos(cenario)) == 1
+
+
+def test_outra_mensagem_depois_do_resumo_e_lida_na_etapa(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco un cobro de 45,90")
+        dizer(http, auth, conversa, "no sé")
+        proposta = dizer(http, auth, conversa, "fue en Streaming Plus")
+    assert (proposta["regra"], proposta["transaction_id"]) == ("POL-DISP-01", "TRX-A1")
+    assert handoffs(cenario) == []
 
 
 @pytest.mark.parametrize(

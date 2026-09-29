@@ -25,6 +25,12 @@ MOTIVO_DO_CODIGO: dict[str, dict[Idioma, str]] = {
     "05": {"es": "no autorizada por el emisor", "pt": "não autorizada pelo emissor"},
 }
 
+# O pedido em andamento, dito de volta ao cliente no resumo (RESUMO-TRANSACAO).
+PEDIDO: dict[str, dict[Idioma, str]] = {
+    "consultar": {"es": "consultar una transacción", "pt": "consultar uma transação"},
+    "contestar": {"es": "pedir la revisión de un cobro", "pt": "pedir a revisão de uma cobrança"},
+}
+
 ESTADO: dict[Status, dict[Idioma, str]] = {
     "Approved": {"es": "aprobada", "pt": "aprovada"},
     "Declined": {"es": "rechazada", "pt": "recusada"},
@@ -146,6 +152,46 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
     "CANCELADO": {
         "es": "Listo, no registré nada. ¿Te ayudo con algo más?",
         "pt": "Tudo bem, não registrei nada. Posso ajudar com mais alguma coisa?",
+    },
+    # Mensagem que não cabe na etapa: o que foi entendido e o que se está tentando, com a oferta
+    # do atendente; o "não" volta à etapa.
+    "RESUMO-PEDIDO": {
+        "es": "No logré entender tu pedido. ¿Quieres que te comunique con un agente?",
+        "pt": "Não consegui entender o seu pedido. Quer que eu passe você para um atendente?",
+    },
+    "RESUMO-TRANSACAO": {
+        "es": "Entendí que quieres {pedido} y estoy buscando la transacción, pero todavía no la "
+        "identifiqué.",
+        "pt": "Entendi que você quer {pedido} e estou procurando a transação, mas ainda não "
+        "consegui identificá-la.",
+    },
+    "RESUMO-CONFIRMACAO": {
+        "es": "Estoy esperando tu confirmación para registrar la solicitud de revisión de la "
+        "transacción {transacao}.",
+        "pt": "Estou esperando sua confirmação para registrar o pedido de revisão da transação "
+        "{transacao}.",
+    },
+    "RESUMO-FOCO": {
+        "es": "Sobre la transacción {transacao}: en el registro consta que está {estado}, y no "
+        "tengo más información que esa.",
+        "pt": "Sobre a transação {transacao}: no registro consta que ela está {estado}, e não "
+        "tenho outra informação além disso.",
+    },
+    "OFERTA-ATENDENTE": {
+        "es": "Si no es eso, ¿quieres que te comunique con un agente?",
+        "pt": "Se não for isso, quer que eu passe você para um atendente?",
+    },
+    "OFERTA-FORA": {
+        "es": "Para eso, ¿quieres que te comunique con un agente?",
+        "pt": "Para isso, quer que eu passe você para um atendente?",
+    },
+    "RETOMAR": {
+        "es": "Está bien, sigamos.",
+        "pt": "Tudo bem, vamos continuar.",
+    },
+    "RETOMAR-LIVRE": {
+        "es": "Está bien. ¿En qué más te ayudo?",
+        "pt": "Tudo bem. Em que mais posso ajudar?",
     },
     "ATENDIMENTO": {
         "es": "Referencia de la atención: {atendimento}.",

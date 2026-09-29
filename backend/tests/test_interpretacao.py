@@ -132,6 +132,22 @@ def test_cargo_de_quem_atende_so_pede_humano_com_verbo_de_pedido(texto, intencao
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # Recusar o atendente não é pedir um.
+        ("Pero no quiero un agente, solo dime cuál fue la de mayor monto", "desconhecida"),
+        ("não quero falar com atendente, quero ver a compra da Uber", "consultar"),
+        ("sin agente por favor", "desconhecida"),
+        # Pedido, com negação de outra coisa, continua pedido.
+        ("no entiendo nada, quiero hablar con un agente", "humano"),
+        ("no quiero esperar, quiero un agente", "humano"),
+    ],
+)
+def test_recusar_o_atendente_nao_e_pedir_um(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         ("no reconozco el cobro, me robaron la tarjeta", "fraude"),
         ("não reconheço a compra, quero falar com um atendente", "humano"),
         ("quero um empréstimo pra pagar a compra", "fora_de_escopo"),
@@ -181,6 +197,8 @@ def test_resposta_curta_so_quando_a_mensagem_inteira_responde(texto, resposta):
         ("opção 3", 3),
         ("a primeira", 1),
         ("la 2 por favor", 2),
+        ("quero a primeira", 1),
+        ("fue la segunda", 2),
         ("es la primera vez que me pasa", None),
         ("10", None),
         ("la segunda compra de 45,90", None),
@@ -202,6 +220,9 @@ def test_escolha_so_em_resposta_curta(texto, escolha):
         ("la compra del 10/03/2025", None),
         ("la compra del 5 de marzo", None),
         ("TRX-FX6", None),
+        # Escolha curta não é valor.
+        ("A 1", None),
+        ("la 2 por favor", None),
         # Contagem não é valor.
         ("me aparece 2 veces", None),
         ("pq salen 2 cobros? son de 45,90", Decimal("45.90")),

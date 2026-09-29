@@ -14,7 +14,7 @@ from typing import Literal, get_args
 
 from jeje.mensagens import Status
 
-Acao = Literal["responder", "esclarecer", "propor_pre_caso", "humano", "recusar"]
+Acao = Literal["responder", "esclarecer", "propor_pre_caso", "humano", "oferecer_humano", "recusar"]
 
 # Códigos de recusa com explicação aprovada (95% das recusas da base; DEV-005).
 CODIGOS_CATALOGADOS = frozenset({"05", "14", "51", "54"})
@@ -140,9 +140,10 @@ def decidir_pedido(intencao: str, id_digitado: bool) -> Decisao | None:
 
 
 def decidir_esclarecimento(ja_feitos: int) -> Decisao:
-    """Transação não identificada: pergunta de novo até o limite; depois, humano."""
+    """Transação ou pedido não identificado: pergunta de novo até o limite; depois, oferece o
+    atendente (encaminha só com o sim: quem não quer atendente segue na conversa)."""
     if ja_feitos >= ESCLARECIMENTOS_ATE_HUMANO:
-        return Decisao("POL-HUM-03", "humano", "esclarecimentos sem sucesso")
+        return Decisao("POL-HUM-03", "oferecer_humano", "esclarecimentos sem sucesso")
     return Decisao("POL-CON-02", "esclarecer")
 
 
