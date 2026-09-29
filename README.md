@@ -84,12 +84,16 @@ registro. Mesma versão já carregada: nada muda.
 
 ## Modelo local
 
-`make up` liga o modo modelo: as frases que as regras não entendem vão para um modelo local
-(Ollama do host, `qwen2.5:7b`), que só classifica. Sim/não, fraude, pedido de atendente e
-identificadores continuam com as regras, e a política decide o que fazer. A API lê a mensagem antes
-de travar a conversa (esperar o modelo não prende o banco), pede a carga do modelo ao iniciar (log
-`modelo pronto` ou `modelo indisponivel`) e o mantém carregado (`OLLAMA_KEEP_ALIVE`). Qualquer falha
-— modelo fora do ar, lento, resposta fora do formato — segue pelas regras, e o trace do turno
+`make up` liga o modo modelo: as frases que as regras não entendem vão para um modelo local (Ollama
+do host, `qwen2.5:7b`), que só classifica: diz a língua, a intenção e o status citado, como o
+classificador do time diria. Quando as regras reconhecem sim/não, fraude, pedido de atendente,
+identificador, valor ou data, o modelo nem é chamado; quando é chamado, pode ler fraude ou pedido de
+atendente (o turno encaminha), mas nunca confirma nem escolhe transação, e a política decide o que
+fazer. Cumprimento e agradecimento não viram pedido de atendente, e perguntar pelo estorno é
+consulta, não contestação (ACH-102). A API lê a mensagem antes de travar a conversa (esperar o
+modelo não prende o banco), pede a carga do modelo ao iniciar (log `modelo pronto` ou `modelo
+indisponivel`) e o mantém carregado (`OLLAMA_KEEP_ALIVE`). Qualquer falha — modelo fora do ar,
+lento, resposta fora do formato — segue pelas regras, e o trace do turno
 (`app.eventos.interpretacao`, `make metricas`) diz quem leu cada mensagem e quanto o modelo custou.
 
 - O Ollama do host continua escutando só em `127.0.0.1`. A ponte `ollama-ponte` (profile `modelo`)
@@ -103,12 +107,12 @@ de travar a conversa (esperar o modelo não prende o banco), pede a carga do mod
 
 O classificador do time (branch `feat/intencao-classificador`, TF-IDF + regressão logística) entra
 como mais um leitor atrás do mesmo contrato do modelo local, escolhido em `INTERPRETADOR`: as regras
-leem primeiro, ele só lê o que elas não entendem, e sim/não, fraude, pedido de atendente e
-identificador continuam com as regras. Os fluxos dele viram intenção e status (`explicar_recusa`,
-`explicar_pendencia` e `explicar_estorno` → consultar com Declined, Pending e Reversed;
-`abrir_disputa` → contestar; `relato_de_fraude` → fraude; `fora_de_escopo`). Só age com confiança de
-0,8 ou mais: abaixo disso seguem as regras (esclarecimento), porque sem limiar 11,8% dos pedidos fora
-de escopo de um conjunto real de pedidos a banco viravam disputa ou fraude.
+leem primeiro e ele só lê o que elas não entendem (o que elas reconhecem, como sim/não, fraude,
+pedido de atendente e identificador, nem chega a ele). Os fluxos dele viram intenção e status
+(`explicar_recusa`, `explicar_pendencia` e `explicar_estorno` → consultar com Declined, Pending e
+Reversed; `abrir_disputa` → contestar; `relato_de_fraude` → fraude; `fora_de_escopo`). Só age com
+confiança de 0,8 ou mais: abaixo disso seguem as regras (esclarecimento), porque sem limiar 11,8%
+dos pedidos fora de escopo de um conjunto real de pedidos a banco viravam disputa ou fraude.
 
 ## Logs
 
@@ -192,7 +196,7 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   guardam mensagem, token nem cliente; o encaminhamento leva o pedido cortado em 280 caracteres e só
   fatos verificados da transação.
 - Capacidade medida neste PC (uma API, dados reais): turno lido pelas regras ~10 ms; com o modelo
-  local carregado ~1,5 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa
+  local carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa
   ~5 min. Não medido: muitos clientes ao mesmo tempo e o servidor de publicação.
 - Falta: publicação (destino por decidir), integração do classificador de intenção do time e a
   validação independente em andamento.
