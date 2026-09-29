@@ -6278,6 +6278,171 @@
       ]
     },
     {
+      "id": "M-AVAL-01",
+      "requisito": "R08",
+      "descricao": "Quem não é do time de teste consegue avaliar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "    if pedido.avaliador not in reviews.testadores(config.testadores):\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_so_o_dono_avalia_e_so_quem_e_do_time"
+      ]
+    },
+    {
+      "id": "M-AVAL-02",
+      "requisito": "R08",
+      "descricao": "Review grava sem conferir o dono da conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    conversa, turnos = historico(conexao, customer_id, conversa_id)",
+          "para": "    conversa, turnos = {\"id\": conversa_id, \"idioma\": \"es\", \"estado\": \"livre\"}, []"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_so_o_dono_avalia_e_so_quem_e_do_time"
+      ]
+    },
+    {
+      "id": "M-AVAL-03",
+      "requisito": "R07",
+      "descricao": "Issue sem a transcrição da conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    for t in turnos:\n",
+          "para": "    for t in turnos[:0]:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
+      "id": "M-AVAL-04",
+      "requisito": "R07",
+      "descricao": "Issue sem a etiqueta das reviews",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "\"labels\": [ETIQUETA]",
+          "para": "\"labels\": []"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
+      "id": "M-AVAL-05",
+      "requisito": "R07",
+      "descricao": "URL da Issue não fica anotada na review",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "                reviews.anotar_issue(conexao, gravada[\"review_id\"], issue_url)",
+          "para": "                pass"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
+      "id": "M-AVAL-06",
+      "requisito": "R06",
+      "descricao": "Falha do GitHub derruba a review (500) em vez de guardá-la sem Issue",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    except (urllib.error.URLError, TimeoutError, KeyError, ValueError) as erro:",
+          "para": "    except KeyError as erro:"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_falha_do_github_nao_perde_a_review"
+      ]
+    },
+    {
+      "id": "M-AVAL-07",
+      "requisito": "R08",
+      "descricao": "Review publicada no GitHub mesmo sem token",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "    if config.reviews_repo and config.github_token:",
+          "para": "    if config.reviews_repo:"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_sem_token_fica_no_banco_ligada_a_conversa"
+      ]
+    },
+    {
+      "id": "M-AVAL-08",
+      "requisito": "R07",
+      "descricao": "Lista de testadores com espaços da configuração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    return [t.strip() for t in configurados.split(\",\") if t.strip()]",
+          "para": "    return [t for t in configurados.split(\",\") if t]"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_testadores_sao_os_do_time"
+      ]
+    },
+    {
+      "id": "M-AVAL-09",
+      "requisito": "R08",
+      "descricao": "Reviews abertas fora do modo de demonstração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "router = APIRouter(dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)",
+          "para": "router = APIRouter(responses=RESPOSTAS_DEMO)"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_sem_modo_demo_nao_ha_reviews"
+      ]
+    },
+    {
+      "id": "M-AVAL-10",
+      "requisito": "R07",
+      "descricao": "Reviews já publicadas voltam a virar Issue a cada exportação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "        \" WHERE r.issue_url IS NULL ORDER BY r.id\"",
+          "para": "        \" ORDER BY r.id\""
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_reviews_pendentes_sao_publicadas_depois"
+      ]
+    },
+    {
+      "id": "M-AVAL-11",
+      "requisito": "R07",
+      "descricao": "Issue sem os dados da conversa para máquina (o importador da QA não refaz a conversa)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    linhas += [MARCA_DOS_DADOS, json_seguro, \"-->\"]",
+          "para": "    pass"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
       "id": "M-ITP-37",
       "requisito": "R02",
       "descricao": "Pergunta pelo pedido de revisão registrado nunca reconhecida",

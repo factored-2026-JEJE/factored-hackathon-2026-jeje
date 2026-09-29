@@ -382,6 +382,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/testadores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Testadores
+         * @description Quem do time pode avaliar conversas (logins do GitHub).
+         */
+        get: operations["listar_testadores_testadores_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversas/{conversa_id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Avaliar Conversa
+         * @description Grava a review da conversa (só do dono) e, com repositório e token, abre a Issue.
+         */
+        post: operations["avaliar_conversa_conversas__conversa_id__reviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -560,6 +600,20 @@ export interface components {
             /** Descricao */
             descricao: string;
         };
+        /** PedidoDeReview */
+        PedidoDeReview: {
+            /** Avaliador */
+            avaliador: string;
+            /** Nota */
+            nota: number;
+            /**
+             * Resolveu
+             * @enum {string}
+             */
+            resolveu: "sim" | "parcial" | "nao";
+            /** Comentario */
+            comentario: string;
+        };
         /** PedidoDeSessao */
         PedidoDeSessao: {
             /** Customer Id */
@@ -688,6 +742,13 @@ export interface components {
             protocolo: string | null;
             /** Atendimento */
             atendimento: string | null;
+        };
+        /** ReviewRegistrada */
+        ReviewRegistrada: {
+            /** Review Id */
+            review_id: number;
+            /** Issue Url */
+            issue_url: string | null;
         };
         /** SessaoAberta */
         SessaoAberta: {
@@ -1556,6 +1617,89 @@ export interface operations {
             };
             /** @description Encaminhamento já assumido por outro atendente */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_testadores_testadores_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            /** @description Modo demo desligado ou persona não provisionada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    avaliar_conversa_conversas__conversa_id__reviews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PedidoDeReview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewRegistrada"];
+                };
+            };
+            /** @description Corpo ilegível (não é JSON UTF-8) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conversa não encontrada */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

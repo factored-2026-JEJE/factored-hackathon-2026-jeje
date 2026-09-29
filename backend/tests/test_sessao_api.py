@@ -107,6 +107,7 @@ def test_transacao_com_nul_no_endereco_e_422_e_nunca_500(api):
 PUBLICAS = {
     ("GET", "/health"), ("GET", "/health/ready"), ("GET", "/dados/eda"),
     ("GET", "/dados/qualidade"), ("GET", "/metricas"), ("GET", "/personas"), ("POST", "/sessoes"),
+    ("GET", "/testadores"),
     ("GET", "/atendimento/fila"), ("POST", "/atendimento/fila/{handoff_id}/assumir"),
 }  # fmt: skip
 

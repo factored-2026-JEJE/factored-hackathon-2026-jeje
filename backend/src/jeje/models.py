@@ -222,3 +222,27 @@ class Evento(Base):
     # X-Request-ID da requisição que gerou o evento: liga a resposta, o log e este trace.
     requisicao: Mapped[str | None] = mapped_column(Text, nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+RESOLVEU = ("sim", "parcial", "nao")
+
+
+class Review(Base):
+    """Avaliação de uma conversa de teste por alguém do time: nota, se resolveu e o que deu errado.
+    A conversa (e os turnos) já estão no banco; a Issue do GitHub, quando criada, fica anotada."""
+
+    __tablename__ = "reviews"
+    __table_args__ = (
+        CheckConstraint("nota BETWEEN 1 AND 5", name="nota"),
+        CheckConstraint(_um_de("resolveu", RESOLVEU), name="resolveu"),
+        {"schema": "app"},
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    conversa_id: Mapped[str] = mapped_column(Text, ForeignKey("app.conversas.id"), index=True)
+    avaliador: Mapped[str] = mapped_column(Text)
+    nota: Mapped[int] = mapped_column(SmallInteger)
+    resolveu: Mapped[str] = mapped_column(Text)
+    comentario: Mapped[str] = mapped_column(Text)
+    issue_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -18,6 +18,7 @@ from jeje import (
     pre_caso_api,
     qualidade_api,
     recarga,
+    reviews_api,
     sessao_api,
     transacoes_api,
 )
@@ -67,6 +68,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(conversa_api.router)
     app.include_router(metricas_api.router)
     app.include_router(atendimento_api.router)
+    app.include_router(reviews_api.router)
     for erro in INDISPONIVEL:
         app.add_exception_handler(erro, banco_indisponivel)
     app.add_exception_handler(recarga.Recarregando, recarga.em_recarga)

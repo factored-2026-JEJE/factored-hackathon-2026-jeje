@@ -50,6 +50,13 @@ x-app-env: &app-env
   OLLAMA_KEEP_ALIVE: "30m"
   # A API pede a carga do modelo ao iniciar, em segundo plano (a primeira mensagem já o acha pronto).
   OLLAMA_CARGA_TIMEOUT_S: "120"
+  # Reviews das conversas de teste (MODO_DEMO): quem do time pode avaliar e o repositório onde cada
+  # review vira Issue. O token só existe no ambiente de quem sobe a stack (no Codespace, o dele);
+  # sem ele, a review fica só no banco.
+  TESTADORES: "enzo200325,Grochowicz,majinaru,Prism411"
+  REVIEWS_REPO: factored-2026-JEJE/jeje-product-v1
+  GITHUB_API_URL: https://api.github.com
+  GITHUB_TOKEN: ${GITHUB_TOKEN:-}
   # Logs da aplicação: DEBUG mostra também as sondas de saúde; INFO é o normal.
   LOG_LEVEL: INFO
 
@@ -68,6 +75,8 @@ x-backend-test: &backend-test
   environment:
     <<: *app-env
     DATABASE_URL: postgresql+psycopg://jeje:jeje@db-test:5432/jeje_test
+    # Testes nunca falam com o GitHub de verdade (as reviews usam um servidor falso local).
+    GITHUB_TOKEN: ""
     # Servidor S3 local de teste (credenciais descartáveis, não são segredo).
     S3_TEST_ENDPOINT: http://s3-test:7070
     S3_TEST_ACCESS_KEY: teste-local
