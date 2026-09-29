@@ -8,7 +8,7 @@ TESTE := docker compose -p $(PROJETO_TESTE) --profile test
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
 .PHONY: up up-fixture down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
-	metricas contrato contrato-explorar testar-modelo check gate
+	metricas avaliar-leitor contrato contrato-explorar testar-modelo check gate
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -53,6 +53,10 @@ mutantes-e2e: ## Mutantes E2E: uma stack isolada por mutante
 
 metricas: ## Métricas do atendimento recomputadas dos eventos da stack em execução
 	docker compose exec -T api python -m jeje.metricas
+
+avaliar-leitor: ## Leitor por mensagem no teste do BANKING77 es/pt: regras vs cascata (sem banco); fora do gate
+	docker compose build migrate
+	docker compose run --rm --no-deps api python -m jeje.avaliacao_leitor
 
 testar-modelo: build ## Integração real com o Ollama pela ponte (precisa de make up); fora do gate
 	@$(call rodar_teste,test pytest -q -p no:cacheprovider -m ollama tests/test_modelo_real.py)
