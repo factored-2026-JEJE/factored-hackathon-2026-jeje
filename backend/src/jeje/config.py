@@ -67,6 +67,14 @@ class Settings(BaseSettings):
     ollama_keep_alive: str
     # Tempo máximo para o modelo carregar ao iniciar a API (em segundo plano; não atrasa nada).
     ollama_carga_timeout_s: float = Field(gt=0)
+    # Reviews das conversas de teste: quem pode avaliar (logins do GitHub separados por vírgula;
+    # vazio: ninguém), o repositório onde cada review vira Issue e a API do GitHub. Sem repositório
+    # ou sem token, a review fica só no banco. O token é segredo: vem do ambiente (no Codespace, o
+    # dele).
+    testadores: str
+    reviews_repo: str
+    github_api_url: str
+    github_token: str
     # Nível dos logs da aplicação (saída padrão, uma linha por acontecimento; ver jeje.logs).
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
