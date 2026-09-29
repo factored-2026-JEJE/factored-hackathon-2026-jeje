@@ -4636,8 +4636,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "lida.intencao != \"desconhecida\" or lida.id_digitado or any(",
-          "para": "lida.intencao != \"desconhecida\" or any("
+          "de": "    sinais = (lida.id_digitado, lida.caso)",
+          "para": "    sinais = (lida.caso,)"
         }
       ],
       "testes": [
@@ -6275,6 +6275,100 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
+      ]
+    },
+    {
+      "id": "M-ITP-37",
+      "requisito": "R02",
+      "descricao": "Pergunta pelo pedido de revisão registrado nunca reconhecida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"caso\": _caso(limpo),",
+          "para": "        \"caso\": False,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo",
+        "tests/test_conversa.py::test_status_do_caso_responde_o_pre_caso_registrado"
+      ]
+    },
+    {
+      "id": "M-ITP-38",
+      "requisito": "R02",
+      "descricao": "Protocolo digitado (\"¿cómo va el PC-00000003?\") não indica o assunto e cai na recusa de identificador",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        or PROTOCOLO_DIGITADO.search(limpo) is not None",
+          "para": "        or False"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo",
+        "tests/test_conversa.py::test_status_do_caso_lista_os_do_cliente_e_protocolo_digitado_nao_busca"
+      ]
+    },
+    {
+      "id": "M-LLM-21",
+      "requisito": "R08",
+      "descricao": "Pergunta pelo pedido registrado vai para o modelo (que não conhece o assunto)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    sinais = (lida.id_digitado, lida.caso)",
+          "para": "    sinais = (lida.id_digitado,)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-CONV-41",
+      "requisito": "R02",
+      "descricao": "Status do caso ignorado na conversa (pergunta pelo pedido registrado vira resumo ou recusa)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.caso and self.lida.intencao != \"fora_de_escopo\":",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_status_do_caso_responde_o_pre_caso_registrado",
+        "tests/test_conversa.py::test_sem_pre_caso_diz_que_nao_ha_e_o_que_pode_fazer"
+      ]
+    },
+    {
+      "id": "M-CONV-42",
+      "requisito": "R02",
+      "descricao": "Status do caso com transação em foco lista todos os pré-casos em vez do dela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        casos = [c for c in casos if c.transaction_id == em_foco] or casos",
+          "para": "        casos = list(casos)"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_com_transacao_em_foco_o_status_e_so_do_pre_caso_dela"
+      ]
+    },
+    {
+      "id": "M-POL-33",
+      "requisito": "R03",
+      "descricao": "Sem pré-caso do cliente tratado como um (a resposta inventaria um protocolo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if quantos == 0:",
+          "para": "    if quantos < 0:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_status_do_caso_responde_sem_encaminhar_e_distingue_nenhum_um_e_varios",
+        "tests/test_conversa.py::test_sem_pre_caso_diz_que_nao_ha_e_o_que_pode_fazer"
       ]
     }
   ]

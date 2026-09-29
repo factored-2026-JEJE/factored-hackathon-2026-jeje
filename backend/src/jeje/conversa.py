@@ -9,7 +9,8 @@ guardada no estado; encaminhamento humano grava o resumo e encerra a automação
 Cada estado espera uma coisa: um pedido (livre), a transação (esclarecendo: pistas somam entre os
 turnos, o status citado é pista e não filtro), o sim ou não (confirmando) ou algo sobre a transação
 já respondida (livre com foco). O que não cabe na etapa é respondido com o que foi entendido e a
-oferta do atendente: o sim encaminha, o não volta à etapa, e outra mensagem é lida nela.
+oferta do atendente: o sim encaminha, o não volta à etapa, e outra mensagem é lida nela. A
+pergunta pelo pedido de revisão já registrado (status do caso) é respondida em qualquer etapa.
 Falha ao gravar propaga: quem chama desfaz o turno inteiro, sem resposta de sucesso.
 """
 
@@ -28,6 +29,7 @@ from jeje.interpretacao import Interpretacao, comercio_citado
 from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
     ESTADO,
+    ESTADO_DO_CASO,
     MOTIVO_DO_CODIGO,
     PEDIDO,
     Idioma,
@@ -204,6 +206,10 @@ class _Turno:
                 return self._retomar() if self._resumiu() else self._cancelar()
             aceito = politica.Decisao("POL-HUM-03", "humano", "aceitou o atendente oferecido")
             return self._encaminhar(aceito, self._em_foco())
+        if self.lida.caso and self.lida.intencao != "fora_de_escopo":
+            # Pergunta pelo pedido de revisão, em qualquer etapa. Protocolo digitado só indica o
+            # assunto: a resposta sai dos pré-casos do cliente da sessão, nunca do que foi digitado.
+            return self._status_do_caso()
         if decisao is not None and decisao.regra == "POL-ID-02":
             # Identificador digitado não desfaz o que estava pendente.
             recusa = texto(decisao.regra, self.idioma)
@@ -534,6 +540,48 @@ class _Turno:
             transaction_id=transaction_id,
             protocolo=registrado.protocolo,
         )
+
+    def _status_do_caso(self) -> Saida:
+        """Pré-casos do cliente da sessão: o da transação em foco, se houver, senão todos."""
+        self._fonte("app.pre_casos")
+        casos = pre_caso.pre_casos_do_cliente(self.conexao, self.customer_id)
+        em_foco = self.contexto.get("transaction_id") or self.contexto.get("foco")
+        casos = [c for c in casos if c.transaction_id == em_foco] or casos
+        decisao = politica.decidir_status_do_caso(len(casos))
+        self._anotar("consultar_caso", decisao.regra)
+        if len(casos) == 1:
+            caso = casos[0]
+            t = self._verificada(caso.transaction_id)
+            resposta = texto(decisao.regra, self.idioma, t, **self._fatos_do_caso(caso))
+            return Saida(
+                decisao.regra,
+                "responder",
+                (resposta,),
+                "livre",
+                {"foco": caso.transaction_id},
+                transaction_id=caso.transaction_id,
+            )
+        extra = {}
+        if casos:
+            extra["casos"] = "\n".join(
+                texto(
+                    "CASO-ITEM",
+                    self.idioma,
+                    self._verificada(c.transaction_id),
+                    **self._fatos_do_caso(c),
+                )
+                for c in casos
+            )
+        resposta = texto(decisao.regra, self.idioma, **extra)
+        foco = _so_foco(self.contexto.get("foco"))
+        return Saida(decisao.regra, "responder", (resposta,), "livre", foco)
+
+    def _fatos_do_caso(self, caso: pre_caso.PreCaso) -> dict[str, str]:
+        return {
+            "protocolo": caso.protocolo,
+            "registro": f"{caso.criado_em:%d/%m/%Y}",
+            "estado_caso": ESTADO_DO_CASO[caso.estado][self.idioma],
+        }
 
     def _cancelar(self) -> Saida:
         cancelado = texto("CANCELADO", self.idioma)

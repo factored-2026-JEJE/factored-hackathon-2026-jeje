@@ -91,7 +91,8 @@ def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitu
 def entendida(lida: Interpretacao) -> bool:
     """As regras já sabem o que fazer (ou há sinal que só as regras podem tratar)."""
     pistas = (lida.valor, lida.data, lida.status, lida.escolha, lida.resposta)
-    return lida.intencao != "desconhecida" or lida.id_digitado or any(p is not None for p in pistas)
+    sinais = (lida.id_digitado, lida.caso)
+    return lida.intencao != "desconhecida" or any(sinais) or any(p is not None for p in pistas)
 
 
 @dataclass(frozen=True)

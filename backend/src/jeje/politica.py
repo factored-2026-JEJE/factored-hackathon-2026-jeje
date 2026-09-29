@@ -119,6 +119,14 @@ def decidir_contestacao(
     return Decisao("POL-DISP-01", "propor_pre_caso")
 
 
+def decidir_status_do_caso(quantos: int) -> Decisao:
+    """Status do pedido de revisão: só os pré-casos do cliente da sessão, relidos do banco. O
+    assistente informa o registro e o estado; não tem prazo nem resultado da revisão."""
+    if quantos == 0:
+        return Decisao("POL-CASO-03", "responder", "nenhum pré-caso do cliente")
+    return Decisao("POL-CASO-01" if quantos == 1 else "POL-CASO-02", "responder")
+
+
 # ---- Pedido na conversa (POL-HUM-01/03, POL-ESC-01, POL-ID-02) ---------------------------------
 
 ESCLARECIMENTOS_ATE_HUMANO = 2  # POL-HUM-03: perguntas de esclarecimento sem sucesso

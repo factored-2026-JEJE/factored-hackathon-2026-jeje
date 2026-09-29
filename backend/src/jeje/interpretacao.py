@@ -31,6 +31,7 @@ class Interpretacao:
     data: date | None = None
     status: Status | None = None  # status citado (ex.: "rechazaron" → Declined)
     id_digitado: bool = False  # parece identificador de sistema (POL-ID-02)
+    caso: bool = False  # pergunta pelo pedido de revisão já registrado (POL-CASO-*)
     sinais: tuple[str, ...] = ()  # termos que decidiram a intenção (auditoria)
 
 
@@ -98,6 +99,23 @@ COBRANCA_REPETIDA = Perto(
     ("dos veces", "2 veces", "duas vezes", "2 vezes", "2x", "doble", "dobro", "duplicad*",
      "repetid*"),
 )  # fmt: skip
+
+# Pergunta pelo pedido de revisão já registrado: o pedido (com possessivo ou palavra de andamento
+# perto) ou o protocolo. "¿cómo va mi solicitud?", "status do meu pedido de revisão", "cadê o
+# protocolo"; "quiero abrir una disputa" e "quero um pedido de revisão" continuam contestação.
+PEDIDO_REGISTRADO = Perto(
+    ("mi", "mis", "meu", "meus", "minha", "minhas", "como esta", "como va", "como anda",
+     "como vai", "como ficou", "como segue", "estado", "status", "situacion", "situacao",
+     "andamento", "novedad*", "novidade*", "noticia*", "respuesta", "resposta", "ver",
+     "consultar", "que paso con", "o que houve com", "cade", "donde esta"),
+    ("pre caso", "precaso", "pre casos", "precasos", "solicitud*", "pedido de revisao",
+     "pedidos de revisao", "reclamo", "reclamos", "reclamacao", "reclamacion", "disputa",
+     "contestacao"),
+)  # fmt: skip
+# O protocolo é do próprio cliente e só existe depois do registro; digitado ("PC-00000003"), só
+# indica o assunto: a busca continua sendo pelos pré-casos do cliente da sessão (POL-ID-02).
+PROTOCOLO = ("protocolo", "protocolos")
+PROTOCOLO_DIGITADO = re.compile(r"(?<![a-z0-9])pc \d+")
 
 # Recusar o atendente não é pedir um: "no quiero un agente, solo dime cuál fue". Só a negação
 # aplicada ao atendente ("no quiero esperar, quiero un agente" continua pedido).
@@ -300,6 +318,14 @@ def _valor(texto: str) -> Decimal | None:
     return Decimal(f"{digitos}.{(fracao or '0').ljust(2, '0')}")
 
 
+def _caso(limpo: str) -> bool:
+    return (
+        _casou(PEDIDO_REGISTRADO, limpo) is not None
+        or any(_casa(p, limpo) for p in PROTOCOLO)
+        or PROTOCOLO_DIGITADO.search(limpo) is not None
+    )
+
+
 def _status(limpo: str) -> str | None:
     citados = {status for status, termos in STATUS_CITADO if any(_casa(t, limpo) for t in termos)}
     return citados.pop() if len(citados) == 1 else None
@@ -317,6 +343,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "data": _data(texto, referencia),
         "status": _status(limpo),
         "id_digitado": IDENTIFICADOR.search(texto) is not None,
+        "caso": _caso(limpo),
     }
     for intencao, termos in TERMOS:
         if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):
