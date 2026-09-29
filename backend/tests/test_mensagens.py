@@ -9,6 +9,7 @@ import pytest
 from jeje import politica
 from jeje.mensagens import (
     CLAUSULAS,
+    ESTADO,
     IDIOMAS,
     MOTIVO_DO_CODIGO,
     TransacaoVerificada,
@@ -52,6 +53,11 @@ def test_nenhuma_clausula_promete_estorno_prazo_ou_resultado(clausula):
 def test_codigos_explicados_sao_exatamente_os_catalogados_pela_politica():
     assert set(MOTIVO_DO_CODIGO) == politica.CODIGOS_CATALOGADOS
     assert all(set(m) == set(IDIOMAS) for m in MOTIVO_DO_CODIGO.values())
+
+
+def test_todo_status_conhecido_tem_rotulo_nas_duas_linguas():
+    assert set(ESTADO) == politica.STATUS_CONHECIDOS
+    assert all(set(r) == set(IDIOMAS) for r in ESTADO.values())
 
 
 @pytest.mark.parametrize(

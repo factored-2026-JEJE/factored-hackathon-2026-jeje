@@ -15,7 +15,7 @@ from decimal import Decimal
 from itertools import product
 from typing import Literal
 
-from jeje.mensagens import Idioma
+from jeje.mensagens import Idioma, Status
 
 Intencao = Literal["fraude", "humano", "fora_de_escopo", "contestar", "consultar", "desconhecida"]
 Resposta = Literal["sim", "nao"]
@@ -29,7 +29,7 @@ class Interpretacao:
     escolha: int | None = None  # posição (1..9) numa lista de opções apresentada antes
     valor: Decimal | None = None
     data: date | None = None
-    status: str | None = None  # status citado (ex.: "rechazaron" → Declined)
+    status: Status | None = None  # status citado (ex.: "rechazaron" → Declined)
     id_digitado: bool = False  # parece identificador de sistema (POL-ID-02)
     sinais: tuple[str, ...] = ()  # termos que decidiram a intenção (auditoria)
 
@@ -113,7 +113,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "aprobad*", "aprovad*", "reembolso", "devolucion", "devolucao")),
 )  # fmt: skip
 
-STATUS_CITADO: tuple[tuple[str, tuple[str, ...]], ...] = (
+STATUS_CITADO: tuple[tuple[Status, tuple[str, ...]], ...] = (
     ("Declined", ("rechaz*", "recusad*", "recusaram", "recusou", "negad*", "negaram", "declin*")),
     ("Pending", ("pendiente*", "pendente*")),
     ("Reversed", ("revertid*", "revers*", "estornad*")),

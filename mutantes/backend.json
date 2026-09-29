@@ -3272,6 +3272,21 @@
       ]
     },
     {
+      "id": "M-MSG-11",
+      "requisito": "R02",
+      "descricao": "Status conhecido pela política sem rótulo ES/PT (a resposta sobre uma transação pendente quebra)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    \"Pending\": {\"es\": \"pendiente\", \"pt\": \"pendente\"},\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_todo_status_conhecido_tem_rotulo_nas_duas_linguas"
+      ]
+    },
+    {
       "id": "M-HO-01",
       "requisito": "R08",
       "descricao": "Pedido do cliente guardado inteiro (sem minimização)",
@@ -4831,8 +4846,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "    status: Literal[\"Approved\", \"Declined\", \"Pending\", \"Reversed\"] | None\n",
-          "para": "    status: Literal[\"Approved\", \"Declined\", \"Pending\", \"Reversed\"] | None\n    valor: float | None = None\n"
+          "de": "    status: Status | None\n",
+          "para": "    status: Status | None\n    valor: float | None = None\n"
         }
       ],
       "testes": [

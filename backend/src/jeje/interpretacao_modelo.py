@@ -17,26 +17,26 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
-from typing import Literal
+from typing import get_args
 
 from pydantic import BaseModel, ConfigDict
 
 from jeje import eventos
 from jeje.config import Settings
 from jeje.interpretacao import Intencao, Interpretacao, interpretar
-from jeje.mensagens import Idioma
+from jeje.mensagens import IDIOMAS, Idioma, Status
 
 log = logging.getLogger("jeje.modelo")
 
-INTENCOES = ["fraude", "humano", "fora_de_escopo", "contestar", "consultar", "desconhecida"]
-STATUS = ["Approved", "Declined", "Pending", "Reversed"]
+INTENCOES = list(get_args(Intencao))
+STATUS = list(get_args(Status))
 
 # Esquema pequeno de propósito: só tipos, enums e nulos (o que o gerador de gramática do Ollama
 # aceita sem risco). A validação de verdade é a do pydantic, abaixo.
 ESQUEMA = {
     "type": "object",
     "properties": {
-        "idioma": {"type": "string", "enum": ["es", "pt"]},
+        "idioma": {"type": "string", "enum": list(IDIOMAS)},
         "intencao": {"type": "string", "enum": INTENCOES},
         "status": {"type": ["string", "null"], "enum": [*STATUS, None]},
     },
@@ -49,9 +49,9 @@ class SaidaDoModelo(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    idioma: Literal["es", "pt"]
+    idioma: Idioma
     intencao: Intencao
-    status: Literal["Approved", "Declined", "Pending", "Reversed"] | None
+    status: Status | None
 
 
 INSTRUCOES = (

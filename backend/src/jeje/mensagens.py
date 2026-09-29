@@ -10,10 +10,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from string import Formatter
-from typing import Literal
+from typing import Literal, get_args
 
 Idioma = Literal["es", "pt"]
-IDIOMAS: tuple[Idioma, ...] = ("es", "pt")
+IDIOMAS: tuple[Idioma, ...] = get_args(Idioma)
+# Status de transação que o atendimento sabe dizer (rótulos em ESTADO).
+Status = Literal["Approved", "Declined", "Pending", "Reversed"]
 
 # Significado genérico dos códigos catalogados (ISO 8583; simulado, rotulado na resposta).
 MOTIVO_DO_CODIGO: dict[str, dict[Idioma, str]] = {
@@ -23,7 +25,7 @@ MOTIVO_DO_CODIGO: dict[str, dict[Idioma, str]] = {
     "05": {"es": "no autorizada por el emisor", "pt": "não autorizada pelo emissor"},
 }
 
-ESTADO: dict[str, dict[Idioma, str]] = {
+ESTADO: dict[Status, dict[Idioma, str]] = {
     "Approved": {"es": "aprobada", "pt": "aprovada"},
     "Declined": {"es": "rechazada", "pt": "recusada"},
     "Pending": {"es": "pendiente", "pt": "pendente"},

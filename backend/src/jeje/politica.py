@@ -10,13 +10,15 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, get_args
+
+from jeje.mensagens import Status
 
 Acao = Literal["responder", "esclarecer", "propor_pre_caso", "humano", "recusar"]
 
 # Códigos de recusa com explicação aprovada (95% das recusas da base; DEV-005).
 CODIGOS_CATALOGADOS = frozenset({"05", "14", "51", "54"})
-STATUS_CONHECIDOS = frozenset({"Approved", "Declined", "Pending", "Reversed"})
+STATUS_CONHECIDOS = frozenset(get_args(Status))
 
 
 @dataclass(frozen=True)
