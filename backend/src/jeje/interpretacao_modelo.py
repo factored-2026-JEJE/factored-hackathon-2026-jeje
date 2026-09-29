@@ -180,9 +180,9 @@ Interpretador = Callable[[str, Idioma, date], Leitura]
 
 
 def carregar_em_segundo_plano(interpretador: Interpretador, timeout_s: float):
-    """Carga do modelo ao iniciar a API, numa thread: o início não espera por ela. Só a cascata
-    com o Ollama tem o que carregar; devolve a thread (ou None)."""
-    if not isinstance(interpretador, Ollama):
+    """Carga do modelo ao iniciar a API, numa thread: o início não espera por ela. Só as cascatas
+    (Ollama, leitor) têm o que carregar; devolve a thread (ou None)."""
+    if not hasattr(interpretador, "carregar"):
         return None
     carga = threading.Thread(
         target=interpretador.carregar, args=(timeout_s,), name="carga-do-modelo", daemon=True
@@ -192,7 +192,15 @@ def carregar_em_segundo_plano(interpretador: Interpretador, timeout_s: float):
 
 
 def configurado(settings: Settings) -> Interpretador:
-    """O interpretador escolhido no compose (INTERPRETADOR): só regras, ou cascata com o Ollama."""
+    """O interpretador escolhido no compose (INTERPRETADOR): só regras, ou cascata com o leitor ou
+    com o Ollama."""
+    if settings.interpretador == "leitor":
+        from jeje import interpretacao_leitor  # importa este módulo: só depois dele carregado
+
+        return interpretacao_leitor.Leitor(
+            interpretacao_leitor.dos_arquivos(settings.leitor_modelo, settings.leitor_e5),
+            settings.leitor_limite,
+        )
     if settings.interpretador == "ollama":
         return Ollama(
             settings.ollama_url,

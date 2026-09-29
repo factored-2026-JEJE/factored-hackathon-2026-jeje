@@ -5684,6 +5684,190 @@
       "testes": [
         "tests/test_leitor_treino.py::test_le_mensagens_obvias_do_corpus_pequeno"
       ]
+    },
+    {
+      "id": "M-LEITOR-23",
+      "requisito": "R06",
+      "descricao": "Leitor consultado mesmo quando as regras já entenderam",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if entendida(regras):\n            return Leitura(regras, \"regras\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_o_que_as_regras_entendem_nem_chega_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-LEITOR-24",
+      "requisito": "R06",
+      "descricao": "Leitor decide mesmo com confiança abaixo do limite",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if lida.confianca < self.limite:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_abaixo_do_limite_a_mensagem_segue_nao_entendida"
+      ]
+    },
+    {
+      "id": "M-LEITOR-25",
+      "requisito": "R06",
+      "descricao": "Limite estrito: confiança igual ao limite não decide",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if lida.confianca < self.limite:\n",
+          "para": "        if lida.confianca <= self.limite:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_confianca_igual_ao_limite_ja_decide"
+      ]
+    },
+    {
+      "id": "M-LEITOR-26",
+      "requisito": "R06",
+      "descricao": "Status do fluxo ignorado (estorno sem Reversed)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "            status=status,\n",
+          "para": "            status=regras.status,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_leitor_confiante_preenche_intencao_e_status_pelo_fluxo"
+      ]
+    },
+    {
+      "id": "M-LEITOR-27",
+      "requisito": "R06",
+      "descricao": "Falha do leitor derruba o turno em vez de seguir pelas regras",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        except Exception as erro:\n            # Fronteira do modelo:",
+          "para": "        except ZeroDivisionError as erro:\n            # Fronteira do modelo:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_carga_que_falha_vira_regras_com_o_motivo_e_nao_e_repetida",
+        "tests/test_interpretacao_leitor.py::test_falha_ao_ler_vira_regras_e_a_chamada_fica_contada",
+        "tests/test_interpretacao_leitor.py::test_arquivos_ausentes_viram_regras_sem_carregar_o_e5"
+      ]
+    },
+    {
+      "id": "M-LEITOR-28",
+      "requisito": "R06",
+      "descricao": "Carga que falhou é repetida a cada turno",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "            if self._pronto is None and self._falha is None:\n",
+          "para": "            if self._pronto is None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_carga_que_falha_vira_regras_com_o_motivo_e_nao_e_repetida"
+      ]
+    },
+    {
+      "id": "M-LEITOR-29",
+      "requisito": "R06",
+      "descricao": "Fallback sem a chamada contada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "                regras, f\"regras (fallback: {type(erro).__name__})\", self._chamada(inicio)\n",
+          "para": "                regras, f\"regras (fallback: {type(erro).__name__})\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_falha_ao_ler_vira_regras_e_a_chamada_fica_contada"
+      ]
+    },
+    {
+      "id": "M-LEITOR-30",
+      "requisito": "R06",
+      "descricao": "Carga em segundo plano só para o Ollama: o leitor carrega no primeiro turno",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    if not hasattr(interpretador, \"carregar\"):\n",
+          "para": "    if not isinstance(interpretador, Ollama):\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_api_com_leitor_pede_a_carga_ao_iniciar_e_sobe_mesmo_sem_ele"
+      ]
+    },
+    {
+      "id": "M-LEITOR-31",
+      "requisito": "R06",
+      "descricao": "INTERPRETADOR=leitor ignorado: a API lê só pelas regras",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    if settings.interpretador == \"leitor\":\n",
+          "para": "    if settings.interpretador == \"nenhum\":\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_api_com_leitor_pede_a_carga_ao_iniciar_e_sobe_mesmo_sem_ele"
+      ]
+    },
+    {
+      "id": "M-LEITOR-32",
+      "requisito": "R06",
+      "descricao": "Limite fixo no código em vez do LEITOR_LIMITE do compose",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "            settings.leitor_limite,\n",
+          "para": "            0.8,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_api_com_leitor_pede_a_carga_ao_iniciar_e_sobe_mesmo_sem_ele"
+      ]
+    },
+    {
+      "id": "M-LEITOR-33",
+      "requisito": "R06",
+      "descricao": "Leitura do leitor registrada com custo desconhecido (tokens nulos)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        return Chamada(eventos.desde(inicio), 0, 0)\n",
+          "para": "        return Chamada(eventos.desde(inicio))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_leitor_confiante_preenche_intencao_e_status_pelo_fluxo",
+        "tests/test_interpretacao_leitor.py::test_na_conversa_o_leitor_so_le_e_o_turno_registra_quem_leu"
+      ]
+    },
+    {
+      "id": "M-LEITOR-34",
+      "requisito": "R06",
+      "descricao": "Turno lido pelo leitor registrado como lido pelas regras",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        return Leitura(lido, f\"leitor:e5@{modelo.versao[:12]}\", self._chamada(inicio))\n",
+          "para": "        return Leitura(lido, \"regras\", self._chamada(inicio))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_leitor_confiante_preenche_intencao_e_status_pelo_fluxo",
+        "tests/test_interpretacao_leitor.py::test_na_conversa_o_leitor_so_le_e_o_turno_registra_quem_leu"
+      ]
     }
   ]
 }
