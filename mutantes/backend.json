@@ -4546,8 +4546,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"no autorice\", \"nao autorizei\")),",
-          "para": "\"no autorice\", \"nao autorizei\",\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
+          "de": "\"revisem\", \"reclamar\")),",
+          "para": "\"revisem\", \"reclamar\",\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
         }
       ],
       "testes": [
@@ -5942,6 +5942,66 @@
       ],
       "testes": [
         "tests/test_avaliacao_leitor.py::test_cli_com_argumentos_demais_mostra_o_uso"
+      ]
+    },
+    {
+      "id": "M-ITP-28",
+      "requisito": "R07",
+      "descricao": "Cobrança repetida volta a ser consulta (\"me cobraron dos veces\" responde só o status)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "COBRANCA_REPETIDA, \"revisen\"",
+          "para": "\"revisen\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-29",
+      "requisito": "R07",
+      "descricao": "Pedido de revisão (\"que la revisen\") não é reconhecido como contestação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "COBRANCA_REPETIDA, \"revisen\", \"revisem\", \"reclamar\"",
+          "para": "COBRANCA_REPETIDA, \"reclamar\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-30",
+      "requisito": "R07",
+      "descricao": "Repetição sem verbo de cobrar vira contestação (\"intenté dos veces y me rechazaron\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "COBRANCA_REPETIDA, \"revisen\"",
+          "para": "COBRANCA_REPETIDA, \"dos veces\", \"2 vezes\", \"revisen\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-31",
+      "requisito": "R02",
+      "descricao": "Contagem lida como valor (\"me aparece 2 veces\" busca uma transação de 2,00)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "VALOR.search(IDENTIFICADOR.sub(\" \", CONTAGEM.sub(\" \", sem_datas)))",
+          "para": "VALOR.search(IDENTIFICADOR.sub(\" \", sem_datas))"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
       ]
     }
   ]
