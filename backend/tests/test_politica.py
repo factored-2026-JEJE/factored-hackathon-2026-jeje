@@ -164,11 +164,11 @@ def test_pedido_segue_a_matriz_com_seguranca_primeiro(intencao, id_digitado, esp
     assert decidir_pedido(intencao, id_digitado) == esperado
 
 
-def test_dois_esclarecimentos_sem_sucesso_levam_ao_humano():
+def test_dois_esclarecimentos_sem_sucesso_oferecem_o_humano():
     assert decidir_esclarecimento(0) == Decisao("POL-CON-02", "esclarecer")
     assert decidir_esclarecimento(1) == Decisao("POL-CON-02", "esclarecer")
     assert decidir_esclarecimento(2) == Decisao(
-        "POL-HUM-03", "humano", "esclarecimentos sem sucesso"
+        "POL-HUM-03", "oferecer_humano", "esclarecimentos sem sucesso"
     )
 
 

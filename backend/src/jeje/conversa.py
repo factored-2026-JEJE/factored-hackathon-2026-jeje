@@ -5,6 +5,11 @@ leitura da mensagem, que pode esperar o modelo, vem antes e fora da transação 
 Nenhum turno pula a política: o texto só escolhe a pergunta feita a ela, e a transação só vem de
 consulta filtrada pelo dono. Efeito (pré-caso) só com confirmação explícita ligada à proposta
 guardada no estado; encaminhamento humano grava o resumo e encerra a automação da conversa.
+
+Cada estado espera uma coisa: um pedido (livre), a transação (esclarecendo: pistas somam entre os
+turnos, o status citado é pista e não filtro), o sim ou não (confirmando) ou algo sobre a transação
+já respondida (livre com foco). O que não cabe na etapa é respondido com o que foi entendido e a
+oferta do atendente: o sim encaminha, o não volta à etapa, e outra mensagem é lida nela.
 Falha ao gravar propaga: quem chama desfaz o turno inteiro, sem resposta de sucesso.
 """
 
@@ -12,6 +17,7 @@ import json
 import secrets
 from dataclasses import dataclass, field, replace
 from datetime import date
+from decimal import Decimal
 from functools import cached_property
 from typing import Literal
 
@@ -23,6 +29,7 @@ from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
     ESTADO,
     MOTIVO_DO_CODIGO,
+    PEDIDO,
     Idioma,
     TransacaoVerificada,
     compor,
@@ -184,56 +191,140 @@ class _Turno:
             )
         decisao = politica.decidir_pedido(self.lida.intencao, self.lida.id_digitado)
         if decisao is not None and decisao.acao == "humano":
+            # Segurança e pedido de atendente valem em qualquer etapa.
             self._anotar("interpretar", f"{decisao.regra}: {', '.join(self.lida.sinais)}")
             return self._encaminhar(decisao, self._em_foco())
+        if self._resumiu() and self.lida.resposta is None:
+            # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.
+            self.estado, self.contexto = self._etapa_resumida()
         if self.estado == "confirmando" and self.lida.resposta is not None:
             return self._confirmar() if self.lida.resposta == "sim" else self._cancelar()
         if self.estado == "oferecendo_humano" and self.lida.resposta is not None:
             if self.lida.resposta == "nao":
-                return self._cancelar()
+                return self._retomar() if self._resumiu() else self._cancelar()
             aceito = politica.Decisao("POL-HUM-03", "humano", "aceitou o atendente oferecido")
             return self._encaminhar(aceito, self._em_foco())
-        if decisao is not None:
-            # Recusa (fora de escopo, ID digitado) não desfaz o que estava pendente.
+        if decisao is not None and decisao.regra == "POL-ID-02":
+            # Identificador digitado não desfaz o que estava pendente.
             recusa = texto(decisao.regra, self.idioma)
             return Saida(decisao.regra, "recusar", (recusa,), self.estado, self.contexto)
+        fora_de_escopo = decisao is not None
         if self.estado == "esclarecendo" and (escolhida := self._escolhida()) is not None:
             return self._agir(self.contexto["intencao"], escolhida)
-        if self.lida.intencao in ("consultar", "contestar"):
+        if self._pista_da_etapa():
+            # Pista enquanto se procura a transação é do pedido em andamento, qualquer que seja a
+            # palavra que a acompanha ("la compra del 10/03" numa contestação segue contestação).
+            contestar = self.lida.intencao == "contestar"
+            intencao = "contestar" if contestar else self.contexto.get("intencao", "contestar")
+            return self._resolver(intencao, novo_assunto=False)
+        if not fora_de_escopo and self.lida.intencao in ("consultar", "contestar"):
             return self._pedido(self.lida.intencao)
-        if self.estado in ("esclarecendo", "confirmando") and self._tem_pista():
-            return self._resolver(self.contexto.get("intencao", "contestar"), novo_assunto=False)
-        if self.estado == "esclarecendo":
-            return self._perguntar(self.contexto["intencao"], None)
-        if self.estado == "confirmando":
-            transaction_id = self.contexto["transaction_id"]
-            pergunta = texto("CONFIRMACAO-PENDENTE", self.idioma, self._verificada(transaction_id))
-            return Saida(
-                "POL-DISP-01",
-                "confirmar",
-                (pergunta,),
-                "confirmando",
-                self.contexto,
-                transaction_id=transaction_id,
-            )
-        if self._tem_pista():
+        if not fora_de_escopo and self._tem_pista():
             return self._pedido("consultar")
+        if self._em_etapa():
+            # Nada do que a etapa espera (nem pedido novo): diz o que entendeu e oferece o
+            # atendente, em vez de repetir a pergunta ou recusar.
+            return self._resumir_etapa()
+        if fora_de_escopo:
+            fora = (texto("POL-ESC-01", self.idioma), texto("OFERTA-FORA", self.idioma))
+            return self._oferecer(fora, decisao.regra, "livre", {})
         return self._nao_entendido()
+
+    # ---- etapas ------------------------------------------------------------------------------
+
+    def _em_etapa(self) -> bool:
+        """Esperando a transação, a confirmação ou falando de uma transação já respondida."""
+        return self.estado in ("esclarecendo", "confirmando") or "foco" in self.contexto
+
+    def _pista_da_etapa(self) -> bool:
+        """Pista (valor, data ou comércio) enquanto se procura ou confirma a transação. Status
+        citado ("¿y la rechazada?") é pergunta nova, não pista do pedido em andamento."""
+        return (
+            self.estado in ("esclarecendo", "confirmando")
+            and self.lida.status is None
+            and self._tem_pista()
+        )
+
+    def _resumiu(self) -> bool:
+        return self.estado == "oferecendo_humano" and "etapa" in self.contexto
+
+    def _etapa_resumida(self) -> tuple[Estado, dict]:
+        etapa = self.contexto["etapa"]
+        return etapa["estado"], etapa["contexto"]
+
+    def _resumir_etapa(self) -> Saida:
+        if self.estado == "esclarecendo":
+            pedido = PEDIDO[self.contexto["intencao"]][self.idioma]
+            resumo = texto("RESUMO-TRANSACAO", self.idioma, pedido=pedido)
+        elif self.estado == "confirmando":
+            t = self._verificada(self.contexto["transaction_id"])
+            resumo = texto("RESUMO-CONFIRMACAO", self.idioma, t)
+        else:
+            resumo = texto("RESUMO-FOCO", self.idioma, self._verificada(self.contexto["foco"]))
+        oferta = texto("OFERTA-ATENDENTE", self.idioma)
+        return self._oferecer((resumo, oferta), "RESUMO", self.estado, self.contexto)
+
+    def _oferecer(
+        self, textos: tuple[str, ...], regra: str, estado: Estado, contexto: dict
+    ) -> Saida:
+        """Oferece o atendente guardando a etapa: "sí" encaminha, "no" volta a ela, e qualquer
+        outra mensagem é lida nela."""
+        transaction_id = contexto.get("transaction_id") or contexto.get("foco")
+        oferta = {
+            "etapa": {"estado": estado, "contexto": contexto},
+            "pedido": contexto.get("pedido", self.mensagem[:280]),
+            "acoes": self._acoes_json(),
+        }
+        if transaction_id is not None:
+            oferta["transaction_id"] = transaction_id
+        return Saida(
+            regra,
+            "oferecer_humano",
+            textos,
+            "oferecendo_humano",
+            oferta,
+            transaction_id=transaction_id,
+        )
+
+    def _retomar(self) -> Saida:
+        """Recusou o atendente oferecido no resumo: volta à etapa e repete o que ela pergunta."""
+        self.estado, self.contexto = self._etapa_resumida()
+        aviso = texto("RETOMAR", self.idioma)
+        if self.estado == "esclarecendo":
+            self.contexto = {**self.contexto, "esclarecimentos": 0}
+            pergunta = self._perguntar(self.contexto["intencao"], None)
+            return replace(pergunta, textos=(aviso, *pergunta.textos))
+        if self.estado == "confirmando":
+            pendente = self._confirmacao_pendente()
+            return replace(pendente, textos=(aviso, *pendente.textos))
+        contexto = _so_foco(self.contexto.get("foco"))
+        livre = texto("RETOMAR-LIVRE", self.idioma)
+        return Saida("RETOMAR", "responder", (livre,), "livre", contexto)
+
+    def _confirmacao_pendente(self) -> Saida:
+        transaction_id = self.contexto["transaction_id"]
+        pergunta = texto("CONFIRMACAO-PENDENTE", self.idioma, self._verificada(transaction_id))
+        return Saida(
+            "POL-DISP-01",
+            "confirmar",
+            (pergunta,),
+            "confirmando",
+            self.contexto,
+            transaction_id=transaction_id,
+        )
 
     def _nao_entendido(self) -> Saida:
         """Mensagem não entendida também é esclarecimento (POL-HUM-03): pede de novo até o limite
-        e depois encaminha, com a primeira mensagem da sequência no resumo. Pedido entendido zera
-        a contagem (o contexto é trocado)."""
+        e depois oferece o atendente, com a primeira mensagem da sequência no resumo. Pedido
+        entendido zera a contagem (o contexto é trocado)."""
         pedidos_de_novo = self.contexto.get("esclarecimentos", 0)
         decisao = politica.decidir_esclarecimento(pedidos_de_novo)
-        if decisao.acao == "humano":
+        pedido = self.contexto.get("pedido", self.mensagem[:280])
+        if decisao.acao == "oferecer_humano":
             self._anotar("esclarecer", f"{pedidos_de_novo} mensagens seguidas não entendidas")
-            return self._encaminhar(decisao, self._em_foco())
-        contexto = {
-            **_so_foco(self.contexto.get("foco")),
-            "pedido": self.contexto.get("pedido", self.mensagem[:280]),
-            "esclarecimentos": pedidos_de_novo + 1,
-        }
+            resumo = (texto("RESUMO-PEDIDO", self.idioma),)
+            return self._oferecer(resumo, decisao.regra, "livre", {"pedido": pedido})
+        contexto = {"pedido": pedido, "esclarecimentos": pedidos_de_novo + 1}
         return Saida("AJUDA", "esclarecer", (texto("AJUDA", self.idioma),), "livre", contexto)
 
     # ---- resolução da transação --------------------------------------------------------------
@@ -267,20 +358,41 @@ class _Turno:
         status = self.lida.status or self.contexto.get("status")
         if intencao == "contestar":
             status = None  # contestação vale para qualquer status; a política decide
-        pista = politica.Pista(self.lida.valor, self.lida.data, self._comercio)
-        resolucao = politica.resolver_transacao(self._candidatas(status), pista, MAXIMO_OPCOES)
+        pista = self._pista()
+        if not novo_assunto:
+            # O que ainda falta se preenche ao longo da etapa: as pistas de antes somam com as de
+            # agora ("fue en Cine Premium", depois "la de 45,90").
+            pista = _somar(_pista_do_contexto(self.contexto.get("pista")), pista)
+        resolucao = self._resolucao(status, pista)
+        if resolucao.tipo == "nenhuma" and not novo_assunto and pista != (atual := self._pista()):
+            # A soma não casa nada (uma pista de antes estava errada): vale a mensagem de agora.
+            pista, resolucao = atual, self._resolucao(status, atual)
         if resolucao.tipo == "unica":
             return self._agir(intencao, resolucao.transacoes[0])
-        return self._perguntar(intencao, resolucao.transacoes)
+        return self._perguntar(intencao, resolucao.transacoes, pista)
 
-    def _perguntar(self, intencao: str, opcoes_ids: tuple[str, ...] | None) -> Saida:
+    def _pista(self) -> politica.Pista:
+        return politica.Pista(self.lida.valor, self.lida.data, self._comercio)
+
+    def _resolucao(self, status: str | None, pista: politica.Pista) -> politica.Resolucao:
+        resolucao = politica.resolver_transacao(self._candidatas(status), pista, MAXIMO_OPCOES)
+        if resolucao.tipo == "nenhuma" and status is not None and pista != politica.Pista():
+            # O status citado é pista, não filtro: "¿por qué rechazaron la de Boutique Moda?"
+            # sobre uma aprovada acha a aprovada, e a resposta diz o status verdadeiro.
+            resolucao = politica.resolver_transacao(self._candidatas(None), pista, MAXIMO_OPCOES)
+        return resolucao
+
+    def _perguntar(
+        self,
+        intencao: str,
+        opcoes_ids: tuple[str, ...] | None,
+        pista: politica.Pista | None = None,
+    ) -> Saida:
         """Pergunta qual transação (ou pede dados, se nenhuma casou); `None` repete as opções já
-        apresentadas. Passado o limite de esclarecimentos, encaminha (POL-HUM-03)."""
+        apresentadas. Passado o limite de esclarecimentos, diz o que entendeu e oferece o
+        atendente (POL-HUM-03); o "não" volta a esta pergunta."""
         feitos = self.contexto.get("esclarecimentos", 0)
         decisao = politica.decidir_esclarecimento(feitos)
-        if decisao.acao == "humano":
-            self._anotar("esclarecer", f"{feitos} perguntas sem identificar a transação")
-            return self._encaminhar(decisao, None)
         if opcoes_ids is None:
             opcoes_ids = tuple(self.contexto.get("opcoes", ()))
         opcoes = tuple(
@@ -295,6 +407,14 @@ class _Turno:
             "esclarecimentos": feitos + 1,
             "acoes": self._acoes_json(),
         }
+        if pista is not None or "pista" in self.contexto:
+            contexto["pista"] = _pista_json(pista) if pista is not None else self.contexto["pista"]
+        if decisao.acao == "oferecer_humano":
+            self._anotar("esclarecer", f"{feitos} perguntas sem identificar a transação")
+            pedido = PEDIDO[intencao][self.idioma]
+            resumo = texto("RESUMO-TRANSACAO", self.idioma, pedido=pedido)
+            textos = (resumo, texto("OFERTA-ATENDENTE", self.idioma))
+            return self._oferecer(textos, decisao.regra, "esclarecendo", contexto)
         if not opcoes:
             pedido_de_dados = texto("CON-NENHUMA", self.idioma)
             return Saida("POL-CON-02", "esclarecer", (pedido_de_dados,), "esclarecendo", contexto)
@@ -477,6 +597,34 @@ def rastro_da_leitura(leitura: Leitura | None) -> dict:
 
 def _so_foco(foco: str | None) -> dict:
     return {} if foco is None else {"foco": foco}
+
+
+def _pista_json(pista: politica.Pista) -> dict:
+    return {
+        "valor": None if pista.valor is None else str(pista.valor),
+        "data": None if pista.data is None else pista.data.isoformat(),
+        "comercio": pista.comercio,
+    }
+
+
+def _pista_do_contexto(guardada: dict | None) -> politica.Pista:
+    if not guardada:
+        return politica.Pista()
+    valor, data = guardada.get("valor"), guardada.get("data")
+    return politica.Pista(
+        None if valor is None else Decimal(valor),
+        None if data is None else date.fromisoformat(data),
+        guardada.get("comercio"),
+    )
+
+
+def _somar(antes: politica.Pista, agora: politica.Pista) -> politica.Pista:
+    """O que o cliente disse agora vale sobre o que disse antes, campo a campo."""
+    return politica.Pista(
+        agora.valor if agora.valor is not None else antes.valor,
+        agora.data if agora.data is not None else antes.data,
+        agora.comercio if agora.comercio is not None else antes.comercio,
+    )
 
 
 def _efeito(saida: Saida) -> str | None:

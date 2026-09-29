@@ -99,6 +99,14 @@ COBRANCA_REPETIDA = Perto(
      "repetid*"),
 )  # fmt: skip
 
+# Recusar o atendente não é pedir um: "no quiero un agente, solo dime cuál fue". Só a negação
+# aplicada ao atendente ("no quiero esperar, quiero un agente" continua pedido).
+RECUSA_DE_HUMANO = re.compile(
+    r"(?<![a-z0-9])(?:no quiero|nao quero|no necesito|nao preciso|sin|sem)"
+    r"(?: (?:hablar|falar)(?: con| com)?)?(?: (?:un|una|um|uma|el|la|o|a|ningun|nenhum))?"
+    r" (?:agente|asesor|atendente|humano|operador|persona|pessoa)(?![a-z0-9])"
+)
+
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
 TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("fraude", ("fraude", "robaron", "robo de", "un robo", "robada", "robado", "roubaram",
@@ -206,7 +214,7 @@ ORDINAIS = {
 }  # fmt: skip
 ENCHIMENTO_DA_ESCOLHA = frozenset(
     {"la", "el", "a", "o", "opcion", "opcao", "numero", "es", "e", "esa", "essa", "esta", "seria",
-     "por", "favor", "gracias", "obrigado", "obrigada"}
+     "por", "favor", "gracias", "obrigado", "obrigada", "quiero", "quero", "fue", "foi", "era"}
 )  # fmt: skip
 
 
@@ -299,16 +307,20 @@ def _status(limpo: str) -> str | None:
 
 def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interpretacao:
     limpo = normalizar(texto)
+    escolha = _escolha(limpo)
     pistas = {
         "idioma": _idioma(texto, limpo, idioma_anterior),
         "resposta": _resposta(limpo),
-        "escolha": _escolha(limpo),
-        "valor": _valor(texto),
+        "escolha": escolha,
+        # "A 1" é escolha, nunca valor: sem lista pendente, não vira busca de uma transação de 1,00.
+        "valor": None if escolha is not None else _valor(texto),
         "data": _data(texto, referencia),
         "status": _status(limpo),
         "id_digitado": IDENTIFICADOR.search(texto) is not None,
     }
     for intencao, termos in TERMOS:
+        if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):
+            continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
         if casados:
             return Interpretacao(intencao=intencao, sinais=casados, **pistas)

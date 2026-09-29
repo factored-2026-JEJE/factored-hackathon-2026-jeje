@@ -2799,7 +2799,7 @@
     {
       "id": "M-POL-20",
       "requisito": "R03",
-      "descricao": "Terceiro esclarecimento em vez de humano",
+      "descricao": "Terceiro esclarecimento em vez da oferta de atendente",
       "trocas": [
         {
           "arquivo": "src/jeje/politica.py",
@@ -2808,7 +2808,7 @@
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_dois_esclarecimentos_sem_sucesso_levam_ao_humano"
+        "tests/test_politica.py::test_dois_esclarecimentos_sem_sucesso_oferecem_o_humano"
       ]
     },
     {
@@ -3598,22 +3598,22 @@
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_dois_esclarecimentos_sem_sucesso_encaminham_para_humano"
+        "tests/test_conversa.py::test_pistas_que_nao_casam_ate_o_limite_oferecem_o_atendente"
       ]
     },
     {
       "id": "M-CONV-10",
       "requisito": "R03",
-      "descricao": "Recusa de fora de escopo desfaz a confirmação pendente",
+      "descricao": "Fora de escopo no meio da confirmação desfaz a proposta (o \"no\" ao resumo não volta a ela)",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            return Saida(decisao.regra, \"recusar\", (recusa,), self.estado, self.contexto)",
-          "para": "            return Saida(decisao.regra, \"recusar\", (recusa,), \"livre\")"
+          "de": "        return self._oferecer((resumo, oferta), \"RESUMO\", self.estado, self.contexto)",
+          "para": "        return self._oferecer((resumo, oferta), \"RESUMO\", \"livre\", {})"
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_fora_de_escopo_recusa_sem_desfazer_a_confirmacao_pendente"
+        "tests/test_conversa.py::test_fora_de_escopo_no_meio_da_confirmacao_resume_sem_desfazer_a_proposta"
       ]
     },
     {
@@ -3653,7 +3653,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if self.lida.resposta == \"nao\":\n                return self._cancelar()\n",
+          "de": "            if self.lida.resposta == \"nao\":\n                return self._retomar() if self._resumiu() else self._cancelar()\n",
           "para": ""
         }
       ],
@@ -3788,12 +3788,12 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            \"esclarecimentos\": pedidos_de_novo + 1,",
-          "para": "            \"esclarecimentos\": pedidos_de_novo,"
+          "de": "        contexto = {\"pedido\": pedido, \"esclarecimentos\": pedidos_de_novo + 1}",
+          "para": "        contexto = {\"pedido\": pedido, \"esclarecimentos\": pedidos_de_novo}"
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_mensagens_nao_entendidas_seguidas_encaminham_para_humano"
+        "tests/test_conversa.py::test_mensagens_nao_entendidas_seguidas_oferecem_o_humano"
       ]
     },
     {
@@ -5998,6 +5998,249 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "VALOR.search(IDENTIFICADOR.sub(\" \", CONTAGEM.sub(\" \", sem_datas)))",
           "para": "VALOR.search(IDENTIFICADOR.sub(\" \", sem_datas))"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador",
+        "tests/test_conversa.py::test_cobranca_repetida_sobre_a_transacao_em_foco_propoe_revisao"
+      ]
+    },
+    {
+      "id": "M-CONV-29",
+      "requisito": "R03",
+      "descricao": "Pista dada na busca da transação vira pedido novo (\"la compra del…\" perde a contestação; a resposta ao resumo com o comércio vira consulta)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self._pista_da_etapa():\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pista_durante_contestacao_continua_a_contestacao",
+        "tests/test_conversa.py::test_outra_mensagem_depois_do_resumo_e_lida_na_etapa"
+      ]
+    },
+    {
+      "id": "M-CONV-30",
+      "requisito": "R03",
+      "descricao": "Status citado na busca de uma contestação continua a contestação (\"¿y la rechazada?\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            and self.lida.status is None\n            and self._tem_pista()\n",
+          "para": "            and self._tem_pista()\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_status_citado_durante_contestacao_e_pergunta_nova"
+      ]
+    },
+    {
+      "id": "M-CONV-31",
+      "requisito": "R02",
+      "descricao": "Pistas de turnos anteriores esquecidas: só a da mensagem atual procura a transação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            pista = _somar(_pista_do_contexto(self.contexto.get(\"pista\")), pista)",
+          "para": "            pista = pista"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pistas_se_somam_ao_longo_da_busca"
+      ]
+    },
+    {
+      "id": "M-CONV-32",
+      "requisito": "R02",
+      "descricao": "Soma de pistas que não casa nada vale mesmo assim (uma pista errada prende a busca)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if resolucao.tipo == \"nenhuma\" and not novo_assunto and pista != (atual := self._pista()):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pista_nova_que_nao_casa_com_as_anteriores_vale_sozinha"
+      ]
+    },
+    {
+      "id": "M-CONV-33",
+      "requisito": "R02",
+      "descricao": "Status citado volta a ser filtro: \"¿por qué rechazaron lo de Boutique Moda?\" sobre uma aprovada não acha nada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if resolucao.tipo == \"nenhuma\" and status is not None and pista != politica.Pista():",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_status_citado_que_nao_casa_e_pista_e_a_resposta_diz_o_verdadeiro"
+      ]
+    },
+    {
+      "id": "M-CONV-34",
+      "requisito": "R03",
+      "descricao": "Mensagem sobre a transação respondida (\"¿y ahora qué hago?\") volta a ser \"no entendí\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        return self.estado in (\"esclarecendo\", \"confirmando\") or \"foco\" in self.contexto",
+          "para": "        return self.estado in (\"esclarecendo\", \"confirmando\")"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_sobre_a_transacao_respondida_diz_o_que_consta_e_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-35",
+      "requisito": "R03",
+      "descricao": "Resposta ao resumo com outra coisa não volta à etapa (a pista dada depois do resumo vira pedido novo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.\n            self.estado, self.contexto = self._etapa_resumida()\n",
+          "para": "            pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_outra_mensagem_depois_do_resumo_e_lida_na_etapa"
+      ]
+    },
+    {
+      "id": "M-CONV-36",
+      "requisito": "R03",
+      "descricao": "\"No\" ao atendente oferecido no resumo cancela tudo em vez de voltar à etapa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                return self._retomar() if self._resumiu() else self._cancelar()",
+          "para": "                return self._cancelar()"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_mensagem_fora_da_escolha_resume_e_so_encaminha_com_sim",
+        "tests/test_conversa.py::test_fora_de_escopo_no_meio_da_confirmacao_resume_sem_desfazer_a_proposta"
+      ]
+    },
+    {
+      "id": "M-CONV-37",
+      "requisito": "R03",
+      "descricao": "Fora de escopo sem etapa volta à recusa seca, sem oferecer o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            return self._oferecer(fora, decisao.regra, \"livre\", {})",
+          "para": "            return Saida(decisao.regra, \"recusar\", fora[:1], \"livre\")"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_fora_de_escopo_sem_etapa_recusa_e_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-38",
+      "requisito": "R03",
+      "descricao": "Limite de esclarecimentos volta a encaminhar sem o sim do cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            return self._oferecer(textos, decisao.regra, \"esclarecendo\", contexto)",
+          "para": "            return self._encaminhar(decisao, None)"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pistas_que_nao_casam_ate_o_limite_oferecem_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-39",
+      "requisito": "R03",
+      "descricao": "Mensagem que não cabe na escolha vira \"no entendí\" em vez do resumo do que foi entendido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            # atendente, em vez de repetir a pergunta ou recusar.\n            return self._resumir_etapa()",
+          "para": "            # atendente, em vez de repetir a pergunta ou recusar.\n            return self._nao_entendido()"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_mensagem_fora_da_escolha_resume_e_so_encaminha_com_sim"
+      ]
+    },
+    {
+      "id": "M-POL-32",
+      "requisito": "R03",
+      "descricao": "Esclarecimentos sem sucesso voltam a encaminhar direto (sem oferecer)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        return Decisao(\"POL-HUM-03\", \"oferecer_humano\", \"esclarecimentos sem sucesso\")",
+          "para": "        return Decisao(\"POL-HUM-03\", \"humano\", \"esclarecimentos sem sucesso\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_dois_esclarecimentos_sem_sucesso_oferecem_o_humano"
+      ]
+    },
+    {
+      "id": "M-ITP-32",
+      "requisito": "R07",
+      "descricao": "Recusar o atendente (\"no quiero un agente, solo dime…\") volta a ser pedido de atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if intencao == \"humano\" and RECUSA_DE_HUMANO.search(limpo):\n            continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_recusar_o_atendente_nao_e_pedir_um"
+      ]
+    },
+    {
+      "id": "M-ITP-33",
+      "requisito": "R07",
+      "descricao": "Negação de outra coisa perto do atendente vira recusa (\"no quiero esperar, quiero un agente\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"(?: (?:hablar|falar)(?: con| com)?)?(?: (?:un|una|um|uma|el|la|o|a|ningun|nenhum))?\"",
+          "para": "    r\"(?: [a-z]+){0,3}\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_recusar_o_atendente_nao_e_pedir_um"
+      ]
+    },
+    {
+      "id": "M-ITP-34",
+      "requisito": "R02",
+      "descricao": "Escolha com verbo (\"quero a primeira\", \"fue la segunda\") deixa de ser escolha",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"obrigado\", \"obrigada\", \"quiero\", \"quero\", \"fue\", \"foi\", \"era\"}",
+          "para": "\"obrigado\", \"obrigada\"}"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_escolha_so_em_resposta_curta"
+      ]
+    },
+    {
+      "id": "M-ITP-36",
+      "requisito": "R02",
+      "descricao": "Escolha curta lida também como valor (\"A 1\" sem lista pendente busca uma transação de 1,00)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"valor\": None if escolha is not None else _valor(texto),",
+          "para": "        \"valor\": _valor(texto),"
         }
       ],
       "testes": [
