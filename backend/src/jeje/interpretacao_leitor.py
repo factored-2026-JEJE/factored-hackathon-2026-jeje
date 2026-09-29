@@ -22,10 +22,11 @@ from datetime import date
 from pathlib import Path
 
 from jeje import eventos
-from jeje.interpretacao import interpretar
+from jeje.interpretacao import Interpretacao, interpretar
 from jeje.interpretacao_modelo import Chamada, Leitura, entendida
 from jeje.leitor.codificador import E5, Codificador
 from jeje.leitor.fluxos import LEITURA_DO_FLUXO
+from jeje.leitor.modelo import Leitura as LidaDoModelo
 from jeje.leitor.modelo import ModeloLeitor
 from jeje.mensagens import Idioma
 
@@ -43,6 +44,20 @@ def dos_arquivos(modelo: Path, e5: Path) -> Carregador:
         return ModeloLeitor.carregar(modelo), codificar
 
     return carregar
+
+
+def em_cascata(
+    regras: Interpretacao, lida: LidaDoModelo, limite: float
+) -> tuple[Interpretacao, bool]:
+    """A leitura final de uma mensagem que as regras não entenderam, dada a do leitor: com confiança
+    de pelo menos `limite`, intenção e status do fluxo; abaixo, a das regras. O fluxo lido fica nos
+    sinais nos dois casos (auditoria). Devolve (leitura, se o leitor decidiu). A API e a avaliação
+    (`jeje.avaliacao_leitor`) decidem por aqui."""
+    sinais = (f"leitor:{lida.fluxo}:{lida.confianca:.2f}",)
+    if lida.confianca < limite:
+        return replace(regras, sinais=sinais), False
+    intencao, status = LEITURA_DO_FLUXO[lida.fluxo]
+    return replace(regras, intencao=intencao, status=status, sinais=sinais), True
 
 
 class Leitor:
@@ -95,20 +110,9 @@ class Leitor:
             return Leitura(
                 regras, f"regras (fallback: {type(erro).__name__})", self._chamada(inicio)
             )
-        if lida.confianca < self.limite:
-            return Leitura(
-                replace(regras, sinais=(f"leitor:{lida.fluxo}:{lida.confianca:.2f}",)),
-                "regras (leitor abaixo do limite)",
-                self._chamada(inicio),
-            )
-        intencao, status = LEITURA_DO_FLUXO[lida.fluxo]
-        lido = replace(
-            regras,
-            intencao=intencao,
-            status=status,
-            sinais=(f"leitor:{lida.fluxo}:{lida.confianca:.2f}",),
-        )
-        return Leitura(lido, f"leitor:e5@{modelo.versao[:12]}", self._chamada(inicio))
+        lido, decidiu = em_cascata(regras, lida, self.limite)
+        fonte = f"leitor:e5@{modelo.versao[:12]}" if decidiu else "regras (leitor abaixo do limite)"
+        return Leitura(lido, fonte, self._chamada(inicio))
 
     @staticmethod
     def _chamada(inicio: float) -> Chamada:

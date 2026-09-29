@@ -112,6 +112,10 @@ e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu c
   no treino): acurácia 0,889 (en), 0,889 (es), 0,873 (pt); com confiança ≥ 0,8, 78% das frases, 96%
   de acerto. Mac e Docker dão a mesma versão, com alguns décimos de diferença na acurácia (ponto
   flutuante do torch).
+- `make avaliar-leitor` (fora do gate, ~1,5 min, sem banco), no teste do BANKING77 em es e pt
+  (6.160 frases), por mensagem: só as regras entendem certo 14% e pedem de novo 67–68%; com o
+  leitor a 0,8, certo 63–66%, pedem de novo 13–18%, errado 18–19% (16–18% só com as regras) e
+  fora de escopo lido como contestação ou fraude 0,6–0,9%. Mostra também os limites 0,7 e 0,9.
 - Medido no protótipo do time (conversas simuladas com a `conversa.py` real e 80 clientes da base):
   sucesso 0,81 só com regras e 0,965 com o leitor em cascata. Fala real (MInDS-14, testado na língua
   que ficou fora do treino): pedidos fora de escopo que viram disputa ou fraude 0–0,8% (4,4% no
@@ -189,6 +193,7 @@ make check          # segredos + lint + testes + mutantes (cada teste precisa pe
 make e2e            # jornadas no navegador (Chromium e Firefox) contra a stack no ar
 make gate           # check + e2e + mutantes de ponta a ponta
 make metricas       # métricas recomputadas dos eventos de cada turno
+make avaliar-leitor # leitor por mensagem no teste do BANKING77 es/pt: regras vs cascata (sem banco)
 make testar-modelo  # integração real com o Ollama pela ponte (fora do gate)
 scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos os gates
 ```
