@@ -890,6 +890,111 @@
       "testes": [
         "src/Contestacao.test.tsx > elegível: confirma e só então mostra o protocolo devolvido pela API"
       ]
+    },
+    {
+      "id": "M-WEB-58",
+      "requisito": "R06",
+      "descricao": "Avaliação aparece sem testadores (fora do modo de demonstração)",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "  if (testadores.length === 0) return null;\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > fora do modo de demonstração (sem testadores) não mostra nada"
+      ]
+    },
+    {
+      "id": "M-WEB-59",
+      "requisito": "R06",
+      "descricao": "Nota enviada não é a escolhida",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "{ avaliador, nota, resolveu, comentario }",
+          "para": "{ avaliador, nota: 5, resolveu, comentario }"
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > envia o que foi escolhido e mostra a Issue devolvida pela API"
+      ]
+    },
+    {
+      "id": "M-WEB-60",
+      "requisito": "R06",
+      "descricao": "Link da Issue devolvida pela API não aparece",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "        {enviada.issue_url && (",
+          "para": "        {false && ("
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > envia o que foi escolhido e mostra a Issue devolvida pela API"
+      ]
+    },
+    {
+      "id": "M-WEB-61",
+      "requisito": "R06",
+      "descricao": "Envio liberado sem dizer se resolveu",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "  const pronta = testadores.includes(avaliador) && nota !== null && resolveu !== null;",
+          "para": "  const pronta = testadores.includes(avaliador) && nota !== null;"
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > só envia com quem testa, a nota e se resolveu escolhidos"
+      ]
+    },
+    {
+      "id": "M-WEB-62",
+      "requisito": "R06",
+      "descricao": "Quem está testando não é lembrado",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "      guardarTestador(avaliador);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > lembra quem está testando na próxima conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-63",
+      "requisito": "R06",
+      "descricao": "Falha ao enviar não avisa",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "      else setFalha(true);",
+          "para": "      else setFalha(false);"
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > falha ao enviar avisa e deixa tentar de novo"
+      ]
+    },
+    {
+      "id": "M-WEB-64",
+      "requisito": "R06",
+      "descricao": "Sessão expirada ao enviar não volta para a escolha do cliente",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "      if (e instanceof SessaoExpirada) aoExpirar();",
+          "para": "      if (false) aoExpirar();"
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > sessão expirada ao enviar volta para a escolha do cliente"
+      ]
     }
   ]
 }
