@@ -231,22 +231,7 @@
         }
       ],
       "testes": [
-        "pre_caso.spec.ts > contestar, confirmar, ver o protocolo e reencontrá-lo sem duplicar"
-      ]
-    },
-    {
-      "id": "M-E2E-13",
-      "requisito": "R02",
-      "descricao": "Página mostra pré-caso recebido sem pedir confirmação",
-      "trocas": [
-        {
-          "arquivo": "frontend/src/Contestacao.tsx",
-          "de": "      if (avaliacao.proposta) setEstado({ tipo: \"proposta\", propostaId: avaliacao.proposta.id });",
-          "para": "      if (avaliacao.proposta) setEstado({ tipo: \"registrado\", preCaso: { protocolo: avaliacao.proposta.id, transaction_id: transacao.transaction_id, estado: \"recebido\", criado_em: \"\" }, novo: true });"
-        }
-      ],
-      "testes": [
-        "pre_caso.spec.ts > contestar, confirmar, ver o protocolo e reencontrá-lo sem duplicar"
+        "pre_caso.spec.ts > contestar pela conversa, confirmar, ver o protocolo e contestar de novo sem duplicar"
       ]
     },
     {
