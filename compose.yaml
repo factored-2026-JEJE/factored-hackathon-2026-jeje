@@ -33,9 +33,10 @@ x-app-env: &app-env
   # Transferência acima disto vai para análise de segurança (POL-SEG-01).
   LIMITE_SEGURANCA_TRANSFERENCIA_USD: "50000"
   PROPOSTA_TTL_MINUTOS: "10"
-  # Leitura da mensagem: "regras" (sem modelo) ou "ollama" (modelo local consultado só quando as
-  # regras não entendem; ver backend/src/jeje/interpretacao_modelo.py). Regras aqui (testes, carga,
-  # migrações); a API da stack de demonstração liga o modelo (serviço api, PRD-003).
+  # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"
+  # (modelo local), os dois consultados só quando as regras não entendem (interpretacao_leitor.py,
+  # interpretacao_modelo.py). Regras aqui (testes, carga, migrações); a API da stack de
+  # demonstração liga o leitor (serviço api).
   INTERPRETADOR: "regras"
   # Leitor e5 (INTERPRETADOR=leitor): artefato e pesos gerados no build da imagem (estágio
   # "modelo") e a confiança calibrada mínima para ele decidir; abaixo, seguem as regras.
@@ -146,8 +147,9 @@ services:
     image: jeje-api:${JEJE_TAG:-local}
     environment:
       <<: *app-env
-      # Modelo local ligado na demonstração (PRD-003); o compose.ci.yaml volta para "regras".
-      INTERPRETADOR: "ollama"
+      # Leitor e5 ligado na demonstração (lê o que as regras não entendem, ~15 ms por mensagem, na
+      # CPU da própria API); o compose.ci.yaml volta para "regras". "ollama" continua possível.
+      INTERPRETADOR: "leitor"
     # Ollama do host, quando INTERPRETADOR=ollama (no Linux o nome precisa ser declarado).
     extra_hosts:
       - host.docker.internal:host-gateway
