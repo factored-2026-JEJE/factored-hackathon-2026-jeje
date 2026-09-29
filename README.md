@@ -70,32 +70,42 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
   transação da sua lista) → o assistente mostra a transação e pede confirmação; "Sí, confirmo"
   registra o pré-caso e devolve o protocolo.
 - **Perguntar:** "¿Por qué rechazaron mi compra?" → se houver mais de uma, ele lista e você escolhe.
+- **Cobrança repetida:** "Me cobraron dos veces el streaming" → é contestação, não consulta.
+- **Acompanhar o pedido:** "¿Cómo va mi solicitud?" (ou o protocolo) → o estado dos pré-casos do
+  cliente, sem prazo nem resultado.
 - **Pedir um humano:** "Me robaron la tarjeta" → o caso aparece na fila do atendente, que o assume.
 
-Em português também: "Não reconheço a cobrança…", "Por que recusaram minha compra?", "Roubaram
-meu cartão". As métricas do atendimento (encaminhamentos, pré-casos, latência) ficam ao lado.
+A conversa vai por etapas (pedido → transação → confirmação). O que não cabe na etapa recebe o que
+foi entendido e a oferta de um atendente ("sim" encaminha, "não" volta para onde estava), no lugar
+de um "não entendi" repetido. As pistas da transação somam entre os turnos (o status citado é pista,
+não filtro), "a última" escolhe a mais recente, e cumprimento ou agradecimento recebe resposta
+cordial sem perder a etapa. Data sem ano é lida a partir do último dia dos dados quando a base é
+mais antiga que o relógio. Contestar é só pela conversa: a tabela de transações não tem botão.
 
-## Testar em grupo (Codespace e reviews)
+Em português também: "Não reconheço a cobrança…", "Por que recusaram minha compra?", "Status do
+meu pedido de revisão", "Roubaram meu cartão". As métricas do atendimento (encaminhamentos, pré-casos, latência) ficam ao lado.
 
-O time conversa com o assistente num site só dele e avalia cada conversa; cada avaliação vira uma
-Issue neste repositório, com a transcrição, para o erro ser discutido e corrigido.
+## Testar em grupo (túnel e reviews)
 
-1. **Subir:** Code > Codespaces > *Create codespace on …* (máquina de 4 núcleos). O
-   `.devcontainer/subir.sh` sobe a stack sozinho: com os segredos de Codespace do repositório
-   (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DATASET_S3_URI`), com os dados do desafio (a
-   primeira carga leva alguns minutos); sem eles, com a fixture sintética.
-2. **Entrar:** o script deixa a porta 8080 visível só para membros da organização e imprime o
-   endereço. Cada pessoa abre o endereço logada no próprio GitHub (quem não é da organização não
-   entra). Se a visibilidade não mudar sozinha: aba *Portas* > 8080 > *Visibilidade* > *Organização*.
+O time conversa com o assistente numa demonstração publicada por um túnel e avalia cada conversa;
+as avaliações ficam no banco da demonstração para o erro ser discutido e corrigido.
+
+1. **Subir:** numa máquina com Docker e o `cloudflared` (`brew install cloudflared`), `make demo`.
+   Sobe uma stack separada (projeto `jeje-demo`, banco próprio) com a fixture sintética e o leitor
+   e5 em `127.0.0.1:8082` (`make demo DEMO_PORTA=…` muda a porta) e abre um quick tunnel do
+   cloudflared: grátis, sem conta. O endereço `https://….trycloudflare.com` aparece no log do túnel
+   e muda a cada vez que ele sobe.
+2. **Entrar:** mande o endereço para o time. Qualquer pessoa com o link entra (o acesso é o de
+   demonstração, sem senha); o túnel dura enquanto o `make demo` estiver rodando.
 3. **Conversar e avaliar:** escolha um cliente, converse, e no fim preencha *Avaliar esta conversa*:
    quem está testando, nota de 1 a 5, se o assistente resolveu e o que deu errado ou como deveria
-   ter sido. A review fica no banco e vira Issue com a etiqueta `review-teste`.
-4. **Sem permissão de Issue:** se o token do Codespace não puder criar Issues, a review fica só no
-   banco; com um token que possa (segredo `REVIEWS_GITHUB_TOKEN`, ou `GITHUB_TOKEN=… make
-   exportar-reviews`), as pendentes são publicadas.
+   ter sido. A review fica em `app.reviews`, ligada à conversa.
+4. **Virar Issue (opcional):** a demonstração não passa token do GitHub, então nada é publicado
+   sozinho. Para publicar as pendentes como Issues com a etiqueta `review-teste` e a transcrição:
+   `COMPOSE_PROJECT_NAME=jeje-demo GITHUB_TOKEN=… make exportar-reviews`.
 
-Quem pode avaliar é `TESTADORES` no `compose.yaml`. O Codespace desliga sozinho depois de um tempo
-sem uso; para testar de novo, é só ligá-lo (os dados e as reviews continuam no volume do banco).
+Quem pode avaliar é `TESTADORES` no `compose.yaml`. `make demo-down` para a demonstração; os dados e
+as reviews continuam no volume do banco para a próxima vez.
 
 ## Recarga dos dados
 
@@ -113,7 +123,7 @@ A API da demonstração lê em cascata: as regras leem primeiro, e só as frases
 vão para o leitor e5, um classificador que roda na CPU da própria API (~15–90 ms por mensagem,
 nenhuma chamada de rede). Ele só classifica: vira intenção e status pelo mapeamento abaixo, e só com
 confiança calibrada de 0,8 ou mais (`LEITOR_LIMITE`); abaixo disso a frase segue como não entendida
-e a conversa pede de novo. Sim/não, fraude por palavra, pedido de atendente, valor, data, comércio
+e a conversa responde com o que entendeu e a oferta de um atendente. Sim/não, fraude por palavra, pedido de atendente, valor, data, comércio
 e identificadores continuam com as regras, e a política decide o que fazer. A API pede a carga do
 leitor ao iniciar (log `leitor pronto` ou `leitor indisponivel`); qualquer falha segue pelas regras,
 e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu cada mensagem:
@@ -143,8 +153,8 @@ e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu c
   que ficou fora do treino): pedidos fora de escopo que viram disputa ou fraude 0–0,8% (4,4% no
   pt-PT), contra 5–6% de um TF-IDF só com BANKING77.
 - Limites: quando as regras acham que entenderam, o leitor nem é chamado, e 11–24% das frases dos
-  conjuntos de teste terminam no fluxo errado por isso (ex.: "me cobraron dos veces" lido como
-  consulta). O BANKING77 é traduzido e o MInDS-14 é ibérico: gíria latino-americana ("me la
+  conjuntos de teste terminam no fluxo errado por isso (medido antes das regras de cobrança
+  repetida, que tiram "me cobraron dos veces" da consulta). O BANKING77 é traduzido e o MInDS-14 é ibérico: gíria latino-americana ("me la
   rebotaron", "pix") fica abaixo do limite e cai no esclarecimento. A avaliação que vale é um
   conjunto ES/PT escrito pelo time.
 - Sem leitor: `INTERPRETADOR: "regras"` no serviço `api` do `compose.yaml`. Testes, fixture, CI e
@@ -222,7 +232,8 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
 
 ## Onde fica cada coisa
 
-- `compose.yaml` — **toda** a configuração não secreta (flags, limites, portas, testes).
+- `compose.yaml` — **toda** a configuração não secreta (flags, limites, portas, testes);
+  `compose.ci.yaml` (fixture, só regras) e `compose.demo.yaml` (demonstração pelo túnel) por cima.
   `.env` guarda só segredos e nunca vai para o Git.
 - `backend/` — API (FastAPI) e migrations. Regras em `politica.py`, conversa em `conversa.py`,
   textos aprovados ES/PT em `mensagens.py`.
@@ -237,7 +248,8 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   (20h–6h) pelo app ou pela web, até USD 1.000 por transação e 1.000 somados no dia (a base não
   diz se o aparelho é cadastrado, então todo acesso digital noturno conta como não cadastrado);
   transferência acima de USD 50.000 vai para análise de segurança. O resto vai para humano.
-- Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado.
+- Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado. O status do caso
+  só mostra os pré-casos do cliente da sessão; protocolo digitado indica o assunto, nunca é buscado.
 - Motivo de recusa usa o significado genérico dos códigos ISO 8583, rotulado como tal.
 - Acesso por cliente de demonstração (sem senha) e console do atendente existem só com
   `MODO_DEMO` ligado; num banco real, os dois exigiriam autenticação.
@@ -253,5 +265,5 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local carregado ~0,7 s; EDA inteira
   ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min. Não medido: muitos clientes
   ao mesmo tempo e o servidor de publicação.
-- Falta: publicação (destino por decidir), um conjunto de teste ES/PT escrito pelo time (com
+- Falta: publicação estável (a demonstração usa um túnel temporário), um conjunto de teste ES/PT escrito pelo time (com
   gíria) para medir o leitor, e a validação independente em andamento.
