@@ -306,6 +306,10 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     }  # fmt: skip
 
 
+FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Uber", "Ferretería",
+      "Cine Premium", 'Viajes "El Cóndor", S.A.', "Almacenes Éxito", "Farmacia Salud"]  # fmt: skip
+
+
 @pytest.mark.parametrize(
     ("comercios", "texto", "citado"),
     [
@@ -315,6 +319,20 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
         (["Taxi Seguro", "Uber"], "uber o taxi", None),
         (["Almacenes Éxito"], "la de exito", "Almacenes Éxito"),
         (["Farmacia Salud"], "compra na farmácia", "Farmacia Salud"),
+        # O ramo que o nome diz, como o cliente fala dele.
+        (FX, "foi numa ótica acho, deu ruim na hora de pagar", "Óptica Visión"),
+        (FX, "eu disse que foi loja de roupa!", "Boutique Moda"),
+        (FX, "los pasajes de avión", 'Viajes "El Cóndor", S.A.'),
+        (FX, "a compra da viagem", 'Viajes "El Cóndor", S.A.'),
+        (FX, "la de las herramientas", "Ferretería"),
+        (FX, "comprei remédio", "Farmacia Salud"),
+        (FX, "o cafezinho de 12", "Café Central"),
+        (FX, "la película", "Cine Premium"),
+        (["Mercado Central", "Super Ahorro"], "fue en el supermercado", None),  # dois ramos iguais
+        # Mensagens sem comércio continuam sem.
+        (FX, "no sé, fue en una tienda, creo que fue caro", None),
+        (FX, "e agora o que eu faço", None),
+        (FX, "me cobraron dos veces", None),
     ],
 )
 def test_comercio_citado_entre_os_do_cliente(comercios, texto, citado):
