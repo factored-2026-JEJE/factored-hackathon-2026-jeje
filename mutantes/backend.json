@@ -5353,6 +5353,337 @@
       "testes": [
         "tests/test_recarga.py::test_recarga_com_id_reaproveitado_encerra_o_atendimento_sem_brecha"
       ]
+    },
+    {
+      "id": "M-LEITOR-01",
+      "requisito": "R06",
+      "descricao": "Download aceito sem conferir o sha256 do que chegou",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/fontes.py",
+          "de": "        if not confere(parcial, arquivo):\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_baixar_recusa_conteudo_diferente_do_fixado_sem_deixar_arquivo"
+      ]
+    },
+    {
+      "id": "M-LEITOR-02",
+      "requisito": "R06",
+      "descricao": "Arquivo já íntegro é baixado de novo a cada treino",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/fontes.py",
+          "de": "        if confere(alvo, arquivo):\n            continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_baixar_confere_o_hash_e_nao_baixa_de_novo_o_que_ja_esta_integro"
+      ]
+    },
+    {
+      "id": "M-LEITOR-03",
+      "requisito": "R06",
+      "descricao": "e5 carregado de diretório sem conferir os pesos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/codificador.py",
+          "de": "        for peso in PESOS:\n            exigir(diretorio, peso)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_e5_recusa_diretorio_com_peso_adulterado_antes_de_carregar"
+      ]
+    },
+    {
+      "id": "M-LEITOR-04",
+      "requisito": "R06",
+      "descricao": "Pesos do e5 pela branch main (revisão móvel) em vez do commit fixado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/codificador.py",
+          "de": "_BASE = f\"https://huggingface.co/{NOME}/resolve/{REVISAO}\"",
+          "para": "_BASE = f\"https://huggingface.co/{NOME}/resolve/main\""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_pesos_do_e5_fixados_pela_revisao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-05",
+      "requisito": "R06",
+      "descricao": "Bloquear o cartão (MInDS FREEZE) vira fora de escopo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/fluxos.py",
+          "de": "    \"freeze\": \"relato_de_fraude\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_intencao_fora_do_mapeamento_e_fora_de_escopo",
+        "tests/test_leitor_treino.py::test_minds14_entra_so_no_treino_com_o_fluxo_da_intencao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-06",
+      "requisito": "R06",
+      "descricao": "Estorno lido sem o status Reversed",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/fluxos.py",
+          "de": "    \"explicar_estorno\": (\"consultar\", \"Reversed\"),",
+          "para": "    \"explicar_estorno\": (\"consultar\", None),"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_todo_fluxo_vira_uma_intencao_do_interpretador_com_status_so_na_consulta"
+      ]
+    },
+    {
+      "id": "M-LEITOR-07",
+      "requisito": "R06",
+      "descricao": "Espanhol usa a própria coluna de rótulo (inconsistente) em vez da intenção do inglês",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "                for (texto, _), intencao in zip(\n                    linhas[idioma, particao]",
+          "para": "                for (texto, intencao), _ in zip(\n                    linhas[idioma, particao]"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_espanhol_herda_a_intencao_do_ingles_pela_posicao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-08",
+      "requisito": "R06",
+      "descricao": "Linha sem texto vira exemplo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "            if (linha.get(tabela.coluna_texto) or \"\").strip()\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_portugues_mapeia_rotulo_pelo_treino_alinhado_e_ignora_linha_sem_texto"
+      ]
+    },
+    {
+      "id": "M-LEITOR-09",
+      "requisito": "R06",
+      "descricao": "Tradução ES desalinhada do inglês aceita",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "        if len(linhas[\"es\", particao]) != len(intencoes[particao]):\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_espanhol_desalinhado_do_ingles_e_erro"
+      ]
+    },
+    {
+      "id": "M-LEITOR-10",
+      "requisito": "R06",
+      "descricao": "Rótulo PT que corresponde a duas intenções aceito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "        if intencao_pt.setdefault(rotulo, intencao) != intencao:\n",
+          "para": "        if intencao_pt.setdefault(rotulo, intencao) is None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_rotulo_portugues_com_duas_intencoes_e_erro"
+      ]
+    },
+    {
+      "id": "M-LEITOR-11",
+      "requisito": "R06",
+      "descricao": "MInDS-14 entra também no teste",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "                  teste=b77[\"teste\"])  # fmt: skip",
+          "para": "                  teste=b77[\"teste\"] + _minds14(destino, minds14))  # fmt: skip"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_minds14_entra_so_no_treino_com_o_fluxo_da_intencao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-12",
+      "requisito": "R06",
+      "descricao": "Classe do MInDS-14 não conferida com o caminho do áudio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "            if f\"~{intencao.upper()}/\" not in trilha:\n",
+          "para": "            if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_minds14_com_classe_que_nao_bate_com_o_audio_e_erro"
+      ]
+    },
+    {
+      "id": "M-LEITOR-13",
+      "requisito": "R06",
+      "descricao": "Calibração sorteia exemplos soltos: a tradução da mesma frase fica no treino",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "        posicoes.append(contagem[e.idioma])\n",
+          "para": "        posicoes.append(len(posicoes))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_calibracao_leva_as_tres_linguas_da_mesma_frase_juntas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-14",
+      "requisito": "R06",
+      "descricao": "Temperatura não ajustada na calibração (fica 1)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        modelo.temperatura = float(minimize_scalar(perda, bounds=(0.05, 20), method=\"bounded\").x)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_temperatura_ajustada_na_calibracao_melhora_a_perda"
+      ]
+    },
+    {
+      "id": "M-LEITOR-15",
+      "requisito": "R06",
+      "descricao": "Treino sem exemplos de algum fluxo aceito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        if faltando:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_treino_sem_algum_fluxo_e_erro"
+      ]
+    },
+    {
+      "id": "M-LEITOR-16",
+      "requisito": "R06",
+      "descricao": "Leitura com a confiança sem calibração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        p = self.probabilidades(codificar(list(textos)))\n",
+          "para": "        p = _softmax(self.logistica.decision_function(codificar(list(textos))))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_confianca_e_a_maior_probabilidade_calibrada"
+      ]
+    },
+    {
+      "id": "M-LEITOR-17",
+      "requisito": "R06",
+      "descricao": "Métricas sem a faixa da cascata (>= 0,8)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        metricas[\"cobertura_0_8\"] = round(float(acima.mean()), 4)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_metricas_por_idioma_e_na_faixa_da_cascata"
+      ]
+    },
+    {
+      "id": "M-LEITOR-18",
+      "requisito": "R06",
+      "descricao": "Artefato de formato desconhecido carregado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        if not isinstance(conteudo, dict) or conteudo.get(\"formato\") != cls.FORMATO:\n",
+          "para": "        if not isinstance(conteudo, dict):\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_artefato_ausente_ou_de_outro_formato_e_recusado"
+      ]
+    },
+    {
+      "id": "M-LEITOR-19",
+      "requisito": "R06",
+      "descricao": "Artefato carregado perde a temperatura",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        modelo = cls(conteudo[\"logistica\"], conteudo[\"temperatura\"], conteudo[\"versao\"],",
+          "para": "        modelo = cls(conteudo[\"logistica\"], 1.0, conteudo[\"versao\"],"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_artefato_salvo_e_carregado_le_igual"
+      ]
+    },
+    {
+      "id": "M-LEITOR-20",
+      "requisito": "R06",
+      "descricao": "Versão do modelo ignora os pesos do e5",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        \"pesos\": [p.sha256 for p in pesos],\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_versao_muda_com_os_dados_ou_com_os_pesos"
+      ]
+    },
+    {
+      "id": "M-LEITOR-21",
+      "requisito": "R06",
+      "descricao": "CLI sem validar os argumentos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/__main__.py",
+          "de": "    if len(argv) != 5 or argv[1] != \"treinar\":\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_cli_sem_argumentos_certos_mostra_o_uso"
+      ]
+    },
+    {
+      "id": "M-LEITOR-22",
+      "requisito": "R06",
+      "descricao": "Leitura devolve o fluxo menos provável",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/modelo.py",
+          "de": "        melhores = p.argmax(axis=1)\n",
+          "para": "        melhores = p.argmin(axis=1)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_le_mensagens_obvias_do_corpus_pequeno"
+      ]
     }
   ]
 }
