@@ -4500,8 +4500,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"operador\", \"gerente\", \"ejecutivo\",\n                \"supervisor\", \"persona real\",",
-          "para": "\"operador\", \"persona real\","
+          "de": "\"operador\", PEDIDO_DE_CARGO,",
+          "para": "\"operador\","
         }
       ],
       "testes": [
@@ -4552,6 +4552,21 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer"
+      ]
+    },
+    {
+      "id": "M-ITP-27",
+      "requisito": "R07",
+      "descricao": "Cargo citado de passagem volta a ser pedido de humano (\"el gerente de la tienda dice que…\" encaminha; ACH-104)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"operador\", PEDIDO_DE_CARGO,",
+          "para": "\"operador\", \"gerente\", PEDIDO_DE_CARGO,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cargo_de_quem_atende_so_pede_humano_com_verbo_de_pedido"
       ]
     },
     {

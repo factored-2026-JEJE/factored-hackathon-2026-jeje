@@ -82,6 +82,13 @@ PERDA_DE_MEIO = Perto(
     ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*"),
     ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular"),
 )
+# Cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente de la tienda
+# dice que…" é consulta (ACH-104).
+PEDIDO_DE_CARGO = Perto(
+    ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "passa", "transfer*",
+     "quiero", "quero", "necesito", "preciso", "contactar", "contatar"),
+    ("gerente", "ejecutivo", "supervisor"),
+)  # fmt: skip
 
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
 TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
@@ -91,8 +98,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
                 "alguem usou meu cartao",
                 "no fui yo", "nao fui eu")),
-    ("humano", ("agente", "asesor", "atendente", "humano", "operador", "gerente", "ejecutivo",
-                "supervisor", "persona real",
+    ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
+                "persona real",
                 "pessoa de verdade", "hablar con alguien", "falar com alguem",
                 "hablar con una persona", "falar com uma pessoa", "una persona", "uma pessoa",
                 "alguien", "alguem")),

@@ -93,6 +93,24 @@ def test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer(texto, intencao):
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # Cargo de quem atende citado de passagem não é pedido de humano (ACH-104).
+        ("El gerente de la tienda dice que el pago no pasó, ¿por qué?", "consultar"),
+        ("O gerente da loja disse que meu cartão foi recusado, por quê?", "consultar"),
+        ("mi ejecutivo de cuenta me dijo que el cargo está pendiente", "consultar"),
+        ("o supervisor do caixa recusou meu pagamento", "consultar"),
+        # Com verbo de pedido perto, é.
+        ("pásame con un supervisor", "humano"),
+        ("quero falar com o gerente do banco", "humano"),
+        ("comuníqueme con un ejecutivo de cuenta", "humano"),
+    ],
+)
+def test_cargo_de_quem_atende_so_pede_humano_com_verbo_de_pedido(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         ("no reconozco el cobro, me robaron la tarjeta", "fraude"),
         ("não reconheço a compra, quero falar com um atendente", "humano"),
         ("quero um empréstimo pra pagar a compra", "fora_de_escopo"),
