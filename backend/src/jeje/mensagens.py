@@ -166,6 +166,10 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "pt": "Não entendi o seu pedido. Posso consultar uma transação ou registrar um pedido de "
         "revisão. Pode me dizer o valor, a data ou o estabelecimento?",
     },
+    "AGRADECIMENTO": {
+        "es": "¡Con gusto! ¿Te ayudo con algo más?",
+        "pt": "Por nada! Posso ajudar com mais alguma coisa?",
+    },
     "CONFIRMACAO-PENDENTE": {
         "es": "¿Confirmas el registro de la solicitud de revisión de la transacción {transacao}? "
         "Responde sí o no.",

@@ -137,6 +137,61 @@ def test_pendente_informa_o_status_sem_prometer_prazo(cenario):
     )
 
 
+def test_a_ultima_recusada_e_a_mais_recente_sem_perguntar_qual(cenario):
+    """Review 1 da demo: "minha última transação foi recusada" listava as duas recusadas."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        resposta = dizer(
+            http,
+            auth,
+            abrir_conversa(http, auth, "pt"),
+            "quero saber pq minha ultima transacao foi recusada",
+        )
+    assert (resposta["regra"], resposta["transaction_id"]) == ("POL-CON-04", "TRX-A3")
+
+
+def test_agradecimento_depois_da_resposta_e_cordial_e_nao_resume(cenario):
+    """Review 1 da demo: "okay, obrigado" recebia o resumo da transação e a oferta de atendente."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        dizer(http, auth, conversa, CONSULTA["pt"][0])
+        fim = dizer(http, auth, conversa, "okay, obrigado")
+        ola = dizer(http, auth, abrir_conversa(http, auth, "es"), "hola, buenas tardes")
+    assert (fim["regra"], fim["acao"], fim["estado"]) == ("CORTESIA", "responder", "livre")
+    assert fim["resposta"] == "Por nada! Posso ajudar com mais alguma coisa?"
+    assert (ola["regra"], ola["estado"]) == ("CORTESIA", "livre")
+    assert ola["resposta"].startswith("Hola. Puedo consultar el estado de tus transacciones")
+    assert handoffs(cenario) == []
+
+
+def test_agradecimento_no_meio_da_escolha_mantem_a_lista(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, AMBIGUO["es"][0])
+        gracias = dizer(http, auth, conversa, "gracias")
+        escolhida = dizer(http, auth, conversa, "la segunda")
+    assert (gracias["regra"], gracias["estado"]) == ("CORTESIA", "esclarecendo")
+    assert gracias["resposta"] == "¡Con gusto! ¿Te ayudo con algo más?"
+    assert escolhida["acao"] == "propor_pre_caso"
+
+
+def test_agradecimento_na_confirmacao_repete_a_pergunta_sem_confirmar(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, NORMAL["es"]["pedido"])
+        gracias = dizer(http, auth, conversa, "gracias")
+        assert pre_casos(cenario) == []
+        registrado = dizer(http, auth, conversa, "sí")
+    assert (gracias["regra"], gracias["acao"], gracias["estado"]) == (
+        "POL-DISP-01", "confirmar", "confirmando"
+    )  # fmt: skip
+    assert gracias["resposta"].startswith("¿Confirmas el registro de la solicitud de revisión")
+    assert registrado["acao"] == "registrar_pre_caso"
+
+
 # ---- Status do caso ---------------------------------------------------------------------------
 
 

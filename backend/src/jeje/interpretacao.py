@@ -19,6 +19,7 @@ from jeje.mensagens import Idioma, Status
 
 Intencao = Literal["fraude", "humano", "fora_de_escopo", "contestar", "consultar", "desconhecida"]
 Resposta = Literal["sim", "nao"]
+Cortesia = Literal["saudacao", "agradecimento"]
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,8 @@ class Interpretacao:
     status: Status | None = None  # status citado (ex.: "rechazaron" → Declined)
     id_digitado: bool = False  # parece identificador de sistema (POL-ID-02)
     caso: bool = False  # pergunta pelo pedido de revisão já registrado (POL-CASO-*)
+    ultima: bool = False  # "la última", "a mais recente": das que casarem, a mais recente
+    cortesia: Cortesia | None = None  # a mensagem inteira é cumprimento ou agradecimento
     sinais: tuple[str, ...] = ()  # termos que decidiram a intenção (auditoria)
 
 
@@ -204,12 +207,10 @@ CORTESIA = ("por favor", "gracias", "muchas gracias", "obrigado", "obrigada", "m
             "pues", "entonces", "entao", "bueno", "bom", "ya", "ja", "senor", "senhor")  # fmt: skip
 
 
-def _resposta(limpo: str) -> Resposta | None:
-    """Sim/não só quando a mensagem inteira é isso (cortesia à parte): "sí, pero no esa" ou
-    "¿y si me rechazaron?" não confirmam nada."""
-    vocabulario = [(p, "sim") for p in AFIRMATIVAS] + [(p, "nao") for p in NEGATIVAS]
-    vocabulario += [(p, "cortesia") for p in CORTESIA]
-    vocabulario.sort(key=lambda par: -len(par[0].split()))  # frase mais longa primeiro
+def _so_vocabulario(limpo: str, vocabulario: list[tuple[str, str]]) -> set[str] | None:
+    """Tipos das frases do vocabulário que compõem a mensagem inteira (a frase mais longa primeiro);
+    None se sobrar alguma palavra fora dele."""
+    vocabulario = sorted(vocabulario, key=lambda par: -len(par[0].split()))
     palavras, achados = limpo.split(), set()
     i = 0
     while i < len(palavras):
@@ -220,9 +221,54 @@ def _resposta(limpo: str) -> Resposta | None:
                 i += len(partes)
                 break
         else:
-            return None  # palavra fora do vocabulário: não é resposta curta
+            return None
+    return achados
+
+
+def _resposta(limpo: str) -> Resposta | None:
+    """Sim/não só quando a mensagem inteira é isso (cortesia à parte): "sí, pero no esa" ou
+    "¿y si me rechazaron?" não confirmam nada."""
+    vocabulario = [(p, "sim") for p in AFIRMATIVAS] + [(p, "nao") for p in NEGATIVAS]
+    vocabulario += [(p, "cortesia") for p in CORTESIA]
+    achados = _so_vocabulario(limpo, vocabulario)
+    if achados is None:
+        return None  # palavra fora do vocabulário: não é resposta curta
     achados.discard("cortesia")
     return achados.pop() if len(achados) == 1 else None
+
+
+# Cumprimento e agradecimento só quando a mensagem inteira é isso: "obrigado, e a outra?" continua
+# pedido. É vocabulário fechado: o leitor e5 não tem essa classe e lê "okay, obrigado" como fora do
+# escopo (0,81) e "perfeito, obrigada pela ajuda" como explicar_recusa (0,34).
+AGRADECIMENTOS = ("gracias", "muchas gracias", "mil gracias", "te agradezco", "le agradezco",
+                  "agradezco", "obrigado", "obrigada", "muito obrigado", "muito obrigada",
+                  "brigado", "brigada", "brigadao", "valeu", "vlw", "obg", "agradeco", "muy amable",
+                  "muito gentil", "muito amavel", "que amable", "adios", "chau", "chao", "tchau",
+                  "hasta luego", "hasta pronto", "nos vemos", "ate logo", "ate mais", "ate breve",
+                  "era eso", "eso era todo", "eso es todo", "nada mas", "era isso", "e isso",
+                  "e so isso", "so isso", "listo", "resolvio", "resolveu", "ya esta", "perfecto",
+                  "perfeito", "genial", "otimo", "excelente", "ok", "okay", "okey", "vale",
+                  "entendi", "entendido", "beleza", "blz", "show", "joia", "pela ajuda",
+                  "por la ayuda", "por tu ayuda", "por su ayuda", "por sua ajuda",
+                  "pela informacao", "por la informacion")  # fmt: skip
+SAUDACOES = ("hola", "oi", "ola", "opa", "buenas", "buen dia", "buenos dias", "buenas tardes",
+             "buenas noches", "bom dia", "boa tarde", "boa noite", "que tal", "e ai", "eai", "hey",
+             "alo")  # fmt: skip
+ENCHIMENTO_DA_CORTESIA = ("por favor", "pues", "entonces", "entao", "bueno", "bom", "ya", "ja",
+                          "senor", "senora", "senhor", "senhora", "muy", "muito", "mucho",
+                          "tudo bem", "tudo bom", "todo bien", "como estas", "como vai",
+                          "como esta", "si", "sim", "no", "nao", "y", "e", "amigo", "amiga",
+                          "cara")  # fmt: skip
+
+
+def _cortesia(limpo: str) -> Cortesia | None:
+    vocabulario = [(p, "agradecimento") for p in AGRADECIMENTOS]
+    vocabulario += [(p, "saudacao") for p in SAUDACOES]
+    vocabulario += [(p, "enchimento") for p in ENCHIMENTO_DA_CORTESIA]
+    achados = _so_vocabulario(limpo, vocabulario) or set()
+    if "agradecimento" in achados:
+        return "agradecimento"
+    return "saudacao" if "saudacao" in achados else None
 
 
 ORDINAIS = {
@@ -268,6 +314,14 @@ IDENTIFICADOR = re.compile(
     r"|\b[a-z]{2,4}-(?=[a-z0-9]*\d)[a-z0-9]{3,}\b"
     r"|\b(?=[a-z0-9]*\d)(?=[a-z0-9]*[a-z])[a-z0-9]{10,}\b",
     re.IGNORECASE,
+)
+
+
+# "Minha última compra", "la más reciente": critério do cliente entre as que casarem. "La última
+# vez que intenté" e "no último mês" falam de tempo, não da transação.
+ULTIMA = re.compile(
+    r"(?<![a-z0-9])(?:ultim[ao]|mas reciente|mais recente)"
+    r"(?! (?:vez|veces|vezes|mes|meses|dia|dias|semana|semanas|ano|anos|hora|horas))(?![a-z0-9])"
 )
 
 
@@ -344,6 +398,8 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "status": _status(limpo),
         "id_digitado": IDENTIFICADOR.search(texto) is not None,
         "caso": _caso(limpo),
+        "ultima": ULTIMA.search(limpo) is not None,
+        "cortesia": _cortesia(limpo),
     }
     for intencao, termos in TERMOS:
         if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):

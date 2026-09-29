@@ -107,6 +107,8 @@ def ler(url: str, texto: str, timeout_s: float = 5):
         "2",
         "TRX-B1",
         "¿cómo va mi solicitud?",
+        "okay, obrigado",
+        "la última",
     ],
 )
 def test_o_que_as_regras_entendem_nem_chega_ao_modelo(texto):
