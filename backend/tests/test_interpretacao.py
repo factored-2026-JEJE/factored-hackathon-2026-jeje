@@ -302,8 +302,30 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
         "idioma", "intencao", "resposta", "escolha", "valor", "data", "status", "id_digitado",
-        "sinais",
+        "caso", "sinais",
     }  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("texto", "caso"),
+    [
+        ("¿Cómo va mi solicitud de revisión?", True),
+        ("como está o meu pedido de revisão?", True),
+        ("¿qué pasó con mi reclamo?", True),
+        ("quero ver meus pedidos de revisão", True),
+        ("quiero ver el pre-caso", True),
+        ("cadê o protocolo?", True),
+        ("¿cómo va el PC-00000003?", True),
+        # Pedir uma revisão nova é contestação, não pergunta pela registrada.
+        ("quiero abrir una disputa", False),
+        ("quero fazer um pedido de revisão", False),
+        ("no reconozco el cobro de 45,90, que lo revisen", False),
+        ("en mi caso la compra fue rechazada", False),
+        ("quiero una solicitud de préstamo", False),
+    ],
+)
+def test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo(texto, caso):
+    assert ler(texto).caso is caso
 
 
 FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Uber", "Ferretería",

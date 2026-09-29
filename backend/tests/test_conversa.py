@@ -137,6 +137,102 @@ def test_pendente_informa_o_status_sem_prometer_prazo(cenario):
     )
 
 
+# ---- Status do caso ---------------------------------------------------------------------------
+
+
+def registrar(http, auth, pedido: str) -> str:
+    """Registra um pré-caso por uma conversa própria e devolve o protocolo."""
+    conversa = abrir_conversa(http, auth, "es")
+    assert dizer(http, auth, conversa, pedido)["acao"] == "propor_pre_caso"
+    return dizer(http, auth, conversa, "sí")["protocolo"]
+
+
+def registrado_em(settings, protocolo: str) -> str:
+    with conexao(settings) as con:
+        consulta = "SELECT criado_em FROM app.pre_casos WHERE protocolo = :p"
+        return f"{con.execute(text(consulta), {'p': protocolo}).scalar_one():%d/%m/%Y}"
+
+
+A8 = {
+    "es": "en Cine Premium de USD 9,99 (08/03/2025)",
+    "pt": "em Cine Premium de USD 9,99 (08/03/2025)",
+}
+STATUS_DO_CASO = {
+    "es": (
+        "¿Cómo va mi solicitud de revisión?",
+        "Tu solicitud de revisión {p}, de la transacción {t}, se registró el {d} y está recibida, "
+        "en espera de revisión. No tengo más información sobre la revisión ni un plazo.",
+    ),
+    "pt": (
+        "Como está o meu pedido de revisão?",
+        "Seu pedido de revisão {p}, da transação {t}, foi registrado em {d} e está recebido, "
+        "aguardando revisão. Não tenho mais informações sobre a revisão nem um prazo.",
+    ),
+}
+
+
+@pytest.mark.parametrize("idioma", ["es", "pt"])
+def test_status_do_caso_responde_o_pre_caso_registrado(cenario, idioma):
+    pergunta, esperado = STATUS_DO_CASO[idioma]
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        protocolo = registrar(http, auth, NORMAL["es"]["pedido"])
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "es"), pergunta)
+    assert (resposta["regra"], resposta["acao"], resposta["estado"]) == (
+        "POL-CASO-01", "responder", "livre"
+    )  # fmt: skip
+    assert (resposta["idioma"], resposta["transaction_id"]) == (idioma, "TRX-A1")
+    d = registrado_em(cenario, protocolo)
+    assert resposta["resposta"] == esperado.format(p=protocolo, t=A1[idioma], d=d)
+    assert len(pre_casos(cenario)) == 1  # só leu
+
+
+def test_status_do_caso_lista_os_do_cliente_e_protocolo_digitado_nao_busca(cenario):
+    """O protocolo de outro cliente digitado no chat não é buscado nem revelado: a resposta é a
+    lista dos pré-casos do cliente da sessão (POL-ID-02)."""
+    with cliente(cenario) as http:
+        auth_b = autenticar(http, "CLI-B")
+        do_outro = registrar(http, auth_b, "No reconozco el cobro de 45,90 en Streaming Plus")
+        auth = autenticar(http, "CLI-A")
+        p1 = registrar(http, auth, NORMAL["es"]["pedido"])
+        p8 = registrar(http, auth, "No reconozco el cobro de 9,99 en Cine Premium")
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "es"), f"¿cómo va el {do_outro}?")
+    assert (resposta["regra"], resposta["transaction_id"]) == ("POL-CASO-02", None)
+    d1, d8 = registrado_em(cenario, p1), registrado_em(cenario, p8)
+    assert resposta["resposta"] == (
+        "Estas son tus solicitudes de revisión:\n"
+        f"{p8}: transacción {A8['es']}, registrada el {d8}, recibida, en espera de revisión\n"
+        f"{p1}: transacción {A1['es']}, registrada el {d1}, recibida, en espera de revisión\n"
+        "No tengo más información sobre la revisión ni un plazo."
+    )
+    assert do_outro not in resposta["resposta"]
+
+
+def test_com_transacao_em_foco_o_status_e_so_do_pre_caso_dela(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        registrar(http, auth, "No reconozco el cobro de 9,99 en Cine Premium")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, NORMAL["es"]["pedido"])
+        p1 = dizer(http, auth, conversa, "sí")["protocolo"]
+        resposta = dizer(http, auth, conversa, "¿y cuál es el protocolo?")
+    assert (resposta["regra"], resposta["transaction_id"]) == ("POL-CASO-01", "TRX-A1")
+    assert p1 in resposta["resposta"]
+
+
+def test_sem_pre_caso_diz_que_nao_ha_e_o_que_pode_fazer(cenario):
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "pt"), "cadê o meu protocolo?")
+    assert (resposta["regra"], resposta["acao"], resposta["estado"]) == (
+        "POL-CASO-03", "responder", "livre"
+    )  # fmt: skip
+    assert resposta["resposta"] == (
+        "Não encontrei pedidos de revisão registrados na sua conta. Posso consultar uma "
+        "transação ou registrar um pedido de revisão de uma cobrança que você não reconhece."
+    )
+
+
 # ---- Caminho ambíguo --------------------------------------------------------------------------
 
 AMBIGUO = {

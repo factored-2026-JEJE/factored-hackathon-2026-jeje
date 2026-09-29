@@ -38,6 +38,11 @@ ESTADO: dict[Status, dict[Idioma, str]] = {
     "Reversed": {"es": "revertida", "pt": "estornada"},
 }
 
+# Estado do pré-caso (app.pre_casos.estado); a automação só grava "recebido".
+ESTADO_DO_CASO: dict[str, dict[Idioma, str]] = {
+    "recebido": {"es": "recibida, en espera de revisión", "pt": "recebido, aguardando revisão"},
+}
+
 CLAUSULAS: dict[str, dict[Idioma, str]] = {
     "POL-CON-01": {
         "es": "La transacción {transacao} fue aprobada.",
@@ -85,6 +90,28 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
     "POL-DISP-03": {
         "es": "Ya existe la solicitud {protocolo} para la transacción {transacao}.",
         "pt": "Já existe o pedido {protocolo} para a transação {transacao}.",
+    },
+    "POL-CASO-01": {
+        "es": "Tu solicitud de revisión {protocolo}, de la transacción {transacao}, se registró el "
+        "{registro} y está {estado_caso}. No tengo más información sobre la revisión ni un plazo.",
+        "pt": "Seu pedido de revisão {protocolo}, da transação {transacao}, foi registrado em "
+        "{registro} e está {estado_caso}. Não tenho mais informações sobre a revisão nem um prazo.",
+    },
+    "POL-CASO-02": {
+        "es": "Estas son tus solicitudes de revisión:\n{casos}\nNo tengo más información sobre la "
+        "revisión ni un plazo.",
+        "pt": "Estes são os seus pedidos de revisão:\n{casos}\nNão tenho mais informações sobre a "
+        "revisão nem um prazo.",
+    },
+    "CASO-ITEM": {
+        "es": "{protocolo}: transacción {transacao}, registrada el {registro}, {estado_caso}",
+        "pt": "{protocolo}: transação {transacao}, registrado em {registro}, {estado_caso}",
+    },
+    "POL-CASO-03": {
+        "es": "No encontré solicitudes de revisión registradas en tu cuenta. Puedo consultar una "
+        "transacción o registrar una solicitud de revisión de un cobro que no reconoces.",
+        "pt": "Não encontrei pedidos de revisão registrados na sua conta. Posso consultar uma "
+        "transação ou registrar um pedido de revisão de uma cobrança que você não reconhece.",
     },
     "POL-DISP-02": {
         "es": "La transacción {transacao} está {estado} y no se puede disputar automáticamente. "

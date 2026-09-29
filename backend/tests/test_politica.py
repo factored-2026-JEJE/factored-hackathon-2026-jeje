@@ -19,6 +19,7 @@ from jeje.politica import (
     decidir_contestacao,
     decidir_esclarecimento,
     decidir_pedido,
+    decidir_status_do_caso,
     noturna_digital,
     resolver_transacao,
 )
@@ -162,6 +163,14 @@ def test_sem_pista_lista_no_maximo_o_limite_de_opcoes_na_ordem_recebida():
 )
 def test_pedido_segue_a_matriz_com_seguranca_primeiro(intencao, id_digitado, esperado):
     assert decidir_pedido(intencao, id_digitado) == esperado
+
+
+def test_status_do_caso_responde_sem_encaminhar_e_distingue_nenhum_um_e_varios():
+    assert decidir_status_do_caso(0) == Decisao(
+        "POL-CASO-03", "responder", "nenhum pré-caso do cliente"
+    )
+    assert decidir_status_do_caso(1) == Decisao("POL-CASO-01", "responder")
+    assert decidir_status_do_caso(2) == Decisao("POL-CASO-02", "responder")
 
 
 def test_dois_esclarecimentos_sem_sucesso_oferecem_o_humano():
