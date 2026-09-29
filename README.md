@@ -34,7 +34,8 @@ flowchart LR
   caddy --> api[API FastAPI]
   api --> sessao[Sessão de teste<br/>quem é o cliente]
   api --> leitura[Leitura da mensagem<br/>regras primeiro]
-  leitura -. só o que as regras<br/>não entendem .-> ollama[(Ollama do host<br/>pela ponte)]
+  leitura -. só o que as regras<br/>não entendem .-> leitor[Leitor e5<br/>na própria API]
+  leitura -. opcional .-> ollama[(Ollama do host<br/>pela ponte)]
   api --> politica[Política determinística<br/>regras POL-*]
   politica --> acoes[Consulta · pré-caso<br/>encaminhamento]
   acoes --> banco[(PostgreSQL<br/>curada + atendimento<br/>+ eventos)]
@@ -58,7 +59,9 @@ make up                # ou: docker compose --profile modelo up -d --build --wai
 Abra **http://localhost:8080**, entre como um cliente de demonstração e converse.
 
 Na primeira vez o `make up` baixa o dataset dos organizadores (~1,6 GB, ~5 min), confere cada
-arquivo pelo manifesto versionado em `data/manifesto/` e carrega o banco. Depois sobe em segundos.
+arquivo pelo manifesto versionado em `data/manifesto/` e carrega o banco. O build da imagem também
+baixa o leitor (torch só-CPU e pesos do e5, ~2 GB) e o treina (~11 min em CPU); a imagem da API
+fica com ~3,9 GB. Depois sobe em segundos.
 Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 
 ## Experimente
@@ -82,37 +85,61 @@ encerradas (a tela oferece uma nova), as propostas de pré-caso pendentes vencem
 (volte ao acesso de teste). Conversas com atendente, encaminhamentos e pré-casos continuam como
 registro. Mesma versão já carregada: nada muda.
 
-## Modelo local
+## Leitor de intenção (e5)
 
-`make up` liga o modo modelo: as frases que as regras não entendem vão para um modelo local (Ollama
-do host, `qwen2.5:7b`), que só classifica: diz a língua, a intenção e o status citado, como o
-classificador do time diria. Quando as regras reconhecem sim/não, fraude, pedido de atendente,
-identificador, valor ou data, o modelo nem é chamado; quando é chamado, pode ler fraude ou pedido de
-atendente (o turno encaminha), mas nunca confirma nem escolhe transação, e a política decide o que
-fazer. Cumprimento e agradecimento não viram pedido de atendente, e perguntar pelo estorno é
-consulta, não contestação (ACH-102). A API lê a mensagem antes de travar a conversa (esperar o
-modelo não prende o banco), pede a carga do modelo ao iniciar (log `modelo pronto` ou `modelo
-indisponivel`) e o mantém carregado (`OLLAMA_KEEP_ALIVE`). Qualquer falha — modelo fora do ar,
-lento, resposta fora do formato — segue pelas regras, e o trace do turno
-(`app.eventos.interpretacao`, `make metricas`) diz quem leu cada mensagem e quanto o modelo custou.
+A API da demonstração lê em cascata: as regras leem primeiro, e só as frases que elas não entendem
+vão para o leitor e5, um classificador que roda na CPU da própria API (~15–90 ms por mensagem,
+nenhuma chamada de rede). Ele só classifica: vira intenção e status pelo mapeamento abaixo, e só com
+confiança calibrada de 0,8 ou mais (`LEITOR_LIMITE`); abaixo disso a frase segue como não entendida
+e a conversa pede de novo. Sim/não, fraude por palavra, pedido de atendente, valor, data, comércio
+e identificadores continuam com as regras, e a política decide o que fazer. A API pede a carga do
+leitor ao iniciar (log `leitor pronto` ou `leitor indisponivel`); qualquer falha segue pelas regras,
+e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu cada mensagem:
+`regras`, `leitor:e5@<versão>` ou `regras (leitor abaixo do limite)`.
+
+- Modelo: `intfloat/multilingual-e5-base` (MIT) para transformar a frase em vetor + regressão
+  logística nos fluxos, com a confiança calibrada por temperatura. Fluxo → leitura:
+  `explicar_recusa`, `explicar_pendencia`, `explicar_estorno` → consultar com Declined, Pending,
+  Reversed; `ver_transacoes` → consultar; `abrir_disputa` → contestar; `relato_de_fraude` → fraude;
+  `fora_de_escopo`.
+- Dados (todos CC-BY-4.0, fixados por commit e sha256 em `backend/src/jeje/leitor/corpus.py`):
+  BANKING77 (PolyAI) em inglês e as traduções revisadas `c2d-usp/banking77-es-la` e
+  `c2d-usp/banking77-pt-br`; MInDS-14 (PolyAI, fala real transcrita, es-ES e pt-PT) só no treino,
+  para as categorias que o BANKING77 não tem (problema com o cartão, bloqueio, ver transações). A
+  base do desafio não serve de gabarito: 42 textos distintos em 171 mil transcrições.
+- Treino no estágio `modelo` da imagem (`python -m jeje.leitor treinar`); a versão é o hash das
+  entradas (dados, pesos, mapeamento, parâmetros). Teste do BANKING77 (9.240 frases, nunca vistas
+  no treino): acurácia 0,889 (en), 0,889 (es), 0,873 (pt); com confiança ≥ 0,8, 78% das frases, 96%
+  de acerto. Mac e Docker dão a mesma versão, com alguns décimos de diferença na acurácia (ponto
+  flutuante do torch).
+- Medido no protótipo do time (conversas simuladas com a `conversa.py` real e 80 clientes da base):
+  sucesso 0,81 só com regras e 0,965 com o leitor em cascata. Fala real (MInDS-14, testado na língua
+  que ficou fora do treino): pedidos fora de escopo que viram disputa ou fraude 0–0,8% (4,4% no
+  pt-PT), contra 5–6% de um TF-IDF só com BANKING77.
+- Limites: quando as regras acham que entenderam, o leitor nem é chamado, e 11–24% das frases dos
+  conjuntos de teste terminam no fluxo errado por isso (ex.: "me cobraron dos veces" lido como
+  consulta). O BANKING77 é traduzido e o MInDS-14 é ibérico: gíria latino-americana ("me la
+  rebotaron", "pix") fica abaixo do limite e cai no esclarecimento. A avaliação que vale é um
+  conjunto ES/PT escrito pelo time.
+- Sem leitor: `INTERPRETADOR: "regras"` no serviço `api` do `compose.yaml`. Testes, fixture, CI e
+  mutantes já rodam com regras (`compose.ci.yaml`); os testes do leitor usam um codificador falso
+  (a imagem de testes não tem torch).
+
+### Modelo local (Ollama, opcional)
+
+`INTERPRETADOR: "ollama"` troca o leitor por um modelo local (Ollama do host, `qwen2.5:7b`) no
+mesmo papel: só classifica o que as regras não entendem, e diz a língua, a intenção e o status
+citado. Quando é chamado, pode ler fraude ou pedido de atendente (o turno encaminha), mas nunca
+confirma nem escolhe transação, e a política decide o que fazer. Cumprimento e agradecimento não
+viram pedido de atendente, e perguntar pelo estorno é consulta, não contestação (ACH-102). A API
+pede a carga do modelo ao iniciar (log `modelo pronto` ou `modelo indisponivel`) e o mantém
+carregado (`OLLAMA_KEEP_ALIVE`); qualquer falha — modelo fora do ar, lento, resposta fora do
+formato — segue pelas regras, e o trace do turno diz quanto o modelo custou (~0,7 s por turno).
 
 - O Ollama do host continua escutando só em `127.0.0.1`. A ponte `ollama-ponte` (profile `modelo`)
   escuta só no IP do host na rede do Docker (172.17.0.1) e repassa: nada fica exposto na rede e o
   Ollama não é reconfigurado.
-- Sem modelo: `INTERPRETADOR: "regras"` no serviço `api` do `compose.yaml`. Testes, fixture, CI e
-  mutantes já rodam com regras (`compose.ci.yaml`).
 - `make testar-modelo`: integração real com o Ollama (fora do gate; precisa da stack no ar).
-
-### Classificador de intenção (próximo passo, ainda não integrado)
-
-O classificador do time (branch `feat/intencao-classificador`, TF-IDF + regressão logística) entra
-como mais um leitor atrás do mesmo contrato do modelo local, escolhido em `INTERPRETADOR`: as regras
-leem primeiro e ele só lê o que elas não entendem (o que elas reconhecem, como sim/não, fraude,
-pedido de atendente e identificador, nem chega a ele). Os fluxos dele viram intenção e status
-(`explicar_recusa`, `explicar_pendencia` e `explicar_estorno` → consultar com Declined, Pending e
-Reversed; `abrir_disputa` → contestar; `relato_de_fraude` → fraude; `fora_de_escopo`). Só age com
-confiança de 0,8 ou mais: abaixo disso seguem as regras (esclarecimento), porque sem limiar 11,8%
-dos pedidos fora de escopo de um conjunto real de pedidos a banco viravam disputa ou fraude.
 
 ## Logs
 
@@ -192,11 +219,12 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
 - Retenção: conversas, turnos, eventos, pré-casos e encaminhamentos ficam no banco sem expiração
   automática (demonstração); sessões valem 60 min e caem na recarga; propostas vencem em 10 min.
   Um banco real precisaria de prazo de retenção definido.
-- Minimização: o modelo recebe só a mensagem, nunca cliente, transação ou sessão; os logs não
+- Minimização: o leitor (e o modelo local) recebe só a mensagem, nunca cliente, transação ou sessão; os logs não
   guardam mensagem, token nem cliente; o encaminhamento leva o pedido cortado em 280 caracteres e só
   fatos verificados da transação.
-- Capacidade medida neste PC (uma API, dados reais): turno lido pelas regras ~10 ms; com o modelo
-  local carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa
-  ~5 min. Não medido: muitos clientes ao mesmo tempo e o servidor de publicação.
-- Falta: publicação (destino por decidir), integração do classificador de intenção do time e a
-  validação independente em andamento.
+- Capacidade medida neste PC (uma API, dados reais): turno lido pelas regras ~10 ms; leitura pelo
+  leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local carregado ~0,7 s; EDA inteira
+  ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min. Não medido: muitos clientes
+  ao mesmo tempo e o servidor de publicação.
+- Falta: publicação (destino por decidir), um conjunto de teste ES/PT escrito pelo time (com
+  gíria) para medir o leitor, e a validação independente em andamento.
