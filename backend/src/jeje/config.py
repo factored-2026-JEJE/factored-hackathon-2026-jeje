@@ -6,6 +6,7 @@ inicialização, em vez de o código assumir um valor que diverge do compose.
 """
 
 from decimal import Decimal
+from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import Depends, Request
@@ -49,9 +50,15 @@ class Settings(BaseSettings):
     limite_seguranca_transferencia_usd: Decimal = Field(gt=0)
     # Validade da proposta de pré-caso até a confirmação do cliente, em minutos.
     proposta_ttl_minutos: int = Field(gt=0)
-    # Leitura da mensagem: "regras" (sem modelo) ou "ollama" (modelo local só quando as regras não
-    # entendem; segurança e confirmação continuam das regras).
-    interpretador: Literal["regras", "ollama"]
+    # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"
+    # (modelo local); os dois só quando as regras não entendem, e segurança e confirmação continuam
+    # das regras.
+    interpretador: Literal["regras", "leitor", "ollama"]
+    # Leitor e5 (usados só com INTERPRETADOR=leitor): artefato treinado e pesos do e5, gerados no
+    # build da imagem (estágio `modelo`), e a confiança mínima para ele decidir (ACH-028).
+    leitor_modelo: Path
+    leitor_e5: Path
+    leitor_limite: float = Field(gt=0, le=1)
     # Servidor Ollama, modelo e tempo máximo por chamada (usados só com INTERPRETADOR=ollama).
     ollama_url: str
     ollama_modelo: str
