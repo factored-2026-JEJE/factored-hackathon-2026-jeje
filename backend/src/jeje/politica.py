@@ -165,6 +165,7 @@ class Pista:
     valor: Decimal | None = None
     data: date | None = None
     comercio: str | None = None
+    ultima: bool = False  # "la última": das que casarem, a mais recente (critério do cliente)
 
 
 @dataclass(frozen=True)
@@ -202,8 +203,11 @@ def _casa(candidata: Candidata, pista: Pista) -> bool:
 def resolver_transacao(
     candidatas: list[Candidata], pista: Pista, maximo_opcoes: int = 5
 ) -> Resolucao:
-    """Nunca escolhe entre várias: uma → segue; várias → pergunta; nenhuma → pede dados."""
+    """Nunca escolhe entre várias: uma → segue; várias → pergunta; nenhuma → pede dados. O único
+    critério de escolha é o do cliente ("a última"): as candidatas vêm mais recentes primeiro."""
     casadas = [c for c in candidatas if _casa(c, pista)]
+    if pista.ultima and casadas:
+        casadas = casadas[:1]
     if len(casadas) == 1:
         return Resolucao("unica", (casadas[0].transaction_id,))
     if not casadas:

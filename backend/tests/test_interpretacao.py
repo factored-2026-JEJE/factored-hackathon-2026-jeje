@@ -302,8 +302,46 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
         "idioma", "intencao", "resposta", "escolha", "valor", "data", "status", "id_digitado",
-        "caso", "sinais",
+        "caso", "ultima", "cortesia", "sinais",
     }  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("texto", "cortesia"),
+    [
+        ("okay, obrigado", "agradecimento"),
+        ("muchas gracias, muy amable", "agradecimento"),
+        ("perfeito, obrigada pela ajuda", "agradecimento"),
+        ("era isso, tchau", "agradecimento"),
+        ("no, gracias", "agradecimento"),
+        ("oi, tudo bem?", "saudacao"),
+        ("hola, buenas tardes", "saudacao"),
+        # Com pedido junto, é o pedido que vale.
+        ("obrigado, e a outra transação?", None),
+        ("hola, quiero saber por qué rechazaron mi compra", None),
+        ("gracias por nada, sigo sin mi dinero", None),
+        ("", None),
+    ],
+)
+def test_cortesia_so_quando_a_mensagem_inteira_e_cumprimento_ou_agradecimento(texto, cortesia):
+    assert ler(texto).cortesia == cortesia
+
+
+@pytest.mark.parametrize(
+    ("texto", "ultima"),
+    [
+        ("quero saber pq minha ultima transacao foi recusada", True),
+        ("¿por qué rechazaron mi último pago?", True),
+        ("a compra mais recente", True),
+        ("la última", True),
+        # Tempo, não a transação; e o plural pede várias.
+        ("la última vez que intenté me rechazaron", False),
+        ("no último mês me cobraram duas vezes", False),
+        ("quero ver minhas últimas transações", False),
+    ],
+)
+def test_ultima_e_a_mais_recente_e_nao_a_ultima_vez(texto, ultima):
+    assert ler(texto).ultima is ultima
 
 
 @pytest.mark.parametrize(

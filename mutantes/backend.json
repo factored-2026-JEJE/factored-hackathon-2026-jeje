@@ -4199,8 +4199,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            return None  # palavra fora do vocabulário: não é resposta curta",
-          "para": "            i += 1"
+          "de": "        else:\n            return None\n    return achados",
+          "para": "        else:\n            i += 1\n    return achados"
         }
       ],
       "testes": [
@@ -4636,8 +4636,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "    sinais = (lida.id_digitado, lida.caso)",
-          "para": "    sinais = (lida.caso,)"
+          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
+          "para": "    sinais = (lida.caso, lida.ultima, lida.cortesia is not None)"
         }
       ],
       "testes": [
@@ -6316,8 +6316,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "    sinais = (lida.id_digitado, lida.caso)",
-          "para": "    sinais = (lida.id_digitado,)"
+          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
+          "para": "    sinais = (lida.id_digitado, lida.ultima, lida.cortesia is not None)"
         }
       ],
       "testes": [
@@ -6369,6 +6369,130 @@
       "testes": [
         "tests/test_politica.py::test_status_do_caso_responde_sem_encaminhar_e_distingue_nenhum_um_e_varios",
         "tests/test_conversa.py::test_sem_pre_caso_diz_que_nao_ha_e_o_que_pode_fazer"
+      ]
+    },
+    {
+      "id": "M-ITP-39",
+      "requisito": "R02",
+      "descricao": "Cumprimento e agradecimento nunca reconhecidos (\"okay, obrigado\" vira resumo da transação)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"cortesia\": _cortesia(limpo),",
+          "para": "        \"cortesia\": None,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cortesia_so_quando_a_mensagem_inteira_e_cumprimento_ou_agradecimento",
+        "tests/test_conversa.py::test_agradecimento_depois_da_resposta_e_cordial_e_nao_resume"
+      ]
+    },
+    {
+      "id": "M-ITP-40",
+      "requisito": "R02",
+      "descricao": "\"Minha última transação\" não vira critério (lista todas as que casam)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"ultima\": ULTIMA.search(limpo) is not None,",
+          "para": "        \"ultima\": False,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_ultima_e_a_mais_recente_e_nao_a_ultima_vez",
+        "tests/test_conversa.py::test_a_ultima_recusada_e_a_mais_recente_sem_perguntar_qual"
+      ]
+    },
+    {
+      "id": "M-ITP-41",
+      "requisito": "R02",
+      "descricao": "\"La última vez\" e \"no último mês\" lidos como a transação mais recente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"(?! (?:vez|veces|vezes|mes|meses|dia|dias|semana|semanas|ano|anos|hora|horas))(?![a-z0-9])\"",
+          "para": "    r\"(?![a-z0-9])\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_ultima_e_a_mais_recente_e_nao_a_ultima_vez"
+      ]
+    },
+    {
+      "id": "M-LLM-22",
+      "requisito": "R08",
+      "descricao": "Cumprimento, agradecimento ou \"a última\" vão para o modelo (que os lê como fora do escopo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
+          "para": "    sinais = (lida.id_digitado, lida.caso)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-POL-34",
+      "requisito": "R03",
+      "descricao": "\"A última\" ignorada na resolução (várias continuam várias)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if pista.ultima and casadas:",
+          "para": "    if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_a_ultima_escolhe_a_mais_recente_das_que_casam",
+        "tests/test_conversa.py::test_a_ultima_recusada_e_a_mais_recente_sem_perguntar_qual"
+      ]
+    },
+    {
+      "id": "M-CONV-43",
+      "requisito": "R02",
+      "descricao": "Cumprimento ou agradecimento ignorado na conversa (resumo ou \"no entendí\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.cortesia is not None:",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_agradecimento_depois_da_resposta_e_cordial_e_nao_resume",
+        "tests/test_conversa.py::test_agradecimento_no_meio_da_escolha_mantem_a_lista"
+      ]
+    },
+    {
+      "id": "M-CONV-44",
+      "requisito": "R02",
+      "descricao": "\"Gracias\" na confirmação responde cortesia e deixa a confirmação sem pergunta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando\":\n            return self._confirmacao_pendente()\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_agradecimento_na_confirmacao_repete_a_pergunta_sem_confirmar"
+      ]
+    },
+    {
+      "id": "M-CONV-45",
+      "requisito": "R02",
+      "descricao": "Agradecimento no meio da escolha apaga a lista de opções",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        estado, contexto = self.estado, self.contexto\n        if estado == \"oferecendo_humano\":",
+          "para": "        estado, contexto = \"livre\", {}\n        if estado == \"oferecendo_humano\":"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_agradecimento_no_meio_da_escolha_mantem_a_lista"
       ]
     }
   ]

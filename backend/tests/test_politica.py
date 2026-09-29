@@ -165,6 +165,21 @@ def test_pedido_segue_a_matriz_com_seguranca_primeiro(intencao, id_digitado, esp
     assert decidir_pedido(intencao, id_digitado) == esperado
 
 
+def test_a_ultima_escolhe_a_mais_recente_das_que_casam():
+    """As candidatas chegam mais recentes primeiro; "a última" é o critério do cliente."""
+    candidatas = [
+        Candidata("T3", Decimal("20.00"), datetime(2025, 3, 14), "Uber"),
+        Candidata("T2", Decimal("45.90"), datetime(2025, 3, 12), "Cine Premium"),
+        Candidata("T1", Decimal("45.90"), datetime(2025, 3, 10), "Streaming Plus"),
+    ]
+    assert resolver_transacao(candidatas, Pista(ultima=True)).transacoes == ("T3",)
+    assert resolver_transacao(candidatas, Pista(Decimal("45.90"), ultima=True)).transacoes == (
+        "T2",
+    )
+    assert resolver_transacao(candidatas, Pista(Decimal("45.90"))).tipo == "varias"
+    assert resolver_transacao(candidatas, Pista(Decimal("9.99"), ultima=True)).tipo == "nenhuma"
+
+
 def test_status_do_caso_responde_sem_encaminhar_e_distingue_nenhum_um_e_varios():
     assert decidir_status_do_caso(0) == Decisao(
         "POL-CASO-03", "responder", "nenhum pré-caso do cliente"

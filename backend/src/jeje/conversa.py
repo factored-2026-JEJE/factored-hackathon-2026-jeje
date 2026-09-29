@@ -206,6 +206,9 @@ class _Turno:
                 return self._retomar() if self._resumiu() else self._cancelar()
             aceito = politica.Decisao("POL-HUM-03", "humano", "aceitou o atendente oferecido")
             return self._encaminhar(aceito, self._em_foco())
+        if self.lida.cortesia is not None:
+            # Cumprimento ou agradecimento: resposta cordial, sem recusa nem resumo.
+            return self._cortesia()
         if self.lida.caso and self.lida.intencao != "fora_de_escopo":
             # Pergunta pelo pedido de revisão, em qualquer etapa. Protocolo digitado só indica o
             # assunto: a resposta sai dos pré-casos do cliente da sessão, nunca do que foi digitado.
@@ -338,7 +341,7 @@ class _Turno:
     def _tem_pista(self) -> bool:
         lida = self.lida
         pistas = (lida.valor, lida.data, lida.status, self._comercio)
-        return any(p is not None for p in pistas)
+        return lida.ultima or any(p is not None for p in pistas)
 
     def _pedido(self, intencao: str) -> Saida:
         """Novo pedido: sem pista, vale a transação em foco (a última de que se falou)."""
@@ -378,7 +381,7 @@ class _Turno:
         return self._perguntar(intencao, resolucao.transacoes, pista)
 
     def _pista(self) -> politica.Pista:
-        return politica.Pista(self.lida.valor, self.lida.data, self._comercio)
+        return politica.Pista(self.lida.valor, self.lida.data, self._comercio, self.lida.ultima)
 
     def _resolucao(self, status: str | None, pista: politica.Pista) -> politica.Resolucao:
         resolucao = politica.resolver_transacao(self._candidatas(status), pista, MAXIMO_OPCOES)
@@ -541,6 +544,19 @@ class _Turno:
             protocolo=registrado.protocolo,
         )
 
+    def _cortesia(self) -> Saida:
+        """Responde com cordialidade sem mexer na etapa: a lista de opções, a transação em foco e a
+        contagem de esclarecimentos continuam valendo. Na confirmação, o "gracias" sozinho não
+        confirma nem cancela: a pergunta é repetida. A oferta de atendente sem etapa guardada
+        (recusa sem motivo) é deixada, para um "sí" depois do "gracias" não encaminhar."""
+        if self.estado == "confirmando":
+            return self._confirmacao_pendente()
+        estado, contexto = self.estado, self.contexto
+        if estado == "oferecendo_humano":
+            estado, contexto = "livre", _so_foco(contexto.get("foco"))
+        clausula = "SAUDACAO" if self.lida.cortesia == "saudacao" else "AGRADECIMENTO"
+        return Saida("CORTESIA", "responder", (texto(clausula, self.idioma),), estado, contexto)
+
     def _status_do_caso(self) -> Saida:
         """Pré-casos do cliente da sessão: o da transação em foco, se houver, senão todos."""
         self._fonte("app.pre_casos")
@@ -652,6 +668,7 @@ def _pista_json(pista: politica.Pista) -> dict:
         "valor": None if pista.valor is None else str(pista.valor),
         "data": None if pista.data is None else pista.data.isoformat(),
         "comercio": pista.comercio,
+        "ultima": pista.ultima,
     }
 
 
@@ -663,6 +680,7 @@ def _pista_do_contexto(guardada: dict | None) -> politica.Pista:
         None if valor is None else Decimal(valor),
         None if data is None else date.fromisoformat(data),
         guardada.get("comercio"),
+        guardada.get("ultima", False),
     )
 
 
@@ -672,6 +690,7 @@ def _somar(antes: politica.Pista, agora: politica.Pista) -> politica.Pista:
         agora.valor if agora.valor is not None else antes.valor,
         agora.data if agora.data is not None else antes.data,
         agora.comercio if agora.comercio is not None else antes.comercio,
+        agora.ultima or antes.ultima,
     )
 
 
