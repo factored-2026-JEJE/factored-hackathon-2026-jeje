@@ -285,6 +285,16 @@ def test_pista_nova_que_nao_casa_com_as_anteriores_vale_sozinha(cenario):
     assert (segunda["regra"], segunda["transaction_id"]) == ("POL-HUM-02", "TRX-A4")
 
 
+def test_data_sem_ano_e_lida_a_partir_do_dia_dos_dados(cenario):
+    """A base é de março de 2025: "10 de marzo" é o de 2025, não o do ano do relógio."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        resposta = dizer(
+            http, auth, abrir_conversa(http, auth, "es"), "No reconozco el cobro del 10 de marzo"
+        )
+    assert (resposta["regra"], resposta["transaction_id"]) == ("POL-DISP-01", "TRX-A1")
+
+
 def test_status_citado_que_nao_casa_e_pista_e_a_resposta_diz_o_verdadeiro(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")

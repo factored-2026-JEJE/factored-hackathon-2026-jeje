@@ -6233,21 +6233,6 @@
       ]
     },
     {
-      "id": "M-ITP-36",
-      "requisito": "R02",
-      "descricao": "Escolha curta lida também como valor (\"A 1\" sem lista pendente busca uma transação de 1,00)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "        \"valor\": None if escolha is not None else _valor(texto),",
-          "para": "        \"valor\": _valor(texto),"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
-      ]
-    },
-    {
       "id": "M-ITP-35",
       "requisito": "R02",
       "descricao": "Ramo do comércio ignorado: \"numa ótica\", \"los pasajes\", \"loja de roupa\" não acham Óptica Visión, Viajes, Boutique Moda",
@@ -6260,6 +6245,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-CONV-40",
+      "requisito": "R02",
+      "descricao": "Data sem ano lida pelo relógio e não pelo dia dos dados (\"10 de marzo\" vira o do ano corrente e não acha nada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    hoje = linha.hoje if dia_dos_dados is None else min(linha.hoje, dia_dos_dados)",
+          "para": "    hoje = linha.hoje"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_data_sem_ano_e_lida_a_partir_do_dia_dos_dados"
+      ]
+    },
+    {
+      "id": "M-ITP-36",
+      "requisito": "R02",
+      "descricao": "Escolha curta lida também como valor (\"A 1\" sem lista pendente busca uma transação de 1,00)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"valor\": None if escolha is not None else _valor(texto),",
+          "para": "        \"valor\": _valor(texto),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
       ]
     }
   ]

@@ -648,10 +648,13 @@ class Preparo:
 
 
 def preparar(conexao: Connection, customer_id: str, conversa_id: str) -> Preparo:
-    """Língua, estado e data de hoje (relógio do banco) para ler a mensagem antes do turno: a
-    leitura, que pode esperar o modelo, fica fora de qualquer transação e trava (ACH-030)."""
+    """Língua, estado e o "hoje" da leitura para ler a mensagem antes do turno: a leitura, que
+    pode esperar o modelo, fica fora de qualquer transação e trava (ACH-030). O "hoje" é o relógio
+    do banco, ou o último dia dos dados se a base carregada for mais antiga que ele (retrato)."""
     linha = _do_dono(conexao, customer_id, conversa_id, "idioma, estado, current_date AS hoje")
-    return Preparo(linha.idioma, linha.estado, linha.hoje)
+    dia_dos_dados = consultas.dia_dos_dados(conexao)
+    hoje = linha.hoje if dia_dos_dados is None else min(linha.hoje, dia_dos_dados)
+    return Preparo(linha.idioma, linha.estado, hoje)
 
 
 def ler(preparo: Preparo, mensagem: str, interpretador: Interpretador) -> Leitura:
