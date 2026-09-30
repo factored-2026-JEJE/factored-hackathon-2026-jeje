@@ -22,8 +22,10 @@ Medido na base do desafio (seção “Por que este fluxo” da interface, com a 
 
 O assistente automatiza exatamente isso: explica a situação de uma transação do próprio cliente e
 registra o pedido de revisão (pré-caso) de uma cobrança não reconhecida, sempre com confirmação
-explícita. Com os limites da política, 86,3% das transações aprovadas em USD da base poderiam ter a
-contestação registrada sem atendente; o resto vai para um atendente com o resumo pronto. A base não
+explícita. Com os limites de valor, horário e canal, 86,3% das transações aprovadas em USD da base
+poderiam ter a contestação registrada sem atendente. A janela de 120 dias, contada do último dia dos
+dados (18/06/2026), deixa contestável pelo assistente 11,2% dessas compras (a base cobre três anos);
+dentro da janela, 85,7% seguem sem atendente. O resto vai para um atendente com o resumo pronto. A base não
 tem conversas em português (transcrições 100% em espanhol): os casos em português são do time.
 
 ## Como funciona
@@ -247,7 +249,11 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   assistente registra sozinho a contestação de transação aprovada até USD 5.000; à noite
   (20h–6h) pelo app ou pela web, até USD 1.000 por transação e 1.000 somados no dia (a base não
   diz se o aparelho é cadastrado, então todo acesso digital noturno conta como não cadastrado);
-  transferência acima de USD 50.000 vai para análise de segurança. O resto vai para humano.
+  transferência acima de USD 50.000 vai para análise de segurança. Também vão para humano a compra
+  com mais de 120 dias, contados do último dia dos dados (POL-HUM-05), e a contestação de quem já
+  tem 3 ou mais pré-casos nos últimos 30 dias (POL-HUM-06). O resto vai para humano. Nas stacks de
+  teste com a fixture (`compose.ci.yaml`), a reincidência sobe para 10, porque as jornadas E2E
+  registram vários pré-casos por persona em segundos; a regra com 3 é testada no backend.
 - Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado. O status do caso
   só mostra os pré-casos do cliente da sessão; protocolo digitado indica o assunto, nunca é buscado.
 - Motivo de recusa usa o significado genérico dos códigos ISO 8583, rotulado como tal.
