@@ -6938,6 +6938,21 @@
       ]
     },
     {
+      "id": "M-ITP-53",
+      "requisito": "R03",
+      "descricao": "Tipo de cartão não conta como citação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return FINAL_DE_CARTAO.search(texto) is not None or any(_casa(t, limpo) for t in tipos)\n",
+          "para": "    return FINAL_DE_CARTAO.search(texto) is not None\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cita_cartao_quando_diz_final_ou_tipo"
+      ]
+    },
+    {
       "id": "M-LLM-22",
       "requisito": "R08",
       "descricao": "Cumprimento, agradecimento ou \"a última\" vão para o modelo (que os lê como fora do escopo)",
@@ -7760,7 +7775,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        if len(bloqueados) > 1:\n            return self._perguntar_cartao(bloqueados, \"desbloqueio\")\n",
+          "de": "        if len(candidatos) > 1:\n            return self._perguntar_cartao(candidatos, \"desbloqueio\")\n",
           "para": ""
         }
       ],
@@ -7796,6 +7811,85 @@
       ],
       "testes": [
         "tests/test_bloqueio_conversa.py::test_cliente_desfaz_pela_conversa_o_bloqueio_que_pediu_dentro_do_prazo"
+      ]
+    },
+    {
+      "id": "M-CONV-74",
+      "requisito": "R03",
+      "descricao": "Cartão citado que não dá para bloquear é trocado pelo único bloqueável (ACH-111)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        return None if cita_cartao(self.mensagem) else candidatos\n",
+          "para": "        return candidatos\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_que_cita_cartao_nao_bloqueavel_nao_bloqueia_outro_no_lugar",
+        "tests/test_bloqueio_conversa.py::test_fraude_que_cita_cartao_nao_bloqueavel_encaminha_sem_bloquear_outro",
+        "tests/test_bloqueio_conversa.py::test_desbloqueio_que_cita_cartao_sem_bloqueio_nao_propoe_desfazer_outro",
+        "tests/test_bloqueio_conversa.py::test_citacao_que_nao_e_de_nenhum_cartao_pergunta_em_vez_de_bloquear"
+      ]
+    },
+    {
+      "id": "M-CONV-75",
+      "requisito": "R02",
+      "descricao": "Citado inativo ou já bloqueado: a resposta não diz por quê (só pergunta)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if (razao := self._por_que_nao(cartoes)) is not None:\n                return Saida(\"POL-BLQ-03\", \"responder\", (razao,), \"livre\", {})\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_que_cita_cartao_nao_bloqueavel_nao_bloqueia_outro_no_lugar",
+        "tests/test_bloqueio_conversa.py::test_citar_cartao_ja_bloqueado_por_aqui_nao_bloqueia_outro"
+      ]
+    },
+    {
+      "id": "M-CONV-76",
+      "requisito": "R03",
+      "descricao": "Relato de fraude com o cartão citado inativo bloqueia outro cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                return self._encaminhar(decisao, self._em_foco(), antes=(razao,))\n",
+          "para": "                return self._bloquear_e_encaminhar(bloqueaveis[0], decisao)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_que_cita_cartao_nao_bloqueavel_encaminha_sem_bloquear_outro"
+      ]
+    },
+    {
+      "id": "M-CONV-77",
+      "requisito": "R03",
+      "descricao": "Desbloqueio que cita cartão sem bloqueio pergunta qual dos bloqueados, em vez de ir ao atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if self._citado(cartoes) is None and bloqueados:\n",
+          "para": "            if bloqueados:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_desbloqueio_que_cita_cartao_sem_bloqueio_nao_propoe_desfazer_outro"
+      ]
+    },
+    {
+      "id": "M-CONV-78",
+      "requisito": "R02",
+      "descricao": "Citação que não é de nenhum cartão do cliente responde que não há o que bloquear, em vez de perguntar qual",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if bloqueaveis:\n                return self._perguntar_cartao(bloqueaveis, \"pedido\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_citacao_que_nao_e_de_nenhum_cartao_pergunta_em_vez_de_bloquear"
       ]
     },
     {
