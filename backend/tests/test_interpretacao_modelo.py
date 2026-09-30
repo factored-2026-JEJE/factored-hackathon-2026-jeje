@@ -151,6 +151,8 @@ def test_modelo_preenche_o_que_as_regras_nao_entendem_so_com_a_mensagem():
     [
         "não é JSON",
         saida(intencao="registrar_pre_caso"),
+        saida(intencao="bloquear"),  # efeito sobre o cartão só com o pedido lido pelas regras
+        saida(intencao="desbloquear"),
         saida(transaction_id="TRX-A1"),
         saida(customer_id="CLI-B"),
         saida(valor=45.9),  # valor, data e escolha são das regras
