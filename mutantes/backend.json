@@ -7295,17 +7295,17 @@
     {
       "id": "M-POL-47",
       "requisito": "R03",
-      "descricao": "Desbloqueio pedido no chat vira resposta automática, sem o atendente",
+      "descricao": "Sem bloqueio feito por aqui (o do banco inclusive), o cliente desfaz pela conversa",
       "trocas": [
         {
           "arquivo": "src/jeje/politica.py",
-          "de": "    return Decisao(\"POL-BLQ-05\", \"humano\")",
-          "para": "    return Decisao(\"POL-BLQ-05\", \"responder\")"
+          "de": "    if motivo is None or reversivel_ate is None:\n        return Decisao(\"POL-BLQ-05\", \"humano\", \"sem bloqueio feito por aqui\")\n",
+          "para": "    if motivo is None or reversivel_ate is None:\n        return Decisao(\"POL-BLQ-04\", \"propor_desbloqueio\")\n"
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_desbloqueio_fica_com_o_atendente",
-        "tests/test_bloqueio_conversa.py::test_pedido_de_desbloqueio_vai_para_o_atendente"
+        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo",
+        "tests/test_bloqueio_conversa.py::test_desbloqueio_sem_bloqueio_feito_por_aqui_vai_para_o_atendente"
       ]
     },
     {
@@ -7321,6 +7321,53 @@
       ],
       "testes": [
         "tests/test_politica.py::test_toda_regra_da_conversa_tem_descricao_para_a_tela"
+      ]
+    },
+    {
+      "id": "M-POL-49",
+      "requisito": "R03",
+      "descricao": "Bloqueio por roubo ou perda o cliente desfaz pela conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if motivo == \"roubo_perda\":\n        return Decisao(\"POL-BLQ-05\", \"humano\", \"bloqueio por relato de roubo ou perda\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo",
+        "tests/test_bloqueio_conversa.py::test_bloqueio_por_roubo_ou_fora_do_prazo_so_o_atendente_desfaz"
+      ]
+    },
+    {
+      "id": "M-POL-50",
+      "requisito": "R03",
+      "descricao": "Prazo de reversão conta o último instante como dentro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if agora >= reversivel_ate:\n",
+          "para": "    if agora > reversivel_ate:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo"
+      ]
+    },
+    {
+      "id": "M-POL-51",
+      "requisito": "R03",
+      "descricao": "Bloqueio fora do prazo o cliente desfaz pela conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if agora >= reversivel_ate:\n        return Decisao(\"POL-BLQ-05\", \"humano\", \"fora do prazo de reversão\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo",
+        "tests/test_bloqueio_conversa.py::test_bloqueio_por_roubo_ou_fora_do_prazo_so_o_atendente_desfaz"
       ]
     },
     {
@@ -7479,16 +7526,17 @@
     {
       "id": "M-CONV-56",
       "requisito": "R03",
-      "descricao": "Pedido de desbloqueio não vai para o atendente",
+      "descricao": "Pedido de desbloqueio não é tratado pela conversa",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        if self.lida.intencao == \"desbloquear\":\n            return self._encaminhar(politica.decidir_desbloqueio(), None)\n",
+          "de": "        if self.lida.intencao == \"desbloquear\":\n            return self._pedido_de_desbloqueio()\n",
           "para": ""
         }
       ],
       "testes": [
-        "tests/test_bloqueio_conversa.py::test_pedido_de_desbloqueio_vai_para_o_atendente"
+        "tests/test_bloqueio_conversa.py::test_desbloqueio_sem_bloqueio_feito_por_aqui_vai_para_o_atendente",
+        "tests/test_bloqueio_conversa.py::test_cliente_desfaz_pela_conversa_o_bloqueio_que_pediu_dentro_do_prazo"
       ]
     },
     {
@@ -7606,7 +7654,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "    if saida.acao == \"bloquear_cartao\":\n        return saida.bloqueio\n",
+          "de": "    if saida.acao in (\"bloquear_cartao\", \"desbloquear_cartao\"):\n        return saida.bloqueio\n",
           "para": ""
         }
       ],
@@ -7672,6 +7720,81 @@
       ],
       "testes": [
         "tests/test_conversa.py::test_turno_diz_por_que_respondeu_assim"
+      ]
+    },
+    {
+      "id": "M-CONV-69",
+      "requisito": "R03",
+      "descricao": "O sim desfaz sem reavaliar o prazo com o bloqueio relido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if feito is None or decisao.regra != \"POL-BLQ-04\":\n",
+          "para": "        if feito is None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_prazo_que_vence_antes_do_sim_leva_ao_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-70",
+      "requisito": "R03",
+      "descricao": "O não ao desbloqueio proposto não mantém o bloqueio de forma explícita",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                return self._desbloquear()\n            if self.lida.resposta == \"nao\":\n",
+          "para": "                return self._desbloquear()\n            if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_nao_ao_desbloqueio_mantem_o_bloqueio"
+      ]
+    },
+    {
+      "id": "M-CONV-71",
+      "requisito": "R03",
+      "descricao": "Com vários cartões bloqueados, desbloqueia o primeiro sem perguntar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if len(bloqueados) > 1:\n            return self._perguntar_cartao(bloqueados, \"desbloqueio\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_varios_bloqueados_pergunta_qual_desbloquear"
+      ]
+    },
+    {
+      "id": "M-CONV-72",
+      "requisito": "R09",
+      "descricao": "Desbloqueio pela conversa registrado como feito pelo atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "bloqueio.desfazer(self.conexao, feito.id, \"cliente\")",
+          "para": "bloqueio.desfazer(self.conexao, feito.id, \"atendente\")"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_cliente_desfaz_pela_conversa_o_bloqueio_que_pediu_dentro_do_prazo"
+      ]
+    },
+    {
+      "id": "M-CONV-73",
+      "requisito": "R09",
+      "descricao": "Desbloqueio pela conversa sem o efeito no turno",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    if saida.acao in (\"bloquear_cartao\", \"desbloquear_cartao\"):\n",
+          "para": "    if saida.acao in (\"bloquear_cartao\",):\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_cliente_desfaz_pela_conversa_o_bloqueio_que_pediu_dentro_do_prazo"
       ]
     },
     {
@@ -7838,6 +7961,21 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_conversa_aceita_o_estado_da_escolha_do_cartao"
+      ]
+    },
+    {
+      "id": "M-MIG-14",
+      "requisito": "R03",
+      "descricao": "A migration 0020 não aceita o estado da confirmação do desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0020_conversa_confirmando_desbloqueio.py",
+          "de": "DEPOIS = (*ANTES, \"confirmando_desbloqueio\")",
+          "para": "DEPOIS = ANTES"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_conversa_aceita_o_estado_da_confirmacao_do_desbloqueio"
       ]
     },
     {
@@ -8020,6 +8158,21 @@
       ],
       "testes": [
         "tests/test_bloqueio.py::test_cartoes_do_cliente_trazem_status_da_base_e_bloqueio_do_canal"
+      ]
+    },
+    {
+      "id": "M-BLQ-13",
+      "requisito": "R08",
+      "descricao": "O bloqueio relido pelo ID ignora o dono",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "            \" WHERE id = :id AND customer_id = :cliente AND desfeito_em IS NULL\"\n",
+          "para": "            \" WHERE id = :id AND desfeito_em IS NULL\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_bloqueio_de_outro_cliente_e_igual_a_inexistente"
       ]
     }
   ]

@@ -21,7 +21,7 @@ sempre encaminha: sem cartão identificado na resposta, encaminha sem bloquear.
 import json
 import secrets
 from dataclasses import dataclass, field, replace
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from functools import cached_property
 from typing import Literal
@@ -221,10 +221,17 @@ class _Turno:
             if (escolha := self._escolhendo_cartao()) is not None:
                 return escolha
             self.estado, self.contexto = "livre", {}  # pedido novo: a escolha fica para trás
+        if self.estado == "confirmando_desbloqueio":
+            if self.lida.resposta == "sim":
+                return self._desbloquear()
+            if self.lida.resposta == "nao":
+                mantido = texto("DESBLOQUEIO-CANCELADO", self.idioma)
+                return Saida("CANCELADO", "responder", (mantido,), "livre", {})
+            self.estado, self.contexto = "livre", {}  # outro pedido: o desbloqueio fica para trás
         if self.lida.intencao == "bloquear":
             return self._pedido_de_bloqueio()
         if self.lida.intencao == "desbloquear":
-            return self._encaminhar(politica.decidir_desbloqueio(), None)
+            return self._pedido_de_desbloqueio()
         if self._resumiu() and self.lida.resposta is None:
             # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.
             self.estado, self.contexto = self._etapa_resumida()
@@ -723,7 +730,10 @@ class _Turno:
             f"{n}. {descrever_cartao(c.produto, c.ultimos4, self.idioma)}"
             for n, c in enumerate(candidatos, start=1)
         )
-        clausula = "POL-BLQ-06-FRAUDE" if motivo == "roubo_perda" else "POL-BLQ-06"
+        clausula = {
+            "roubo_perda": "POL-BLQ-06-FRAUDE",
+            "desbloqueio": "POL-BLQ-06-DESBLOQUEIO",
+        }.get(motivo, "POL-BLQ-06")
         contexto = {
             "cartoes": [c.product_id for c in candidatos],
             "motivo": motivo,
@@ -746,6 +756,15 @@ class _Turno:
             escolhido = mostrados[escolha - 1]
         else:
             escolhido = self._citado(mostrados)
+        if self.contexto["motivo"] == "desbloqueio":
+            if escolhido is not None:
+                return self._desbloqueio_do_cartao(escolhido)
+            if self.lida.resposta == "nao":
+                mantido = texto("DESBLOQUEIO-CANCELADO", self.idioma)
+                return Saida("CANCELADO", "responder", (mantido,), "livre", {})
+            if self.lida.intencao not in ("desbloquear", "desconhecida") or self.lida.caso:
+                return None
+            return self._perguntar_cartao(mostrados, "desbloqueio")
         if self.contexto["motivo"] == "roubo_perda":
             relato = politica.decidir_pedido("fraude", id_digitado=False)
             if escolhido is None:
@@ -797,6 +816,63 @@ class _Turno:
         return (
             texto("BLOQUEIO-FEITO", self.idioma, cartao=dito, como=como, bloqueio=feito.id),
             feito.id,
+        )
+
+    def _pedido_de_desbloqueio(self) -> Saida:
+        """Pedido de desbloqueio: o cartão citado ou o único bloqueado por aqui; vários, pergunta
+        qual; nenhum (o bloqueio do banco inclusive), vai ao atendente (POL-BLQ-05)."""
+        bloqueados = [c for c in self._cartoes() if c.bloqueio is not None]
+        if (citado := self._citado(bloqueados)) is not None:
+            bloqueados = [citado]
+        if len(bloqueados) > 1:
+            return self._perguntar_cartao(bloqueados, "desbloqueio")
+        if not bloqueados:
+            return self._encaminhar(politica.decidir_desbloqueio(None, None, _agora()), None)
+        return self._desbloqueio_do_cartao(bloqueados[0])
+
+    def _desbloqueio_do_cartao(self, cartao: politica.Cartao) -> Saida:
+        """Dentro do prazo e pedido pelo próprio cliente: propõe desfazer e espera o sim
+        (POL-BLQ-04). Senão, vai ao atendente (POL-BLQ-05)."""
+        feito = None
+        if cartao.bloqueio is not None:
+            feito = bloqueio.ativo_do_cliente(self.conexao, self.customer_id, cartao.bloqueio)
+        decisao = politica.decidir_desbloqueio(
+            None if feito is None else feito.motivo,
+            None if feito is None else feito.reversivel_ate,
+            _agora(),
+        )
+        self._anotar("avaliar_desbloqueio", f"{decisao.regra}: {decisao.detalhe or decisao.acao}")
+        if feito is None or decisao.acao == "humano":
+            return self._encaminhar(decisao, None)
+        dito = descrever_cartao(feito.produto, feito.ultimos4, self.idioma)
+        pergunta = texto(decisao.regra, self.idioma, cartao=dito, bloqueio=feito.id)
+        contexto = {"bloqueio_id": feito.id, "acoes": self._acoes_json()}
+        return Saida(decisao.regra, decisao.acao, (pergunta,), "confirmando_desbloqueio", contexto)
+
+    def _desbloquear(self) -> Saida:
+        """O sim ao desbloqueio proposto: a política é reavaliada com o bloqueio relido agora (o
+        prazo pode ter passado) antes de desfazer, e só o bloqueio guardado no estado."""
+        self._fonte("app.bloqueios")
+        feito = bloqueio.ativo_do_cliente(
+            self.conexao, self.customer_id, self.contexto["bloqueio_id"]
+        )
+        decisao = politica.decidir_desbloqueio(
+            None if feito is None else feito.motivo,
+            None if feito is None else feito.reversivel_ate,
+            _agora(),
+        )
+        if feito is None or decisao.regra != "POL-BLQ-04":
+            self._anotar("desbloquear_cartao", f"{decisao.regra}: {decisao.detalhe}")
+            return self._encaminhar(decisao, None)
+        try:
+            desfeito = bloqueio.desfazer(self.conexao, feito.id, "cliente")
+        except (bloqueio.JaDesfeito, bloqueio.NaoEncontrado):
+            self._anotar("desbloquear_cartao", f"{feito.id}: já desfeito")
+            return self._encaminhar(politica.decidir_desbloqueio(None, None, _agora()), None)
+        dito = descrever_cartao(desfeito.produto, desfeito.ultimos4, self.idioma)
+        feito_agora = texto("DESBLOQUEIO-FEITO", self.idioma, cartao=dito, bloqueio=desfeito.id)
+        return Saida(
+            "POL-BLQ-04", "desbloquear_cartao", (feito_agora,), "livre", {}, bloqueio=desfeito.id
         )
 
     def _ja_bloqueados(self, cartoes: list[politica.Cartao]) -> tuple[str, ...]:
@@ -871,6 +947,10 @@ def rastro_da_leitura(leitura: Leitura | None) -> dict:
     return campos
 
 
+def _agora() -> datetime:
+    return datetime.now(UTC)
+
+
 def _so_foco(foco: str | None) -> dict:
     return {} if foco is None else {"foco": foco}
 
@@ -912,7 +992,7 @@ def _efeito(saida: Saida) -> str | None:
         return saida.protocolo
     if saida.acao == "humano":
         return saida.atendimento
-    if saida.acao == "bloquear_cartao":
+    if saida.acao in ("bloquear_cartao", "desbloquear_cartao"):
         return saida.bloqueio
     if saida.acao == "propor_pre_caso" and saida.proposta is not None:
         return saida.proposta.id

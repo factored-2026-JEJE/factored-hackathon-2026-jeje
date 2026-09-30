@@ -148,8 +148,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\"];",
-          "para": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"bloquear_cartao\"];"
+          "de": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\", \"desbloquear_cartao\"];",
+          "para": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"bloquear_cartao\", \"desbloquear_cartao\"];"
         }
       ],
       "testes": [
@@ -959,8 +959,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\"];",
-          "para": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\"];"
+          "de": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\", \"desbloquear_cartao\"];",
+          "para": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"desbloquear_cartao\"];"
         }
       ],
       "testes": [
@@ -1252,6 +1252,36 @@
       ],
       "testes": [
         "src/Conversa.test.tsx > atalho manda a frase pronta em português na conversa em português"
+      ]
+    },
+    {
+      "id": "M-WEB-89",
+      "requisito": "R07",
+      "descricao": "Desbloqueio feito na conversa não avisa o console do atendente",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\", \"desbloquear_cartao\"];",
+          "para": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\"];"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o console"
+      ]
+    },
+    {
+      "id": "M-WEB-90",
+      "requisito": "R03",
+      "descricao": "Desbloqueio proposto sem os botões de sim e não",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "{(situacao.estado === \"confirmando\" || situacao.estado === \"confirmando_desbloqueio\") && (",
+          "para": "{situacao.estado === \"confirmando\" && ("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o console"
       ]
     }
   ]

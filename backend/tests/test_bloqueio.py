@@ -135,3 +135,10 @@ def test_gravacao_que_nao_se_confirma_nao_vira_bloqueio(cartoes):
     with pytest.raises(DBAPIError, match="falha injetada"):
         bloquear(cartoes, "CLI-A", "CRT-A1")
     assert gravados(cartoes) == []
+
+
+def test_bloqueio_de_outro_cliente_e_igual_a_inexistente(cartoes):
+    do_b, _ = bloquear(cartoes, "CLI-B", "CRT-B1")
+    with conexao(cartoes) as con:
+        assert bloqueio.ativo_do_cliente(con, "CLI-A", do_b.id) is None
+        assert bloqueio.ativo_do_cliente(con, "CLI-B", do_b.id) == do_b

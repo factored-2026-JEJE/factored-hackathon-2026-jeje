@@ -25,8 +25,8 @@ REGRAS_DA_MATRIZ = {
     "POL-CON-01", "POL-CON-02", "POL-CON-03", "POL-CON-04", "POL-CON-05", "POL-DISP-01",
     "POL-DISP-02", "POL-DISP-03", "POL-HUM-01", "POL-HUM-02", "POL-HUM-03", "POL-ESC-01",
     "POL-ID-02", "POL-HUM-04", "POL-SEG-01", "POL-CASO-01", "POL-CASO-02", "POL-CASO-03",
-    "POL-HUM-05", "POL-HUM-06", "POL-BLQ-01", "POL-BLQ-02", "POL-BLQ-03", "POL-BLQ-05",
-    "POL-BLQ-06",
+    "POL-HUM-05", "POL-HUM-06", "POL-BLQ-01", "POL-BLQ-02", "POL-BLQ-03", "POL-BLQ-04",
+    "POL-BLQ-05", "POL-BLQ-06",
 }  # fmt: skip
 
 # Promessas que o atendimento automático não pode fazer (negações como "no es un reembolso" passam).

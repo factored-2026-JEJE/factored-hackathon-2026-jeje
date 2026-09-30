@@ -81,7 +81,7 @@ def test_pedido_com_dispositivo_cadastrado_bloqueia_por_completo_sem_encaminhar(
     assert (turno["bloqueio"], turno["atendimento"]) == (feito["id"], None)
     assert turno["resposta"] == (
         f"Bloqueé tu tarjeta de crédito terminada en 1111 (bloqueo completo simulado, referencia"
-        f" {feito['id']}).\nSi fue un error, pídeme deshacerlo y un agente lo revisa."
+        f" {feito['id']}).\nSi fue un error, pídeme deshacerlo."
     )
     assert (feito["customer_id"], feito["product_id"], feito["tipo"], feito["motivo"]) == (
         "CLI-B", "CRT-B1", "completo", "pedido"
@@ -258,12 +258,11 @@ def test_fraude_sem_cartao_ativo_so_encaminha(cenario):
     assert bloqueios(cenario) == []
 
 
-def test_pedido_de_desbloqueio_vai_para_o_atendente(cenario):
+def test_desbloqueio_sem_bloqueio_feito_por_aqui_vai_para_o_atendente(cenario):
+    """O cartão de CLI-C foi bloqueado pelo banco, não pela conversa: quem desfaz é o atendente."""
     with cliente(cenario) as http:
-        auth = entrar(http, "CLI-B", "cadastrado")
-        conversa = abrir_conversa(http, auth, "es")
-        dizer(http, auth, conversa, "quiero bloquear mi tarjeta")
-        turno = dizer(http, auth, conversa, "quiero desbloquear mi tarjeta")
+        auth = entrar(http, "CLI-C", "cadastrado")
+        turno = dizer(http, auth, abrir_conversa(http, auth, "es"), "quiero desbloquear mi tarjeta")
     assert (turno["regra"], turno["acao"], turno["estado"]) == (
         "POL-BLQ-05", "humano", "com_humano"
     )  # fmt: skip
@@ -271,9 +270,119 @@ def test_pedido_de_desbloqueio_vai_para_o_atendente(cenario):
         "Para deshacer un bloqueo, un agente revisa la solicitud. Ya le paso el resumen."
     )
     [registro] = handoffs(cenario)
-    assert registro["pendencias"] == ["Revisar pedido de desbloqueio de cartão"]
-    # O bloqueio continua: só o atendente desfaz, pelo console.
-    assert [b["desfeito_em"] for b in bloqueios(cenario)] == [None]
+    assert registro["pendencias"] == [
+        "Revisar pedido de desbloqueio de cartão (sem bloqueio feito por aqui)"
+    ]
+
+
+def desfeitos(settings) -> list[tuple]:
+    with conexao(settings) as con:
+        consulta = "SELECT id, desfeito_por FROM app.bloqueios WHERE desfeito_em IS NOT NULL"
+        return [tuple(linha) for linha in con.execute(text(consulta))]
+
+
+def test_cliente_desfaz_pela_conversa_o_bloqueio_que_pediu_dentro_do_prazo(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        feito = dizer(http, auth, conversa, "quiero bloquear mi tarjeta")["bloqueio"]
+        proposta = dizer(http, auth, conversa, "quiero desbloquear mi tarjeta")
+        antes = desfeitos(cenario)
+        desfeito = dizer(http, auth, conversa, "Sí, confirmo")
+        console = http.get("/atendimento/bloqueios").json()
+    assert (proposta["regra"], proposta["acao"], proposta["estado"]) == (
+        "POL-BLQ-04", "propor_desbloqueio", "confirmando_desbloqueio"
+    )  # fmt: skip
+    assert proposta["resposta"] == (
+        "¿Confirmas que quieres deshacer el bloqueo de tu tarjeta de crédito terminada en 1111"
+        f" (referencia {feito})? Responde sí o no."
+    )
+    assert antes == []  # nada desfeito sem o sim
+    assert (desfeito["regra"], desfeito["acao"], desfeito["estado"]) == (
+        "POL-BLQ-04", "desbloquear_cartao", "livre"
+    )  # fmt: skip
+    assert (desfeito["bloqueio"], desfeito["efeito"]) == (feito, feito)
+    assert desfeito["resposta"] == (
+        "Listo: deshice el bloqueo de tu tarjeta de crédito terminada en 1111"
+        f" (referencia {feito})."
+    )
+    assert desfeitos(cenario) == [(feito, "cliente")]
+    assert console == []
+    assert handoffs(cenario) == []
+
+
+def test_nao_ao_desbloqueio_mantem_o_bloqueio(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "pt")
+        dizer(http, auth, conversa, "quero bloquear meu cartão")
+        dizer(http, auth, conversa, "quero desbloquear meu cartão")
+        mantido = dizer(http, auth, conversa, "não")
+    assert (mantido["regra"], mantido["estado"]) == ("CANCELADO", "livre")
+    assert mantido["resposta"] == (
+        "Tudo bem, o bloqueio continua. Posso ajudar com mais alguma coisa?"
+    )
+    assert desfeitos(cenario) == []
+
+
+@pytest.mark.parametrize(
+    ("bloquear", "ajuste", "motivo"),
+    [
+        ("me robaron la tarjeta", None, "bloqueio por relato de roubo ou perda"),
+        ("quiero bloquear mi tarjeta", "now() - interval '1 second'", "fora do prazo de reversão"),
+    ],
+)
+def test_bloqueio_por_roubo_ou_fora_do_prazo_so_o_atendente_desfaz(
+    cenario, bloquear, ajuste, motivo
+):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        dizer(http, auth, abrir_conversa(http, auth, "es"), bloquear)
+        if ajuste:
+            with conexao(cenario) as con:
+                con.execute(text(f"UPDATE app.bloqueios SET reversivel_ate = {ajuste}"))
+        turno = dizer(http, auth, abrir_conversa(http, auth, "es"), "quiero desbloquear mi tarjeta")
+    assert (turno["regra"], turno["acao"], turno["estado"]) == (
+        "POL-BLQ-05", "humano", "com_humano"
+    )  # fmt: skip
+    assert handoffs(cenario)[-1]["pendencias"] == [
+        f"Revisar pedido de desbloqueio de cartão ({motivo})"
+    ]
+    assert desfeitos(cenario) == []
+
+
+def test_prazo_que_vence_antes_do_sim_leva_ao_atendente(cenario):
+    """A política é reavaliada no sim, com o bloqueio relido: o prazo pode ter vencido."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "quiero bloquear mi tarjeta")
+        dizer(http, auth, conversa, "quiero desbloquear mi tarjeta")
+        with conexao(cenario) as con:
+            con.execute(
+                text("UPDATE app.bloqueios SET reversivel_ate = now() - interval '1 second'")
+            )
+        turno = dizer(http, auth, conversa, "sí")
+    assert (turno["regra"], turno["acao"]) == ("POL-BLQ-05", "humano")
+    assert desfeitos(cenario) == []
+
+
+def test_varios_bloqueados_pergunta_qual_desbloquear(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "bloqueen la tarjeta terminada en 9241")
+        segundo = dizer(http, auth, conversa, "bloqueen la tarjeta terminada en 5678")["bloqueio"]
+        pergunta = dizer(http, auth, conversa, "quiero desbloquear mi tarjeta")
+        proposta = dizer(http, auth, conversa, "2")
+    assert (pergunta["regra"], pergunta["estado"]) == ("POL-BLQ-06", "escolhendo_cartao")
+    assert pergunta["resposta"] == (
+        "¿Cuál tarjeta quieres desbloquear?\n1. tarjeta de crédito terminada en 9241\n"
+        "2. tarjeta de débito terminada en 5678\nResponde con el número de la opción o con los 4"
+        " últimos dígitos."
+    )
+    assert (proposta["regra"], proposta["estado"]) == ("POL-BLQ-04", "confirmando_desbloqueio")
+    assert f"(referencia {segundo})" in proposta["resposta"]
 
 
 def test_nao_na_escolha_cancela_e_outro_pedido_sai_da_etapa(cenario):

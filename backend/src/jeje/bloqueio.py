@@ -123,6 +123,18 @@ def bloquear(
     return relido, inserido == 1
 
 
+def ativo_do_cliente(conexao: Connection, customer_id: str, bloqueio_id: str) -> Bloqueio | None:
+    """O bloqueio ativo, se for do cliente da sessão (o de outro cliente é igual a inexistente)."""
+    linha = conexao.execute(
+        text(
+            f"SELECT {COLUNAS} FROM app.bloqueios"
+            " WHERE id = :id AND customer_id = :cliente AND desfeito_em IS NULL"
+        ),
+        {"id": bloqueio_id, "cliente": customer_id},
+    ).first()
+    return None if linha is None else Bloqueio(**linha._mapping)
+
+
 def ativos(conexao: Connection, limite: int) -> list[Bloqueio]:
     """Bloqueios ativos, os mais recentes primeiro (console do atendente): com dispositivo
     cadastrado, o aviso ao atendente é o bloqueio aparecer ali (PRD-007)."""
