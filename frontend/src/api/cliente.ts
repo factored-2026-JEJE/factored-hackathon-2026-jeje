@@ -138,3 +138,26 @@ export async function assumirEncaminhamento(id: string): Promise<Encaminhamento>
 export async function buscarMetricas(): Promise<Metricas> {
   return json<Metricas>(await fetch("/api/metricas"), 200);
 }
+
+export type PedidoDeReview = components["schemas"]["PedidoDeReview"];
+export type ReviewRegistrada = components["schemas"]["ReviewRegistrada"];
+
+/** Quem do time pode avaliar conversas; fora do modo de demonstração (404), ninguém. */
+export async function listarTestadores(): Promise<string[]> {
+  const resposta = await fetch("/api/testadores");
+  if (resposta.status === 404) return [];
+  return json<string[]>(resposta, 200);
+}
+
+export async function avaliarConversa(
+  token: string,
+  conversaId: string,
+  review: PedidoDeReview,
+): Promise<ReviewRegistrada> {
+  const resposta = await fetch(`/api/conversas/${encodeURIComponent(conversaId)}/reviews`, {
+    method: "POST",
+    headers: jsonComToken(token),
+    body: JSON.stringify(review),
+  });
+  return json<ReviewRegistrada>(resposta, 201);
+}

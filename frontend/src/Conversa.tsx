@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AvaliarConversa } from "./AvaliarConversa";
 import {
   abrirConversa,
   enviarMensagem,
@@ -260,6 +261,7 @@ export function Conversa({
           Enviar
         </button>
       </form>
+      {falas.length > 1 && <AvaliarConversa key={conversaId} token={token} conversaId={conversaId} aoExpirar={aoExpirar} />}
     </section>
   );
 }

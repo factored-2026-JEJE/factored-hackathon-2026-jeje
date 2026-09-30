@@ -2799,7 +2799,7 @@
     {
       "id": "M-POL-20",
       "requisito": "R03",
-      "descricao": "Terceiro esclarecimento em vez de humano",
+      "descricao": "Terceiro esclarecimento em vez da oferta de atendente",
       "trocas": [
         {
           "arquivo": "src/jeje/politica.py",
@@ -2808,7 +2808,7 @@
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_dois_esclarecimentos_sem_sucesso_levam_ao_humano"
+        "tests/test_politica.py::test_dois_esclarecimentos_sem_sucesso_oferecem_o_humano"
       ]
     },
     {
@@ -3598,22 +3598,22 @@
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_dois_esclarecimentos_sem_sucesso_encaminham_para_humano"
+        "tests/test_conversa.py::test_pistas_que_nao_casam_ate_o_limite_oferecem_o_atendente"
       ]
     },
     {
       "id": "M-CONV-10",
       "requisito": "R03",
-      "descricao": "Recusa de fora de escopo desfaz a confirmação pendente",
+      "descricao": "Fora de escopo no meio da confirmação desfaz a proposta (o \"no\" ao resumo não volta a ela)",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            return Saida(decisao.regra, \"recusar\", (recusa,), self.estado, self.contexto)",
-          "para": "            return Saida(decisao.regra, \"recusar\", (recusa,), \"livre\")"
+          "de": "        return self._oferecer((resumo, oferta), \"RESUMO\", self.estado, self.contexto)",
+          "para": "        return self._oferecer((resumo, oferta), \"RESUMO\", \"livre\", {})"
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_fora_de_escopo_recusa_sem_desfazer_a_confirmacao_pendente"
+        "tests/test_conversa.py::test_fora_de_escopo_no_meio_da_confirmacao_resume_sem_desfazer_a_proposta"
       ]
     },
     {
@@ -3653,7 +3653,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if self.lida.resposta == \"nao\":\n                return self._cancelar()\n",
+          "de": "            if self.lida.resposta == \"nao\":\n                return self._retomar() if self._resumiu() else self._cancelar()\n",
           "para": ""
         }
       ],
@@ -3788,12 +3788,12 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            \"esclarecimentos\": pedidos_de_novo + 1,",
-          "para": "            \"esclarecimentos\": pedidos_de_novo,"
+          "de": "        contexto = {\"pedido\": pedido, \"esclarecimentos\": pedidos_de_novo + 1}",
+          "para": "        contexto = {\"pedido\": pedido, \"esclarecimentos\": pedidos_de_novo}"
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_mensagens_nao_entendidas_seguidas_encaminham_para_humano"
+        "tests/test_conversa.py::test_mensagens_nao_entendidas_seguidas_oferecem_o_humano"
       ]
     },
     {
@@ -4199,8 +4199,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            return None  # palavra fora do vocabulário: não é resposta curta",
-          "para": "            i += 1"
+          "de": "        else:\n            return None\n    return achados",
+          "para": "        else:\n            i += 1\n    return achados"
         }
       ],
       "testes": [
@@ -4546,8 +4546,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"no autorice\", \"nao autorizei\")),",
-          "para": "\"no autorice\", \"nao autorizei\",\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
+          "de": "\"revisem\", \"reclamar\")),",
+          "para": "\"revisem\", \"reclamar\",\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
         }
       ],
       "testes": [
@@ -4636,8 +4636,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "lida.intencao != \"desconhecida\" or lida.id_digitado or any(",
-          "para": "lida.intencao != \"desconhecida\" or any("
+          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
+          "para": "    sinais = (lida.caso, lida.ultima, lida.cortesia is not None)"
         }
       ],
       "testes": [
@@ -5942,6 +5942,722 @@
       ],
       "testes": [
         "tests/test_avaliacao_leitor.py::test_cli_com_argumentos_demais_mostra_o_uso"
+      ]
+    },
+    {
+      "id": "M-ITP-28",
+      "requisito": "R07",
+      "descricao": "Cobrança repetida volta a ser consulta (\"me cobraron dos veces\" responde só o status)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "COBRANCA_REPETIDA, \"revisen\"",
+          "para": "\"revisen\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-29",
+      "requisito": "R07",
+      "descricao": "Pedido de revisão (\"que la revisen\") não é reconhecido como contestação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "COBRANCA_REPETIDA, \"revisen\", \"revisem\", \"reclamar\"",
+          "para": "COBRANCA_REPETIDA, \"reclamar\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-30",
+      "requisito": "R07",
+      "descricao": "Repetição sem verbo de cobrar vira contestação (\"intenté dos veces y me rechazaron\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "COBRANCA_REPETIDA, \"revisen\"",
+          "para": "COBRANCA_REPETIDA, \"dos veces\", \"2 vezes\", \"revisen\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-31",
+      "requisito": "R02",
+      "descricao": "Contagem lida como valor (\"me aparece 2 veces\" busca uma transação de 2,00)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "VALOR.search(IDENTIFICADOR.sub(\" \", CONTAGEM.sub(\" \", sem_datas)))",
+          "para": "VALOR.search(IDENTIFICADOR.sub(\" \", sem_datas))"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador",
+        "tests/test_conversa.py::test_cobranca_repetida_sobre_a_transacao_em_foco_propoe_revisao"
+      ]
+    },
+    {
+      "id": "M-CONV-29",
+      "requisito": "R03",
+      "descricao": "Pista dada na busca da transação vira pedido novo (\"la compra del…\" perde a contestação; a resposta ao resumo com o comércio vira consulta)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self._pista_da_etapa():\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pista_durante_contestacao_continua_a_contestacao",
+        "tests/test_conversa.py::test_outra_mensagem_depois_do_resumo_e_lida_na_etapa"
+      ]
+    },
+    {
+      "id": "M-CONV-30",
+      "requisito": "R03",
+      "descricao": "Status citado na busca de uma contestação continua a contestação (\"¿y la rechazada?\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            and self.lida.status is None\n            and self._tem_pista()\n",
+          "para": "            and self._tem_pista()\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_status_citado_durante_contestacao_e_pergunta_nova"
+      ]
+    },
+    {
+      "id": "M-CONV-31",
+      "requisito": "R02",
+      "descricao": "Pistas de turnos anteriores esquecidas: só a da mensagem atual procura a transação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            pista = _somar(_pista_do_contexto(self.contexto.get(\"pista\")), pista)",
+          "para": "            pista = pista"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pistas_se_somam_ao_longo_da_busca"
+      ]
+    },
+    {
+      "id": "M-CONV-32",
+      "requisito": "R02",
+      "descricao": "Soma de pistas que não casa nada vale mesmo assim (uma pista errada prende a busca)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if resolucao.tipo == \"nenhuma\" and not novo_assunto and pista != (atual := self._pista()):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pista_nova_que_nao_casa_com_as_anteriores_vale_sozinha"
+      ]
+    },
+    {
+      "id": "M-CONV-33",
+      "requisito": "R02",
+      "descricao": "Status citado volta a ser filtro: \"¿por qué rechazaron lo de Boutique Moda?\" sobre uma aprovada não acha nada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if resolucao.tipo == \"nenhuma\" and status is not None and pista != politica.Pista():",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_status_citado_que_nao_casa_e_pista_e_a_resposta_diz_o_verdadeiro"
+      ]
+    },
+    {
+      "id": "M-CONV-34",
+      "requisito": "R03",
+      "descricao": "Mensagem sobre a transação respondida (\"¿y ahora qué hago?\") volta a ser \"no entendí\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        return self.estado in (\"esclarecendo\", \"confirmando\") or \"foco\" in self.contexto",
+          "para": "        return self.estado in (\"esclarecendo\", \"confirmando\")"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_sobre_a_transacao_respondida_diz_o_que_consta_e_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-35",
+      "requisito": "R03",
+      "descricao": "Resposta ao resumo com outra coisa não volta à etapa (a pista dada depois do resumo vira pedido novo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.\n            self.estado, self.contexto = self._etapa_resumida()\n",
+          "para": "            pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_outra_mensagem_depois_do_resumo_e_lida_na_etapa"
+      ]
+    },
+    {
+      "id": "M-CONV-36",
+      "requisito": "R03",
+      "descricao": "\"No\" ao atendente oferecido no resumo cancela tudo em vez de voltar à etapa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                return self._retomar() if self._resumiu() else self._cancelar()",
+          "para": "                return self._cancelar()"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_mensagem_fora_da_escolha_resume_e_so_encaminha_com_sim",
+        "tests/test_conversa.py::test_fora_de_escopo_no_meio_da_confirmacao_resume_sem_desfazer_a_proposta"
+      ]
+    },
+    {
+      "id": "M-CONV-37",
+      "requisito": "R03",
+      "descricao": "Fora de escopo sem etapa volta à recusa seca, sem oferecer o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            return self._oferecer(fora, decisao.regra, \"livre\", {})",
+          "para": "            return Saida(decisao.regra, \"recusar\", fora[:1], \"livre\")"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_fora_de_escopo_sem_etapa_recusa_e_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-38",
+      "requisito": "R03",
+      "descricao": "Limite de esclarecimentos volta a encaminhar sem o sim do cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            return self._oferecer(textos, decisao.regra, \"esclarecendo\", contexto)",
+          "para": "            return self._encaminhar(decisao, None)"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pistas_que_nao_casam_ate_o_limite_oferecem_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-39",
+      "requisito": "R03",
+      "descricao": "Mensagem que não cabe na escolha vira \"no entendí\" em vez do resumo do que foi entendido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            # atendente, em vez de repetir a pergunta ou recusar.\n            return self._resumir_etapa()",
+          "para": "            # atendente, em vez de repetir a pergunta ou recusar.\n            return self._nao_entendido()"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_mensagem_fora_da_escolha_resume_e_so_encaminha_com_sim"
+      ]
+    },
+    {
+      "id": "M-POL-32",
+      "requisito": "R03",
+      "descricao": "Esclarecimentos sem sucesso voltam a encaminhar direto (sem oferecer)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "        return Decisao(\"POL-HUM-03\", \"oferecer_humano\", \"esclarecimentos sem sucesso\")",
+          "para": "        return Decisao(\"POL-HUM-03\", \"humano\", \"esclarecimentos sem sucesso\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_dois_esclarecimentos_sem_sucesso_oferecem_o_humano"
+      ]
+    },
+    {
+      "id": "M-ITP-32",
+      "requisito": "R07",
+      "descricao": "Recusar o atendente (\"no quiero un agente, solo dime…\") volta a ser pedido de atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if intencao == \"humano\" and RECUSA_DE_HUMANO.search(limpo):\n            continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_recusar_o_atendente_nao_e_pedir_um"
+      ]
+    },
+    {
+      "id": "M-ITP-33",
+      "requisito": "R07",
+      "descricao": "Negação de outra coisa perto do atendente vira recusa (\"no quiero esperar, quiero un agente\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"(?: (?:hablar|falar)(?: con| com)?)?(?: (?:un|una|um|uma|el|la|o|a|ningun|nenhum))?\"",
+          "para": "    r\"(?: [a-z]+){0,3}\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_recusar_o_atendente_nao_e_pedir_um"
+      ]
+    },
+    {
+      "id": "M-ITP-34",
+      "requisito": "R02",
+      "descricao": "Escolha com verbo (\"quero a primeira\", \"fue la segunda\") deixa de ser escolha",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"obrigado\", \"obrigada\", \"quiero\", \"quero\", \"fue\", \"foi\", \"era\"}",
+          "para": "\"obrigado\", \"obrigada\"}"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_escolha_so_em_resposta_curta"
+      ]
+    },
+    {
+      "id": "M-ITP-35",
+      "requisito": "R02",
+      "descricao": "Ramo do comércio ignorado: \"numa ótica\", \"los pasajes\", \"loja de roupa\" não acham Óptica Visión, Viajes, Boutique Moda",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        ramo = [t for p in palavras for t in RAMO.get(p, ())]",
+          "para": "        ramo = []"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-CONV-40",
+      "requisito": "R02",
+      "descricao": "Data sem ano lida pelo relógio e não pelo dia dos dados (\"10 de marzo\" vira o do ano corrente e não acha nada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    hoje = linha.hoje if dia_dos_dados is None else min(linha.hoje, dia_dos_dados)",
+          "para": "    hoje = linha.hoje"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_data_sem_ano_e_lida_a_partir_do_dia_dos_dados"
+      ]
+    },
+    {
+      "id": "M-ITP-36",
+      "requisito": "R02",
+      "descricao": "Escolha curta lida também como valor (\"A 1\" sem lista pendente busca uma transação de 1,00)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"valor\": None if escolha is not None else _valor(texto),",
+          "para": "        \"valor\": _valor(texto),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_nao_e_data_nem_identificador"
+      ]
+    },
+    {
+      "id": "M-AVAL-01",
+      "requisito": "R08",
+      "descricao": "Quem não é do time de teste consegue avaliar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "    if pedido.avaliador not in reviews.testadores(config.testadores):\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_so_o_dono_avalia_e_so_quem_e_do_time"
+      ]
+    },
+    {
+      "id": "M-AVAL-02",
+      "requisito": "R08",
+      "descricao": "Review grava sem conferir o dono da conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    conversa, turnos = historico(conexao, customer_id, conversa_id)",
+          "para": "    conversa, turnos = {\"id\": conversa_id, \"idioma\": \"es\", \"estado\": \"livre\"}, []"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_so_o_dono_avalia_e_so_quem_e_do_time"
+      ]
+    },
+    {
+      "id": "M-AVAL-03",
+      "requisito": "R07",
+      "descricao": "Issue sem a transcrição da conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    for t in turnos:\n",
+          "para": "    for t in turnos[:0]:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
+      "id": "M-AVAL-04",
+      "requisito": "R07",
+      "descricao": "Issue sem a etiqueta das reviews",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "\"labels\": [ETIQUETA]",
+          "para": "\"labels\": []"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
+      "id": "M-AVAL-05",
+      "requisito": "R07",
+      "descricao": "URL da Issue não fica anotada na review",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "                reviews.anotar_issue(conexao, gravada[\"review_id\"], issue_url)",
+          "para": "                pass"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
+      "id": "M-AVAL-06",
+      "requisito": "R06",
+      "descricao": "Falha do GitHub derruba a review (500) em vez de guardá-la sem Issue",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    except (urllib.error.URLError, TimeoutError, KeyError, ValueError) as erro:",
+          "para": "    except KeyError as erro:"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_falha_do_github_nao_perde_a_review"
+      ]
+    },
+    {
+      "id": "M-AVAL-07",
+      "requisito": "R08",
+      "descricao": "Review publicada no GitHub mesmo sem token",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "    if config.reviews_repo and config.github_token:",
+          "para": "    if config.reviews_repo:"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_sem_token_fica_no_banco_ligada_a_conversa"
+      ]
+    },
+    {
+      "id": "M-AVAL-08",
+      "requisito": "R07",
+      "descricao": "Lista de testadores com espaços da configuração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    return [t.strip() for t in configurados.split(\",\") if t.strip()]",
+          "para": "    return [t for t in configurados.split(\",\") if t]"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_testadores_sao_os_do_time"
+      ]
+    },
+    {
+      "id": "M-AVAL-09",
+      "requisito": "R08",
+      "descricao": "Reviews abertas fora do modo de demonstração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "router = APIRouter(dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)",
+          "para": "router = APIRouter(responses=RESPOSTAS_DEMO)"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_sem_modo_demo_nao_ha_reviews"
+      ]
+    },
+    {
+      "id": "M-AVAL-10",
+      "requisito": "R07",
+      "descricao": "Reviews já publicadas voltam a virar Issue a cada exportação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "        \" WHERE r.issue_url IS NULL ORDER BY r.id\"",
+          "para": "        \" ORDER BY r.id\""
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_reviews_pendentes_sao_publicadas_depois"
+      ]
+    },
+    {
+      "id": "M-AVAL-11",
+      "requisito": "R07",
+      "descricao": "Issue sem os dados da conversa para máquina (o importador da QA não refaz a conversa)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "    linhas += [MARCA_DOS_DADOS, json_seguro, \"-->\"]",
+          "para": "    pass"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_review_vira_issue_com_a_transcricao"
+      ]
+    },
+    {
+      "id": "M-ITP-37",
+      "requisito": "R02",
+      "descricao": "Pergunta pelo pedido de revisão registrado nunca reconhecida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"caso\": _caso(limpo),",
+          "para": "        \"caso\": False,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo",
+        "tests/test_conversa.py::test_status_do_caso_responde_o_pre_caso_registrado"
+      ]
+    },
+    {
+      "id": "M-ITP-38",
+      "requisito": "R02",
+      "descricao": "Protocolo digitado (\"¿cómo va el PC-00000003?\") não indica o assunto e cai na recusa de identificador",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        or PROTOCOLO_DIGITADO.search(limpo) is not None",
+          "para": "        or False"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo",
+        "tests/test_conversa.py::test_status_do_caso_lista_os_do_cliente_e_protocolo_digitado_nao_busca"
+      ]
+    },
+    {
+      "id": "M-LLM-21",
+      "requisito": "R08",
+      "descricao": "Pergunta pelo pedido registrado vai para o modelo (que não conhece o assunto)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
+          "para": "    sinais = (lida.id_digitado, lida.ultima, lida.cortesia is not None)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-CONV-41",
+      "requisito": "R02",
+      "descricao": "Status do caso ignorado na conversa (pergunta pelo pedido registrado vira resumo ou recusa)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.caso and self.lida.intencao != \"fora_de_escopo\":",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_status_do_caso_responde_o_pre_caso_registrado",
+        "tests/test_conversa.py::test_sem_pre_caso_diz_que_nao_ha_e_o_que_pode_fazer"
+      ]
+    },
+    {
+      "id": "M-CONV-42",
+      "requisito": "R02",
+      "descricao": "Status do caso com transação em foco lista todos os pré-casos em vez do dela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        casos = [c for c in casos if c.transaction_id == em_foco] or casos",
+          "para": "        casos = list(casos)"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_com_transacao_em_foco_o_status_e_so_do_pre_caso_dela"
+      ]
+    },
+    {
+      "id": "M-POL-33",
+      "requisito": "R03",
+      "descricao": "Sem pré-caso do cliente tratado como um (a resposta inventaria um protocolo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if quantos == 0:",
+          "para": "    if quantos < 0:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_status_do_caso_responde_sem_encaminhar_e_distingue_nenhum_um_e_varios",
+        "tests/test_conversa.py::test_sem_pre_caso_diz_que_nao_ha_e_o_que_pode_fazer"
+      ]
+    },
+    {
+      "id": "M-ITP-39",
+      "requisito": "R02",
+      "descricao": "Cumprimento e agradecimento nunca reconhecidos (\"okay, obrigado\" vira resumo da transação)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"cortesia\": _cortesia(limpo),",
+          "para": "        \"cortesia\": None,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cortesia_so_quando_a_mensagem_inteira_e_cumprimento_ou_agradecimento",
+        "tests/test_conversa.py::test_agradecimento_depois_da_resposta_e_cordial_e_nao_resume"
+      ]
+    },
+    {
+      "id": "M-ITP-40",
+      "requisito": "R02",
+      "descricao": "\"Minha última transação\" não vira critério (lista todas as que casam)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"ultima\": ULTIMA.search(limpo) is not None,",
+          "para": "        \"ultima\": False,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_ultima_e_a_mais_recente_e_nao_a_ultima_vez",
+        "tests/test_conversa.py::test_a_ultima_recusada_e_a_mais_recente_sem_perguntar_qual"
+      ]
+    },
+    {
+      "id": "M-ITP-41",
+      "requisito": "R02",
+      "descricao": "\"La última vez\" e \"no último mês\" lidos como a transação mais recente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"(?! (?:vez|veces|vezes|mes|meses|dia|dias|semana|semanas|ano|anos|hora|horas))(?![a-z0-9])\"",
+          "para": "    r\"(?![a-z0-9])\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_ultima_e_a_mais_recente_e_nao_a_ultima_vez"
+      ]
+    },
+    {
+      "id": "M-LLM-22",
+      "requisito": "R08",
+      "descricao": "Cumprimento, agradecimento ou \"a última\" vão para o modelo (que os lê como fora do escopo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
+          "para": "    sinais = (lida.id_digitado, lida.caso)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-POL-34",
+      "requisito": "R03",
+      "descricao": "\"A última\" ignorada na resolução (várias continuam várias)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if pista.ultima and casadas:",
+          "para": "    if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_a_ultima_escolhe_a_mais_recente_das_que_casam",
+        "tests/test_conversa.py::test_a_ultima_recusada_e_a_mais_recente_sem_perguntar_qual"
+      ]
+    },
+    {
+      "id": "M-CONV-43",
+      "requisito": "R02",
+      "descricao": "Cumprimento ou agradecimento ignorado na conversa (resumo ou \"no entendí\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.cortesia is not None:",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_agradecimento_depois_da_resposta_e_cordial_e_nao_resume",
+        "tests/test_conversa.py::test_agradecimento_no_meio_da_escolha_mantem_a_lista"
+      ]
+    },
+    {
+      "id": "M-CONV-44",
+      "requisito": "R02",
+      "descricao": "\"Gracias\" na confirmação responde cortesia e deixa a confirmação sem pergunta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando\":\n            return self._confirmacao_pendente()\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_agradecimento_na_confirmacao_repete_a_pergunta_sem_confirmar"
+      ]
+    },
+    {
+      "id": "M-CONV-45",
+      "requisito": "R02",
+      "descricao": "Agradecimento no meio da escolha apaga a lista de opções",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        estado, contexto = self.estado, self.contexto\n        if estado == \"oferecendo_humano\":",
+          "para": "        estado, contexto = \"livre\", {}\n        if estado == \"oferecendo_humano\":"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_agradecimento_no_meio_da_escolha_mantem_a_lista"
       ]
     }
   ]

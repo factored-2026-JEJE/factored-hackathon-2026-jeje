@@ -99,7 +99,17 @@ def ler(url: str, texto: str, timeout_s: float = 5):
 
 
 @pytest.mark.parametrize(
-    "texto", ["No reconozco el cobro de 45,90", "me robaron la tarjeta", "sí", "2", "TRX-B1"]
+    "texto",
+    [
+        "No reconozco el cobro de 45,90",
+        "me robaron la tarjeta",
+        "sí",
+        "2",
+        "TRX-B1",
+        "¿cómo va mi solicitud?",
+        "okay, obrigado",
+        "la última",
+    ],
 )
 def test_o_que_as_regras_entendem_nem_chega_ao_modelo(texto):
     with ollama_falso(saida(intencao="desconhecida")) as (url, pedidos):
