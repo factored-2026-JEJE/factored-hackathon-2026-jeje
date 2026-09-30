@@ -149,7 +149,17 @@ for (const idioma of ["es", "pt"] as const) {
     const comHumano = page.getByRole("status").filter({ hasText: "Com atendimento humano" });
     await expect(comHumano).toContainText(/AT-\d+/);
     const atendimento = (await comHumano.textContent())!.match(/AT-\d+/)![0];
+    // O texto do encaminhamento, lido agora: depois vêm o lembrete e a troca de aba.
+    const encaminhamento = (await relato.textContent())!;
 
+    // Depois do encaminhamento, a automação só lembra quem está com o caso.
+    const lembrete = await dizer(page, t.depois);
+    await expect(lembrete).toContainText(t.comHumano(atendimento));
+
+    // O atendente fica na aba dele; só a área escolhida aparece.
+    await page.getByRole("tab", { name: "Atendente" }).click();
+    await expect(page.getByRole("region", { name: "Conversa" })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Qualidade dos dados" })).toBeHidden();
     const naFila = page.getByRole("region", { name: "Fila do atendimento humano" }).getByRole("listitem", { name: `Encaminhamento ${atendimento}` });
     await expect(naFila).toContainText("POL-HUM-01");
     await expect(naFila).toContainText(`Pedido: “${t.fraude}”`);
@@ -158,17 +168,13 @@ for (const idioma of ["es", "pt"] as const) {
 
     // O relato bloqueia o cartão ativo (ou cita o bloqueio de uma rodada anterior), e o bloqueio
     // aparece no console; sem cartão ativo, nenhum bloqueio é citado.
-    const citados = (await relato.textContent())!.match(/BL-\d{8}/g) ?? [];
+    const citados = encaminhamento.match(/BL-\d{8}/g) ?? [];
     const ativos: { id: string; customer_id: string }[] = await (await request.get("/api/atendimento/bloqueios?limite=100")).json();
     const doCliente = ativos.filter((b) => b.customer_id === primeira!.customer_id).map((b) => b.id);
     expect(citados.length > 0).toBe(doCliente.length > 0);
     for (const id of citados) expect(doCliente).toContain(id);
     const painel = page.getByRole("region", { name: "Bloqueios de cartão" });
     for (const id of citados) await expect(painel.getByRole("listitem", { name: `Bloqueio ${id}` })).toBeVisible();
-
-    // Depois do encaminhamento, a automação só lembra quem está com o caso.
-    const lembrete = await dizer(page, t.depois);
-    await expect(lembrete).toContainText(t.comHumano(atendimento));
 
     // O atendente assume: sai da fila aberta, na tela e na API (e a suíte não deixa sobra).
     await naFila.getByRole("button", { name: `Assumir ${atendimento}` }).click();
