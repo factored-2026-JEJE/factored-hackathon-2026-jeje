@@ -231,7 +231,7 @@
         }
       ],
       "testes": [
-        "pre_caso.spec.ts > contestar pela conversa, confirmar, ver o protocolo e contestar de novo sem duplicar"
+        "pre_caso.spec.ts > contestar pela conversa, perder a resposta do sim, ver o protocolo e contestar de novo sem duplicar"
       ]
     },
     {
@@ -368,6 +368,21 @@
       "testes": [
         "seguranca.spec.ts > cabeçalhos de segurança em /",
         "seguranca.spec.ts > cabeçalhos de segurança em /api/health"
+      ]
+    },
+    {
+      "id": "M-E2E-23",
+      "requisito": "R02",
+      "descricao": "Resposta perdida: a tela não relê a conversa e só oferece reenviar, escondendo o pré-caso já registrado (ACH-105)",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Conversa.tsx",
+          "de": "      else if (!(await jaProcessada(limpa)))",
+          "para": "      else if (!(await Promise.resolve(false)))"
+        }
+      ],
+      "testes": [
+        "pre_caso.spec.ts > contestar pela conversa, perder a resposta do sim, ver o protocolo e contestar de novo sem duplicar"
       ]
     }
   ]
