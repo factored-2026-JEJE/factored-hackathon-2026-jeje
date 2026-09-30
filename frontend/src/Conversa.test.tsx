@@ -254,3 +254,21 @@ test("conversa encerrada pela recarga avisa, trava o envio e deixa só a nova co
   expect(screen.getByLabelText("Mensagem")).toBeDisabled();
   expect(screen.getByRole("button", { name: "Nova conversa" })).toBeEnabled();
 });
+
+test("bloqueio feito na conversa avisa o console do atendente", async () => {
+  const bloqueado = turno({
+    intencao: "bloquear",
+    regra: "POL-BLQ-02",
+    acao: "bloquear_cartao",
+    estado: "livre",
+    resposta: "Bloqueé tu tarjeta de crédito terminada en 9241 (bloqueo completo simulado, referencia BL-00000001).",
+    transaction_id: null,
+    proposta: null,
+    bloqueio: "BL-00000001",
+  });
+  servidor([{ status: 200, corpo: bloqueado }]);
+  const aoMudar = montar();
+  await abrirEPedir("quiero bloquear mi tarjeta");
+  expect(await screen.findByText(/referencia BL-00000001/)).toBeInTheDocument();
+  expect(aoMudar).toHaveBeenCalledTimes(1);
+});

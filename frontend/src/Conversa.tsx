@@ -47,6 +47,9 @@ function guardar(conversaId: string | null) {
 }
 
 /** Conversa com o assistente (sem modelo): cada resposta, opção e protocolo vêm da API. */
+// Efeitos que o console do atendente precisa ver: pré-caso, encaminhamento e bloqueio.
+const AVISAM_O_CONSOLE = ["registrar_pre_caso", "humano", "bloquear_cartao"];
+
 export function Conversa({
   token,
   aoExpirar,
@@ -129,7 +132,7 @@ export function Conversa({
         atendimento: turno.atendimento,
       });
       setTexto("");
-      if (turno.acao === "registrar_pre_caso" || turno.acao === "humano") aoMudar();
+      if (AVISAM_O_CONSOLE.includes(turno.acao)) aoMudar();
     } catch (e) {
       if (e instanceof SessaoExpirada) aoExpirar();
       else if (e instanceof NaoRegistrado) setFalha({ mensagem: limpa, detalhe: e.message });

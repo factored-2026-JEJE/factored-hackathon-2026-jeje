@@ -53,17 +53,21 @@ export async function listarPersonas(): Promise<Persona[]> {
   return json<Persona[]>(await fetch("/api/personas"), 200);
 }
 
-export async function abrirSessao(customerId: string): Promise<SessaoAberta> {
+/** Dispositivo simulado da sessão de teste (PRD-007): escolhido no acesso, nunca pelo chat. */
+export type Dispositivo = "cadastrado" | "novo";
+export type SessaoAtual = components["schemas"]["SessaoAtual"];
+
+export async function abrirSessao(customerId: string, dispositivo: Dispositivo): Promise<SessaoAberta> {
   const resposta = await fetch("/api/sessoes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customer_id: customerId }),
+    body: JSON.stringify({ customer_id: customerId, dispositivo }),
   });
   return json<SessaoAberta>(resposta, 201);
 }
 
-export async function sessaoAtual(token: string): Promise<Persona> {
-  return json<Persona>(await fetch("/api/sessao", { headers: comToken(token) }), 200);
+export async function sessaoAtual(token: string): Promise<SessaoAtual> {
+  return json<SessaoAtual>(await fetch("/api/sessao", { headers: comToken(token) }), 200);
 }
 
 export async function minhasTransacoes(token: string): Promise<Transacao[]> {
@@ -133,6 +137,20 @@ export async function filaDoAtendimento(): Promise<Encaminhamento[]> {
 export async function assumirEncaminhamento(id: string): Promise<Encaminhamento> {
   const resposta = await fetch(`/api/atendimento/fila/${encodeURIComponent(id)}/assumir`, { method: "POST" });
   return json<Encaminhamento>(resposta, 200);
+}
+
+export type BloqueioDeCartao = components["schemas"]["BloqueioDeCartao"];
+
+export async function bloqueiosDoAtendimento(): Promise<BloqueioDeCartao[]> {
+  return json<BloqueioDeCartao[]>(await fetch("/api/atendimento/bloqueios?limite=100"), 200);
+}
+
+/** O atendente desfaz o bloqueio; 409 (já desfeito) vira `Recusado` com a explicação. */
+export async function desbloquearCartao(id: string): Promise<BloqueioDeCartao> {
+  const resposta = await fetch(`/api/atendimento/bloqueios/${encodeURIComponent(id)}/desbloqueio`, {
+    method: "POST",
+  });
+  return json<BloqueioDeCartao>(resposta, 200);
 }
 
 export async function buscarMetricas(): Promise<Metricas> {

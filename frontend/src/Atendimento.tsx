@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   abrirSessao,
+  type Dispositivo,
   listarPersonas,
   meusPreCasos,
   minhasTransacoes,
@@ -33,7 +34,12 @@ const valor = (t: Transacao) =>
 const quando = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
-type Sessao = { token: string; cliente: Persona };
+type Sessao = { token: string; cliente: Persona; dispositivo: Dispositivo };
+
+const DISPOSITIVOS: [Dispositivo, string][] = [
+  ["novo", "Novo"],
+  ["cadastrado", "Cadastrado"],
+];
 
 function lerSessaoGuardada(): string | null {
   try {
@@ -130,6 +136,8 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
   const [personas, setPersonas] = useState<Persona[] | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [versaoPreCasos, setVersaoPreCasos] = useState(0);
+  // Sem escolha, "novo": o lado conservador (bloqueio preventivo e atendente).
+  const [dispositivo, setDispositivo] = useState<Dispositivo>("novo");
   // O pré-caso nasce na conversa: cada registro atualiza a lista, a fila e as métricas.
   const conversaMudou = useCallback(() => {
     setVersaoPreCasos((v) => v + 1);
@@ -147,7 +155,7 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
     const token = lerSessaoGuardada();
     if (token) {
       sessaoAtual(token)
-        .then((cliente) => setSessao({ token, cliente }))
+        .then((atual) => setSessao({ token, cliente: atual, dispositivo: atual.dispositivo }))
         .catch(() => sair("Sua sessão expirou. Entre de novo."));
     }
     listarPersonas()
@@ -156,10 +164,10 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
   }, [sair]);
 
   async function entrar(persona: Persona) {
-    const aberta = await abrirSessao(persona.customer_id);
+    const aberta = await abrirSessao(persona.customer_id, dispositivo);
     guardarSessao(aberta.token);
     setAviso(null);
-    setSessao({ token: aberta.token, cliente: aberta.cliente });
+    setSessao({ token: aberta.token, cliente: aberta.cliente, dispositivo: aberta.dispositivo });
   }
 
   if (sessao) {
@@ -171,6 +179,7 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
             Sair
           </button>
         </div>
+        <p className="nota">Dispositivo (simulação): {sessao.dispositivo}</p>
         <Conversa token={sessao.token} aoExpirar={expirou} aoMudar={conversaMudou} />
         <MinhasTransacoes token={sessao.token} aoExpirar={expirou} />
         <MeusPreCasos token={sessao.token} versao={versaoPreCasos} />
@@ -182,6 +191,25 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
       <h2>Acesso de teste</h2>
       <p>Escolha um cliente de demonstração. Dados sintéticos do desafio; não é um login real.</p>
       {aviso && <p role="alert">{aviso}</p>}
+      <div role="radiogroup" aria-label="Dispositivo (simulação)" className="dispositivo">
+        <p>Dispositivo (simulação):</p>
+        {DISPOSITIVOS.map(([valor, rotulo]) => (
+          <label key={valor}>
+            <input
+              type="radio"
+              name="dispositivo"
+              value={valor}
+              checked={dispositivo === valor}
+              onChange={() => setDispositivo(valor)}
+            />{" "}
+            {rotulo}
+          </label>
+        ))}
+        <p className="nota">
+          Não há aparelho real: o escolhido decide o bloqueio de cartão (cadastrado: completo; novo: preventivo, com
+          atendente).
+        </p>
+      </div>
       {personas === null && <p role="status">Carregando clientes de demonstração…</p>}
       <ul>
         {personas?.map((persona) => (
