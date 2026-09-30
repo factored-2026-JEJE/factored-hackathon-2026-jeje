@@ -46,6 +46,10 @@ REGISTROS: dict[str, dict[tuple[str, str, str] | None, list[dict[str, str]]]] = 
         {"product_id": "PRD-FX00000002", "customer_id": "CLI-FX00000002", "product_type": "Cuenta Ahorro",
          "currency": "USD", "current_balance": "830.55", "opening_date": "2022-07-15",
          "product_status": "Active"},
+        # Cartão numerado (sintético) da segunda persona: só a jornada de bloqueio e desbloqueio o usa.
+        {"product_id": "PRD-FX00000003", "customer_id": "CLI-FX00000002", "product_type": "Tarjeta Débito",
+         "product_number": "5412750012349876", "currency": "USD", "current_balance": "0.00",
+         "opening_date": "2023-05-10", "product_status": "Active"},
     ]},
     "service_agents": {None: [
         {"agent_id": "AGT-FX000001", "employee_code": "E90001", "first_name": "Lucía", "last_name": "Pérez",
