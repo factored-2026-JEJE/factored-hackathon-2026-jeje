@@ -6,7 +6,8 @@ import userEvent from "@testing-library/user-event";
 import type { ResultadoDoTurno } from "./api/cliente";
 import { Conversa } from "./Conversa";
 
-type Resposta = { status: number; corpo: unknown } | "pendente";
+// "perdida": a API processa o turno e a conexão cai na volta; "rede": cai antes de chegar à API.
+type Resposta = { status: number; corpo: unknown } | "pendente" | "perdida" | "rede";
 
 const ABERTA = { conversa_id: "C1", idioma: "es", estado: "livre", resposta: "Hola. ¿En qué te ayudo?" };
 
@@ -39,25 +40,42 @@ const REGISTRADO = turno({
   protocolo: "PC-00000009",
 });
 
-/** Servidor na fronteira de rede: responde os turnos na ordem e registra os corpos enviados. */
-function servidor(turnos: Resposta[], historico?: unknown) {
+/** Servidor na fronteira de rede: responde os turnos na ordem, registra os corpos enviados e
+ * guarda o histórico do que processou. `historicoFalha`: quantas leituras do histórico falham. */
+function servidor(turnos: Resposta[], historico?: unknown, historicoFalha = 0) {
   const enviados: string[] = [];
+  const processados: Record<string, unknown>[] = [];
   let liberar: (() => void) | null = null;
+  const processar = (mensagem: string, t: ResultadoDoTurno) =>
+    processados.push({ numero: processados.length + 1, mensagem, resposta: t.resposta, regra: t.regra, acao: t.acao, estado: t.estado, criado_em: "2026-09-29T10:00:00Z" });
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       const r = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status });
       if (url === "/api/conversas" && init?.method === "POST") return r(201, ABERTA);
       if (url === "/api/conversas/C1/turnos" && init?.method === "POST") {
-        enviados.push(JSON.parse(String(init.body)).texto);
+        const mensagem = JSON.parse(String(init.body)).texto;
+        enviados.push(mensagem);
         const proxima = turnos.shift() ?? { status: 500, corpo: {} };
+        if (proxima === "rede") throw new TypeError("Failed to fetch");
+        if (proxima === "perdida") {
+          processar(mensagem, REGISTRADO);
+          throw new TypeError("Failed to fetch");
+        }
         if (proxima === "pendente") {
           await new Promise<void>((ok) => (liberar = ok));
+          processar(mensagem, REGISTRADO);
           return r(200, REGISTRADO);
         }
+        if (proxima.status === 200) processar(mensagem, proxima.corpo as ResultadoDoTurno);
         return r(proxima.status, proxima.corpo);
       }
-      if (url === "/api/conversas/C1" && historico) return r(200, historico);
+      if (url === "/api/conversas/C1") {
+        if (historico) return r(200, historico);
+        if (historicoFalha-- > 0) throw new TypeError("Failed to fetch");
+        const estado = (processados.at(-1)?.estado as string | undefined) ?? "livre";
+        return r(200, { conversa_id: "C1", idioma: "es", estado, turnos: processados });
+      }
       return r(404, { detail: "Not Found" });
     }),
   );
@@ -144,6 +162,41 @@ test("503 diz que nada foi criado e reenviar manda a mesma mensagem", async () =
   await userEvent.click(screen.getByRole("button", { name: "Reenviar" }));
   expect(await screen.findByText("Pré-caso recebido: protocolo PC-00000009")).toBeInTheDocument();
   expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo", "Sí, confirmo"]);
+});
+
+test("resposta perdida depois do sim: a tela relê a conversa, mostra o protocolo e não reenvia", async () => {
+  const { enviados } = servidor([{ status: 200, corpo: turno({}) }, "perdida"]);
+  const aoMudar = montar();
+  await abrirEPedir();
+  await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
+  expect(await screen.findByText("Registré la solicitud con el protocolo PC-00000009.")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Reenviar" })).not.toBeInTheDocument();
+  expect(aoMudar).toHaveBeenCalledTimes(1);
+  expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo"]);
+});
+
+test("mensagem que não chegou ao servidor continua com Reenviar, e o reenvio registra", async () => {
+  const { enviados } = servidor([{ status: 200, corpo: turno({}) }, "rede", { status: 200, corpo: REGISTRADO }]);
+  montar();
+  await abrirEPedir();
+  await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Sem resposta do servidor");
+  await userEvent.click(screen.getByRole("button", { name: "Reenviar" }));
+  expect(await screen.findByText("Pré-caso recebido: protocolo PC-00000009")).toBeInTheDocument();
+  expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo", "Sí, confirmo"]);
+});
+
+test("reenviar relê a conversa antes: se o servidor já processou, não manda de novo", async () => {
+  const { enviados } = servidor([{ status: 200, corpo: turno({}) }, "perdida"], undefined, 1);
+  const aoMudar = montar();
+  await abrirEPedir();
+  await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Sem resposta do servidor");
+  await userEvent.click(screen.getByRole("button", { name: "Reenviar" }));
+  expect(await screen.findByText("Registré la solicitud con el protocolo PC-00000009.")).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(aoMudar).toHaveBeenCalledTimes(1);
+  expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo"]);
 });
 
 test("recarregar reabre a conversa guardada pelo histórico, sem enviar nada", async () => {
