@@ -60,6 +60,7 @@ class ResultadoDoTurno(BaseModel):
     proposta: Proposta | None
     protocolo: str | None
     atendimento: str | None
+    bloqueio: str | None
 
 
 class TurnoRegistrado(BaseModel):
@@ -121,11 +122,14 @@ def enviar_mensagem(
                 config.limites(),
                 config.proposta_ttl_minutos,
                 inicio,
+                ativa.dispositivo,
+                config.janela_desbloqueio_dias,
             )
     except conversa.ConversaNaoEncontrada:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None
-    except SQLAlchemyError as erro:
-        # Sem sucesso falso: o turno inteiro foi desfeito; reenviar a mesma mensagem é seguro.
+    except (SQLAlchemyError, RuntimeError) as erro:
+        # Sem sucesso falso: o turno inteiro foi desfeito, inclusive o efeito que não se confirmou
+        # na releitura; reenviar a mesma mensagem é seguro.
         _registrar_erro(engine, conversa_id, erro, inicio, leitura)
         raise HTTPException(
             status_code=503, detail="Turno não registrado; nada foi criado. Tente de novo."
@@ -156,6 +160,7 @@ def enviar_mensagem(
         proposta=None if saida.proposta is None else Proposta(**saida.proposta.__dict__),
         protocolo=saida.protocolo,
         atendimento=saida.atendimento,
+        bloqueio=saida.bloqueio,
     )
 
 
