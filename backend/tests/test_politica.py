@@ -12,10 +12,13 @@ from hypothesis import strategies as st
 from jeje.politica import (
     STATUS_CONHECIDOS,
     Candidata,
+    Cartao,
     Decisao,
     Fatos,
     Limites,
     Pista,
+    bloqueaveis,
+    decidir_bloqueio,
     decidir_consulta,
     decidir_contestacao,
     decidir_esclarecimento,
@@ -332,3 +335,35 @@ def test_ordem_das_regras_com_janela_e_reincidencia():
         == "POL-HUM-06"
     )
     assert decidir_contestacao(recente_e_cara, LIMITES, None, hoje=HOJE).regra == "POL-HUM-02"
+
+
+# ---- Bloqueio de cartão (PRD-007) ---------------------------------------------------------------
+
+
+def test_bloqueaveis_sao_os_cartoes_ativos_sem_bloqueio_do_canal():
+    cartoes = [
+        Cartao("CRT-1", "Tarjeta Crédito", "9241", "Active"),
+        Cartao("CRT-2", "Tarjeta Débito", "5678", "Active", bloqueio="BL-00000001"),
+        Cartao("CRT-3", "Tarjeta Crédito", "0000", "Closed"),
+        Cartao("CRT-4", "Tarjeta Débito", "1111", "Blocked"),
+        Cartao("CRT-5", "Tarjeta Crédito", None, "Suspended"),
+        Cartao("CRT-6", "Tarjeta Débito", None, "Active"),
+    ]
+    assert [c.product_id for c in bloqueaveis(cartoes)] == ["CRT-1", "CRT-6"]
+
+
+@pytest.mark.parametrize(
+    ("quantos", "dispositivo", "esperado"),
+    [
+        (0, "cadastrado", Decisao("POL-BLQ-03", "responder", "nenhum cartão ativo para bloquear")),
+        (0, "novo", Decisao("POL-BLQ-03", "responder", "nenhum cartão ativo para bloquear")),
+        (2, "cadastrado", Decisao("POL-BLQ-06", "esclarecer")),
+        (3, "novo", Decisao("POL-BLQ-06", "esclarecer")),
+        (1, "cadastrado", Decisao("POL-BLQ-02", "bloquear_cartao", "completo")),
+        (1, "novo", Decisao("POL-BLQ-01", "humano", "preventivo")),
+    ],
+)
+def test_bloqueio_pelo_numero_de_cartoes_e_pelo_dispositivo(quantos, dispositivo, esperado):
+    """Nenhum cartão bloqueável só informa; vários, pergunta qual (não escolhe sozinho); um só,
+    bloqueia na hora: completo com dispositivo cadastrado, preventivo e com atendente com novo."""
+    assert decidir_bloqueio(quantos, dispositivo) == esperado
