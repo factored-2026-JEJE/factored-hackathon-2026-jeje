@@ -1,7 +1,8 @@
 """Política determinística: cada regra da matriz (DEV-006) com o caso que deve e o que não deve
 valer. Funções puras: o esperado vem da matriz, não do código."""
 
-from datetime import date, datetime
+from dataclasses import replace
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 import pytest
@@ -33,6 +34,9 @@ LIMITES = Limites(
     noturno_fim_h=6,
     canais_digitais=frozenset({"App", "Web"}),
     seguranca_transferencia_usd=Decimal("50000.00"),
+    janela_contestacao_dias=120,
+    reincidencia_pre_casos=3,
+    reincidencia_dias=30,
 )
 LIMITE = LIMITES.padrao_usd
 
@@ -280,3 +284,51 @@ def test_transferencia_atipica_vai_para_seguranca_tambem_na_consulta():
     assert decidir_consulta(em("11:00:00", "Web", "60000.00", "Payment"), LIMITES).regra == (
         "POL-CON-01"
     )
+
+
+# ---- Janela e reincidência (PRD-008) ------------------------------------------------------------
+
+HOJE = date(2025, 3, 10)  # o "hoje" dos dados: o último dia da base, não o relógio
+
+
+def comprada(dias_atras: int, usd: str = "50.00") -> Fatos:
+    quando = datetime.combine(HOJE - timedelta(days=dias_atras), time(14))
+    return Fatos("TRX-1", "Approved", None, Decimal(usd), transaction_date=quando)
+
+
+@pytest.mark.parametrize(
+    ("dias", "regra"), [(0, "POL-DISP-01"), (120, "POL-DISP-01"), (121, "POL-HUM-05")]
+)
+def test_janela_de_contestacao_conta_do_hoje_dos_dados(dias, regra):
+    decisao = decidir_contestacao(comprada(dias), LIMITES, None, hoje=HOJE)
+    assert decisao.regra == regra
+    assert decisao.acao == ("humano" if regra == "POL-HUM-05" else "propor_pre_caso")
+
+
+@pytest.mark.parametrize(
+    ("recentes", "regra"), [(0, "POL-DISP-01"), (2, "POL-DISP-01"), (3, "POL-HUM-06")]
+)
+def test_reincidencia_manda_a_proxima_contestacao_para_o_atendente(recentes, regra):
+    decisao = decidir_contestacao(
+        comprada(1), LIMITES, None, hoje=HOJE, pre_casos_recentes=recentes
+    )
+    assert decisao.regra == regra
+
+
+def test_ordem_das_regras_com_janela_e_reincidencia():
+    """Pré-caso existente e transação não aprovada vêm antes da janela; a janela vem antes da
+    reincidência, e as duas antes do limite de valor (a compra antiga de USD 9.999 é da janela)."""
+    antiga_e_cara = comprada(200, usd="9999.00")
+    assert decidir_contestacao(antiga_e_cara, LIMITES, "PC-1", hoje=HOJE).regra == "POL-DISP-03"
+    nao_aprovada = replace(antiga_e_cara, status="Declined")
+    assert decidir_contestacao(nao_aprovada, LIMITES, None, hoje=HOJE).regra == "POL-DISP-02"
+    assert (
+        decidir_contestacao(antiga_e_cara, LIMITES, None, hoje=HOJE, pre_casos_recentes=5).regra
+        == "POL-HUM-05"
+    )
+    recente_e_cara = comprada(1, usd="9999.00")
+    assert (
+        decidir_contestacao(recente_e_cara, LIMITES, None, hoje=HOJE, pre_casos_recentes=5).regra
+        == "POL-HUM-06"
+    )
+    assert decidir_contestacao(recente_e_cara, LIMITES, None, hoje=HOJE).regra == "POL-HUM-02"

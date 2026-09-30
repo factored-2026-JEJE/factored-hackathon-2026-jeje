@@ -6,6 +6,11 @@ services:
   api:
     environment:
       INTERPRETADOR: "regras"
+      # A fixture tem 6 transações elegíveis, 4 delas de uma persona, e as jornadas E2E registram um
+      # pré-caso por consumidor e navegador em segundos: com 3 (compose.yaml), a reincidência
+      # (POL-HUM-06) tiraria a transação de um consumidor no meio da suíte. A regra, com 3, é
+      # testada no backend (tests/test_pre_caso.py, tests/test_politica.py).
+      REINCIDENCIA_PRE_CASOS: "10"
   seed:
     environment:
       DATASET_SOURCE: fixture

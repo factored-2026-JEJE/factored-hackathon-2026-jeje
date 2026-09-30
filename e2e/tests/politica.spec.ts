@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { LIMITES, noturnaDigital, type Transacao } from "./comum";
+import { diasEntre, LIMITES, noturnaDigital, type Transacao } from "./comum";
 
 // Matriz de autonomia (DEV-006, limites PRD-001) reescrita aqui como oráculo, independente do
 // código da política. O valor em USD só é conhecido aqui quando a moeda é USD; nenhuma transação
@@ -18,11 +18,19 @@ function regraEsperada(t: Transacao): string {
 
 test("situação de cada transação das personas segue a matriz e contestação só avança para Approved", async ({ request }) => {
   const personas: { customer_id: string }[] = await (await request.get("/api/personas")).json();
-  let avaliadas = 0;
+  const vistas: { auth: { Authorization: string }; transacoes: Transacao[] }[] = [];
   for (const persona of personas.slice(0, 3)) {
     const { token } = await (await request.post("/api/sessoes", { data: { customer_id: persona.customer_id } })).json();
     const auth = { Authorization: `Bearer ${token}` };
     const transacoes: Transacao[] = await (await request.get("/api/minhas/transacoes?limite=20", { headers: auth })).json();
+    vistas.push({ auth, transacoes });
+  }
+  // Janela (PRD-008): contada do último dia dos dados. A compra mais recente vista nas personas é um
+  // limite inferior desse dia (na fixture, é ele mesmo): mais velha que a janela em relação a ela,
+  // a compra está fora com certeza; mais nova, pode estar fora se a base for mais recente.
+  const maisRecente = vistas.flatMap((v) => v.transacoes.map((t) => t.transaction_date)).sort().at(-1) ?? "";
+  let avaliadas = 0;
+  for (const { auth, transacoes } of vistas) {
     // POL-DISP-03 precisa apontar o protocolo existente da transação. A lista é relida na hora:
     // outros testes em paralelo podem abrir pré-casos durante este.
     const protocoloAberto = async (transacaoId: string) => {
@@ -31,6 +39,11 @@ test("situação de cada transação das personas segue a matriz e contestação
       ).json();
       return abertos.find((p) => p.transaction_id === transacaoId)?.protocolo;
     };
+    const recentes = async () => {
+      const abertos: { criado_em: string }[] = await (await request.get("/api/minhas/pre-casos", { headers: auth })).json();
+      const hoje = new Date().toISOString();
+      return abertos.filter((p) => diasEntre(p.criado_em, hoje) < LIMITES.reincidenciaDias).length;
+    };
     for (const t of transacoes) {
       const situacao = await (await request.get(`/api/minhas/transacoes/${t.transaction_id}/situacao`, { headers: auth })).json();
       expect(situacao.decisao.regra, t.transaction_id).toBe(regraEsperada(t));
@@ -38,6 +51,10 @@ test("situação de cada transação das personas segue a matriz e contestação
       if (atipica(t)) expect(contestacao).toMatchObject({ regra: "POL-SEG-01", acao: "humano" });
       else if (t.transaction_status !== "Approved") expect(contestacao).toMatchObject({ regra: "POL-DISP-02", acao: "humano" });
       else if (contestacao.regra === "POL-DISP-03") expect(await protocoloAberto(t.transaction_id)).toBe(contestacao.detalhe);
+      else if (diasEntre(t.transaction_date, maisRecente) > LIMITES.janelaDias) expect(contestacao).toMatchObject({ regra: "POL-HUM-05", acao: "humano" });
+      else if (contestacao.regra === "POL-HUM-05") expect(diasEntre(t.transaction_date, maisRecente)).toBeGreaterThanOrEqual(0);
+      // Reincidência (PRD-008): só com pré-casos recentes suficientes, relidos depois da resposta.
+      else if (contestacao.regra === "POL-HUM-06") expect(await recentes()).toBeGreaterThanOrEqual(LIMITES.reincidencia);
       else if (t.currency !== "USD") expect(["POL-DISP-01", "POL-HUM-02", "POL-HUM-04"]).toContain(contestacao.regra);
       else if (noturnaDigital(t) && Number(t.amount) > LIMITES.noturno) expect(contestacao.regra).toBe("POL-HUM-04");
       // Noturna digital dentro do limite: o que já foi registrado hoje decide (limite do dia).
