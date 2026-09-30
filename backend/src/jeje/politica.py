@@ -14,7 +14,15 @@ from typing import Literal, get_args
 
 from jeje.mensagens import Status
 
-Acao = Literal["responder", "esclarecer", "propor_pre_caso", "humano", "oferecer_humano", "recusar"]
+Acao = Literal[
+    "responder",
+    "esclarecer",
+    "propor_pre_caso",
+    "humano",
+    "oferecer_humano",
+    "recusar",
+    "bloquear_cartao",
+]
 
 # Códigos de recusa com explicação aprovada (95% das recusas da base; DEV-005).
 CODIGOS_CATALOGADOS = frozenset({"05", "14", "51", "54"})
@@ -232,3 +240,36 @@ def resolver_transacao(
     if not casadas:
         return Resolucao("nenhuma", ())
     return Resolucao("varias", tuple(c.transaction_id for c in casadas[:maximo_opcoes]))
+
+
+# ---- Bloqueio de cartão (PRD-007) ---------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Cartao:
+    """Cartão do cliente da sessão: o que a base diz dele e o bloqueio ativo feito pelo canal."""
+
+    product_id: str
+    produto: str
+    ultimos4: str | None
+    status: str  # product_status da base: Active, Blocked, Closed ou Suspended
+    bloqueio: str | None = None  # BL-… do bloqueio ativo feito pelo canal, se houver
+
+
+def bloqueaveis(cartoes: list[Cartao]) -> list[Cartao]:
+    """Os cartões que o canal pode bloquear agora: ativos na base e sem bloqueio ativo do canal."""
+    return [c for c in cartoes if c.status == "Active" and c.bloqueio is None]
+
+
+def decidir_bloqueio(quantos_bloqueaveis: int, dispositivo: str) -> Decisao:
+    """Pedido de bloqueio (ou relato de roubo e perda): nenhum cartão bloqueável só informa
+    (POL-BLQ-03); vários, pergunta qual, sem escolher sozinho (POL-BLQ-06); um só, bloqueia na hora,
+    completo com dispositivo cadastrado, que só aparece no console (POL-BLQ-02), ou preventivo e com
+    encaminhamento, com dispositivo novo (POL-BLQ-01)."""
+    if quantos_bloqueaveis == 0:
+        return Decisao("POL-BLQ-03", "responder", "nenhum cartão ativo para bloquear")
+    if quantos_bloqueaveis > 1:
+        return Decisao("POL-BLQ-06", "esclarecer")
+    if dispositivo == "cadastrado":
+        return Decisao("POL-BLQ-02", "bloquear_cartao", "completo")
+    return Decisao("POL-BLQ-01", "humano", "preventivo")
