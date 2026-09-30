@@ -371,3 +371,33 @@ test("a oferta do atendente tem rótulos claros e continua mandando sí e no", a
   await userEvent.click(await screen.findByRole("button", { name: "Falar com um atendente" }));
   expect(enviados).toEqual(["algo", "No", "Sí"]);
 });
+
+test("desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o console", async () => {
+  const proposta = turno({
+    intencao: "desbloquear",
+    regra: "POL-BLQ-04",
+    acao: "propor_desbloqueio",
+    estado: "confirmando_desbloqueio",
+    resposta: "¿Confirmas que quieres deshacer el bloqueo de tu tarjeta de crédito (referencia BL-00000001)? Responde sí o no.",
+    transaction_id: null,
+    proposta: null,
+  });
+  const desfeito = turno({
+    intencao: "desconhecida",
+    regra: "POL-BLQ-04",
+    acao: "desbloquear_cartao",
+    estado: "livre",
+    resposta: "Listo: deshice el bloqueo de tu tarjeta de crédito (referencia BL-00000001).",
+    transaction_id: null,
+    proposta: null,
+    bloqueio: "BL-00000001",
+  });
+  const { enviados } = servidor([{ status: 200, corpo: proposta }, { status: 200, corpo: desfeito }]);
+  const aoMudar = montar();
+  await abrirEPedir("quiero desbloquear mi tarjeta");
+  await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
+  expect(await screen.findByText(/deshice el bloqueo/)).toBeInTheDocument();
+  expect(enviados).toEqual(["quiero desbloquear mi tarjeta", "Sí, confirmo"]);
+  expect(aoMudar).toHaveBeenCalledTimes(1);
+});
+

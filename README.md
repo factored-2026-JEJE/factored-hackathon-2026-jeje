@@ -80,7 +80,8 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
   hora. No acesso, escolha o dispositivo: *cadastrado* dá bloqueio completo, que só aparece no
   console; *novo* (o padrão) dá bloqueio preventivo e encaminha ao atendente. Com vários cartões,
   ele pergunta qual (número da opção ou os 4 últimos dígitos). O relato de roubo também bloqueia e
-  sempre encaminha. O atendente desfaz no console ("Desbloquear BL-…").
+  sempre encaminha. Dentro do prazo, "Quiero desbloquear mi tarjeta" desfaz com um sim, se o
+  bloqueio foi pedido pelo cliente; o resto o atendente desfaz no console ("Desbloquear BL-…").
 
 A conversa vai por etapas (pedido → transação → confirmação). O que não cabe na etapa recebe o que
 foi entendido e a oferta de um atendente ("sim" encaminha, "não" volta para onde estava), no lugar
@@ -263,11 +264,13 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   `app.bloqueios` só com o tipo e os 4 últimos dígitos do cartão. O dispositivo vem do acesso de
   demonstração (cadastrado ou novo, rotulado), nunca do chat. Regras: POL-BLQ-01 (dispositivo novo:
   preventivo e atendente), POL-BLQ-02 (cadastrado: completo, com aviso pelo console), POL-BLQ-03
-  (nada a bloquear), POL-BLQ-05 (desbloqueio só pelo atendente, a qualquer momento) e POL-BLQ-06
+  (nada a bloquear), POL-BLQ-04 (o cliente desfaz pela conversa, com um sim explícito, o bloqueio
+  que ele mesmo pediu, dentro do prazo), POL-BLQ-05 (o resto do desbloqueio fica com o atendente, a
+  qualquer momento: bloqueio por roubo ou perda, fora do prazo ou feito pelo banco) e POL-BLQ-06
   (vários cartões: pergunta qual). O relato de roubo ou perda (POL-HUM-01) bloqueia e sempre
   encaminha; sem cartão identificado na resposta, encaminha sem bloquear. O prazo de reversão é de
-  7 dias (`JANELA_DESBLOQUEIO_DIAS`); o desbloqueio pelo próprio cliente, na conversa, ainda não
-  existe.
+  7 dias (`JANELA_DESBLOQUEIO_DIAS`). Na fixture, a segunda persona tem um cartão de débito
+  numerado, usado só pela jornada E2E de bloqueio e desbloqueio.
 - Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado. O status do caso
   só mostra os pré-casos do cliente da sessão; protocolo digitado indica o assunto, nunca é buscado.
 - Motivo de recusa usa o significado genérico dos códigos ISO 8583, rotulado como tal.

@@ -149,7 +149,7 @@ class Handoff(Base):
 # `encerrada`: a recarga dos dados encerrou o atendimento em curso (PRD-002, DEV-020i).
 ESTADOS_DA_CONVERSA = (
     "livre", "esclarecendo", "confirmando", "oferecendo_humano", "com_humano", "encerrada",
-    "escolhendo_cartao",
+    "escolhendo_cartao", "confirmando_desbloqueio",
 )  # fmt: skip
 
 

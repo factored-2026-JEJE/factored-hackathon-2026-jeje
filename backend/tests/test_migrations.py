@@ -115,3 +115,14 @@ def test_conversa_aceita_o_estado_da_escolha_do_cartao(banco_migrado):
         con.execute(inserir, {"id": "c1", "e": "escolhendo_cartao"})
     with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
         con.execute(inserir, {"id": "c2", "e": "escolhendo"})
+
+
+def test_conversa_aceita_o_estado_da_confirmacao_do_desbloqueio(banco_migrado):
+    inserir = text(
+        "insert into app.conversas (id, customer_id, idioma, estado)"
+        " values (:id, 'CLI-A', 'es', :e)"
+    )
+    with conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": "c1", "e": "confirmando_desbloqueio"})
+    with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": "c2", "e": "desbloqueando"})

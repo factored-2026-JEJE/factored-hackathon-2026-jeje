@@ -112,8 +112,8 @@ function guardar(conversaId: string | null) {
   }
 }
 
-// Efeitos que o console do atendente precisa ver: pré-caso, encaminhamento e bloqueio.
-const AVISAM_O_CONSOLE = ["registrar_pre_caso", "humano", "bloquear_cartao"];
+// Efeitos que o console do atendente precisa ver: pré-caso, encaminhamento, bloqueio e desbloqueio.
+const AVISAM_O_CONSOLE = ["registrar_pre_caso", "humano", "bloquear_cartao", "desbloquear_cartao"];
 
 /** Conversa com o assistente (sem modelo): cada resposta, opção e protocolo vêm da API. */
 export function Conversa({
@@ -318,7 +318,7 @@ export function Conversa({
           ))}
         </div>
       )}
-      {situacao.estado === "confirmando" && (
+      {(situacao.estado === "confirmando" || situacao.estado === "confirmando_desbloqueio") && (
         <div role="group" aria-label="Confirmação" className="acoes">
           <button type="button" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>
             {rapidas.confirmar}

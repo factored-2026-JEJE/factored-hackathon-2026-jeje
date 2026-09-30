@@ -414,6 +414,21 @@
       "testes": [
         "conversa.spec.ts > caminho humano (es): relato de fraude encaminha e aparece na fila do atendente"
       ]
+    },
+    {
+      "id": "M-E2E-26",
+      "requisito": "R03",
+      "descricao": "O sim ao desbloqueio proposto não desfaz (propõe de novo)",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/conversa.py",
+          "de": "            if self.lida.resposta == \"sim\":\n                return self._desbloquear()\n",
+          "para": "            if self.lida.resposta == \"sim\":\n                return self._pedido_de_desbloqueio()\n"
+        }
+      ],
+      "testes": [
+        "bloqueio.spec.ts > bloquear o cartão pela conversa e desfazer dentro do prazo, com o console acompanhando"
+      ]
     }
   ]
 }
