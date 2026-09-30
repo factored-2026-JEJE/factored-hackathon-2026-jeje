@@ -440,12 +440,17 @@ class _Turno:
             return opcoes[escolha - 1]
         return None
 
-    def _verificada(self, transaction_id: str) -> TransacaoVerificada:
+    def _do_cliente(self, transaction_id: str) -> TransacaoVerificada | None:
+        """A transação, se ela for do cliente da sessão na curada atual; senão, None."""
         self._fonte("curated.transactions")
         t = consultas.transacao_do_cliente(self.conexao, self.customer_id, transaction_id)
+        return None if t is None else verificada(t)
+
+    def _verificada(self, transaction_id: str) -> TransacaoVerificada:
+        t = self._do_cliente(transaction_id)
         if t is None:  # só chegam aqui IDs lidos da curada para este cliente
             raise LookupError("transação do contexto não pertence ao cliente da sessão")
-        return verificada(t)
+        return t
 
     def _em_foco(self) -> TransacaoVerificada | None:
         tid = self.contexto.get("transaction_id") or self.contexto.get("foco")
@@ -565,39 +570,41 @@ class _Turno:
         casos = [c for c in casos if c.transaction_id == em_foco] or casos
         decisao = politica.decidir_status_do_caso(len(casos))
         self._anotar("consultar_caso", decisao.regra)
+        foco = _so_foco(self.contexto.get("foco"))
         if len(casos) == 1:
-            caso = casos[0]
-            t = self._verificada(caso.transaction_id)
-            resposta = texto(decisao.regra, self.idioma, t, **self._fatos_do_caso(caso))
+            resposta, t = self._caso(decisao.regra, casos[0])
+            if t is None:  # a transação saiu da curada ou mudou de dono: não vira foco
+                return Saida(decisao.regra, "responder", (resposta,), "livre", foco)
             return Saida(
                 decisao.regra,
                 "responder",
                 (resposta,),
                 "livre",
-                {"foco": caso.transaction_id},
-                transaction_id=caso.transaction_id,
+                {"foco": t.transaction_id},
+                transaction_id=t.transaction_id,
             )
         extra = {}
         if casos:
-            extra["casos"] = "\n".join(
-                texto(
-                    "CASO-ITEM",
-                    self.idioma,
-                    self._verificada(c.transaction_id),
-                    **self._fatos_do_caso(c),
-                )
-                for c in casos
-            )
+            extra["casos"] = "\n".join(self._caso("CASO-ITEM", c)[0] for c in casos)
         resposta = texto(decisao.regra, self.idioma, **extra)
-        foco = _so_foco(self.contexto.get("foco"))
         return Saida(decisao.regra, "responder", (resposta,), "livre", foco)
 
-    def _fatos_do_caso(self, caso: pre_caso.PreCaso) -> dict[str, str]:
-        return {
+    def _caso(
+        self, clausula: str, caso: pre_caso.PreCaso
+    ) -> tuple[str, TransacaoVerificada | None]:
+        """Texto do pré-caso e a transação dele, esta só se ainda for do cliente na curada atual.
+        O pré-caso sobrevive à recarga dos dados (PRD-002), mas a transação pode ter saído da
+        curada ou mudado de dono: aí o texto cita só o registro (o identificador guardado no
+        pré-caso), sem nenhum fato da curada de agora (ACH-037)."""
+        t = self._do_cliente(caso.transaction_id)
+        fatos = {
             "protocolo": caso.protocolo,
             "registro": f"{caso.criado_em:%d/%m/%Y}",
             "estado_caso": ESTADO_DO_CASO[caso.estado][self.idioma],
         }
+        if t is None:
+            fatos["transacao"] = caso.transaction_id
+        return texto(clausula, self.idioma, t, **fatos), t
 
     def _cancelar(self) -> Saida:
         cancelado = texto("CANCELADO", self.idioma)
