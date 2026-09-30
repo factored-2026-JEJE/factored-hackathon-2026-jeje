@@ -12,6 +12,10 @@ já respondida (livre com foco). O que não cabe na etapa é respondido com o qu
 oferta do atendente: o sim encaminha, o não volta à etapa, e outra mensagem é lida nela. A
 pergunta pelo pedido de revisão já registrado (status do caso) é respondida em qualquer etapa.
 Falha ao gravar propaga: quem chama desfaz o turno inteiro, sem resposta de sucesso.
+
+Bloqueio de cartão (PRD-007): o pedido e o relato de fraude bloqueiam o cartão citado ou o único
+bloqueável, pelo dispositivo da sessão (nunca pelo chat); com vários, pergunta qual. O relato
+sempre encaminha: sem cartão identificado na resposta, encaminha sem bloquear.
 """
 
 import json
@@ -24,18 +28,20 @@ from typing import Literal
 
 from sqlalchemy import Connection, text
 
-from jeje import consultas, eventos, handoff, politica, pre_caso
-from jeje.interpretacao import Interpretacao, comercio_citado
+from jeje import bloqueio, consultas, eventos, handoff, politica, pre_caso
+from jeje.interpretacao import Interpretacao, cartao_citado, comercio_citado
 from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
     ESTADO,
     ESTADO_DO_CASO,
     MOTIVO_DO_CODIGO,
     PEDIDO,
+    TIPO_DE_BLOQUEIO,
     Idioma,
     TransacaoVerificada,
     compor,
     descrever,
+    descrever_cartao,
     marcadores,
 )
 from jeje.models import ESTADOS_DA_CONVERSA
@@ -55,6 +61,8 @@ PENDENCIAS = {
     "POL-HUM-04": "Revisar contestação de transação noturna por celular ou computador",
     "POL-HUM-05": "Revisar contestação de compra fora da janela de contestação",
     "POL-HUM-06": "Revisar contestação de cliente com vários pré-casos recentes",
+    "POL-BLQ-01": "Confirmar ou desfazer o bloqueio preventivo do cartão",
+    "POL-BLQ-05": "Revisar pedido de desbloqueio de cartão",
     "POL-SEG-01": "Análise de segurança de transferência de alto valor",
     "POL-HUM-03": "Atender o cliente no pedido abaixo",
     "POL-DISP-02": "Orientar sobre contestação de transação não aprovada",
@@ -89,6 +97,7 @@ class Saida:
     proposta: pre_caso.Proposta | None = None
     protocolo: str | None = None
     atendimento: str | None = None
+    bloqueio: str | None = None
 
 
 @dataclass(frozen=True)
@@ -167,11 +176,17 @@ class _Turno:
         mensagem: str,
         limites: politica.Limites,
         ttl_minutos: int,
+        dispositivo: str,
+        janela_desbloqueio_dias: int,
+        inicio: float,
     ) -> None:
         self.conexao, self.customer_id = conexao, customer_id
         self.estado, self.contexto = estado, contexto
         self.lida, self.mensagem, self.idioma = lida, mensagem, lida.idioma
         self.limites, self.ttl_minutos = limites, ttl_minutos
+        # Bloqueio de cartão (PRD-007): o dispositivo vem da sessão, nunca da mensagem.
+        self.dispositivo, self.janela_desbloqueio_dias = dispositivo, janela_desbloqueio_dias
+        self.inicio = inicio
         self.acoes: list[handoff.Acao] = [handoff.Acao(**a) for a in contexto.get("acoes", [])]
         self.fontes: dict[str, None] = {}  # de onde vieram os fatos e onde houve escrita (trace)
 
@@ -197,7 +212,18 @@ class _Turno:
         if decisao is not None and decisao.acao == "humano":
             # Segurança e pedido de atendente valem em qualquer etapa.
             self._anotar("interpretar", f"{decisao.regra}: {', '.join(self.lida.sinais)}")
+            if decisao.regra == "POL-HUM-01":
+                # O relato de fraude também bloqueia o cartão, pelo dispositivo da sessão.
+                return self._relato_de_fraude(decisao)
             return self._encaminhar(decisao, self._em_foco())
+        if self.estado == "escolhendo_cartao":
+            if (escolha := self._escolhendo_cartao()) is not None:
+                return escolha
+            self.estado, self.contexto = "livre", {}  # pedido novo: a escolha fica para trás
+        if self.lida.intencao == "bloquear":
+            return self._pedido_de_bloqueio()
+        if self.lida.intencao == "desbloquear":
+            return self._encaminhar(politica.decidir_desbloqueio(), None)
         if self._resumiu() and self.lida.resposta is None:
             # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.
             self.estado, self.contexto = self._etapa_resumida()
@@ -614,7 +640,182 @@ class _Turno:
             "CANCELADO", "responder", (cancelado,), "livre", _so_foco(self.contexto.get("foco"))
         )
 
-    def _encaminhar(self, decisao: politica.Decisao, t: TransacaoVerificada | None) -> Saida:
+    # ---- bloqueio de cartão (PRD-007) --------------------------------------------------------
+
+    def _cartoes(self) -> list[politica.Cartao]:
+        for fonte in bloqueio.FONTES:
+            self._fonte(fonte)
+        return bloqueio.cartoes_do_cliente(self.conexao, self.customer_id)
+
+    def _citado(self, cartoes: list[politica.Cartao]) -> politica.Cartao | None:
+        """O cartão citado na mensagem (final de 4 dígitos ou tipo), entre estes."""
+        posicao = cartao_citado(self.mensagem, [(c.produto, c.ultimos4) for c in cartoes])
+        return None if posicao is None else cartoes[posicao]
+
+    def _pedido_de_bloqueio(self) -> Saida:
+        """Pedido de bloqueio: o cartão citado ou o único bloqueável; vários, pergunta qual;
+        nenhum, só informa, com os já bloqueados por aqui."""
+        cartoes = self._cartoes()
+        candidatos = politica.bloqueaveis(cartoes)
+        if (citado := self._citado(candidatos)) is not None:
+            candidatos = [citado]
+        decisao = politica.decidir_bloqueio(len(candidatos), self.dispositivo)
+        self._anotar("avaliar_bloqueio", decisao.regra)
+        if decisao.regra == "POL-BLQ-06":
+            return self._perguntar_cartao(candidatos, "pedido")
+        if decisao.regra == "POL-BLQ-03":
+            nada = (texto(decisao.regra, self.idioma), *self._ja_bloqueados(cartoes))
+            return Saida(decisao.regra, "responder", nada, "livre", {})
+        return self._bloquear_no_pedido(candidatos[0], decisao)
+
+    def _bloquear_no_pedido(self, cartao: politica.Cartao, decisao: politica.Decisao) -> Saida:
+        """Cadastrado: bloqueio completo, e o aviso ao atendente é o bloqueio no console
+        (POL-BLQ-02). Novo: preventivo, e o atendente confirma ou desfaz (POL-BLQ-01)."""
+        encaminha = decisao.acao == "humano"
+        feito, novo = self._bloquear(cartao, "pedido", decisao.regra, evento=encaminha)
+        if novo is None:
+            return Saida("POL-BLQ-03", "responder", (feito,), "livre", {})
+        if encaminha:
+            return self._encaminhar(decisao, None, antes=(feito,), bloqueio_id=novo)
+        desfazer = texto(decisao.regra, self.idioma)
+        return Saida(
+            decisao.regra, "bloquear_cartao", (feito, desfazer), "livre", {}, bloqueio=novo
+        )
+
+    def _relato_de_fraude(self, decisao: politica.Decisao) -> Saida:
+        """Relato de fraude (POL-HUM-01): bloqueia o cartão citado ou o único bloqueável e
+        encaminha; com vários, pergunta qual antes, uma vez só (a fraude nunca fica parada: na
+        escolha, sem cartão identificado, encaminha sem bloquear); sem cartão, só encaminha."""
+        cartoes = self._cartoes()
+        candidatos = politica.bloqueaveis(cartoes)
+        if (citado := self._citado(candidatos)) is not None:
+            candidatos = [citado]
+        if len(candidatos) == 1:
+            return self._bloquear_e_encaminhar(candidatos[0], decisao)
+        if candidatos and self.estado != "escolhendo_cartao":
+            return self._perguntar_cartao(candidatos, "roubo_perda")
+        if candidatos:
+            return self._encaminhar_sem_bloqueio(decisao)
+        self._anotar("bloquear_cartao", "nenhum cartão ativo para bloquear")
+        return self._encaminhar(decisao, self._em_foco(), antes=self._ja_bloqueados(cartoes))
+
+    def _bloquear_e_encaminhar(self, cartao: politica.Cartao, decisao: politica.Decisao) -> Saida:
+        feito, novo = self._bloquear(cartao, "roubo_perda", decisao.regra, evento=True)
+        return self._encaminhar(decisao, self._em_foco(), antes=(feito,), bloqueio_id=novo)
+
+    def _encaminhar_sem_bloqueio(self, decisao: politica.Decisao) -> Saida:
+        self._anotar("bloquear_cartao", "cartão não identificado na resposta; nada bloqueado")
+        nao_identificado = (texto("BLOQUEIO-NAO-IDENTIFICADO", self.idioma),)
+        return self._encaminhar(decisao, None, antes=nao_identificado)
+
+    def _perguntar_cartao(self, candidatos: list[politica.Cartao], motivo: str) -> Saida:
+        """Pergunta qual cartão, com as opções numeradas (tipo e final). No pedido, a pergunta é
+        repetida até o limite de esclarecimentos; depois, oferece o atendente."""
+        perguntas = self.contexto.get("perguntas", 0) if self.estado == "escolhendo_cartao" else 0
+        pedido = self.contexto.get("pedido", self.mensagem[:280])
+        decisao = politica.decidir_esclarecimento(perguntas)
+        if decisao.acao == "oferecer_humano":
+            self._anotar("esclarecer", f"{perguntas} perguntas sem identificar o cartão")
+            resumo = (texto("RESUMO-CARTAO", self.idioma),)
+            return self._oferecer(resumo, decisao.regra, "livre", {"pedido": pedido})
+        opcoes = "\n".join(
+            f"{n}. {descrever_cartao(c.produto, c.ultimos4, self.idioma)}"
+            for n, c in enumerate(candidatos, start=1)
+        )
+        clausula = "POL-BLQ-06-FRAUDE" if motivo == "roubo_perda" else "POL-BLQ-06"
+        contexto = {
+            "cartoes": [c.product_id for c in candidatos],
+            "motivo": motivo,
+            "pedido": pedido,
+            "perguntas": perguntas + 1,
+            "acoes": self._acoes_json(),
+        }
+        pergunta = texto(clausula, self.idioma, opcoes=opcoes)
+        return Saida("POL-BLQ-06", "esclarecer", (pergunta,), "escolhendo_cartao", contexto)
+
+    def _escolhendo_cartao(self) -> Saida | None:
+        """Resposta à pergunta de qual cartão: o número da opção, o final de 4 dígitos (lido só
+        nesta etapa, para "9241" não virar valor) ou o tipo. No relato de fraude, sem cartão
+        identificado, encaminha sem bloquear. No pedido, "no" cancela, outro pedido sai da etapa
+        (None) e o resto pergunta de novo."""
+        atuais = {c.product_id: c for c in self._cartoes()}
+        mostrados = [atuais[p] for p in self.contexto["cartoes"] if p in atuais]
+        escolha = self.lida.escolha
+        if escolha is not None and 1 <= escolha <= len(mostrados):
+            escolhido = mostrados[escolha - 1]
+        else:
+            escolhido = self._citado(mostrados)
+        if self.contexto["motivo"] == "roubo_perda":
+            relato = politica.decidir_pedido("fraude", id_digitado=False)
+            if escolhido is None:
+                return self._encaminhar_sem_bloqueio(relato)
+            return self._bloquear_e_encaminhar(escolhido, relato)
+        if escolhido is not None:
+            return self._bloquear_no_pedido(
+                escolhido, politica.decidir_bloqueio(1, self.dispositivo)
+            )
+        if self.lida.resposta == "nao":
+            cancelado = texto("BLOQUEIO-CANCELADO", self.idioma)
+            return Saida("CANCELADO", "responder", (cancelado,), "livre", {})
+        if self.lida.intencao not in ("bloquear", "desconhecida") or self.lida.caso:
+            return None
+        return self._perguntar_cartao(mostrados, "pedido")
+
+    def _bloquear(
+        self, cartao: politica.Cartao, motivo: str, regra: str, evento: bool
+    ) -> tuple[str, str | None]:
+        """Bloqueia, com o tipo pelo dispositivo da sessão, e devolve o texto para o cliente e o
+        bloqueio criado agora (None se já estava bloqueado ou deixou de ser bloqueável). O bloqueio
+        novo entra nas ações do resumo e, quando o turno não é o próprio bloqueio (encaminha), num
+        evento `acao`: cada bloqueio aparece uma vez nos eventos."""
+        tipo = politica.tipo_de_bloqueio(self.dispositivo)
+        try:
+            feito, criado = bloqueio.bloquear(
+                self.conexao,
+                self.customer_id,
+                cartao.product_id,
+                tipo,
+                motivo,
+                self.dispositivo,
+                self.janela_desbloqueio_dias,
+            )
+        except bloqueio.NaoBloqueavel:
+            self._anotar("bloquear_cartao", f"{cartao.product_id}: não está mais ativo")
+            return texto("POL-BLQ-03", self.idioma), None
+        dito = descrever_cartao(feito.produto, feito.ultimos4, self.idioma)
+        if not criado:
+            self._anotar("bloquear_cartao", f"{feito.id}: já estava bloqueado")
+            return texto("BLOQUEIO-EXISTENTE", self.idioma, cartao=dito, bloqueio=feito.id), None
+        resumo = descrever_cartao(feito.produto, feito.ultimos4, "pt")
+        self._anotar("bloquear_cartao", f"{feito.id}: bloqueio {tipo} do {resumo}")
+        if evento:
+            eventos.registrar_acao(
+                self.conexao, self.inicio, "bloquear_cartao", feito.id, regra, bloqueio.FONTES
+            )
+        como = TIPO_DE_BLOQUEIO[tipo][self.idioma]
+        return (
+            texto("BLOQUEIO-FEITO", self.idioma, cartao=dito, como=como, bloqueio=feito.id),
+            feito.id,
+        )
+
+    def _ja_bloqueados(self, cartoes: list[politica.Cartao]) -> tuple[str, ...]:
+        """Os cartões já bloqueados por aqui (bloqueio ativo do canal), se houver."""
+        lista = "; ".join(
+            f"{descrever_cartao(c.produto, c.ultimos4, self.idioma)}, {c.bloqueio}"
+            for c in cartoes
+            if c.bloqueio is not None
+        )
+        return (texto("BLOQUEIOS-ATIVOS", self.idioma, bloqueados=lista),) if lista else ()
+
+    # ---- encaminhamento ----------------------------------------------------------------------
+
+    def _encaminhar(
+        self,
+        decisao: politica.Decisao,
+        t: TransacaoVerificada | None,
+        antes: tuple[str, ...] = (),
+        bloqueio_id: str | None = None,
+    ) -> Saida:
         self._fonte("app.handoffs")
         pendencia = PENDENCIAS[decisao.regra]
         if decisao.detalhe:
@@ -636,11 +837,12 @@ class _Turno:
         return Saida(
             decisao.regra,
             "humano",
-            (texto(clausula, self.idioma, t), referencia),
+            (*antes, texto(clausula, self.idioma, t), referencia),
             "com_humano",
             {"atendimento": atendimento},
             transaction_id=None if t is None else t.transaction_id,
             atendimento=atendimento,
+            bloqueio=bloqueio_id,
         )
 
     def _anotar(self, acao: str, resultado: str) -> None:
@@ -709,6 +911,8 @@ def _efeito(saida: Saida) -> str | None:
         return saida.protocolo
     if saida.acao == "humano":
         return saida.atendimento
+    if saida.acao == "bloquear_cartao":
+        return saida.bloqueio
     if saida.acao == "propor_pre_caso" and saida.proposta is not None:
         return saida.proposta.id
     return None
@@ -749,10 +953,13 @@ def turno(
     limites: politica.Limites,
     ttl_minutos: int,
     inicio: float,
+    dispositivo: str,
+    janela_desbloqueio_dias: int,
 ) -> ResultadoDoTurno:
     """Processa uma mensagem já lida do cliente da sessão na conversa dele e grava o turno e o
     evento. O interpretador só leu a mensagem; o que fazer é sempre a política que decide.
-    `inicio` (time.perf_counter) vem de antes da leitura: a latência do turno inclui o modelo."""
+    `inicio` (time.perf_counter) vem de antes da leitura: a latência do turno inclui o modelo.
+    `dispositivo` é o da sessão (PRD-007), nunca o que a mensagem diz."""
     linha = _do_dono(conexao, customer_id, conversa_id, "estado, contexto, turnos", True)
     lida = leitura.lida
     atual = _Turno(
@@ -764,6 +971,9 @@ def turno(
         mensagem,
         limites,
         ttl_minutos,
+        dispositivo,
+        janela_desbloqueio_dias,
+        inicio,
     )
     saida = atual.executar()
     numero = linha.turnos + 1

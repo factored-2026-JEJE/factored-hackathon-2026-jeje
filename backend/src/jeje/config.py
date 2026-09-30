@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     janela_contestacao_dias: int = Field(gt=0)
     reincidencia_pre_casos: int = Field(gt=0)
     reincidencia_dias: int = Field(gt=0)
+    # Bloqueio simulado de cartão (PRD-007): por quantos dias o bloqueio fica reversível.
+    janela_desbloqueio_dias: int = Field(gt=0)
     # Validade da proposta de pré-caso até a confirmação do cliente, em minutos.
     proposta_ttl_minutos: int = Field(gt=0)
     # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"

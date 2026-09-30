@@ -3287,6 +3287,36 @@
       ]
     },
     {
+      "id": "M-MSG-12",
+      "requisito": "R02",
+      "descricao": "Bloqueio sem o rótulo de simulação na resposta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    \"completo\": {\"es\": \"bloqueo completo simulado\", \"pt\": \"bloqueio completo simulado\"},",
+          "para": "    \"completo\": {\"es\": \"bloqueo completo\", \"pt\": \"bloqueio completo\"},"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_com_dispositivo_cadastrado_bloqueia_por_completo_sem_encaminhar"
+      ]
+    },
+    {
+      "id": "M-MSG-13",
+      "requisito": "R08",
+      "descricao": "Cartão dito sem o final (o cliente não sabe qual foi bloqueado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "    return tipo if ultimos4 is None else f\"{tipo} {FINAL_DO_CARTAO[idioma]} {ultimos4}\"",
+          "para": "    return tipo"
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_cartao_dito_pelo_tipo_e_pelo_final"
+      ]
+    },
+    {
       "id": "M-HO-01",
       "requisito": "R08",
       "descricao": "Pedido do cliente guardado inteiro (sem minimização)",
@@ -6737,6 +6767,176 @@
       ]
     },
     {
+      "id": "M-ITP-42",
+      "requisito": "R03",
+      "descricao": "Negação ignorada: \"no quiero bloquear mi tarjeta\" bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):\n            continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-43",
+      "requisito": "R03",
+      "descricao": "Negação vale na mensagem toda: \"no, bloqueen mi tarjeta\" não bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return [normalizar(parte) for parte in re.split(r\"[,.;:!?¡¿]\", texto)]",
+          "para": "    return [normalizar(texto)]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_bloqueio_ou_desbloqueio_com_verbo_de_pedido_perto_de_cartao"
+      ]
+    },
+    {
+      "id": "M-ITP-44",
+      "requisito": "R03",
+      "descricao": "Pretérito e particípio viram pedido: \"¿por qué bloquearon mi tarjeta?\" bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(\"bloquear\", \"bloquearla\", \"bloquearlo\",",
+          "para": "(\"bloque*\", \"bloquearla\", \"bloquearlo\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-45",
+      "requisito": "R03",
+      "descricao": "Conta vira cartão: \"quiero bloquear mi cuenta\" bloqueia um cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\")",
+          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"cuenta\", \"conta\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-46",
+      "requisito": "R03",
+      "descricao": "Pedido de bloqueio não é reconhecido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_bloqueio_ou_desbloqueio_com_verbo_de_pedido_perto_de_cartao"
+      ]
+    },
+    {
+      "id": "M-ITP-47",
+      "requisito": "R03",
+      "descricao": "Pedido de desbloqueio não é reconhecido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO,)),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_bloqueio_ou_desbloqueio_com_verbo_de_pedido_perto_de_cartao"
+      ]
+    },
+    {
+      "id": "M-ITP-48",
+      "requisito": "R03",
+      "descricao": "Pedido de bloqueio vence o relato de roubo (a fraude deixa de encaminhar)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
+          "para": ""
+        },
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"fraude\", (\"fraude\", \"robaron\",",
+          "para": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n    (\"fraude\", (\"fraude\", \"robaron\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_roubo_e_perda_com_pedido_de_bloqueio_continuam_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-49",
+      "requisito": "R03",
+      "descricao": "Cartão citado sem conferir o tipo: o final de outro tipo escolhe o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if (not finais or ultimos4 in finais) and (not tipos or tipo in tipos)",
+          "para": "        if (not finais or ultimos4 in finais)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-50",
+      "requisito": "R03",
+      "descricao": "Dois cartões citados: escolhe um sem perguntar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return casados[0] if len(casados) == 1 else None",
+          "para": "    return casados[0] if casados else None"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-51",
+      "requisito": "R08",
+      "descricao": "Número inteiro do cartão vira final",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "FINAL_DE_CARTAO = re.compile(r\"(?<!\\d)\\d{4}(?!\\d)\")",
+          "para": "FINAL_DE_CARTAO = re.compile(r\"\\d{4}(?!\\d)\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-52",
+      "requisito": "R03",
+      "descricao": "Mensagem sem citação escolhe o único cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if not finais and not tipos:\n        return None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
       "id": "M-LLM-22",
       "requisito": "R08",
       "descricao": "Cumprimento, agradecimento ou \"a última\" vão para o modelo (que os lê como fora do escopo)",
@@ -6749,6 +6949,21 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-LLM-23",
+      "requisito": "R03",
+      "descricao": "O modelo pode pedir bloqueio de cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    \"fraude\", \"humano\", \"fora_de_escopo\", \"contestar\", \"consultar\", \"desconhecida\"\n]",
+          "para": "    \"fraude\", \"bloquear\", \"humano\", \"fora_de_escopo\", \"contestar\", \"consultar\", \"desconhecida\"\n]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_saida_invalida_ou_com_campo_a_mais_fica_com_as_regras"
       ]
     },
     {
@@ -7053,12 +7268,44 @@
       "trocas": [
         {
           "arquivo": "src/jeje/politica.py",
-          "de": "    if dispositivo == \"cadastrado\":\n        return Decisao(\"POL-BLQ-02\", \"bloquear_cartao\", \"completo\")\n",
-          "para": "    return Decisao(\"POL-BLQ-02\", \"bloquear_cartao\", \"completo\")\n"
+          "de": "    if dispositivo == \"cadastrado\":\n        return Decisao(\"POL-BLQ-02\", \"bloquear_cartao\", \"dispositivo cadastrado\")\n",
+          "para": "    return Decisao(\"POL-BLQ-02\", \"bloquear_cartao\", \"dispositivo cadastrado\")\n"
         }
       ],
       "testes": [
         "tests/test_politica.py::test_bloqueio_pelo_numero_de_cartoes_e_pelo_dispositivo"
+      ]
+    },
+    {
+      "id": "M-POL-46",
+      "requisito": "R03",
+      "descricao": "Tipo do bloqueio invertido: dispositivo novo bloqueia por completo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return \"completo\" if dispositivo == \"cadastrado\" else \"preventivo\"",
+          "para": "    return \"completo\" if dispositivo != \"cadastrado\" else \"preventivo\""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_tipo_do_bloqueio_vem_do_dispositivo_da_sessao",
+        "tests/test_bloqueio_conversa.py::test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha"
+      ]
+    },
+    {
+      "id": "M-POL-47",
+      "requisito": "R03",
+      "descricao": "Desbloqueio pedido no chat vira resposta automática, sem o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return Decisao(\"POL-BLQ-05\", \"humano\")",
+          "para": "    return Decisao(\"POL-BLQ-05\", \"responder\")"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_desbloqueio_fica_com_o_atendente",
+        "tests/test_bloqueio_conversa.py::test_pedido_de_desbloqueio_vai_para_o_atendente"
       ]
     },
     {
@@ -7120,6 +7367,251 @@
       ],
       "testes": [
         "tests/test_conversa.py::test_contestacao_de_compra_fora_da_janela_vai_para_humano"
+      ]
+    },
+    {
+      "id": "M-CONV-50",
+      "requisito": "R03",
+      "descricao": "Relato de fraude encaminha sem bloquear o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if decisao.regra == \"POL-HUM-01\":\n                # O relato de fraude também bloqueia o cartão, pelo dispositivo da sessão.\n                return self._relato_de_fraude(decisao)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-51",
+      "requisito": "R08",
+      "descricao": "A conversa ignora o dispositivo da sessão (tudo vira cadastrado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "                ativa.dispositivo,\n",
+          "para": "                \"cadastrado\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_com_dispositivo_novo_bloqueia_preventivo_e_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-52",
+      "requisito": "R03",
+      "descricao": "Com vários cartões, a fraude bloqueia o primeiro sem perguntar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if len(candidatos) == 1:\n            return self._bloquear_e_encaminhar(candidatos[0], decisao)\n",
+          "para": "        if candidatos:\n            return self._bloquear_e_encaminhar(candidatos[0], decisao)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_pergunta_qual_e_sempre_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-53",
+      "requisito": "R03",
+      "descricao": "Fraude sem cartão identificado na escolha pergunta de novo (a fraude fica parada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if escolhido is None:\n                return self._encaminhar_sem_bloqueio(relato)\n",
+          "para": "            if escolhido is None:\n                return self._perguntar_cartao(mostrados, \"roubo_perda\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_pergunta_qual_e_sempre_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-54",
+      "requisito": "R03",
+      "descricao": "A escolha do cartão usa o final como valor: \"9241\" não escolhe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        else:\n            escolhido = self._citado(mostrados)\n",
+          "para": "        else:\n            escolhido = None\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_varios_cartoes_pergunta_qual_e_bloqueia_o_escolhido"
+      ]
+    },
+    {
+      "id": "M-CONV-55",
+      "requisito": "R03",
+      "descricao": "Pedido de bloqueio não é tratado pela conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.intencao == \"bloquear\":\n            return self._pedido_de_bloqueio()\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_com_dispositivo_cadastrado_bloqueia_por_completo_sem_encaminhar",
+        "tests/test_bloqueio_conversa.py::test_final_citado_no_pedido_bloqueia_sem_perguntar",
+        "tests/test_bloqueio_conversa.py::test_sem_cartao_ativo_so_informa_e_cita_os_ja_bloqueados_por_aqui"
+      ]
+    },
+    {
+      "id": "M-CONV-56",
+      "requisito": "R03",
+      "descricao": "Pedido de desbloqueio não vai para o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.intencao == \"desbloquear\":\n            return self._encaminhar(politica.decidir_desbloqueio(), None)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_de_desbloqueio_vai_para_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-57",
+      "requisito": "R03",
+      "descricao": "\"No\" na escolha do cartão não cancela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.resposta == \"nao\":\n            cancelado = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n",
+          "para": "        if False:\n            cancelado = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_nao_na_escolha_cancela_e_outro_pedido_sai_da_etapa"
+      ]
+    },
+    {
+      "id": "M-CONV-58",
+      "requisito": "R02",
+      "descricao": "Outro pedido na escolha do cartão fica preso na etapa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.intencao not in (\"bloquear\", \"desconhecida\") or self.lida.caso:\n            return None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_nao_na_escolha_cancela_e_outro_pedido_sai_da_etapa"
+      ]
+    },
+    {
+      "id": "M-CONV-59",
+      "requisito": "R09",
+      "descricao": "Bloqueio feito num turno que encaminha não deixa evento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if evento:\n            eventos.registrar_acao(\n",
+          "para": "        if False:\n            eventos.registrar_acao(\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_com_dispositivo_novo_bloqueia_preventivo_e_encaminha",
+        "tests/test_bloqueio_conversa.py::test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-60",
+      "requisito": "R09",
+      "descricao": "Bloqueio não entra nas ações do resumo do atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        self._anotar(\"bloquear_cartao\", f\"{feito.id}: bloqueio {tipo} do {resumo}\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_com_dispositivo_novo_bloqueia_preventivo_e_encaminha",
+        "tests/test_bloqueio_conversa.py::test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-61",
+      "requisito": "R02",
+      "descricao": "Sem cartão ativo, a resposta não cita os já bloqueados por aqui",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            nada = (texto(decisao.regra, self.idioma), *self._ja_bloqueados(cartoes))\n",
+          "para": "            nada = (texto(decisao.regra, self.idioma),)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_sem_cartao_ativo_so_informa_e_cita_os_ja_bloqueados_por_aqui"
+      ]
+    },
+    {
+      "id": "M-CONV-62",
+      "requisito": "R03",
+      "descricao": "Falha de releitura do bloqueio vira 500 (sem registro do erro)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "    except (SQLAlchemyError, RuntimeError) as erro:\n",
+          "para": "    except SQLAlchemyError as erro:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_bloqueio_que_nao_se_confirma_desfaz_o_turno_e_nao_diz_que_bloqueou"
+      ]
+    },
+    {
+      "id": "M-CONV-63",
+      "requisito": "R03",
+      "descricao": "A escolha do cartão não pergunta de novo: oferece o atendente já na primeira resposta não entendida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        perguntas = self.contexto.get(\"perguntas\", 0) if self.estado == \"escolhendo_cartao\" else 0\n",
+          "para": "        perguntas = 2\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_escolha_nao_entendida_pergunta_de_novo_e_depois_oferece_o_atendente",
+        "tests/test_bloqueio_conversa.py::test_varios_cartoes_pergunta_qual_e_bloqueia_o_escolhido"
+      ]
+    },
+    {
+      "id": "M-CONV-64",
+      "requisito": "R03",
+      "descricao": "Turno de bloqueio sem o efeito registrado (BL- fora do turno)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    if saida.acao == \"bloquear_cartao\":\n        return saida.bloqueio\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pedido_com_dispositivo_cadastrado_bloqueia_por_completo_sem_encaminhar"
+      ]
+    },
+    {
+      "id": "M-CONV-65",
+      "requisito": "R03",
+      "descricao": "Fraude sem cartão ativo fica esperando a escolha de um cartão que não existe (não encaminha)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if candidatos and self.estado != \"escolhendo_cartao\":\n",
+          "para": "        if self.estado != \"escolhendo_cartao\":\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_sem_cartao_ativo_so_encaminha"
       ]
     },
     {
@@ -7271,6 +7763,21 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_bloqueio_so_aceita_valores_conhecidos_e_desfeito_completo"
+      ]
+    },
+    {
+      "id": "M-MIG-13",
+      "requisito": "R03",
+      "descricao": "A migration 0019 não aceita o estado da escolha do cartão",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0019_conversa_escolhendo_cartao.py",
+          "de": "DEPOIS = (*ANTES, \"escolhendo_cartao\")",
+          "para": "DEPOIS = ANTES"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_conversa_aceita_o_estado_da_escolha_do_cartao"
       ]
     },
     {

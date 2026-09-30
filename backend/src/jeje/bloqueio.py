@@ -12,6 +12,7 @@ from jeje import politica
 
 # Tipos de produto que são cartão na base do desafio.
 CARTOES = ("Tarjeta Crédito", "Tarjeta Débito")
+FONTES = ("curated.products", "app.bloqueios")
 COLUNAS = (
     "id, customer_id, product_id, produto, ultimos4, tipo, motivo, dispositivo, criado_em,"
     " reversivel_ate, desfeito_em, desfeito_por"

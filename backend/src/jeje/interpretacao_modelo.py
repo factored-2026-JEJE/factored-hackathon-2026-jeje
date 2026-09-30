@@ -17,18 +17,23 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
-from typing import get_args
+from typing import Literal, get_args
 
 from pydantic import BaseModel, ConfigDict
 
 from jeje import eventos
 from jeje.config import Settings
-from jeje.interpretacao import Intencao, Interpretacao, interpretar
+from jeje.interpretacao import Interpretacao, interpretar
 from jeje.mensagens import IDIOMAS, Idioma, Status
 
 log = logging.getLogger("jeje.modelo")
 
-INTENCOES = list(get_args(Intencao))
+# O modelo não pede bloqueio nem desbloqueio de cartão (PRD-007): efeito sobre o cartão só com o
+# pedido lido pelas regras; cartão perdido ou roubado, para o modelo, é relato de fraude.
+IntencaoDoModelo = Literal[
+    "fraude", "humano", "fora_de_escopo", "contestar", "consultar", "desconhecida"
+]
+INTENCOES = list(get_args(IntencaoDoModelo))
 STATUS = list(get_args(Status))
 
 # Esquema pequeno de propósito: só tipos, enums e nulos (o que o gerador de gramática do Ollama
@@ -50,7 +55,7 @@ class SaidaDoModelo(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     idioma: Idioma
-    intencao: Intencao
+    intencao: IntencaoDoModelo
     status: Status | None
 
 

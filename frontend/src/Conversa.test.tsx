@@ -26,6 +26,7 @@ function turno(parcial: Partial<ResultadoDoTurno>): ResultadoDoTurno {
     proposta: { id: "P1", transaction_id: "TRX-1", expira_em: "2099-01-01T00:00:00Z" },
     protocolo: null,
     atendimento: null,
+    bloqueio: null,
     ...parcial,
   };
 }
