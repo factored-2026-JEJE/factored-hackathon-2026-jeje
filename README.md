@@ -1,4 +1,4 @@
-# jeje-product-v1
+# factored-hackathon-2026-jeje
 
 Atendimento bancário em espanhol e português do time **JEJE** (Jader, Erik, João e Enzo) —
 Factored AI & Data Hackathon 2026.
