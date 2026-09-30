@@ -299,6 +299,10 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Tu {cartao} ya está bloqueada (referencia {bloqueio}).",
         "pt": "O seu {cartao} já está bloqueado (referência {bloqueio}).",
     },
+    "CARTAO-INATIVO": {
+        "es": "Tu {cartao} no está activa, así que no la bloqueé.",
+        "pt": "O seu {cartao} não está ativo, então não o bloqueei.",
+    },
     "BLOQUEIOS-ATIVOS": {
         "es": "Tarjetas ya bloqueadas por aquí: {bloqueados}.",
         "pt": "Cartões já bloqueados por aqui: {bloqueados}.",

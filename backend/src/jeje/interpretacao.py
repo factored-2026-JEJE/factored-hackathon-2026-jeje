@@ -528,3 +528,11 @@ def cartao_citado(texto: str, cartoes: Sequence[tuple[str, str | None]]) -> int 
         if (not finais or ultimos4 in finais) and (not tipos or tipo in tipos)
     ]
     return casados[0] if len(casados) == 1 else None
+
+
+def cita_cartao(texto: str) -> bool:
+    """A mensagem aponta um cartão (final de 4 dígitos ou tipo), case ou não com algum do cliente:
+    quem cita um cartão nunca tem outro escolhido no lugar (ACH-111)."""
+    limpo = normalizar(texto)
+    tipos = [t for termos in TIPO_CITADO.values() for t in termos]
+    return FINAL_DE_CARTAO.search(texto) is not None or any(_casa(t, limpo) for t in tipos)
