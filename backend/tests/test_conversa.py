@@ -19,6 +19,8 @@ from conftest import (
 )
 from sqlalchemy import text
 
+from jeje.politica import DESCRICOES
+
 
 @pytest.fixture
 def cenario(cenario_conversa):
@@ -897,3 +899,20 @@ def test_contestacao_de_compra_fora_da_janela_vai_para_humano(cenario):
         "Revisar contestação de compra fora da janela de contestação (compra de "
     )
     assert pre_casos(cenario) == [] and contar(cenario, "propostas_pre_caso") == 0
+
+
+def test_turno_diz_por_que_respondeu_assim(cenario):
+    """O resultado do turno leva o que a tela mostra em "por que esta resposta?": a regra e a
+    descrição dela, quem leu a mensagem, o efeito criado e de onde vieram os fatos."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        proposta = dizer(
+            http, auth, abrir_conversa(http, auth, "es"), "No reconozco el cobro de Streaming Plus"
+        )
+    assert (proposta["regra"], proposta["acao"]) == ("POL-DISP-01", "propor_pre_caso")
+    assert proposta["descricao"] == DESCRICOES["POL-DISP-01"]
+    assert proposta["interpretacao"] == "regras"
+    assert proposta["efeito"] == proposta["proposta"]["id"]
+    assert set(proposta["fontes"]) >= {
+        "curated.transactions", "app.pre_casos", "app.propostas_pre_caso"
+    }  # fmt: skip

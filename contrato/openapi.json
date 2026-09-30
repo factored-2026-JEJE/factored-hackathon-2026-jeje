@@ -2013,6 +2013,39 @@
               }
             ],
             "title": "Bloqueio"
+          },
+          "descricao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descricao"
+          },
+          "interpretacao": {
+            "type": "string",
+            "title": "Interpretacao"
+          },
+          "efeito": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Efeito"
+          },
+          "fontes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fontes"
           }
         },
         "type": "object",
@@ -2030,7 +2063,11 @@
           "proposta",
           "protocolo",
           "atendimento",
-          "bloqueio"
+          "bloqueio",
+          "descricao",
+          "interpretacao",
+          "efeito",
+          "fontes"
         ],
         "title": "ResultadoDoTurno",
         "description": "O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."

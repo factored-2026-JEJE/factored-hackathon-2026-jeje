@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Path, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import SQLAlchemyError
 
-from jeje import conversa, eventos
+from jeje import conversa, eventos, politica
 from jeje.config import ConfigDep
 from jeje.db import EngineDep
 from jeje.interpretacao_modelo import Leitura
@@ -61,6 +61,12 @@ class ResultadoDoTurno(BaseModel):
     protocolo: str | None
     atendimento: str | None
     bloqueio: str | None
+    # "Por que esta resposta?" (DEV-031): o que a regra quer dizer, quem leu a mensagem, o efeito
+    # criado neste turno e de onde vieram os fatos.
+    descricao: str | None
+    interpretacao: str
+    efeito: str | None
+    fontes: list[str]
 
 
 class TurnoRegistrado(BaseModel):
@@ -161,6 +167,10 @@ def enviar_mensagem(
         protocolo=saida.protocolo,
         atendimento=saida.atendimento,
         bloqueio=saida.bloqueio,
+        descricao=politica.DESCRICOES.get(saida.regra),
+        interpretacao=leitura.fonte,
+        efeito=resultado.efeito,
+        fontes=list(resultado.fontes),
     )
 
 

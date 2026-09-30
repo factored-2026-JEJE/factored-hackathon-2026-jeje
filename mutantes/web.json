@@ -1102,6 +1102,82 @@
       "testes": [
         "src/BloqueiosDoAtendimento.test.tsx > mostra cada bloqueio ativo com o cartão só pelo tipo e pelo final, na ordem da API"
       ]
+    },
+    {
+      "id": "M-WEB-79",
+      "requisito": "R02",
+      "descricao": "Resposta sem o \"por que esta resposta?\"",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "              {f.motivo && <PorQue motivo={f.motivo} />}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu",
+        "src/Conversa.test.tsx > turno reaberto pelo histórico mostra só a regra e a ação"
+      ]
+    },
+    {
+      "id": "M-WEB-80",
+      "requisito": "R02",
+      "descricao": "\"Por que\" sem o que a regra quer dizer",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "<dd>{motivo.descricao ? `${motivo.regra}: ${motivo.descricao}` : motivo.regra}</dd>",
+          "para": "<dd>{motivo.regra}</dd>"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu"
+      ]
+    },
+    {
+      "id": "M-WEB-81",
+      "requisito": "R09",
+      "descricao": "\"Por que\" sem o efeito criado no turno",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "        {motivo.efeito && (\n",
+          "para": "        {false && motivo.efeito && (\n"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu"
+      ]
+    },
+    {
+      "id": "M-WEB-82",
+      "requisito": "R02",
+      "descricao": "Turno reaberto pelo histórico perde a regra e a ação",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": ", motivo: { regra: t.regra, acao: t.acao } },",
+          "para": " },"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > turno reaberto pelo histórico mostra só a regra e a ação"
+      ]
+    },
+    {
+      "id": "M-WEB-83",
+      "requisito": "R09",
+      "descricao": "\"Por que\" sem as fontes dos fatos",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "        {motivo.fontes && motivo.fontes.length > 0 && (\n",
+          "para": "        {false && (\n"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu"
+      ]
     }
   ]
 }
