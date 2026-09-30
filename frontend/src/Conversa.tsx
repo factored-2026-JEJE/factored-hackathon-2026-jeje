@@ -26,6 +26,25 @@ type Motivo = Pick<ResultadoDoTurno, "regra" | "acao"> &
 
 type Fala = { id: number; autor: "cliente" | "assistente"; texto: string; motivo?: Motivo };
 
+// Atalhos (PRD-006): mandam uma frase pronta, na língua da conversa, que as regras reconhecem. O
+// assistente trata como se o cliente tivesse digitado; nada é decidido na tela.
+const ATALHOS: Record<Idioma, [string, string][]> = {
+  es: [
+    ["Consultar uma transação", "Quiero consultar una transacción"],
+    ["Contestar uma cobrança", "Quiero contestar un cobro"],
+    ["Status do meu pedido", "¿Cómo va mi solicitud?"],
+    ["Bloquear cartão", "Quiero bloquear mi tarjeta"],
+    ["Pedir um atendente", "Quiero hablar con un agente"],
+  ],
+  pt: [
+    ["Consultar uma transação", "Quero consultar uma transação"],
+    ["Contestar uma cobrança", "Quero contestar uma cobrança"],
+    ["Status do meu pedido", "Como está o meu pedido de revisão?"],
+    ["Bloquear cartão", "Quero bloquear meu cartão"],
+    ["Pedir um atendente", "Quero falar com um atendente"],
+  ],
+};
+
 const motivoDo = (t: ResultadoDoTurno): Motivo => ({
   regra: t.regra,
   acao: t.acao,
@@ -311,12 +330,22 @@ export function Conversa({
       )}
       {situacao.estado === "oferecendo_humano" && (
         <div role="group" aria-label="Atendente" className="acoes">
+          {/* Rótulos claros; o que vai para a API continua sendo o sí/sim e o no/não. */}
           <button type="button" disabled={enviando} onClick={() => void enviar(rapidas.sim)}>
-            {rapidas.sim}
+            Falar com um atendente
           </button>
           <button type="button" className="secundario" disabled={enviando} onClick={() => void enviar(rapidas.nao)}>
-            {rapidas.nao}
+            Continuar aqui
           </button>
+        </div>
+      )}
+      {!encerrada && situacao.estado !== "com_humano" && (
+        <div role="group" aria-label="Atalhos" className="acoes atalhos">
+          {ATALHOS[situacao.idioma].map(([rotulo, frase]) => (
+            <button key={rotulo} type="button" className="secundario" disabled={enviando} onClick={() => void enviar(frase)}>
+              {rotulo}
+            </button>
+          ))}
         </div>
       )}
       {falha && (
