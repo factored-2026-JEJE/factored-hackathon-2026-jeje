@@ -22,6 +22,8 @@ Acao = Literal[
     "oferecer_humano",
     "recusar",
     "bloquear_cartao",
+    "propor_desbloqueio",
+    "desbloquear_cartao",
 ]
 
 # Códigos de recusa com explicação aprovada (95% das recusas da base; DEV-005).
@@ -281,9 +283,20 @@ def tipo_de_bloqueio(dispositivo: str) -> str:
     return "completo" if dispositivo == "cadastrado" else "preventivo"
 
 
-def decidir_desbloqueio() -> Decisao:
-    """Pedido de desbloqueio: nesta fase, quem desfaz é o atendente, pelo console (POL-BLQ-05)."""
-    return Decisao("POL-BLQ-05", "humano")
+def decidir_desbloqueio(
+    motivo: str | None, reversivel_ate: datetime | None, agora: datetime
+) -> Decisao:
+    """Pedido de desbloqueio de um cartão. O cliente desfaz pela conversa, com um sim explícito, o
+    bloqueio que ele mesmo pediu, dentro do prazo (POL-BLQ-04). Fica com o atendente, pelo console
+    (POL-BLQ-05): cartão sem bloqueio feito por aqui (o do banco inclusive), bloqueio que veio de
+    relato de roubo ou perda e bloqueio fora do prazo."""
+    if motivo is None or reversivel_ate is None:
+        return Decisao("POL-BLQ-05", "humano", "sem bloqueio feito por aqui")
+    if motivo == "roubo_perda":
+        return Decisao("POL-BLQ-05", "humano", "bloqueio por relato de roubo ou perda")
+    if agora >= reversivel_ate:
+        return Decisao("POL-BLQ-05", "humano", "fora do prazo de reversão")
+    return Decisao("POL-BLQ-04", "propor_desbloqueio")
 
 
 # ---- Descrição das regras ("por que esta resposta?", DEV-031) -----------------------------------
@@ -326,7 +339,10 @@ DESCRICOES: dict[str, str] = {
     "POL-BLQ-02": "Bloqueio de cartão com dispositivo cadastrado: completo (simulação), visível no "
     "console do atendente.",
     "POL-BLQ-03": "Nenhum cartão ativo para bloquear: o assistente só informa.",
-    "POL-BLQ-05": "Desbloqueio de cartão: fica com o atendente.",
+    "POL-BLQ-04": "Desbloqueio de um bloqueio pedido pelo próprio cliente, dentro do prazo: o "
+    "assistente pede um sim explícito antes de desfazer.",
+    "POL-BLQ-05": "Desbloqueio fora do prazo, de bloqueio por roubo ou perda ou de cartão sem "
+    "bloqueio feito por aqui: fica com o atendente.",
     "POL-BLQ-06": "Vários cartões ativos: o assistente pergunta qual, sem escolher sozinho.",
     "AJUDA": "Mensagem não entendida: o assistente pede de novo e, depois do limite, oferece um "
     "atendente.",

@@ -379,8 +379,25 @@ def test_tipo_do_bloqueio_vem_do_dispositivo_da_sessao(dispositivo, tipo):
     assert tipo_de_bloqueio(dispositivo) == tipo
 
 
-def test_desbloqueio_fica_com_o_atendente():
-    assert decidir_desbloqueio() == Decisao("POL-BLQ-05", "humano")
+AGORA = datetime(2026, 9, 30, 12, 0)
+
+
+@pytest.mark.parametrize(
+    ("motivo", "prazo", "esperado"),
+    [
+        ("pedido", AGORA + timedelta(seconds=1), Decisao("POL-BLQ-04", "propor_desbloqueio")),
+        ("pedido", AGORA, Decisao("POL-BLQ-05", "humano", "fora do prazo de reversão")),
+        ("pedido", AGORA - timedelta(days=1),
+         Decisao("POL-BLQ-05", "humano", "fora do prazo de reversão")),
+        ("roubo_perda", AGORA + timedelta(days=6),
+         Decisao("POL-BLQ-05", "humano", "bloqueio por relato de roubo ou perda")),
+        (None, None, Decisao("POL-BLQ-05", "humano", "sem bloqueio feito por aqui")),
+    ],
+)  # fmt: skip
+def test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo(motivo, prazo, esperado):
+    """Dentro do prazo, o bloqueio pedido pelo cliente ele mesmo desfaz, com um sim (POL-BLQ-04);
+    o resto (fora do prazo, roubo ou perda, bloqueio do banco) fica com o atendente (POL-BLQ-05)."""
+    assert decidir_desbloqueio(motivo, prazo, AGORA) == esperado
 
 
 # Toda regra que a conversa pode devolver (matriz de autonomia e mensagens de fluxo), escrita aqui
@@ -390,7 +407,8 @@ REGRAS_DA_CONVERSA = {
     "POL-DISP-02", "POL-DISP-03", "POL-HUM-01", "POL-HUM-02", "POL-HUM-03", "POL-HUM-04",
     "POL-HUM-05", "POL-HUM-06", "POL-SEG-01", "POL-ESC-01", "POL-ID-02", "POL-CASO-01",
     "POL-CASO-02", "POL-CASO-03", "POL-BLQ-01", "POL-BLQ-02", "POL-BLQ-03", "POL-BLQ-05",
-    "POL-BLQ-06", "AJUDA", "CANCELADO", "CORTESIA", "ENCERRADA", "RETOMAR", "RESUMO", "COM-HUMANO",
+    "POL-BLQ-04", "POL-BLQ-06", "AJUDA", "CANCELADO", "CORTESIA", "ENCERRADA", "RETOMAR", "RESUMO",
+    "COM-HUMANO",
 }  # fmt: skip
 
 
