@@ -53,7 +53,7 @@ def avaliar_conversa(
     config: ConfigDep,
     engine: EngineDep,
 ) -> ReviewRegistrada:
-    """Grava a review da conversa (só do dono) e, com repositório e token, abre a Issue."""
+    """Grava a review (só do dono) e abre a Issue com repositório, token e a fixture carregada."""
     if pedido.avaliador not in reviews.testadores(config.testadores):
         raise HTTPException(status_code=422, detail="Avaliador não é do time de teste")
     review = reviews.Review(**pedido.model_dump())
@@ -62,8 +62,9 @@ def avaliar_conversa(
             gravada = reviews.gravar(conexao, ativa.customer_id, conversa_id, review)
         except ConversaNaoEncontrada:
             raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None
+        publicavel = reviews.dados_da_fixture(conexao)  # com a base real, só no banco (ACH-038)
     issue_url = None
-    if config.reviews_repo and config.github_token:
+    if config.reviews_repo and config.github_token and publicavel:
         issue_url = reviews.publicar(
             config.github_api_url,
             config.reviews_repo,

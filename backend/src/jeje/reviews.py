@@ -129,6 +129,13 @@ def publicar(api_url: str, repo: str, token: str, titulo_: str, corpo_: str) -> 
         return None
 
 
+def dados_da_fixture(conexao: Connection) -> bool:
+    """A review só vira Issue quando os dados carregados são a fixture sintética: com a base real, o
+    cliente e a transcrição iriam para o GitHub (ACH-038). Sem dados carregados, também não."""
+    fonte = conexao.execute(text("SELECT source FROM meta.dataset_version")).scalar_one_or_none()
+    return fonte == "fixture"
+
+
 def pendentes(conexao: Connection) -> list[dict]:
     """Reviews ainda sem Issue (GitHub fora do ar ou sem token quando foram feitas)."""
     consulta = (
@@ -144,6 +151,9 @@ def publicar_pendentes(engine, api_url: str, repo: str, token: str) -> tuple[int
     publicadas = falharam = 0
     with engine.connect() as conexao:
         lista = pendentes(conexao)
+        if not dados_da_fixture(conexao):
+            log.warning("issues nao criadas: os dados carregados nao sao a fixture (ACH-038)")
+            return 0, len(lista)
     for p in lista:
         review = Review(p["avaliador"], p["nota"], p["resolveu"], p["comentario"])
         with engine.connect() as conexao:

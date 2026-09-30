@@ -413,7 +413,7 @@ export interface paths {
         put?: never;
         /**
          * Avaliar Conversa
-         * @description Grava a review da conversa (só do dono) e, com repositório e token, abre a Issue.
+         * @description Grava a review (só do dono) e abre a Issue com repositório, token e a fixture carregada.
          */
         post: operations["avaliar_conversa_conversas__conversa_id__reviews_post"];
         delete?: never;
