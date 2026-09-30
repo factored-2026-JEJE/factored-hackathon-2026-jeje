@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   abrirSessao,
   type Dispositivo,
+  type Idioma,
   listarPersonas,
   meusPreCasos,
   minhasTransacoes,
@@ -84,7 +85,31 @@ function MeusPreCasos({ token, versao }: { token: string; versao: number }) {
   );
 }
 
-function MinhasTransacoes({ token, aoExpirar }: { token: string; aoExpirar: () => void }) {
+// "Perguntar sobre esta" (PRD-006): as pistas da linha como o cliente escreveria (valor com milhar
+// em ponto e decimal em vírgula, data dd/mm/aaaa e o comércio), na língua da conversa aberta. Nunca
+// o identificador da transação: as regras procuram pelas pistas (POL-ID-02).
+function perguntaSobre(t: Transacao, idioma: Idioma): string {
+  const [inteiro = "0", centavos = "00"] = Number(t.amount).toFixed(2).split(".");
+  const quantia = `${inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${centavos}`;
+  const [ano, mes, dia] = t.transaction_date.slice(0, 10).split("-");
+  const data = `${dia}/${mes}/${ano}`;
+  if (idioma === "es") {
+    return `¿Qué pasó con la transacción de ${quantia} del ${data}${t.merchant_name ? ` en ${t.merchant_name}` : ""}?`;
+  }
+  return `O que aconteceu com a transação de ${quantia} do dia ${data}${t.merchant_name ? ` na ${t.merchant_name}` : ""}?`;
+}
+
+function MinhasTransacoes({
+  token,
+  aoExpirar,
+  idioma,
+  aoPerguntar,
+}: {
+  token: string;
+  aoExpirar: () => void;
+  idioma: Idioma | null;
+  aoPerguntar: (pergunta: string) => void;
+}) {
   const [transacoes, setTransacoes] = useState<Transacao[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -113,6 +138,7 @@ function MinhasTransacoes({ token, aoExpirar }: { token: string; aoExpirar: () =
           <th scope="col">Descrição</th>
           <th scope="col">Valor</th>
           <th scope="col">Situação</th>
+          <th scope="col">Conversa</th>
         </tr>
       </thead>
       <tbody>
@@ -122,6 +148,13 @@ function MinhasTransacoes({ token, aoExpirar }: { token: string; aoExpirar: () =
             <th scope="row">{t.merchant_name ?? t.transaction_type ?? t.transaction_id}</th>
             <td>{valor(t)}</td>
             <td>{STATUS[t.transaction_status] ?? t.transaction_status}</td>
+            <td>
+              {idioma && (
+                <button type="button" className="secundario" onClick={() => aoPerguntar(perguntaSobre(t, idioma))}>
+                  Perguntar sobre esta
+                </button>
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -138,6 +171,11 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
   const [versaoPreCasos, setVersaoPreCasos] = useState(0);
   // Sem escolha, "novo": o lado conservador (bloqueio preventivo e atendente).
   const [dispositivo, setDispositivo] = useState<Dispositivo>("novo");
+  // "Perguntar sobre esta": a tabela monta a pergunta na língua da conversa aberta, e a conversa a
+  // envia como mensagem do cliente.
+  const [idiomaDaConversa, setIdiomaDaConversa] = useState<Idioma | null>(null);
+  const [pergunta, setPergunta] = useState<string | null>(null);
+  const perguntada = useCallback(() => setPergunta(null), []);
   // O pré-caso nasce na conversa: cada registro atualiza a lista, a fila e as métricas.
   const conversaMudou = useCallback(() => {
     setVersaoPreCasos((v) => v + 1);
@@ -180,8 +218,20 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
           </button>
         </div>
         <p className="nota">Dispositivo (simulação): {sessao.dispositivo}</p>
-        <Conversa token={sessao.token} aoExpirar={expirou} aoMudar={conversaMudou} />
-        <MinhasTransacoes token={sessao.token} aoExpirar={expirou} />
+        <Conversa
+          token={sessao.token}
+          aoExpirar={expirou}
+          aoMudar={conversaMudou}
+          aoIdioma={setIdiomaDaConversa}
+          pergunta={pergunta}
+          aoPerguntado={perguntada}
+        />
+        <MinhasTransacoes
+          token={sessao.token}
+          aoExpirar={expirou}
+          idioma={idiomaDaConversa}
+          aoPerguntar={setPergunta}
+        />
         <MeusPreCasos token={sessao.token} versao={versaoPreCasos} />
       </section>
     );

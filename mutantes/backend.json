@@ -3900,7 +3900,8 @@
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_valor_que_nao_casa_pede_dados_sem_inventar_transacao"
+        "tests/test_conversa.py::test_valor_que_nao_casa_pede_dados_sem_inventar_transacao",
+        "tests/test_conversa.py::test_pergunta_montada_pela_tela_acha_a_transacao_da_linha"
       ]
     },
     {
