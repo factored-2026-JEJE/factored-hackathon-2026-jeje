@@ -4062,12 +4062,12 @@
     {
       "id": "M-MIG-05",
       "requisito": "R08",
-      "descricao": "Migration não aceita o estado encerrada (a recarga não consegue encerrar as conversas)",
+      "descricao": "A lista de estados vigente (a da última migration que recria a CHECK, hoje a 0020) não aceita encerrada: a recarga não consegue encerrar as conversas",
       "trocas": [
         {
-          "arquivo": "migrations/versions/0012_conversa_encerrada.py",
-          "de": "DEPOIS = (*ANTES, \"encerrada\")",
-          "para": "DEPOIS = ANTES"
+          "arquivo": "migrations/versions/0020_conversa_confirmando_desbloqueio.py",
+          "de": "    \"livre\", \"esclarecendo\", \"confirmando\", \"oferecendo_humano\", \"com_humano\", \"encerrada\",\n    \"escolhendo_cartao\",\n)  # fmt: skip",
+          "para": "    \"livre\", \"esclarecendo\", \"confirmando\", \"oferecendo_humano\", \"com_humano\",\n    \"escolhendo_cartao\",\n)  # fmt: skip"
         }
       ],
       "testes": [
@@ -7952,12 +7952,12 @@
     {
       "id": "M-MIG-13",
       "requisito": "R03",
-      "descricao": "A migration 0019 não aceita o estado da escolha do cartão",
+      "descricao": "A lista de estados vigente (a da última migration que recria a CHECK, hoje a 0020) não aceita a escolha do cartão",
       "trocas": [
         {
-          "arquivo": "migrations/versions/0019_conversa_escolhendo_cartao.py",
-          "de": "DEPOIS = (*ANTES, \"escolhendo_cartao\")",
-          "para": "DEPOIS = ANTES"
+          "arquivo": "migrations/versions/0020_conversa_confirmando_desbloqueio.py",
+          "de": "    \"escolhendo_cartao\",\n)  # fmt: skip",
+          "para": ")  # fmt: skip"
         }
       ],
       "testes": [
