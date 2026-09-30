@@ -35,6 +35,7 @@ def test_sessao_identifica_o_cliente_e_lista_so_as_transacoes_dele(api):
     assert api.get("/sessao", headers=cabecalho).json() == {
         "customer_id": "CLI-C",
         "nome": "Ana Souza",
+        "dispositivo": "novo",
     }
     ids = [t["transaction_id"] for t in api.get("/minhas/transacoes", headers=cabecalho).json()]
     assert sorted(ids) == ["TRX-C1", "TRX-C2"]
@@ -126,3 +127,16 @@ def test_toda_rota_fora_da_lista_publica_exige_sessao(api):
             recusadas.append((metodo.upper(), caminho, status, "security" in operacao))
     fora_do_padrao = [r for r in recusadas if r[2] != 401 or not r[3]]
     assert recusadas and not fora_do_padrao, fora_do_padrao
+
+
+def test_dispositivo_do_acesso_volta_na_sessao_e_valor_estranho_e_422(api):
+    """A demo escolhe o dispositivo simulado no acesso (PRD-007); a sessão devolve o escolhido, sem
+    escolha vale "novo", e um valor fora da lista nem chega ao banco."""
+    aberta = api.post("/sessoes", json={"customer_id": "CLI-A", "dispositivo": "cadastrado"})
+    sem_escolha = api.post("/sessoes", json={"customer_id": "CLI-A"})
+    estranho = api.post("/sessoes", json={"customer_id": "CLI-A", "dispositivo": "confiavel"})
+    assert (aberta.status_code, aberta.json()["dispositivo"]) == (201, "cadastrado")
+    assert (sem_escolha.status_code, sem_escolha.json()["dispositivo"]) == (201, "novo")
+    assert estranho.status_code == 422
+    atual = api.get("/sessao", headers={"Authorization": f"Bearer {aberta.json()['token']}"})
+    assert atual.json()["dispositivo"] == "cadastrado"

@@ -37,12 +37,21 @@ ID_DA_BASE = r"^[A-Za-z0-9-]{1,64}$"
 
 class PedidoDeSessao(BaseModel):
     customer_id: str = Field(pattern=ID_DA_BASE)
+    # Simulação da demo (PRD-007): a base não diz se o dispositivo é cadastrado.
+    dispositivo: sessao.Dispositivo = sessao.PADRAO
 
 
 class SessaoAberta(BaseModel):
     token: str
     expira_em: datetime
     cliente: Persona
+    dispositivo: sessao.Dispositivo
+
+
+class SessaoAtual(Persona):
+    """Quem está na sessão e o dispositivo simulado escolhido no acesso."""
+
+    dispositivo: sessao.Dispositivo
 
 
 def exige_modo_demo(config: ConfigDep) -> None:
@@ -88,7 +97,9 @@ def listar_personas(engine: EngineDep) -> list[Persona]:
 def abrir_sessao(pedido: PedidoDeSessao, config: ConfigDep, engine: EngineDep) -> SessaoAberta:
     with engine.begin() as conexao:
         try:
-            token, expira_em = sessao.abrir(conexao, pedido.customer_id, config.sessao_ttl_minutos)
+            token, expira_em = sessao.abrir(
+                conexao, pedido.customer_id, config.sessao_ttl_minutos, pedido.dispositivo
+            )
         except sessao.PersonaDesconhecida:
             raise HTTPException(status_code=404, detail="Persona não encontrada") from None
         nome = conexao.execute(
@@ -96,15 +107,22 @@ def abrir_sessao(pedido: PedidoDeSessao, config: ConfigDep, engine: EngineDep) -
             {"c": pedido.customer_id},
         ).scalar_one()
     return SessaoAberta(
-        token=token, expira_em=expira_em, cliente=Persona(customer_id=pedido.customer_id, nome=nome)
+        token=token,
+        expira_em=expira_em,
+        cliente=Persona(customer_id=pedido.customer_id, nome=nome),
+        dispositivo=pedido.dispositivo,
     )
 
 
 @router.get("/sessao", responses=RESPOSTAS_SESSAO)
-def sessao_atual(ativa: SessaoDep, engine: EngineDep) -> Persona:
-    """Quem está na sessão (o nome vem da persona provisionada)."""
+def sessao_atual(ativa: SessaoDep, engine: EngineDep) -> SessaoAtual:
+    """Quem está na sessão (o nome vem da persona provisionada) e o dispositivo dela."""
     with engine.connect() as conexao:
         nome = conexao.execute(
             text("SELECT nome FROM app.personas WHERE customer_id = :c"), {"c": ativa.customer_id}
         ).scalar_one_or_none()
-    return Persona(customer_id=ativa.customer_id, nome=nome or ativa.customer_id)
+    return SessaoAtual(
+        customer_id=ativa.customer_id,
+        nome=nome or ativa.customer_id,
+        dispositivo=ativa.dispositivo,
+    )
