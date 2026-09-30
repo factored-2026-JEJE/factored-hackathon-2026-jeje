@@ -1,4 +1,5 @@
-"""Console de atendimento humano simulado (G9/G12): a fila de encaminhamentos abertos.
+"""Console de atendimento humano simulado (G9/G12): a fila de encaminhamentos abertos e os
+bloqueios simulados de cartão ativos (PRD-007).
 
 Só com MODO_DEMO ligado, como o acesso por persona: em produção exigiria autenticação de
 operador. Mostra o resumo estruturado (regra, pedido truncado, fatos verificados, ações tentadas e
@@ -7,13 +8,14 @@ pendências), nunca a conversa inteira.
 
 import logging
 import time
+from dataclasses import asdict
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
 
-from jeje import eventos, handoff
+from jeje import bloqueio, eventos, handoff
 from jeje.db import EngineDep
 from jeje.pre_caso_api import ID_PROPOSTA
 from jeje.sessao_api import RESPOSTAS_DEMO, exige_modo_demo
@@ -88,3 +90,63 @@ def assumir(
         raise HTTPException(status_code=409, detail="Encaminhamento já assumido") from None
     log.info("encaminhamento assumido id=%s regra=%s", assumido.id, assumido.regra)
     return assumido
+
+
+class BloqueioDeCartao(BaseModel):
+    """Bloqueio simulado: o cartão aparece só pelo tipo e pelos 4 últimos dígitos."""
+
+    id: str
+    customer_id: str
+    product_id: str
+    produto: str
+    ultimos4: str | None
+    tipo: str
+    motivo: str
+    dispositivo: str
+    criado_em: datetime
+    reversivel_ate: datetime
+    desfeito_em: datetime | None
+    desfeito_por: str | None
+
+
+@router.get(
+    "/atendimento/bloqueios", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO
+)
+def bloqueios(
+    engine: EngineDep, limite: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[BloqueioDeCartao]:
+    """Bloqueios de cartão ativos, os mais recentes primeiro."""
+    with engine.connect() as conexao:
+        return [BloqueioDeCartao(**asdict(b)) for b in bloqueio.ativos(conexao, limite)]
+
+
+@router.post(
+    "/atendimento/bloqueios/{bloqueio_id}/desbloqueio",
+    dependencies=[Depends(exige_modo_demo)],
+    responses={
+        404: {"description": "Modo demo desligado ou bloqueio inexistente"},
+        409: {"description": "Bloqueio já desfeito"},
+    },
+)
+def desbloquear(
+    bloqueio_id: Annotated[str, Path(pattern=ID_PROPOSTA)], engine: EngineDep
+) -> BloqueioDeCartao:
+    """O atendente desfaz o bloqueio a qualquer momento (passado o prazo, só ele desfaz)."""
+    inicio = time.perf_counter()
+    try:
+        with engine.begin() as conexao:
+            desfeito = bloqueio.desfazer(conexao, bloqueio_id, "atendente")
+            eventos.registrar_acao(
+                conexao,
+                inicio,
+                "desbloquear_cartao",
+                desfeito.id,
+                "POL-BLQ-05",
+                ("app.bloqueios",),
+            )
+    except bloqueio.NaoEncontrado:
+        raise HTTPException(status_code=404, detail="Bloqueio não encontrado") from None
+    except bloqueio.JaDesfeito:
+        raise HTTPException(status_code=409, detail="Bloqueio já desfeito") from None
+    log.info("bloqueio desfeito id=%s por=atendente", desfeito.id)
+    return BloqueioDeCartao(**asdict(desfeito))

@@ -3467,6 +3467,158 @@
       ]
     },
     {
+      "id": "M-FILA-08",
+      "requisito": "R08",
+      "descricao": "Bloqueios do console abertos sem o modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "\"/atendimento/bloqueios\", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO",
+          "para": "\"/atendimento/bloqueios\", responses=RESPOSTAS_DEMO"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_bloqueios_nao_existem_fora_do_modo_demo"
+      ]
+    },
+    {
+      "id": "M-FILA-09",
+      "requisito": "R08",
+      "descricao": "Desbloqueio pelo console funciona sem o modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "    \"/atendimento/bloqueios/{bloqueio_id}/desbloqueio\",\n    dependencies=[Depends(exige_modo_demo)],\n",
+          "para": "    \"/atendimento/bloqueios/{bloqueio_id}/desbloqueio\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_bloqueios_nao_existem_fora_do_modo_demo"
+      ]
+    },
+    {
+      "id": "M-FILA-10",
+      "requisito": "R03",
+      "descricao": "Console mostra bloqueios já desfeitos como ativos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "f\"SELECT {COLUNAS} FROM app.bloqueios WHERE desfeito_em IS NULL\"",
+          "para": "f\"SELECT {COLUNAS} FROM app.bloqueios WHERE true\""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_console_mostra_os_bloqueios_ativos_mais_recentes_primeiro",
+        "tests/test_atendimento_api.py::test_atendente_desbloqueia_uma_vez_e_fica_o_evento"
+      ]
+    },
+    {
+      "id": "M-FILA-11",
+      "requisito": "R03",
+      "descricao": "Console mostra os bloqueios mais antigos primeiro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "\" ORDER BY criado_em DESC, id DESC LIMIT :limite\"",
+          "para": "\" ORDER BY criado_em, id LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_console_mostra_os_bloqueios_ativos_mais_recentes_primeiro"
+      ]
+    },
+    {
+      "id": "M-FILA-12",
+      "requisito": "R06",
+      "descricao": "Console ignora o limite pedido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "\" ORDER BY criado_em DESC, id DESC LIMIT :limite\"",
+          "para": "\" ORDER BY criado_em DESC, id DESC\""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_console_mostra_os_bloqueios_ativos_mais_recentes_primeiro"
+      ]
+    },
+    {
+      "id": "M-FILA-13",
+      "requisito": "R03",
+      "descricao": "Bloqueio desfeito é desfeito de novo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "f\" WHERE id = :id AND desfeito_em IS NULL RETURNING {COLUNAS}\"",
+          "para": "f\" WHERE id = :id RETURNING {COLUNAS}\""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_atendente_desbloqueia_uma_vez_e_fica_o_evento",
+        "tests/test_atendimento_api.py::test_dois_atendentes_ao_mesmo_tempo_desbloqueiam_uma_vez_so"
+      ]
+    },
+    {
+      "id": "M-FILA-14",
+      "requisito": "R03",
+      "descricao": "Confere e depois desfaz (dois atendentes desfazem o mesmo bloqueio)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "    linha = conexao.execute(\n        text(\n            \"UPDATE app.bloqueios SET desfeito_em = now(), desfeito_por = :por\"\n            f\" WHERE id = :id AND desfeito_em IS NULL RETURNING {COLUNAS}\"\n        ),\n        {\"id\": bloqueio_id, \"por\": por},\n    ).first()",
+          "para": "    ativo = conexao.execute(\n        text(\"SELECT 1 FROM app.bloqueios WHERE id = :id AND desfeito_em IS NULL\"),\n        {\"id\": bloqueio_id},\n    ).first()\n    import time\n\n    time.sleep(0.3)\n    linha = conexao.execute(\n        text(\n            \"UPDATE app.bloqueios SET desfeito_em = now(), desfeito_por = :por\"\n            f\" WHERE id = :id AND {bool(ativo)} RETURNING {COLUNAS}\"\n        ),\n        {\"id\": bloqueio_id, \"por\": por},\n    ).first()"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_dois_atendentes_ao_mesmo_tempo_desbloqueiam_uma_vez_so"
+      ]
+    },
+    {
+      "id": "M-FILA-15",
+      "requisito": "R09",
+      "descricao": "Atendente desfaz o bloqueio sem deixar evento",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "            eventos.registrar_acao(\n                conexao,\n                inicio,\n                \"desbloquear_cartao\",\n",
+          "para": "            (lambda *_: None)(\n                conexao,\n                inicio,\n                \"desbloquear_cartao\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_atendente_desbloqueia_uma_vez_e_fica_o_evento"
+      ]
+    },
+    {
+      "id": "M-FILA-16",
+      "requisito": "R03",
+      "descricao": "Bloqueio já desfeito responde como inexistente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "    raise JaDesfeito(bloqueio_id) if existe else NaoEncontrado(bloqueio_id)",
+          "para": "    raise NaoEncontrado(bloqueio_id)"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_atendente_desbloqueia_uma_vez_e_fica_o_evento"
+      ]
+    },
+    {
+      "id": "M-FILA-17",
+      "requisito": "R09",
+      "descricao": "Desbloqueio do console registrado como feito pelo cliente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "bloqueio.desfazer(conexao, bloqueio_id, \"atendente\")",
+          "para": "bloqueio.desfazer(conexao, bloqueio_id, \"cliente\")"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_atendente_desbloqueia_uma_vez_e_fica_o_evento"
+      ]
+    },
+    {
       "id": "M-CONV-01",
       "requisito": "R03",
       "descricao": "Confirmação por palavra solta em qualquer frase (\"¿y si...?\")",
