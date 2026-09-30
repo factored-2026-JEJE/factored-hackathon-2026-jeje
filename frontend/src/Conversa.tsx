@@ -120,10 +120,18 @@ export function Conversa({
   token,
   aoExpirar,
   aoMudar,
+  aoIdioma = () => {},
+  pergunta = null,
+  aoPerguntado = () => {},
 }: {
   token: string;
   aoExpirar: () => void;
   aoMudar: () => void;
+  // "Perguntar sobre esta" (PRD-006): a língua da conversa aberta vai para quem monta a pergunta, e
+  // a pergunta montada entra como mensagem do cliente (quem decide o que ela significa é a API).
+  aoIdioma?: (idioma: Idioma | null) => void;
+  pergunta?: string | null;
+  aoPerguntado?: () => void;
 }) {
   const [conversaId, setConversaId] = useState<string | null>(null);
   const [falas, setFalas] = useState<Fala[]>([]);
@@ -172,6 +180,17 @@ export function Conversa({
       ativo = false;
     };
   }, [token, aoExpirar]);
+
+  const aberta = conversaId && situacao && !["encerrada", "com_humano"].includes(situacao.estado);
+  const idiomaAberto = aberta ? situacao.idioma : null;
+  useEffect(() => {
+    aoIdioma(idiomaAberto);
+  }, [idiomaAberto, aoIdioma]);
+  useEffect(() => {
+    if (!pergunta) return;
+    aoPerguntado();
+    void enviar(pergunta);
+  }, [pergunta, aoPerguntado]);
 
   async function iniciar(idioma: Idioma) {
     try {
