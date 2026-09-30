@@ -133,10 +133,40 @@ export function Conversa({
     } catch (e) {
       if (e instanceof SessaoExpirada) aoExpirar();
       else if (e instanceof NaoRegistrado) setFalha({ mensagem: limpa, detalhe: e.message });
-      else setFalha({ mensagem: limpa, detalhe: "Sem resposta do servidor. Reenviar é seguro: a conversa não repete efeitos." });
+      else if (!(await jaProcessada(limpa)))
+        setFalha({ mensagem: limpa, detalhe: "Sem resposta do servidor. Reenviar é seguro: a conversa não repete efeitos." });
     } finally {
       setEnviando(false);
     }
+  }
+
+  // Resposta perdida (ACH-105): a API pode ter feito o turno sem a resposta chegar. Antes de
+  // afirmar qualquer coisa, a tela relê a conversa; se a mensagem já foi processada, mostra o que
+  // ficou registrado (com o protocolo, se houve pré-caso) e avisa quem relê pré-casos e fila.
+  async function jaProcessada(limpa: string): Promise<boolean> {
+    if (!conversaId) return false;
+    try {
+      const historico = await historicoDaConversa(token, conversaId);
+      const ultimo = historico?.turnos.at(-1);
+      const mostrados = falas.filter((f) => f.autor === "cliente").length;
+      if (!historico || !ultimo || historico.turnos.length <= mostrados || ultimo.mensagem !== limpa) return false;
+      setFalas((atuais) => [...atuais, fala("cliente", ultimo.mensagem), fala("assistente", ultimo.resposta)]);
+      setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: null });
+      setTexto("");
+      setFalha(null);
+      aoMudar();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Reenviar também relê antes: a primeira conferência pode ter falhado junto com a rede.
+  async function reenviar(mensagem: string) {
+    setEnviando(true);
+    const processada = await jaProcessada(mensagem);
+    setEnviando(false);
+    if (!processada) await enviar(mensagem);
   }
 
   function novaConversa() {
@@ -236,7 +266,7 @@ export function Conversa({
       {falha && (
         <div role="alert" className="erro">
           <p>{falha.detalhe}</p>
-          <button type="button" disabled={enviando} onClick={() => void enviar(falha.mensagem)}>
+          <button type="button" disabled={enviando} onClick={() => void reenviar(falha.mensagem)}>
             Reenviar
           </button>
         </div>
