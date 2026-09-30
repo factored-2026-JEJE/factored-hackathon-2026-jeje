@@ -235,3 +235,47 @@ def test_recarga_da_mesma_versao_nao_encerra_nada(banco_migrado, tmp_path):
         assert not carregar(banco_migrado, raiz, manifestos, TABELAS, "fixture", "p1").carregou
         continua = http.get(f"/conversas/{conversa}", headers=a)
     assert (continua.status_code, continua.json()["estado"]) == (200, "confirmando")
+
+
+def test_status_do_caso_depois_da_recarga_cita_so_o_registro_do_cliente(banco_migrado, tmp_path):
+    """O pré-caso de A sobrevive à recarga (PRD-002), mas a TRX-X passa a ser de B. Perguntar pelo
+    pedido de revisão responde o registro de A (protocolo, transação, data e estado) sem fatos da
+    curada de agora e sem 500, e a transação que não é mais de A não vira foco. Com dois pré-casos,
+    a lista descreve pela curada só a transação que ainda é de A (ACH-037)."""
+    raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
+    b1 = _trx("TRX-B1", "B", "80.00", "Loja Tres", "2025-03-10 16:00:00")
+    z = _trx("TRX-Z", "A", "30.00", "Loja Dois", "2025-03-10 15:00:00")
+    x_de_a = _trx("TRX-X", "A", "45.90", "Loja Um", "2025-03-10 14:00:00")
+    x_de_b = _trx("TRX-X", "B", "45.90", "Loja Um", "2025-03-10 14:00:00")
+    publicar(raiz, manifestos, [x_de_a, z, b1])
+    carregar(banco_migrado, raiz, manifestos, TABELAS, "fixture", "p1")
+    with conexao(banco_migrado) as con:
+        sessao.provisionar_personas(con, 2)
+    with cliente(banco_migrado) as http:
+        a = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, a, "es")
+        dizer(http, a, conversa, "No reconozco el cobro de 45,90 en Loja Um")
+        protocolo_x = dizer(http, a, conversa, "sí")["protocolo"]
+
+        publicar(raiz, manifestos, [x_de_b, z, b1])
+        assert carregar(banco_migrado, raiz, manifestos, TABELAS, "fixture", "p1").carregou
+
+        a = autenticar(http, "CLI-A")
+        nova = abrir_conversa(http, a, "es")
+        pergunta = {"texto": "¿cómo va mi solicitud?"}
+        so_um = http.post(f"/conversas/{nova}/turnos", json=pergunta, headers=a)
+        seguinte = http.post(f"/conversas/{nova}/turnos", json={"texto": "¿y ahora?"}, headers=a)
+        outra = abrir_conversa(http, a, "es")
+        dizer(http, a, outra, "No reconozco el cobro de 30,00 en Loja Dois")
+        protocolo_z = dizer(http, a, outra, "sí")["protocolo"]
+        os_dois = http.post(f"/conversas/{nova}/turnos", json=pergunta, headers=a)
+    assert so_um.status_code == 200, so_um.text
+    assert (so_um.json()["regra"], so_um.json()["transaction_id"]) == ("POL-CASO-01", None)
+    assert protocolo_x in so_um.json()["resposta"] and "TRX-X" in so_um.json()["resposta"]
+    assert "Loja Um" not in so_um.json()["resposta"] and "45,90" not in so_um.json()["resposta"]
+    assert seguinte.status_code == 200, seguinte.text
+    assert os_dois.status_code == 200, os_dois.text
+    lista = os_dois.json()["resposta"]
+    assert os_dois.json()["regra"] == "POL-CASO-02"
+    assert protocolo_x in lista and protocolo_z in lista
+    assert "TRX-X" in lista and "Loja Dois" in lista and "Loja Um" not in lista
