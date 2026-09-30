@@ -94,3 +94,18 @@ th, td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var
 .avaliacao label { display: grid; gap: 0.25rem; color: var(--suave); }
 .avaliacao select, .avaliacao textarea { font: inherit; color: var(--texto); background: var(--cartao); border: 1px solid var(--borda); border-radius: 8px; padding: 0.4rem; }
 .avaliacao button[aria-pressed="false"] { background: transparent; color: var(--destaque); border: 1px solid var(--destaque); }
+
+/* "Por que esta resposta?" (DEV-031): recolhido por padrão, discreto sob a resposta. */
+.por-que {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+}
+.por-que dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.5rem;
+  margin: 0.25rem 0 0;
+}
+.por-que dd {
+  margin: 0;
+}
