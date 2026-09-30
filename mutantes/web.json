@@ -103,8 +103,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "onClick={() => void enviar(falha.mensagem)}",
-          "para": "onClick={() => void enviar(texto)}"
+          "de": "onClick={() => void reenviar(falha.mensagem)}",
+          "para": "onClick={() => void reenviar(texto)}"
         }
       ],
       "testes": [
@@ -889,6 +889,52 @@
       ],
       "testes": [
         "src/AvaliarConversa.test.tsx > sessão expirada ao enviar volta para a escolha do cliente"
+      ]
+    },
+    {
+      "id": "M-WEB-65",
+      "requisito": "R02",
+      "descricao": "Resposta perdida: a tela não relê a conversa e só oferece reenviar, escondendo o pré-caso já registrado (ACH-105)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      else if (!(await jaProcessada(limpa)))",
+          "para": "      else if (!(await Promise.resolve(false)))"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > resposta perdida depois do sim: a tela relê a conversa, mostra o protocolo e não reenvia"
+      ]
+    },
+    {
+      "id": "M-WEB-66",
+      "requisito": "R02",
+      "descricao": "Reenviar manda a mensagem de novo sem reler a conversa (ACH-105)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "    const processada = await jaProcessada(mensagem);",
+          "para": "    const processada = false;"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > reenviar relê a conversa antes: se o servidor já processou, não manda de novo"
+      ]
+    },
+    {
+      "id": "M-WEB-67",
+      "requisito": "R02",
+      "descricao": "Turno recuperado do histórico não avisa quem relê os pré-casos e a fila (ACH-105)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      setFalha(null);\n      aoMudar();\n      return true;",
+          "para": "      setFalha(null);\n      return true;"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > resposta perdida depois do sim: a tela relê a conversa, mostra o protocolo e não reenvia",
+        "src/Conversa.test.tsx > reenviar relê a conversa antes: se o servidor já processou, não manda de novo"
       ]
     }
   ]
