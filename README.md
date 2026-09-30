@@ -58,7 +58,10 @@ cp .env.example .env   # cole as chaves do dataset (página 2 do dicionário)
 make up                # ou: docker compose --profile modelo up -d --build --wait
 ```
 
-Abra **http://localhost:8080**, entre como um cliente de demonstração e converse.
+Abra **http://localhost:8080**, entre como um cliente de demonstração e converse. A página tem três
+abas, cada uma com endereço próprio: **Cliente** (`#cliente`: acesso, conversa, transações e
+pré-casos), **Atendente** (`#atendente`: fila e bloqueios de cartão) e **Operação** (`#operacao`:
+métricas, status, qualidade dos dados e EDA).
 
 Na primeira vez o `make up` baixa o dataset dos organizadores (~1,6 GB, ~5 min), confere cada
 arquivo pelo manifesto versionado em `data/manifesto/` e carrega o banco. O build da imagem também
@@ -75,7 +78,8 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 - **Cobrança repetida:** "Me cobraron dos veces el streaming" → é contestação, não consulta.
 - **Acompanhar o pedido:** "¿Cómo va mi solicitud?" (ou o protocolo) → o estado dos pré-casos do
   cliente, sem prazo nem resultado.
-- **Pedir um humano:** "Me robaron la tarjeta" → o caso aparece na fila do atendente, que o assume.
+- **Pedir um humano:** "Me robaron la tarjeta" → o caso aparece na fila, na aba Atendente, e o
+  atendente o assume.
 - **Bloquear o cartão (simulado):** "Quiero bloquear mi tarjeta" → com um cartão ativo, bloqueia na
   hora. No acesso, escolha o dispositivo: *cadastrado* dá bloqueio completo, que só aparece no
   console; *novo* (o padrão) dá bloqueio preventivo e encaminha ao atendente. Com vários cartões,
@@ -84,14 +88,20 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
   bloqueio foi pedido pelo cliente; o resto o atendente desfaz no console ("Desbloquear BL-…").
 
 A conversa vai por etapas (pedido → transação → confirmação). O que não cabe na etapa recebe o que
-foi entendido e a oferta de um atendente ("sim" encaminha, "não" volta para onde estava), no lugar
-de um "não entendi" repetido. As pistas da transação somam entre os turnos (o status citado é pista,
+foi entendido e a oferta de um atendente ("Falar com um atendente" encaminha, "Continuar aqui" volta
+para onde estava), no lugar de um "não entendi" repetido. As pistas da transação somam entre os turnos (o status citado é pista,
 não filtro), "a última" escolhe a mais recente, e cumprimento ou agradecimento recebe resposta
 cordial sem perder a etapa. Data sem ano é lida a partir do último dia dos dados quando a base é
-mais antiga que o relógio. Contestar é só pela conversa: a tabela de transações não tem botão.
+mais antiga que o relógio. Contestar é só pela conversa.
+
+Atalhos sob a conversa mandam frases prontas (consultar, contestar, status do pedido, bloquear
+cartão e pedir um atendente), e "Perguntar sobre esta", em cada linha das transações, manda à
+conversa as pistas da linha (nunca o identificador). Sob cada resposta, "Por que esta resposta?"
+mostra a regra e o que ela quer dizer, a ação, o efeito, as fontes e quem leu a mensagem.
 
 Em português também: "Não reconheço a cobrança…", "Por que recusaram minha compra?", "Status do
-meu pedido de revisão", "Roubaram meu cartão". As métricas do atendimento (encaminhamentos, pré-casos, latência) ficam ao lado.
+meu pedido de revisão", "Roubaram meu cartão". As métricas do atendimento (encaminhamentos,
+pré-casos, latência) ficam na aba Operação.
 
 ## Testar em grupo (túnel e reviews)
 
