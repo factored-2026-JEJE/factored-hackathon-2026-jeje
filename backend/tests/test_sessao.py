@@ -68,3 +68,14 @@ def test_sessao_de_quem_deixou_de_ser_persona_nao_vale(curada):
         token, _ = sessao.abrir(con, "CLI-C", 60)
         sessao.provisionar_personas(con, 1)  # só CLI-A
         assert sessao.validar(con, token) is None
+
+
+def test_dispositivo_fica_na_sessao_e_sem_escolha_e_novo(curada):
+    """O dispositivo simulado da sessão (PRD-007) é gravado pelo servidor no acesso; sem escolha,
+    vale o lado conservador."""
+    with conexao(curada) as con:
+        sessao.provisionar_personas(con, 1)
+        cadastrado, _ = sessao.abrir(con, "CLI-A", 60, "cadastrado")
+        sem_escolha, _ = sessao.abrir(con, "CLI-A", 60)
+        assert sessao.validar(con, cadastrado) == sessao.SessaoAtiva("CLI-A", "cadastrado")
+        assert sessao.validar(con, sem_escolha) == sessao.SessaoAtiva("CLI-A", "novo")
