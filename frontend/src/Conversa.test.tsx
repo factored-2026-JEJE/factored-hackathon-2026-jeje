@@ -1,7 +1,7 @@
 // Conversa contra um servidor mínimo na fronteira de rede: a regra é decidida pela API real
 // (testada no backend e no E2E). Aqui: a tela só mostra o que a API respondeu, envia o texto
 // certo, não envia duas vezes, reenvia a mesma mensagem e reabre a conversa sem repetir nada.
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ResultadoDoTurno } from "./api/cliente";
 import { Conversa } from "./Conversa";
@@ -27,6 +27,10 @@ function turno(parcial: Partial<ResultadoDoTurno>): ResultadoDoTurno {
     protocolo: null,
     atendimento: null,
     bloqueio: null,
+    descricao: null,
+    interpretacao: "regras",
+    efeito: null,
+    fontes: [],
     ...parcial,
   };
 }
@@ -271,4 +275,53 @@ test("bloqueio feito na conversa avisa o console do atendente", async () => {
   await abrirEPedir("quiero bloquear mi tarjeta");
   expect(await screen.findByText(/referencia BL-00000001/)).toBeInTheDocument();
   expect(aoMudar).toHaveBeenCalledTimes(1);
+});
+
+test("por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu", async () => {
+  const proposta = turno({
+    descricao: "Contestação dentro dos limites simulados.",
+    interpretacao: "leitor:e5@429a8eaca51b",
+    efeito: "P1",
+    fontes: ["curated.transactions", "app.propostas_pre_caso"],
+  });
+  servidor([{ status: 200, corpo: proposta }]);
+  montar();
+  await abrirEPedir();
+  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
+  if (!resposta) throw new Error("resposta fora da lista");
+  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
+  const motivo = within(resposta);
+  expect(motivo.getByText("POL-DISP-01: Contestação dentro dos limites simulados.")).toBeVisible();
+  expect(motivo.getByText("propor_pre_caso")).toBeVisible();
+  expect(motivo.getByText("P1")).toBeVisible();
+  expect(motivo.getByText("curated.transactions, app.propostas_pre_caso")).toBeVisible();
+  expect(motivo.getByText("leitor:e5@429a8eaca51b")).toBeVisible();
+});
+
+test("turno reaberto pelo histórico mostra só a regra e a ação", async () => {
+  sessionStorage.setItem("jeje.conversa", "C1");
+  const historico = {
+    conversa_id: "C1",
+    idioma: "es",
+    estado: "confirmando",
+    turnos: [
+      {
+        numero: 1,
+        mensagem: "No reconozco el cobro de Uber",
+        resposta: "Puedo registrar una solicitud de revisión (pre-caso) de la transacción en Uber. ¿Confirmas?",
+        regra: "POL-DISP-01",
+        acao: "propor_pre_caso",
+        estado: "confirmando",
+        criado_em: "2026-09-29T10:00:00Z",
+      },
+    ],
+  };
+  servidor([], historico);
+  montar();
+  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
+  if (!resposta) throw new Error("resposta fora da lista");
+  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
+  expect(within(resposta).getByText("POL-DISP-01")).toBeVisible();
+  expect(within(resposta).getByText("propor_pre_caso")).toBeVisible();
+  expect(within(resposta).queryByText("Efeito")).not.toBeInTheDocument();
 });

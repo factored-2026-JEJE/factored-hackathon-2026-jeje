@@ -7309,6 +7309,21 @@
       ]
     },
     {
+      "id": "M-POL-48",
+      "requisito": "R02",
+      "descricao": "Regra sem descrição para a tela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    \"POL-BLQ-06\": \"Vários cartões ativos: o assistente pergunta qual, sem escolher sozinho.\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_toda_regra_da_conversa_tem_descricao_para_a_tela"
+      ]
+    },
+    {
       "id": "M-PRE-16",
       "requisito": "R03",
       "descricao": "A avaliação não passa o \"hoje\" dos dados: a janela nunca vale pela API",
@@ -7612,6 +7627,51 @@
       ],
       "testes": [
         "tests/test_bloqueio_conversa.py::test_fraude_sem_cartao_ativo_so_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-66",
+      "requisito": "R09",
+      "descricao": "O resultado do turno não diz de onde vieram os fatos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes)\n",
+          "para": "        conversa_id, numero, lida.idioma, lida.intencao, saida\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_turno_diz_por_que_respondeu_assim"
+      ]
+    },
+    {
+      "id": "M-CONV-67",
+      "requisito": "R02",
+      "descricao": "O resultado do turno não diz o que a regra quer dizer",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        descricao=politica.DESCRICOES.get(saida.regra),\n",
+          "para": "        descricao=None,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_turno_diz_por_que_respondeu_assim"
+      ]
+    },
+    {
+      "id": "M-CONV-68",
+      "requisito": "R09",
+      "descricao": "O resultado do turno não diz o efeito criado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "        efeito=resultado.efeito,\n",
+          "para": "        efeito=None,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_turno_diz_por_que_respondeu_assim"
       ]
     },
     {

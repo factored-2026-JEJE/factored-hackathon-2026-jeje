@@ -10,6 +10,7 @@ from hypothesis import example, given
 from hypothesis import strategies as st
 
 from jeje.politica import (
+    DESCRICOES,
     STATUS_CONHECIDOS,
     Candidata,
     Cartao,
@@ -380,3 +381,20 @@ def test_tipo_do_bloqueio_vem_do_dispositivo_da_sessao(dispositivo, tipo):
 
 def test_desbloqueio_fica_com_o_atendente():
     assert decidir_desbloqueio() == Decisao("POL-BLQ-05", "humano")
+
+
+# Toda regra que a conversa pode devolver (matriz de autonomia e mensagens de fluxo), escrita aqui
+# como oráculo: o "por que esta resposta?" da tela explica cada uma.
+REGRAS_DA_CONVERSA = {
+    "POL-CON-01", "POL-CON-02", "POL-CON-03", "POL-CON-04", "POL-CON-05", "POL-DISP-01",
+    "POL-DISP-02", "POL-DISP-03", "POL-HUM-01", "POL-HUM-02", "POL-HUM-03", "POL-HUM-04",
+    "POL-HUM-05", "POL-HUM-06", "POL-SEG-01", "POL-ESC-01", "POL-ID-02", "POL-CASO-01",
+    "POL-CASO-02", "POL-CASO-03", "POL-BLQ-01", "POL-BLQ-02", "POL-BLQ-03", "POL-BLQ-05",
+    "POL-BLQ-06", "AJUDA", "CANCELADO", "CORTESIA", "ENCERRADA", "RETOMAR", "RESUMO", "COM-HUMANO",
+}  # fmt: skip
+
+
+def test_toda_regra_da_conversa_tem_descricao_para_a_tela():
+    faltando = REGRAS_DA_CONVERSA - set(DESCRICOES)
+    assert not faltando, faltando
+    assert all(descricao.strip() for descricao in DESCRICOES.values())

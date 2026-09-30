@@ -107,6 +107,7 @@ class ResultadoDoTurno:
     idioma: Idioma
     intencao: str
     saida: Saida
+    fontes: tuple[str, ...] = ()  # de onde vieram os fatos e onde houve escrita (trace)
 
     @property
     def resposta(self) -> str:
@@ -977,7 +978,9 @@ def turno(
     )
     saida = atual.executar()
     numero = linha.turnos + 1
-    resultado = ResultadoDoTurno(conversa_id, numero, lida.idioma, lida.intencao, saida)
+    resultado = ResultadoDoTurno(
+        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes)
+    )
     conexao.execute(
         text(
             "UPDATE app.conversas SET idioma = :idioma, estado = :estado,"
