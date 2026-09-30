@@ -163,6 +163,8 @@ for (const idioma of ["es", "pt"] as const) {
     const doCliente = ativos.filter((b) => b.customer_id === primeira!.customer_id).map((b) => b.id);
     expect(citados.length > 0).toBe(doCliente.length > 0);
     for (const id of citados) expect(doCliente).toContain(id);
+    const painel = page.getByRole("region", { name: "Bloqueios de cartão" });
+    for (const id of citados) await expect(painel.getByRole("listitem", { name: `Bloqueio ${id}` })).toBeVisible();
 
     // Depois do encaminhamento, a automação só lembra quem está com o caso.
     const lembrete = await dizer(page, t.depois);

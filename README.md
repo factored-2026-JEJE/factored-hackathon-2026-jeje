@@ -76,6 +76,11 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 - **Acompanhar o pedido:** "¿Cómo va mi solicitud?" (ou o protocolo) → o estado dos pré-casos do
   cliente, sem prazo nem resultado.
 - **Pedir um humano:** "Me robaron la tarjeta" → o caso aparece na fila do atendente, que o assume.
+- **Bloquear o cartão (simulado):** "Quiero bloquear mi tarjeta" → com um cartão ativo, bloqueia na
+  hora. No acesso, escolha o dispositivo: *cadastrado* dá bloqueio completo, que só aparece no
+  console; *novo* (o padrão) dá bloqueio preventivo e encaminha ao atendente. Com vários cartões,
+  ele pergunta qual (número da opção ou os 4 últimos dígitos). O relato de roubo também bloqueia e
+  sempre encaminha. O atendente desfaz no console ("Desbloquear BL-…").
 
 A conversa vai por etapas (pedido → transação → confirmação). O que não cabe na etapa recebe o que
 foi entendido e a oferta de um atendente ("sim" encaminha, "não" volta para onde estava), no lugar
@@ -254,6 +259,15 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   tem 3 ou mais pré-casos nos últimos 30 dias (POL-HUM-06). O resto vai para humano. Nas stacks de
   teste com a fixture (`compose.ci.yaml`), a reincidência sobe para 10, porque as jornadas E2E
   registram vários pré-casos por persona em segundos; a regra com 3 é testada no backend.
+- Bloqueio de cartão **simulado** (PRD-007): a curada não muda, e o bloqueio fica em
+  `app.bloqueios` só com o tipo e os 4 últimos dígitos do cartão. O dispositivo vem do acesso de
+  demonstração (cadastrado ou novo, rotulado), nunca do chat. Regras: POL-BLQ-01 (dispositivo novo:
+  preventivo e atendente), POL-BLQ-02 (cadastrado: completo, com aviso pelo console), POL-BLQ-03
+  (nada a bloquear), POL-BLQ-05 (desbloqueio só pelo atendente, a qualquer momento) e POL-BLQ-06
+  (vários cartões: pergunta qual). O relato de roubo ou perda (POL-HUM-01) bloqueia e sempre
+  encaminha; sem cartão identificado na resposta, encaminha sem bloquear. O prazo de reversão é de
+  7 dias (`JANELA_DESBLOQUEIO_DIAS`); o desbloqueio pelo próprio cliente, na conversa, ainda não
+  existe.
 - Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado. O status do caso
   só mostra os pré-casos do cliente da sessão; protocolo digitado indica o assunto, nunca é buscado.
 - Motivo de recusa usa o significado genérico dos códigos ISO 8583, rotulado como tal.
@@ -267,9 +281,10 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
 - Minimização: o leitor (e o modelo local) recebe só a mensagem, nunca cliente, transação ou sessão; os logs não
   guardam mensagem, token nem cliente; o encaminhamento leva o pedido cortado em 280 caracteres e só
   fatos verificados da transação.
-- Capacidade medida neste PC (uma API, dados reais): turno lido pelas regras ~10 ms; leitura pelo
-  leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local carregado ~0,7 s; EDA inteira
-  ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min. Não medido: muitos clientes
-  ao mesmo tempo e o servidor de publicação.
+- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~100 ms de CPU por
+  mensagem (p50 de 104,5 ms em 30/09; eram ~10 ms antes dos termos compostos, correção pendente no
+  ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
+  carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
+  Não medido: muitos clientes ao mesmo tempo e o servidor de publicação.
 - Falta: publicação estável (a demonstração usa um túnel temporário), um conjunto de teste ES/PT escrito pelo time (com
   gíria) para medir o leitor, e a validação independente em andamento.
