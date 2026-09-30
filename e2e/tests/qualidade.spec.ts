@@ -34,7 +34,7 @@ test("painel de qualidade mostra os números da API e fecha a conta de cada tabe
   const tabelas: Qualidade[] = await (await request.get("/api/dados/qualidade")).json();
   expect(tabelas.length).toBeGreaterThan(0);
 
-  await page.goto("/");
+  await page.goto("/#operacao");
   await expect(page.getByRole("heading", { name: "Qualidade dos dados" })).toBeVisible();
   for (const t of tabelas) {
     expect(t.raw).toBe(t.curado + t.quarentena + t.copias_descartadas);
