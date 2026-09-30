@@ -1998,8 +1998,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/sessao.py",
-          "de": "\" VALUES (:h, :c, now() + make_interval(mins => :ttl)) RETURNING expira_em\"",
-          "para": "\" VALUES (:h, :c, now() + make_interval(mins => 1440)) RETURNING expira_em\""
+          "de": "            \" VALUES (:h, :c, now() + make_interval(mins => :ttl), :d) RETURNING expira_em\"",
+          "para": "            \" VALUES (:h, :c, now() + make_interval(mins => 1440), :d) RETURNING expira_em\""
         }
       ],
       "testes": [
@@ -2043,8 +2043,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/sessao.py",
-          "de": "\"SELECT s.customer_id FROM app.sessoes s JOIN app.personas p USING (customer_id)\"",
-          "para": "\"SELECT s.customer_id FROM app.sessoes s\""
+          "de": "            \" JOIN app.personas p USING (customer_id)\"\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -2163,8 +2163,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/sessao_api.py",
-          "de": "            token, expira_em = sessao.abrir(conexao, pedido.customer_id, config.sessao_ttl_minutos)",
-          "para": "            token, expira_em = sessao.abrir(conexao, \"CLI-A\", config.sessao_ttl_minutos)"
+          "de": "                conexao, pedido.customer_id, config.sessao_ttl_minutos, pedido.dispositivo",
+          "para": "                conexao, \"CLI-A\", config.sessao_ttl_minutos, pedido.dispositivo"
         }
       ],
       "testes": [
@@ -6891,6 +6891,112 @@
       ],
       "testes": [
         "tests/test_conversa.py::test_contestacao_de_compra_fora_da_janela_vai_para_humano"
+      ]
+    },
+    {
+      "id": "M-SES-10",
+      "requisito": "R08",
+      "descricao": "A sessão relida ignora o dispositivo gravado (toda sessão vira \"novo\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "    return SessaoAtiva(customer_id=linha.customer_id, dispositivo=linha.dispositivo)",
+          "para": "    return SessaoAtiva(customer_id=linha.customer_id)"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_dispositivo_fica_na_sessao_e_sem_escolha_e_novo"
+      ]
+    },
+    {
+      "id": "M-SES-11",
+      "requisito": "R08",
+      "descricao": "O acesso grava sempre o dispositivo padrão, não o escolhido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "        {\"h\": hash_token(token), \"c\": customer_id, \"ttl\": ttl_minutos, \"d\": dispositivo},",
+          "para": "        {\"h\": hash_token(token), \"c\": customer_id, \"ttl\": ttl_minutos, \"d\": PADRAO},"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_dispositivo_fica_na_sessao_e_sem_escolha_e_novo"
+      ]
+    },
+    {
+      "id": "M-SES-12",
+      "requisito": "R08",
+      "descricao": "Sem escolha, a sessão vale como dispositivo cadastrado (lado otimista)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "PADRAO: Dispositivo = \"novo\"",
+          "para": "PADRAO: Dispositivo = \"cadastrado\""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao.py::test_dispositivo_fica_na_sessao_e_sem_escolha_e_novo",
+        "tests/test_sessao_api.py::test_dispositivo_do_acesso_volta_na_sessao_e_valor_estranho_e_422"
+      ]
+    },
+    {
+      "id": "M-API-14",
+      "requisito": "R08",
+      "descricao": "A rota de acesso ignora o dispositivo pedido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "        dispositivo=pedido.dispositivo,\n",
+          "para": "        dispositivo=sessao.PADRAO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_dispositivo_do_acesso_volta_na_sessao_e_valor_estranho_e_422"
+      ]
+    },
+    {
+      "id": "M-API-15",
+      "requisito": "R08",
+      "descricao": "GET /sessao devolve o dispositivo padrão, não o da sessão (a tela restaura errado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "        dispositivo=ativa.dispositivo,\n",
+          "para": "        dispositivo=sessao.PADRAO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_dispositivo_do_acesso_volta_na_sessao_e_valor_estranho_e_422"
+      ]
+    },
+    {
+      "id": "M-API-16",
+      "requisito": "R08",
+      "descricao": "Dispositivo como texto livre na borda: valor estranho chega ao banco (500 em vez de 422)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao_api.py",
+          "de": "    dispositivo: sessao.Dispositivo = sessao.PADRAO",
+          "para": "    dispositivo: str = sessao.PADRAO"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_dispositivo_do_acesso_volta_na_sessao_e_valor_estranho_e_422"
+      ]
+    },
+    {
+      "id": "M-MIG-09",
+      "requisito": "R08",
+      "descricao": "A migration 0017 não cria o CHECK do dispositivo",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0017_sessao_dispositivo.py",
+          "de": "    op.create_check_constraint(\n        op.f(\"ck_sessoes_dispositivo\"),\n        \"sessoes\",\n        \"dispositivo IN ('cadastrado', 'novo')\",\n        schema=\"app\",\n    )\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_sessao_so_aceita_dispositivo_conhecido"
       ]
     }
   ]

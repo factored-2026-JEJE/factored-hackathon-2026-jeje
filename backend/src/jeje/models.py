@@ -65,16 +65,30 @@ class Persona(Base):
     ordem: Mapped[int] = mapped_column(SmallInteger, unique=True)
 
 
+def _um_de(coluna: str, valores: tuple[str, ...]) -> str:
+    """Expressão do CHECK que limita a coluna a uma lista fechada de valores."""
+    return f"{coluna} IN (" + ", ".join(f"'{v}'" for v in valores) + ")"
+
+
+# Dispositivo da sessão de teste, escolhido no acesso da demo (PRD-007, simulação): a base não diz
+# se o dispositivo é cadastrado, e sem escolha vale o lado conservador ("novo", como na PRD-001).
+DISPOSITIVOS = ("cadastrado", "novo")
+
+
 class Sessao(Base):
     """Sessão de teste: o token só existe no cliente; aqui fica o sha256 dele."""
 
     __tablename__ = "sessoes"
-    __table_args__ = ({"schema": "app"},)
+    __table_args__ = (
+        CheckConstraint(_um_de("dispositivo", DISPOSITIVOS), name="dispositivo"),
+        {"schema": "app"},
+    )
 
     token_hash: Mapped[str] = mapped_column(Text, primary_key=True)
     customer_id: Mapped[str] = mapped_column(Text, index=True)
     criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    dispositivo: Mapped[str] = mapped_column(Text, server_default="novo")
 
 
 class PropostaDePreCaso(Base):
@@ -128,11 +142,6 @@ class Handoff(Base):
     pendencias: Mapped[list] = mapped_column(JSONB)
     estado: Mapped[str] = mapped_column(Text, server_default="aberto")
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
-def _um_de(coluna: str, valores: tuple[str, ...]) -> str:
-    """Expressão do CHECK que limita a coluna a uma lista fechada de valores."""
-    return f"{coluna} IN (" + ", ".join(f"'{v}'" for v in valores) + ")"
 
 
 # Estados da conversa (fonte única: o tipo `conversa.Estado` e o CHECK do banco saem daqui).
