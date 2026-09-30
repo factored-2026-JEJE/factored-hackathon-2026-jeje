@@ -171,7 +171,7 @@
     "/sessao": {
       "get": {
         "summary": "Sessao Atual",
-        "description": "Quem está na sessão (o nome vem da persona provisionada).",
+        "description": "Quem está na sessão (o nome vem da persona provisionada) e o dispositivo dela.",
         "operationId": "sessao_atual_sessao_get",
         "responses": {
           "200": {
@@ -179,7 +179,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Persona"
+                  "$ref": "#/components/schemas/SessaoAtual"
                 }
               }
             }
@@ -1489,6 +1489,15 @@
             "type": "string",
             "pattern": "^[A-Za-z0-9-]{1,64}$",
             "title": "Customer Id"
+          },
+          "dispositivo": {
+            "type": "string",
+            "enum": [
+              "cadastrado",
+              "novo"
+            ],
+            "title": "Dispositivo",
+            "default": "novo"
           }
         },
         "type": "object",
@@ -1862,15 +1871,52 @@
           },
           "cliente": {
             "$ref": "#/components/schemas/Persona"
+          },
+          "dispositivo": {
+            "type": "string",
+            "enum": [
+              "cadastrado",
+              "novo"
+            ],
+            "title": "Dispositivo"
           }
         },
         "type": "object",
         "required": [
           "token",
           "expira_em",
-          "cliente"
+          "cliente",
+          "dispositivo"
         ],
         "title": "SessaoAberta"
+      },
+      "SessaoAtual": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "dispositivo": {
+            "type": "string",
+            "enum": [
+              "cadastrado",
+              "novo"
+            ],
+            "title": "Dispositivo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id",
+          "nome",
+          "dispositivo"
+        ],
+        "title": "SessaoAtual",
+        "description": "Quem está na sessão e o dispositivo simulado escolhido no acesso."
       },
       "Situacao": {
         "properties": {

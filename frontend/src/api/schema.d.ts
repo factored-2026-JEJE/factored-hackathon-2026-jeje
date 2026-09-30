@@ -122,7 +122,7 @@ export interface paths {
         };
         /**
          * Sessao Atual
-         * @description Quem está na sessão (o nome vem da persona provisionada).
+         * @description Quem está na sessão (o nome vem da persona provisionada) e o dispositivo dela.
          */
         get: operations["sessao_atual_sessao_get"];
         put?: never;
@@ -618,6 +618,12 @@ export interface components {
         PedidoDeSessao: {
             /** Customer Id */
             customer_id: string;
+            /**
+             * Dispositivo
+             * @default novo
+             * @enum {string}
+             */
+            dispositivo: "cadastrado" | "novo";
         };
         /** Persona */
         Persona: {
@@ -760,6 +766,26 @@ export interface components {
              */
             expira_em: string;
             cliente: components["schemas"]["Persona"];
+            /**
+             * Dispositivo
+             * @enum {string}
+             */
+            dispositivo: "cadastrado" | "novo";
+        };
+        /**
+         * SessaoAtual
+         * @description Quem está na sessão e o dispositivo simulado escolhido no acesso.
+         */
+        SessaoAtual: {
+            /** Customer Id */
+            customer_id: string;
+            /** Nome */
+            nome: string;
+            /**
+             * Dispositivo
+             * @enum {string}
+             */
+            dispositivo: "cadastrado" | "novo";
         };
         /** Situacao */
         Situacao: {
@@ -1041,7 +1067,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Persona"];
+                    "application/json": components["schemas"]["SessaoAtual"];
                 };
             };
             /** @description Sessão ausente, inválida ou expirada */
