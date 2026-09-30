@@ -10,6 +10,7 @@ import pytest
 from jeje.interpretacao import (
     Interpretacao,
     cartao_citado,
+    cita_cartao,
     comercio_citado,
     interpretar,
 )
@@ -468,3 +469,18 @@ CARTOES = [("Tarjeta Crédito", "9241"), ("Tarjeta Débito", "5678"), ("Tarjeta 
 )
 def test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente(cartoes, texto, citado):
     assert cartao_citado(texto, cartoes) == citado
+
+
+@pytest.mark.parametrize(
+    ("texto", "cita"),
+    [
+        ("bloqueen la terminada en 1234", True),  # final, case ou não com um cartão do cliente
+        ("quiero bloquear mi tarjeta de crédito", True),  # tipo
+        ("o de débito", True),
+        ("quiero bloquear mi tarjeta", False),
+        ("me robaron la tarjeta", False),
+        ("4000000000009241", False),  # número inteiro não é final
+    ],
+)
+def test_cita_cartao_quando_diz_final_ou_tipo(texto, cita):
+    assert cita_cartao(texto) is cita

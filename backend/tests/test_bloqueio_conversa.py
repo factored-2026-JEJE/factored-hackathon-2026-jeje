@@ -438,3 +438,70 @@ def test_bloqueio_que_nao_se_confirma_desfaz_o_turno_e_nao_diz_que_bloqueou(cena
     with conexao(cenario) as con:
         erros = con.execute(text("SELECT erro FROM app.eventos WHERE tipo = 'erro'")).scalars()
         assert list(erros) == ["RuntimeError"]
+
+
+def test_pedido_que_cita_cartao_nao_bloqueavel_nao_bloqueia_outro_no_lugar(cenario):
+    """ACH-111: com um só cartão bloqueável, citar o cartão fechado não bloqueia o outro."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "bloqueen la tarjeta terminada en 5678")
+        citado = dizer(http, auth, conversa, "bloqueen la tarjeta terminada en 0000")
+    assert (citado["regra"], citado["acao"], citado["bloqueio"]) == (
+        "POL-BLQ-03",
+        "responder",
+        None,
+    )
+    assert citado["resposta"] == (
+        "Tu tarjeta de crédito terminada en 0000 no está activa, así que no la bloqueé."
+    )
+    assert [b["product_id"] for b in bloqueios(cenario)] == ["CRT-A2"]
+
+
+def test_citar_cartao_ja_bloqueado_por_aqui_nao_bloqueia_outro(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        feito = dizer(http, auth, conversa, "bloqueen la tarjeta terminada en 5678")["bloqueio"]
+        de_novo = dizer(http, auth, conversa, "bloqueen la tarjeta terminada en 5678")
+    assert (de_novo["regra"], de_novo["bloqueio"]) == ("POL-BLQ-03", None)
+    assert de_novo["resposta"] == (
+        f"Tu tarjeta de débito terminada en 5678 ya está bloqueada (referencia {feito})."
+    )
+    assert [b["product_id"] for b in bloqueios(cenario)] == ["CRT-A2"]
+
+
+def test_citacao_que_nao_e_de_nenhum_cartao_pergunta_em_vez_de_bloquear(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        turno = dizer(
+            http, auth, abrir_conversa(http, auth, "es"), "bloqueen la tarjeta terminada en 1234"
+        )
+    assert (turno["regra"], turno["estado"]) == ("POL-BLQ-06", "escolhendo_cartao")
+    assert "1. tarjeta de crédito terminada en 1111" in turno["resposta"]
+    assert bloqueios(cenario) == []
+
+
+def test_fraude_que_cita_cartao_nao_bloqueavel_encaminha_sem_bloquear_outro(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        dizer(http, auth, abrir_conversa(http, auth, "es"), "bloqueen la tarjeta terminada en 5678")
+        turno = dizer(
+            http, auth, abrir_conversa(http, auth, "es"), "me robaron la tarjeta terminada en 0000"
+        )
+    assert (turno["regra"], turno["acao"], turno["bloqueio"]) == ("POL-HUM-01", "humano", None)
+    assert turno["resposta"].startswith(
+        "Tu tarjeta de crédito terminada en 0000 no está activa, así que no la bloqueé.\n"
+        "Por seguridad, un agente va a atender este caso."
+    )
+    assert [b["product_id"] for b in bloqueios(cenario)] == ["CRT-A2"]
+
+
+def test_desbloqueio_que_cita_cartao_sem_bloqueio_nao_propoe_desfazer_outro(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "bloqueen la tarjeta terminada en 9241")
+        turno = dizer(http, auth, conversa, "quiero desbloquear la tarjeta terminada en 5678")
+    assert (turno["regra"], turno["acao"]) == ("POL-BLQ-05", "humano")
+    assert desfeitos(cenario) == []
