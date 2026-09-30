@@ -28,7 +28,7 @@ async function indicadores(request: import("@playwright/test").APIRequestContext
 
 test("seção da EDA mostra exatamente os números e as consultas da API", async ({ page, request }) => {
   const todos = await indicadores(request);
-  await page.goto("/");
+  await page.goto("/#operacao");
   await expect(page.getByRole("heading", { name: "Por que este fluxo" })).toBeVisible();
   // Na base real as consultas varrem milhões de linhas e disputam o banco com as outras
   // jornadas em paralelo: o primeiro indicador pode levar mais que o tempo padrão.

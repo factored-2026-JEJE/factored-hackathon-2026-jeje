@@ -301,8 +301,8 @@
       "trocas": [
         {
           "arquivo": "frontend/src/App.tsx",
-          "de": "            <FilaDoAtendimento versao={versao} />",
-          "para": "            <FilaDoAtendimento versao={0} />"
+          "de": "          <FilaDoAtendimento versao={versao} />",
+          "para": "          <FilaDoAtendimento versao={0} />"
         }
       ],
       "testes": [
@@ -392,8 +392,23 @@
       "trocas": [
         {
           "arquivo": "frontend/src/App.tsx",
-          "de": "            <BloqueiosDoAtendimento versao={versao} />",
-          "para": "            <BloqueiosDoAtendimento versao={0} />"
+          "de": "          <BloqueiosDoAtendimento versao={versao} />",
+          "para": "          <BloqueiosDoAtendimento versao={0} />"
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho humano (es): relato de fraude encaminha e aparece na fila do atendente"
+      ]
+    },
+    {
+      "id": "M-E2E-25",
+      "requisito": "R02",
+      "descricao": "Aba escondida continua aparecendo (o layout vence o hidden)",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/estilo.css",
+          "de": "[hidden] {\n  display: none !important;\n}\n",
+          "para": ""
         }
       ],
       "testes": [

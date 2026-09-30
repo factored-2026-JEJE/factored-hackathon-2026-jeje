@@ -325,3 +325,49 @@ test("turno reaberto pelo histórico mostra só a regra e a ação", async () =>
   expect(within(resposta).getByText("propor_pre_caso")).toBeVisible();
   expect(within(resposta).queryByText("Efeito")).not.toBeInTheDocument();
 });
+
+async function atalhoDeBloqueio(idioma: "es" | "pt", abrir: string) {
+  const enviados: string[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      const r = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status });
+      if (url === "/api/conversas" && init?.method === "POST") return r(201, { ...ABERTA, idioma });
+      if (url === "/api/conversas/C1/turnos") {
+        enviados.push(JSON.parse(String(init?.body)).texto);
+        return r(200, turno({ idioma, resposta: "recebido", estado: "livre", proposta: null }));
+      }
+      return r(404, {});
+    }),
+  );
+  montar();
+  await userEvent.click(await screen.findByRole("button", { name: abrir }));
+  await userEvent.click(within(screen.getByRole("group", { name: "Atalhos" })).getByRole("button", { name: "Bloquear cartão" }));
+  expect(await screen.findByText("recebido")).toBeInTheDocument();
+  return enviados;
+}
+
+test("atalho manda a frase pronta em espanhol na conversa em espanhol", async () => {
+  expect(await atalhoDeBloqueio("es", "Conversar em español")).toEqual(["Quiero bloquear mi tarjeta"]);
+});
+
+test("atalho manda a frase pronta em português na conversa em português", async () => {
+  expect(await atalhoDeBloqueio("pt", "Conversar em português")).toEqual(["Quero bloquear meu cartão"]);
+});
+
+test("a oferta do atendente tem rótulos claros e continua mandando sí e no", async () => {
+  const oferta = turno({
+    regra: "RESUMO",
+    acao: "oferecer_humano",
+    estado: "oferecendo_humano",
+    resposta: "Si no es eso, ¿quieres que te comunique con un agente?",
+    proposta: null,
+  });
+  const { enviados } = servidor([{ status: 200, corpo: oferta }, { status: 200, corpo: oferta }]);
+  montar();
+  await abrirEPedir("algo");
+  const grupo = within(await screen.findByRole("group", { name: "Atendente" }));
+  await userEvent.click(grupo.getByRole("button", { name: "Continuar aqui" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Falar com um atendente" }));
+  expect(enviados).toEqual(["algo", "No", "Sí"]);
+});

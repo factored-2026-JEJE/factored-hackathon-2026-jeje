@@ -1178,6 +1178,81 @@
       "testes": [
         "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu"
       ]
+    },
+    {
+      "id": "M-WEB-84",
+      "requisito": "R02",
+      "descricao": "A aba do atendente aparece junto com a do cliente",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "          hidden={aba !== \"atendente\"}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > abre na aba do cliente e troca de área pelas abas, com endereço próprio"
+      ]
+    },
+    {
+      "id": "M-WEB-85",
+      "requisito": "R02",
+      "descricao": "O endereço (#operacao) não escolhe a aba ao abrir",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "useState<Aba>(abaDoEndereco)",
+          "para": "useState<Aba>(\"cliente\")"
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > o endereço escolhe a aba ao abrir, e a aba escondida continua montada"
+      ]
+    },
+    {
+      "id": "M-WEB-86",
+      "requisito": "R03",
+      "descricao": "O botão da oferta manda o rótulo em vez do sí (a API não confirma nada)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "onClick={() => void enviar(rapidas.sim)}",
+          "para": "onClick={() => void enviar(\"Falar com um atendente\")}"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > a oferta do atendente tem rótulos claros e continua mandando sí e no"
+      ]
+    },
+    {
+      "id": "M-WEB-87",
+      "requisito": "R07",
+      "descricao": "Atalho manda a frase em português numa conversa em espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "{ATALHOS[situacao.idioma].map(",
+          "para": "{ATALHOS.pt.map("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > atalho manda a frase pronta em espanhol na conversa em espanhol"
+      ]
+    },
+    {
+      "id": "M-WEB-88",
+      "requisito": "R07",
+      "descricao": "Atalho manda a frase em espanhol numa conversa em português",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "{ATALHOS[situacao.idioma].map(",
+          "para": "{ATALHOS.es.map("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > atalho manda a frase pronta em português na conversa em português"
+      ]
     }
   ]
 }

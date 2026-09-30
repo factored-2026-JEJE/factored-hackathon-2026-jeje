@@ -13,7 +13,7 @@ test("página de status mostra exatamente o estado que a API reporta", async ({ 
   expect([200, 503]).toContain(resposta.status());
   const prontidao = await resposta.json();
 
-  await page.goto("/");
+  await page.goto("/#operacao");
 
   const titulo = prontidao.status === "ready" ? "Pronto para atender" : "Indisponível";
   await expect(page.getByRole("heading", { name: titulo })).toBeVisible();
