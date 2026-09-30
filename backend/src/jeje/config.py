@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     canais_digitais: str
     # Transferência acima disto vai para análise de segurança (POL-SEG-01).
     limite_seguranca_transferencia_usd: Decimal = Field(gt=0)
+    # Janela da contestação em dias, contados do último dia dos dados (POL-HUM-05), e reincidência:
+    # N pré-casos do cliente nos últimos N dias do relógio mandam o próximo ao humano (POL-HUM-06).
+    janela_contestacao_dias: int = Field(gt=0)
+    reincidencia_pre_casos: int = Field(gt=0)
+    reincidencia_dias: int = Field(gt=0)
     # Validade da proposta de pré-caso até a confirmação do cliente, em minutos.
     proposta_ttl_minutos: int = Field(gt=0)
     # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"
@@ -90,6 +95,9 @@ class Settings(BaseSettings):
                 c.strip() for c in self.canais_digitais.split(",") if c.strip()
             ),
             seguranca_transferencia_usd=self.limite_seguranca_transferencia_usd,
+            janela_contestacao_dias=self.janela_contestacao_dias,
+            reincidencia_pre_casos=self.reincidencia_pre_casos,
+            reincidencia_dias=self.reincidencia_dias,
         )
 
 

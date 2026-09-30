@@ -67,6 +67,18 @@ def noturno_digital_hoje(
     )
 
 
+def _do_cliente(conexao: Connection, customer_id: str, limites: politica.Limites) -> dict:
+    """O que a política precisa saber do cliente, além da transação: o total noturno digital de
+    hoje (POL-HUM-04), o "hoje" dos dados (POL-HUM-05) e os pré-casos recentes (POL-HUM-06)."""
+    return {
+        "noturno_no_dia_usd": noturno_digital_hoje(conexao, customer_id, limites),
+        "hoje": consultas.hoje_dos_dados(conexao),
+        "pre_casos_recentes": consultas.pre_casos_recentes(
+            conexao, customer_id, limites.reincidencia_dias
+        ),
+    }
+
+
 def avaliar(
     conexao: Connection, customer_id: str, transaction_id: str, limites: politica.Limites
 ) -> tuple[politica.Fatos, politica.Decisao]:
@@ -80,7 +92,7 @@ def avaliar(
         fatos,
         limites,
         existente.protocolo if existente else None,
-        noturno_digital_hoje(conexao, customer_id, limites),
+        **_do_cliente(conexao, customer_id, limites),
     )
     return fatos, decisao
 
@@ -153,7 +165,7 @@ def confirmar(
         fatos,
         limites,
         protocolo_existente=None,
-        noturno_no_dia_usd=noturno_digital_hoje(conexao, customer_id, limites),
+        **_do_cliente(conexao, customer_id, limites),
     )
     if decisao.acao != "propor_pre_caso":
         raise Conflito(f"situação da transação mudou ({decisao.regra})")

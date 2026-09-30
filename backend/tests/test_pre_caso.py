@@ -261,3 +261,93 @@ def test_confirmacoes_simultaneas_nao_estouram_o_limite_do_dia(noturnas):
             )
     assert sorted(r.status_code for r in respostas) == [201, 409]
     assert len(pre_casos(noturnas)) == 1
+
+
+# ---- Janela e reincidência (PRD-008) ------------------------------------------------------------
+
+
+@pytest.fixture
+def antigas(base):
+    """Compras de CLI-A na borda da janela de contestação: o último dia dos dados é 10/03/2025, e
+    10/11/2024 fica a 120 dias dele, 09/11/2024 a 121."""
+    with conexao(base) as con:
+        for tid, quando in (
+            ("TRX-HOJE", "2025-03-10 10:00:00"),
+            ("TRX-120", "2024-11-10 10:00:00"),
+            ("TRX-121", "2024-11-09 10:00:00"),
+        ):
+            raw_transacao(con, tid, "CLI-A", "PRD-A", amount="20.00", transaction_date=quando)
+    curar_tudo(base)
+    with conexao(base) as con:
+        sessao.provisionar_personas(con, 2)
+    return base
+
+
+def test_janela_de_contestacao_conta_do_ultimo_dia_dos_dados(antigas):
+    """A janela é contada da base (um retrato de 2025), não do relógio: pelo relógio, toda compra
+    da base estaria fora dela."""
+    with cliente(antigas) as http:
+        auth = autenticar(http, "CLI-A")
+        na_borda = http.get("/minhas/transacoes/TRX-120/contestacao", headers=auth).json()
+        fora = http.post(PROPOR.format("TRX-121"), headers=auth).json()
+    assert na_borda["regra"] == "POL-DISP-01"
+    assert (fora["decisao"]["regra"], fora["decisao"]["acao"], fora["proposta"]) == (
+        "POL-HUM-05", "humano", None
+    )  # fmt: skip
+    assert pre_casos(antigas) == []
+
+
+@pytest.fixture
+def varias(base):
+    """Cinco compras pequenas de CLI-A de dia, para registrar pré-casos em sequência."""
+    with conexao(base) as con:
+        for i in range(1, 6):
+            raw_transacao(
+                con, f"TRX-V{i}", "CLI-A", "PRD-A", amount="15.00",
+                transaction_date=f"2025-03-10 1{i}:00:00",
+            )  # fmt: skip
+    curar_tudo(base)
+    with conexao(base) as con:
+        sessao.provisionar_personas(con, 2)
+    return base
+
+
+def registrar(http, auth, tid: str):
+    proposta = http.post(PROPOR.format(tid), headers=auth).json()
+    return http.post(CONFIRMAR.format(proposta["proposta"]["id"]), headers=auth)
+
+
+def test_reincidencia_manda_a_quarta_contestacao_do_mes_para_o_atendente(varias):
+    with cliente(varias) as http:
+        auth = autenticar(http, "CLI-A")
+        for tid in ("TRX-V1", "TRX-V2", "TRX-V3"):
+            assert registrar(http, auth, tid).status_code == 201
+        quarta = http.get("/minhas/transacoes/TRX-V4/contestacao", headers=auth).json()
+    assert (quarta["regra"], quarta["acao"]) == ("POL-HUM-06", "humano")
+    assert len(pre_casos(varias)) == 3
+
+
+def test_pre_casos_de_mais_de_30_dias_nao_contam_na_reincidencia(varias):
+    with cliente(varias) as http:
+        auth = autenticar(http, "CLI-A")
+        for tid in ("TRX-V1", "TRX-V2", "TRX-V3"):
+            assert registrar(http, auth, tid).status_code == 201
+        with conexao(varias) as con:
+            con.execute(text("UPDATE app.pre_casos SET criado_em = now() - interval '31 days'"))
+        quarta = http.get("/minhas/transacoes/TRX-V4/contestacao", headers=auth).json()
+    assert quarta["regra"] == "POL-DISP-01"
+
+
+def test_confirmacao_reavalia_a_reincidencia(varias):
+    """Proposta feita com 2 pré-casos recentes; um terceiro é registrado antes do sim: a
+    confirmação reavalia e responde 409, sem criar pré-caso."""
+    with cliente(varias) as http:
+        auth = autenticar(http, "CLI-A")
+        for tid in ("TRX-V1", "TRX-V2"):
+            assert registrar(http, auth, tid).status_code == 201
+        proposta = http.post(PROPOR.format("TRX-V4"), headers=auth).json()
+        assert proposta["decisao"]["regra"] == "POL-DISP-01"
+        assert registrar(http, auth, "TRX-V3").status_code == 201
+        confirmacao = http.post(CONFIRMAR.format(proposta["proposta"]["id"]), headers=auth)
+    assert confirmacao.status_code == 409
+    assert ("CLI-A", "TRX-V4") not in pre_casos(varias)

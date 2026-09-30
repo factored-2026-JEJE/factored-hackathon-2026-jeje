@@ -6253,13 +6253,14 @@
       "descricao": "Data sem ano lida pelo relógio e não pelo dia dos dados (\"10 de marzo\" vira o do ano corrente e não acha nada)",
       "trocas": [
         {
-          "arquivo": "src/jeje/conversa.py",
-          "de": "    hoje = linha.hoje if dia_dos_dados is None else min(linha.hoje, dia_dos_dados)",
-          "para": "    hoje = linha.hoje"
+          "arquivo": "src/jeje/consultas.py",
+          "de": "    return agora if dia is None else min(agora, dia)",
+          "para": "    return agora"
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_data_sem_ano_e_lida_a_partir_do_dia_dos_dados"
+        "tests/test_conversa.py::test_data_sem_ano_e_lida_a_partir_do_dia_dos_dados",
+        "tests/test_pre_caso.py::test_janela_de_contestacao_conta_do_ultimo_dia_dos_dados"
       ]
     },
     {
@@ -6733,6 +6734,163 @@
       ],
       "testes": [
         "tests/test_reviews.py::test_pendentes_nao_viram_issue_com_dados_reais"
+      ]
+    },
+    {
+      "id": "M-POL-35",
+      "requisito": "R03",
+      "descricao": "Compra na borda da janela (120 dias) vai para humano: limite contado com >=",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if idade is not None and idade > limites.janela_contestacao_dias:\n",
+          "para": "    if idade is not None and idade >= limites.janela_contestacao_dias:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_janela_de_contestacao_conta_do_hoje_dos_dados",
+        "tests/test_pre_caso.py::test_janela_de_contestacao_conta_do_ultimo_dia_dos_dados"
+      ]
+    },
+    {
+      "id": "M-POL-36",
+      "requisito": "R03",
+      "descricao": "Sem a janela de contestação: compra de qualquer idade vira pré-caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if idade is not None and idade > limites.janela_contestacao_dias:\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_janela_de_contestacao_conta_do_hoje_dos_dados",
+        "tests/test_pre_caso.py::test_janela_de_contestacao_conta_do_ultimo_dia_dos_dados",
+        "tests/test_conversa.py::test_contestacao_de_compra_fora_da_janela_vai_para_humano"
+      ]
+    },
+    {
+      "id": "M-POL-37",
+      "requisito": "R03",
+      "descricao": "Reincidência só a partir do 4º pré-caso recente: limite contado com >",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if pre_casos_recentes >= limites.reincidencia_pre_casos:\n",
+          "para": "    if pre_casos_recentes > limites.reincidencia_pre_casos:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_reincidencia_manda_a_proxima_contestacao_para_o_atendente",
+        "tests/test_pre_caso.py::test_reincidencia_manda_a_quarta_contestacao_do_mes_para_o_atendente"
+      ]
+    },
+    {
+      "id": "M-POL-38",
+      "requisito": "R03",
+      "descricao": "Sem a regra de reincidência: pré-casos recentes não mandam para humano",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if pre_casos_recentes >= limites.reincidencia_pre_casos:\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_reincidencia_manda_a_proxima_contestacao_para_o_atendente",
+        "tests/test_pre_caso.py::test_reincidencia_manda_a_quarta_contestacao_do_mes_para_o_atendente",
+        "tests/test_pre_caso.py::test_confirmacao_reavalia_a_reincidencia"
+      ]
+    },
+    {
+      "id": "M-POL-39",
+      "requisito": "R03",
+      "descricao": "Reincidência avaliada antes da janela (compra antiga de cliente reincidente sai com a regra errada)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if idade is not None and idade > limites.janela_contestacao_dias:\n        return Decisao(\"POL-HUM-05\", \"humano\", f\"compra de {idade} dias\")\n    if pre_casos_recentes >= limites.reincidencia_pre_casos:\n        return Decisao(\"POL-HUM-06\", \"humano\", f\"{pre_casos_recentes} pré-casos recentes\")\n",
+          "para": "    if pre_casos_recentes >= limites.reincidencia_pre_casos:\n        return Decisao(\"POL-HUM-06\", \"humano\", f\"{pre_casos_recentes} pré-casos recentes\")\n    if idade is not None and idade > limites.janela_contestacao_dias:\n        return Decisao(\"POL-HUM-05\", \"humano\", f\"compra de {idade} dias\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_ordem_das_regras_com_janela_e_reincidencia"
+      ]
+    },
+    {
+      "id": "M-POL-40",
+      "requisito": "R03",
+      "descricao": "Idade da compra contada pelo relógio, não pelo \"hoje\" dos dados (toda a base cai fora da janela)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return (hoje - fatos.transaction_date.date()).days",
+          "para": "    return (date.today() - fatos.transaction_date.date()).days"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_janela_de_contestacao_conta_do_hoje_dos_dados"
+      ]
+    },
+    {
+      "id": "M-PRE-16",
+      "requisito": "R03",
+      "descricao": "A avaliação não passa o \"hoje\" dos dados: a janela nunca vale pela API",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "        \"hoje\": consultas.hoje_dos_dados(conexao),\n",
+          "para": "        \"hoje\": None,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_janela_de_contestacao_conta_do_ultimo_dia_dos_dados"
+      ]
+    },
+    {
+      "id": "M-PRE-17",
+      "requisito": "R03",
+      "descricao": "Pré-casos de qualquer data contam na reincidência (sem a janela de 30 dias)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "            \" AND criado_em > now() - make_interval(days => :dias)\"\n",
+          "para": "            \" AND :dias > 0\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_pre_casos_de_mais_de_30_dias_nao_contam_na_reincidencia"
+      ]
+    },
+    {
+      "id": "M-PRE-18",
+      "requisito": "R03",
+      "descricao": "A avaliação não conta os pré-casos recentes: a reincidência nunca vale pela API",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/pre_caso.py",
+          "de": "        \"pre_casos_recentes\": consultas.pre_casos_recentes(\n            conexao, customer_id, limites.reincidencia_dias\n        ),\n",
+          "para": "        \"pre_casos_recentes\": 0,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_pre_caso.py::test_reincidencia_manda_a_quarta_contestacao_do_mes_para_o_atendente",
+        "tests/test_pre_caso.py::test_confirmacao_reavalia_a_reincidencia"
+      ]
+    },
+    {
+      "id": "M-CONV-49",
+      "requisito": "R03",
+      "descricao": "Encaminhamento da janela sem pendência para o atendente (a conversa quebra)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    \"POL-HUM-05\": \"Revisar contestação de compra fora da janela de contestação\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_contestacao_de_compra_fora_da_janela_vai_para_humano"
       ]
     }
   ]
