@@ -1,6 +1,6 @@
 // Acesso de teste e área do cliente contra um servidor mínimo na fronteira de rede: as transações
 // só saem com o token emitido pelo POST /api/sessoes. A integração real é conferida no E2E.
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Transacao } from "./api/cliente";
 import { Atendimento } from "./Atendimento";
@@ -24,6 +24,8 @@ function servidor({ tokenValido = true } = {}) {
   const emitido = "tok-ana";
   let valido = tokenValido;
   const pedidos: { url: string; auth: string | null }[] = [];
+  const dispositivos: string[] = [];
+  let dispositivo = "novo";
   const responder = (status: number, corpo: unknown) =>
     new Response(JSON.stringify(corpo), { status });
   vi.stubGlobal(
@@ -33,17 +35,19 @@ function servidor({ tokenValido = true } = {}) {
       pedidos.push({ url, auth });
       if (url === "/api/personas") return responder(200, [ANA]);
       if (url === "/api/sessoes" && init?.method === "POST") {
-        const { customer_id } = JSON.parse(String(init.body));
-        if (customer_id !== ANA.customer_id) return responder(404, { detail: "Persona não encontrada" });
-        return responder(201, { token: emitido, expira_em: "2099-01-01T00:00:00Z", cliente: ANA });
+        const corpo = JSON.parse(String(init.body));
+        if (corpo.customer_id !== ANA.customer_id) return responder(404, { detail: "Persona não encontrada" });
+        dispositivos.push(corpo.dispositivo);
+        dispositivo = corpo.dispositivo ?? "novo";
+        return responder(201, { token: emitido, expira_em: "2099-01-01T00:00:00Z", cliente: ANA, dispositivo });
       }
       if (auth !== `Bearer ${emitido}` || !valido) return responder(401, { detail: "Sessão ausente" });
-      if (url === "/api/sessao") return responder(200, ANA);
+      if (url === "/api/sessao") return responder(200, { ...ANA, dispositivo });
       if (url === "/api/minhas/transacoes") return responder(200, TRANSACOES);
       return responder(404, { detail: "Not Found" });
     }),
   );
-  return { pedidos, invalidar: () => (valido = false) };
+  return { pedidos, dispositivos, invalidar: () => (valido = false) };
 }
 
 beforeEach(() => sessionStorage.clear());
@@ -95,4 +99,29 @@ test("recarregar a página com sessão guardada volta direto para o cliente", as
   sessionStorage.setItem("jeje.sessao", "tok-ana");
   render(<Atendimento />);
   expect(await screen.findByRole("heading", { name: "Olá, Ana Souza" })).toBeInTheDocument();
+});
+
+test("o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a sessão mostra o escolhido", async () => {
+  const { dispositivos } = servidor();
+  render(<Atendimento />);
+  const grupo = await screen.findByRole("radiogroup", { name: "Dispositivo (simulação)" });
+  expect(within(grupo).getByRole("radio", { name: "Novo" })).toBeChecked();
+  await userEvent.click(screen.getByRole("button", { name: "Entrar como Ana Souza" }));
+  expect(await screen.findByText("Dispositivo (simulação): novo")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Sair" }));
+  await userEvent.click(await screen.findByRole("radio", { name: "Cadastrado" }));
+  await userEvent.click(screen.getByRole("button", { name: "Entrar como Ana Souza" }));
+  expect(await screen.findByText("Dispositivo (simulação): cadastrado")).toBeInTheDocument();
+  expect(dispositivos).toEqual(["novo", "cadastrado"]);
+});
+
+test("recarregar a página mostra o dispositivo guardado pelo servidor", async () => {
+  servidor();
+  render(<Atendimento />);
+  await userEvent.click(await screen.findByRole("radio", { name: "Cadastrado" }));
+  await userEvent.click(screen.getByRole("button", { name: "Entrar como Ana Souza" }));
+  await screen.findByText("Dispositivo (simulação): cadastrado");
+  cleanup();
+  render(<Atendimento />);
+  expect(await screen.findByText("Dispositivo (simulação): cadastrado")).toBeInTheDocument();
 });

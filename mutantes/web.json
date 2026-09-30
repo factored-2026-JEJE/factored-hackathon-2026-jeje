@@ -148,8 +148,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "if (turno.acao === \"registrar_pre_caso\" || turno.acao === \"humano\") aoMudar();",
-          "para": "if (turno.acao === \"registrar_pre_caso\") aoMudar();"
+          "de": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\"];",
+          "para": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"bloquear_cartao\"];"
         }
       ],
       "testes": [
@@ -950,6 +950,157 @@
       ],
       "testes": [
         "src/Conversa.test.tsx > mensagem que não chegou ao servidor continua com Reenviar, e o reenvio registra"
+      ]
+    },
+    {
+      "id": "M-WEB-69",
+      "requisito": "R07",
+      "descricao": "Bloqueio feito na conversa não avisa o console do atendente",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\", \"bloquear_cartao\"];",
+          "para": "const AVISAM_O_CONSOLE = [\"registrar_pre_caso\", \"humano\"];"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > bloqueio feito na conversa avisa o console do atendente"
+      ]
+    },
+    {
+      "id": "M-WEB-70",
+      "requisito": "R08",
+      "descricao": "O acesso não manda o dispositivo escolhido (toda sessão vira novo)",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "    body: JSON.stringify({ customer_id: customerId, dispositivo }),",
+          "para": "    body: JSON.stringify({ customer_id: customerId }),"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a sessão mostra o escolhido"
+      ]
+    },
+    {
+      "id": "M-WEB-71",
+      "requisito": "R08",
+      "descricao": "Sem escolha, o acesso vai como dispositivo cadastrado (o lado não conservador)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "useState<Dispositivo>(\"novo\")",
+          "para": "useState<Dispositivo>(\"cadastrado\")"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a sessão mostra o escolhido"
+      ]
+    },
+    {
+      "id": "M-WEB-72",
+      "requisito": "R08",
+      "descricao": "A sessão restaurada ignora o dispositivo guardado pelo servidor",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": ".then((atual) => setSessao({ token, cliente: atual, dispositivo: atual.dispositivo }))",
+          "para": ".then((atual) => setSessao({ token, cliente: atual, dispositivo: \"novo\" }))"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > recarregar a página mostra o dispositivo guardado pelo servidor"
+      ]
+    },
+    {
+      "id": "M-WEB-73",
+      "requisito": "R03",
+      "descricao": "Console tira o bloqueio antes da API confirmar o desbloqueio (remoção otimista)",
+      "trocas": [
+        {
+          "arquivo": "src/BloqueiosDoAtendimento.tsx",
+          "de": "    try {\n      const desfeito = await desbloquearCartao(id);",
+          "para": "    try {\n      setBloqueios((atual) => atual?.filter((x) => x.id !== id) ?? null);\n      const desfeito = await desbloquearCartao(id);"
+        }
+      ],
+      "testes": [
+        "src/BloqueiosDoAtendimento.test.tsx > desbloquear tira da lista só depois que a API confirma"
+      ]
+    },
+    {
+      "id": "M-WEB-74",
+      "requisito": "R07",
+      "descricao": "Console não busca de novo depois de desbloquear",
+      "trocas": [
+        {
+          "arquivo": "src/BloqueiosDoAtendimento.tsx",
+          "de": "    setDesfeitos((n) => n + 1);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/BloqueiosDoAtendimento.test.tsx > desbloquear tira da lista só depois que a API confirma",
+        "src/BloqueiosDoAtendimento.test.tsx > bloqueio já desfeito por outro mostra o motivo da API e atualiza a lista"
+      ]
+    },
+    {
+      "id": "M-WEB-75",
+      "requisito": "R07",
+      "descricao": "Console de bloqueios não busca de novo quando a conversa bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/BloqueiosDoAtendimento.tsx",
+          "de": "  }, [versao, desfeitos]);",
+          "para": "  }, [desfeitos]);"
+        }
+      ],
+      "testes": [
+        "src/BloqueiosDoAtendimento.test.tsx > sem bloqueio ativo diz isso e busca de novo quando a versão muda"
+      ]
+    },
+    {
+      "id": "M-WEB-76",
+      "requisito": "R03",
+      "descricao": "Desbloqueio recusado pela API esconde o motivo",
+      "trocas": [
+        {
+          "arquivo": "src/BloqueiosDoAtendimento.tsx",
+          "de": "e instanceof Recusado ? `${id}: ${e.message}.` : `Não foi possível desbloquear ${id}.`",
+          "para": "`Não foi possível desbloquear ${id}.`"
+        }
+      ],
+      "testes": [
+        "src/BloqueiosDoAtendimento.test.tsx > bloqueio já desfeito por outro mostra o motivo da API e atualiza a lista"
+      ]
+    },
+    {
+      "id": "M-WEB-77",
+      "requisito": "R06",
+      "descricao": "Console fora do ar não avisa",
+      "trocas": [
+        {
+          "arquivo": "src/BloqueiosDoAtendimento.tsx",
+          "de": "      {erro && <p role=\"alert\">Bloqueios indisponíveis.</p>}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/BloqueiosDoAtendimento.test.tsx > console fora do ar avisa em vez de mostrar lista vazia"
+      ]
+    },
+    {
+      "id": "M-WEB-78",
+      "requisito": "R08",
+      "descricao": "Console não diz qual cartão (sem o final)",
+      "trocas": [
+        {
+          "arquivo": "src/BloqueiosDoAtendimento.tsx",
+          "de": "const cartao = (b: BloqueioDeCartao) => (b.ultimos4 ? `${b.produto} final ${b.ultimos4}` : b.produto);",
+          "para": "const cartao = (b: BloqueioDeCartao) => b.produto;"
+        }
+      ],
+      "testes": [
+        "src/BloqueiosDoAtendimento.test.tsx > mostra cada bloqueio ativo com o cartão só pelo tipo e pelo final, na ordem da API"
       ]
     }
   ]
