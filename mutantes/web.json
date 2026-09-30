@@ -1283,6 +1283,67 @@
       "testes": [
         "src/Conversa.test.tsx > desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o console"
       ]
+    },
+    {
+      "id": "M-WEB-91",
+      "requisito": "R02",
+      "descricao": "\"Perguntar sobre esta\" aparece sem conversa aberta",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "              {idioma && (\n",
+          "para": "              {(idioma ?? \"es\") && (\n"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em espanhol as pistas da linha, nunca o identificador"
+      ]
+    },
+    {
+      "id": "M-WEB-92",
+      "requisito": "R08",
+      "descricao": "A pergunta montada pela tela leva o identificador da transação",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "    return `¿Qué pasó con la transacción de ${quantia} del ${data}${t.merchant_name ? ` en ${t.merchant_name}` : \"\"}?`;",
+          "para": "    return `¿Qué pasó con la transacción ${t.transaction_id} de ${quantia} del ${data}${t.merchant_name ? ` en ${t.merchant_name}` : \"\"}?`;"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em espanhol as pistas da linha, nunca o identificador"
+      ]
+    },
+    {
+      "id": "M-WEB-93",
+      "requisito": "R07",
+      "descricao": "Conversa em português recebe a pergunta em espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "  if (idioma === \"es\") {\n",
+          "para": "  if (idioma !== \"zz\") {\n"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em português as pistas da linha"
+      ]
+    },
+    {
+      "id": "M-WEB-94",
+      "requisito": "R02",
+      "descricao": "A pergunta montada pela tela não é enviada",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "    void enviar(pergunta);\n  }, [pergunta, aoPerguntado]);",
+          "para": "  }, [pergunta, aoPerguntado]);"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em espanhol as pistas da linha, nunca o identificador",
+        "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em português as pistas da linha"
+      ]
     }
   ]
 }

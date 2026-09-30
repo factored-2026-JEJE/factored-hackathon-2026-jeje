@@ -916,3 +916,21 @@ def test_turno_diz_por_que_respondeu_assim(cenario):
     assert set(proposta["fontes"]) >= {
         "curated.transactions", "app.pre_casos", "app.propostas_pre_caso"
     }  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("idioma", "pergunta"),
+    [
+        ("es", "¿Qué pasó con la transacción de 45,90 del 10/03/2025 en Streaming Plus?"),
+        ("pt", "O que aconteceu com a transação de 45,90 do dia 10/03/2025 na Streaming Plus?"),
+    ],
+)
+def test_pergunta_montada_pela_tela_acha_a_transacao_da_linha(cenario, idioma, pergunta):
+    """A frase de "Perguntar sobre esta" (Atendimento.tsx) acha a transação da linha só pelas
+    pistas (valor, data e comércio), sem o identificador."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        turno = dizer(http, auth, abrir_conversa(http, auth, idioma), pergunta)
+    assert (turno["transaction_id"], turno["acao"], turno["regra"]) == (
+        "TRX-A1", "responder", "POL-CON-01"
+    )  # fmt: skip
