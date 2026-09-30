@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Identity,
+    Index,
     Integer,
     MetaData,
     Numeric,
@@ -255,3 +256,47 @@ class Review(Base):
     comentario: Mapped[str] = mapped_column(Text)
     issue_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# Bloqueio simulado de cartão (PRD-007): o tipo vem do dispositivo da sessão, o motivo diz quem pode
+# desfazer (o que veio de roubo ou perda, só o atendente) e quem desfez fica registrado.
+TIPOS_DE_BLOQUEIO = ("preventivo", "completo")
+MOTIVOS_DE_BLOQUEIO = ("pedido", "roubo_perda")
+QUEM_DESFAZ = ("cliente", "atendente")
+BLOQUEIO_SEQ = Sequence("bloqueio_seq", schema="app", metadata=Base.metadata)
+
+
+class Bloqueio(Base):
+    """Bloqueio simulado de um cartão do cliente (PRD-007). A curada não muda (é dado do desafio): o
+    bloqueio fica aqui, com a fotografia do cartão (tipo e 4 últimos dígitos, nunca o número)."""
+
+    __tablename__ = "bloqueios"
+    __table_args__ = (
+        CheckConstraint(_um_de("tipo", TIPOS_DE_BLOQUEIO), name="tipo"),
+        CheckConstraint(_um_de("motivo", MOTIVOS_DE_BLOQUEIO), name="motivo"),
+        CheckConstraint(_um_de("dispositivo", DISPOSITIVOS), name="dispositivo"),
+        CheckConstraint(_um_de("desfeito_por", QUEM_DESFAZ), name="desfeito_por"),
+        CheckConstraint("(desfeito_em IS NULL) = (desfeito_por IS NULL)", name="desfeito"),
+        # Um bloqueio ativo por cartão do cliente: bloquear de novo não duplica (idempotência).
+        Index(
+            "uq_bloqueios_ativo",
+            "customer_id",
+            "product_id",
+            unique=True,
+            postgresql_where=text("desfeito_em IS NULL"),
+        ),
+        {"schema": "app"},
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    customer_id: Mapped[str] = mapped_column(Text)
+    product_id: Mapped[str] = mapped_column(Text)
+    produto: Mapped[str] = mapped_column(Text)
+    ultimos4: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tipo: Mapped[str] = mapped_column(Text)
+    motivo: Mapped[str] = mapped_column(Text)
+    dispositivo: Mapped[str] = mapped_column(Text)
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    reversivel_ate: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    desfeito_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    desfeito_por: Mapped[str | None] = mapped_column(Text, nullable=True)

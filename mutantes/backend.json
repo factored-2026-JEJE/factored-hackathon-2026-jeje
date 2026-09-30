@@ -6833,6 +6833,83 @@
       ]
     },
     {
+      "id": "M-POL-41",
+      "requisito": "R03",
+      "descricao": "Cartão já bloqueado pelo canal continua bloqueável",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return [c for c in cartoes if c.status == \"Active\" and c.bloqueio is None]",
+          "para": "    return [c for c in cartoes if c.status == \"Active\"]"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_bloqueaveis_sao_os_cartoes_ativos_sem_bloqueio_do_canal",
+        "tests/test_bloqueio.py::test_cartoes_do_cliente_trazem_status_da_base_e_bloqueio_do_canal"
+      ]
+    },
+    {
+      "id": "M-POL-42",
+      "requisito": "R03",
+      "descricao": "Cartão fechado, bloqueado ou suspenso na base continua bloqueável",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    return [c for c in cartoes if c.status == \"Active\" and c.bloqueio is None]",
+          "para": "    return [c for c in cartoes if c.bloqueio is None]"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_bloqueaveis_sao_os_cartoes_ativos_sem_bloqueio_do_canal",
+        "tests/test_bloqueio.py::test_cartoes_do_cliente_trazem_status_da_base_e_bloqueio_do_canal"
+      ]
+    },
+    {
+      "id": "M-POL-43",
+      "requisito": "R03",
+      "descricao": "Sem cartão bloqueável, a política manda bloquear",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if quantos_bloqueaveis == 0:\n",
+          "para": "    if quantos_bloqueaveis < 0:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_bloqueio_pelo_numero_de_cartoes_e_pelo_dispositivo"
+      ]
+    },
+    {
+      "id": "M-POL-44",
+      "requisito": "R03",
+      "descricao": "Com dois cartões, a política escolhe um sozinho em vez de perguntar qual",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if quantos_bloqueaveis > 1:\n",
+          "para": "    if quantos_bloqueaveis > 2:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_bloqueio_pelo_numero_de_cartoes_e_pelo_dispositivo"
+      ]
+    },
+    {
+      "id": "M-POL-45",
+      "requisito": "R03",
+      "descricao": "O dispositivo não muda o bloqueio: dispositivo novo também bloqueia completo, sem atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if dispositivo == \"cadastrado\":\n        return Decisao(\"POL-BLQ-02\", \"bloquear_cartao\", \"completo\")\n",
+          "para": "    return Decisao(\"POL-BLQ-02\", \"bloquear_cartao\", \"completo\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_bloqueio_pelo_numero_de_cartoes_e_pelo_dispositivo"
+      ]
+    },
+    {
       "id": "M-PRE-16",
       "requisito": "R03",
       "descricao": "A avaliação não passa o \"hoje\" dos dados: a janela nunca vale pela API",
@@ -6997,6 +7074,233 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_sessao_so_aceita_dispositivo_conhecido"
+      ]
+    },
+    {
+      "id": "M-MIG-10",
+      "requisito": "R03",
+      "descricao": "A migration 0018 não cria o índice de um bloqueio ativo por cartão",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0018_bloqueios.py",
+          "de": "    op.create_index(\n        \"uq_bloqueios_ativo\",\n        \"bloqueios\",\n        [\"customer_id\", \"product_id\"],\n        unique=True,\n        schema=\"app\",\n        postgresql_where=sa.text(\"desfeito_em IS NULL\"),\n    )\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_um_bloqueio_ativo_por_cartao_do_cliente"
+      ]
+    },
+    {
+      "id": "M-MIG-11",
+      "requisito": "R03",
+      "descricao": "O índice de bloqueio ativo vale também para os desfeitos (o cartão nunca mais bloqueia)",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0018_bloqueios.py",
+          "de": "        postgresql_where=sa.text(\"desfeito_em IS NULL\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_um_bloqueio_ativo_por_cartao_do_cliente"
+      ]
+    },
+    {
+      "id": "M-MIG-12",
+      "requisito": "R03",
+      "descricao": "A migration 0018 aceita bloqueio desfeito sem quando ou sem quem",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0018_bloqueios.py",
+          "de": "        sa.CheckConstraint(\n            \"(desfeito_em IS NULL) = (desfeito_por IS NULL)\", name=op.f(\"ck_bloqueios_desfeito\")\n        ),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_bloqueio_so_aceita_valores_conhecidos_e_desfeito_completo"
+      ]
+    },
+    {
+      "id": "M-BLQ-01",
+      "requisito": "R08",
+      "descricao": "Bloqueia cartão de outro cliente: a busca do cartão ignora o dono",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "            \" WHERE customer_id = :cliente AND product_id = :produto\"\n",
+          "para": "            \" WHERE product_id = :produto\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_so_bloqueia_cartao_ativo_do_proprio_cliente"
+      ]
+    },
+    {
+      "id": "M-BLQ-02",
+      "requisito": "R03",
+      "descricao": "Bloqueia cartão fechado ou já bloqueado na base: a busca ignora o status",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "            \" AND product_type = ANY(:cartoes) AND product_status = 'Active'\"\n",
+          "para": "            \" AND product_type = ANY(:cartoes)\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_so_bloqueia_cartao_ativo_do_proprio_cliente"
+      ]
+    },
+    {
+      "id": "M-BLQ-03",
+      "requisito": "R03",
+      "descricao": "Bloqueia produto que não é cartão: a busca ignora o tipo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "            \" AND product_type = ANY(:cartoes) AND product_status = 'Active'\"\n",
+          "para": "            \" AND product_status = 'Active'\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_so_bloqueia_cartao_ativo_do_proprio_cliente"
+      ]
+    },
+    {
+      "id": "M-BLQ-04",
+      "requisito": "R08",
+      "descricao": "Grava o número inteiro do cartão em vez dos 4 últimos dígitos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "\"SELECT product_type, right(product_number, 4) AS ultimos4 FROM curated.products\"",
+          "para": "\"SELECT product_type, product_number AS ultimos4 FROM curated.products\""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_bloqueio_de_cartao_ativo_grava_so_os_4_ultimos_digitos"
+      ]
+    },
+    {
+      "id": "M-BLQ-05",
+      "requisito": "R03",
+      "descricao": "Prazo de reversão fixo em 7 dias, sem a janela configurada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "\" now() + make_interval(days => :janela))\"",
+          "para": "\" now() + make_interval(days => 7))\""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_prazo_de_reversao_conta_a_janela_a_partir_do_bloqueio"
+      ]
+    },
+    {
+      "id": "M-BLQ-06",
+      "requisito": "R03",
+      "descricao": "Bloquear de novo diz que criou um bloqueio novo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "    return relido, inserido == 1\n",
+          "para": "    return relido, True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_bloquear_de_novo_devolve_o_mesmo_sem_duplicar",
+        "tests/test_bloqueio.py::test_bloqueios_simultaneos_do_mesmo_cartao_criam_um_so"
+      ]
+    },
+    {
+      "id": "M-BLQ-07",
+      "requisito": "R03",
+      "descricao": "Sem releitura: a gravação que some vira \"bloqueado\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "    if relido is None:\n        raise RuntimeError(\"bloqueio não encontrado na releitura; nada foi bloqueado\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_gravacao_que_nao_se_confirma_nao_vira_bloqueio"
+      ]
+    },
+    {
+      "id": "M-BLQ-08",
+      "requisito": "R03",
+      "descricao": "Sem ON CONFLICT: bloquear de novo o mesmo cartão estoura",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "            \" ON CONFLICT DO NOTHING\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_bloquear_de_novo_devolve_o_mesmo_sem_duplicar",
+        "tests/test_bloqueio.py::test_bloqueios_simultaneos_do_mesmo_cartao_criam_um_so"
+      ]
+    },
+    {
+      "id": "M-BLQ-09",
+      "requisito": "R03",
+      "descricao": "A lista de cartões conta o bloqueio já desfeito como ativo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "            \" AND b.desfeito_em IS NULL\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_bloqueio_desfeito_libera_um_bloqueio_novo"
+      ]
+    },
+    {
+      "id": "M-BLQ-10",
+      "requisito": "R03",
+      "descricao": "A lista de cartões inclui produtos que não são cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "\" WHERE p.customer_id = :cliente AND p.product_type = ANY(:cartoes)\"",
+          "para": "\" WHERE p.customer_id = :cliente\""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_cartoes_do_cliente_trazem_status_da_base_e_bloqueio_do_canal"
+      ]
+    },
+    {
+      "id": "M-BLQ-11",
+      "requisito": "R03",
+      "descricao": "A releitura do bloqueio ativo pega também os desfeitos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "\" WHERE customer_id = :cliente AND product_id = :produto AND desfeito_em IS NULL\"",
+          "para": "\" WHERE customer_id = :cliente AND product_id = :produto\""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_bloqueio_desfeito_libera_um_bloqueio_novo"
+      ]
+    },
+    {
+      "id": "M-BLQ-12",
+      "requisito": "R08",
+      "descricao": "A lista de cartões traz cartões de outros clientes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "\" WHERE p.customer_id = :cliente AND p.product_type = ANY(:cartoes)\"",
+          "para": "\" WHERE p.product_type = ANY(:cartoes)\""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio.py::test_cartoes_do_cliente_trazem_status_da_base_e_bloqueio_do_canal"
       ]
     }
   ]

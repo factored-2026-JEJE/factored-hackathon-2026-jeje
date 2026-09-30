@@ -68,3 +68,39 @@ def test_sessao_so_aceita_dispositivo_conhecido(banco_migrado):
         con.execute(inserir, {"h": "h1", "d": "cadastrado"})
     with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
         con.execute(inserir, {"h": "h2", "d": "confiavel"})
+
+
+BLOQUEIO = text(
+    "insert into app.bloqueios (id, customer_id, product_id, produto, tipo, motivo, dispositivo,"
+    " reversivel_ate, desfeito_em, desfeito_por)"
+    " values (:id, 'CLI-A', 'CRT-1', 'Tarjeta Crédito', :tipo, :motivo, :dispositivo,"
+    " now() + interval '7 days', :desfeito_em, :desfeito_por)"
+)
+VALIDO = {"tipo": "completo", "motivo": "pedido", "dispositivo": "cadastrado",
+          "desfeito_em": None, "desfeito_por": None}  # fmt: skip
+
+
+def test_um_bloqueio_ativo_por_cartao_do_cliente(banco_migrado):
+    with conexao(banco_migrado) as con:
+        con.execute(BLOQUEIO, {**VALIDO, "id": "BL-1"})
+    with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
+        con.execute(BLOQUEIO, {**VALIDO, "id": "BL-2"})
+    with conexao(banco_migrado) as con:
+        con.execute(text("update app.bloqueios set desfeito_em = now(), desfeito_por = 'cliente'"))
+        con.execute(BLOQUEIO, {**VALIDO, "id": "BL-3"})
+
+
+@pytest.mark.parametrize(
+    "invalido",
+    [
+        {"tipo": "total"},
+        {"motivo": "outro"},
+        {"dispositivo": "confiavel"},
+        {"desfeito_em": "2026-09-30", "desfeito_por": "robo"},
+        {"desfeito_em": "2026-09-30"},  # desfeito sem dizer por quem
+        {"desfeito_por": "atendente"},  # quem desfez sem dizer quando
+    ],
+)
+def test_bloqueio_so_aceita_valores_conhecidos_e_desfeito_completo(banco_migrado, invalido):
+    with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
+        con.execute(BLOQUEIO, {**VALIDO, "id": "BL-1", **invalido})
