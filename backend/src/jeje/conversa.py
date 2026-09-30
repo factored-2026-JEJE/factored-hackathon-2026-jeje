@@ -29,7 +29,12 @@ from typing import Literal
 from sqlalchemy import Connection, text
 
 from jeje import bloqueio, consultas, eventos, handoff, politica, pre_caso
-from jeje.interpretacao import Interpretacao, cartao_citado, comercio_citado
+from jeje.interpretacao import (
+    Interpretacao,
+    cartao_citado,
+    cita_cartao,
+    comercio_citado,
+)
 from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
     ESTADO,
@@ -660,13 +665,37 @@ class _Turno:
         posicao = cartao_citado(self.mensagem, [(c.produto, c.ultimos4) for c in cartoes])
         return None if posicao is None else cartoes[posicao]
 
+    def _alvos(self, candidatos: list[politica.Cartao]) -> list[politica.Cartao] | None:
+        """Os cartões em jogo: o citado, se a mensagem cita um dos candidatos; todos, se ela não
+        cita cartão nenhum; None se ela cita um cartão que não está entre eles. Quem cita um cartão
+        nunca tem outro escolhido no lugar (ACH-111)."""
+        if (citado := self._citado(candidatos)) is not None:
+            return [citado]
+        return None if cita_cartao(self.mensagem) else candidatos
+
+    def _por_que_nao(self, cartoes: list[politica.Cartao]) -> str | None:
+        """Por que o cartão citado, se for um dos do cliente, não pode ser bloqueado agora."""
+        citado = self._citado(cartoes)
+        if citado is None:
+            return None
+        dito = descrever_cartao(citado.produto, citado.ultimos4, self.idioma)
+        if citado.bloqueio is not None:
+            return texto("BLOQUEIO-EXISTENTE", self.idioma, cartao=dito, bloqueio=citado.bloqueio)
+        return texto("CARTAO-INATIVO", self.idioma, cartao=dito)
+
     def _pedido_de_bloqueio(self) -> Saida:
         """Pedido de bloqueio: o cartão citado ou o único bloqueável; vários, pergunta qual;
-        nenhum, só informa, com os já bloqueados por aqui."""
+        nenhum, só informa, com os já bloqueados por aqui. Citado que não dá para bloquear: diz por
+        quê ou pergunta qual, sem bloquear outro no lugar."""
         cartoes = self._cartoes()
-        candidatos = politica.bloqueaveis(cartoes)
-        if (citado := self._citado(candidatos)) is not None:
-            candidatos = [citado]
+        bloqueaveis = politica.bloqueaveis(cartoes)
+        candidatos = self._alvos(bloqueaveis)
+        if candidatos is None:
+            if (razao := self._por_que_nao(cartoes)) is not None:
+                return Saida("POL-BLQ-03", "responder", (razao,), "livre", {})
+            if bloqueaveis:
+                return self._perguntar_cartao(bloqueaveis, "pedido")
+            candidatos = []
         decisao = politica.decidir_bloqueio(len(candidatos), self.dispositivo)
         self._anotar("avaliar_bloqueio", decisao.regra)
         if decisao.regra == "POL-BLQ-06":
@@ -695,9 +724,18 @@ class _Turno:
         encaminha; com vários, pergunta qual antes, uma vez só (a fraude nunca fica parada: na
         escolha, sem cartão identificado, encaminha sem bloquear); sem cartão, só encaminha."""
         cartoes = self._cartoes()
-        candidatos = politica.bloqueaveis(cartoes)
-        if (citado := self._citado(candidatos)) is not None:
-            candidatos = [citado]
+        bloqueaveis = politica.bloqueaveis(cartoes)
+        candidatos = self._alvos(bloqueaveis)
+        if candidatos is None:
+            # Citou um cartão que não dá para bloquear: encaminha sem bloquear outro no lugar.
+            if (razao := self._por_que_nao(cartoes)) is not None:
+                self._anotar("bloquear_cartao", "cartão citado não bloqueável; nada bloqueado")
+                return self._encaminhar(decisao, self._em_foco(), antes=(razao,))
+            if bloqueaveis and self.estado != "escolhendo_cartao":
+                return self._perguntar_cartao(bloqueaveis, "roubo_perda")
+            if bloqueaveis:
+                return self._encaminhar_sem_bloqueio(decisao)
+            candidatos = []
         if len(candidatos) == 1:
             return self._bloquear_e_encaminhar(candidatos[0], decisao)
         if candidatos and self.estado != "escolhendo_cartao":
@@ -821,14 +859,19 @@ class _Turno:
     def _pedido_de_desbloqueio(self) -> Saida:
         """Pedido de desbloqueio: o cartão citado ou o único bloqueado por aqui; vários, pergunta
         qual; nenhum (o bloqueio do banco inclusive), vai ao atendente (POL-BLQ-05)."""
-        bloqueados = [c for c in self._cartoes() if c.bloqueio is not None]
-        if (citado := self._citado(bloqueados)) is not None:
-            bloqueados = [citado]
-        if len(bloqueados) > 1:
-            return self._perguntar_cartao(bloqueados, "desbloqueio")
-        if not bloqueados:
+        cartoes = self._cartoes()
+        bloqueados = [c for c in cartoes if c.bloqueio is not None]
+        candidatos = self._alvos(bloqueados)
+        if candidatos is None:
+            # Citou um cartão sem bloqueio feito por aqui: nunca propor desfazer outro.
+            if self._citado(cartoes) is None and bloqueados:
+                return self._perguntar_cartao(bloqueados, "desbloqueio")
+            candidatos = []
+        if len(candidatos) > 1:
+            return self._perguntar_cartao(candidatos, "desbloqueio")
+        if not candidatos:
             return self._encaminhar(politica.decidir_desbloqueio(None, None, _agora()), None)
-        return self._desbloqueio_do_cartao(bloqueados[0])
+        return self._desbloqueio_do_cartao(candidatos[0])
 
     def _desbloqueio_do_cartao(self, cartao: politica.Cartao) -> Saida:
         """Dentro do prazo e pedido pelo próprio cliente: propõe desfazer e espera o sim
