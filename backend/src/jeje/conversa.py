@@ -53,6 +53,8 @@ PENDENCIAS = {
     "POL-HUM-01": "Tratar relato de fraude: bloqueio e análise do cartão",
     "POL-HUM-02": "Revisar contestação que a automação não pode registrar",
     "POL-HUM-04": "Revisar contestação de transação noturna por celular ou computador",
+    "POL-HUM-05": "Revisar contestação de compra fora da janela de contestação",
+    "POL-HUM-06": "Revisar contestação de cliente com vários pré-casos recentes",
     "POL-SEG-01": "Análise de segurança de transferência de alto valor",
     "POL-HUM-03": "Atender o cliente no pedido abaixo",
     "POL-DISP-02": "Orientar sobre contestação de transação não aprovada",
@@ -725,10 +727,8 @@ def preparar(conexao: Connection, customer_id: str, conversa_id: str) -> Preparo
     """Língua, estado e o "hoje" da leitura para ler a mensagem antes do turno: a leitura, que
     pode esperar o modelo, fica fora de qualquer transação e trava (ACH-030). O "hoje" é o relógio
     do banco, ou o último dia dos dados se a base carregada for mais antiga que ele (retrato)."""
-    linha = _do_dono(conexao, customer_id, conversa_id, "idioma, estado, current_date AS hoje")
-    dia_dos_dados = consultas.dia_dos_dados(conexao)
-    hoje = linha.hoje if dia_dos_dados is None else min(linha.hoje, dia_dos_dados)
-    return Preparo(linha.idioma, linha.estado, hoje)
+    linha = _do_dono(conexao, customer_id, conversa_id, "idioma, estado")
+    return Preparo(linha.idioma, linha.estado, consultas.hoje_dos_dados(conexao))
 
 
 def ler(preparo: Preparo, mensagem: str, interpretador: Interpretador) -> Leitura:

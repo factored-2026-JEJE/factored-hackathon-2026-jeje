@@ -32,6 +32,12 @@ x-app-env: &app-env
   CANAIS_DIGITAIS: "App,Web"
   # Transferência acima disto vai para análise de segurança (POL-SEG-01).
   LIMITE_SEGURANCA_TRANSFERENCIA_USD: "50000"
+  # Janela e reincidência da contestação (PRD-008, decididas por Jader em 29/09), política simulada:
+  # compra com mais de N dias, contados do último dia dos dados, vai para humano (POL-HUM-05); cliente
+  # com N ou mais pré-casos nos últimos N dias do relógio também (POL-HUM-06).
+  JANELA_CONTESTACAO_DIAS: "120"
+  REINCIDENCIA_PRE_CASOS: "3"
+  REINCIDENCIA_DIAS: "30"
   PROPOSTA_TTL_MINUTOS: "10"
   # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"
   # (modelo local), os dois consultados só quando as regras não entendem (interpretacao_leitor.py,

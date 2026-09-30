@@ -137,6 +137,26 @@ def comercios_do_cliente(conexao: Connection, customer_id: str) -> list[str]:
 _DIA_DOS_DADOS: dict[tuple[str | None, str], date | None] = {}
 
 
+def hoje_dos_dados(conexao: Connection) -> date:
+    """O "hoje" da base: o relógio do banco, ou o último dia dos dados se a base carregada for mais
+    antiga que ele (retrato). Lê as datas sem ano da conversa e conta a janela de contestação."""
+    agora = conexao.execute(text("SELECT current_date")).scalar_one()
+    dia = dia_dos_dados(conexao)
+    return agora if dia is None else min(agora, dia)
+
+
+def pre_casos_recentes(conexao: Connection, customer_id: str, dias: int) -> int:
+    """Pré-casos do cliente registrados nos últimos `dias` dias do relógio real (POL-HUM-06): o
+    pré-caso é um evento de agora, não da base."""
+    return conexao.execute(
+        text(
+            "SELECT count(*) FROM app.pre_casos WHERE customer_id = :cliente"
+            " AND criado_em > now() - make_interval(days => :dias)"
+        ),
+        {"cliente": customer_id, "dias": dias},
+    ).scalar_one()
+
+
 def dia_dos_dados(conexao: Connection) -> date | None:
     """Último dia com transação na base carregada. A base é um retrato: "ayer" ou "11 de marzo"
     se leem a partir dele, não do relógio (a fixture é de março de 2025). Lido uma vez por versão
