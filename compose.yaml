@@ -38,6 +38,8 @@ x-app-env: &app-env
   JANELA_CONTESTACAO_DIAS: "120"
   REINCIDENCIA_PRE_CASOS: "3"
   REINCIDENCIA_DIAS: "30"
+  # Bloqueio simulado de cartão (PRD-007, decidido por Jader em 29/09): reversível por N dias.
+  JANELA_DESBLOQUEIO_DIAS: "7"
   PROPOSTA_TTL_MINUTOS: "10"
   # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"
   # (modelo local), os dois consultados só quando as regras não entendem (interpretacao_leitor.py,

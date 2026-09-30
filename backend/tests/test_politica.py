@@ -21,11 +21,13 @@ from jeje.politica import (
     decidir_bloqueio,
     decidir_consulta,
     decidir_contestacao,
+    decidir_desbloqueio,
     decidir_esclarecimento,
     decidir_pedido,
     decidir_status_do_caso,
     noturna_digital,
     resolver_transacao,
+    tipo_de_bloqueio,
 )
 
 # Limites do próprio teste (não os do compose): números diferentes para cada regra.
@@ -359,11 +361,22 @@ def test_bloqueaveis_sao_os_cartoes_ativos_sem_bloqueio_do_canal():
         (0, "novo", Decisao("POL-BLQ-03", "responder", "nenhum cartão ativo para bloquear")),
         (2, "cadastrado", Decisao("POL-BLQ-06", "esclarecer")),
         (3, "novo", Decisao("POL-BLQ-06", "esclarecer")),
-        (1, "cadastrado", Decisao("POL-BLQ-02", "bloquear_cartao", "completo")),
-        (1, "novo", Decisao("POL-BLQ-01", "humano", "preventivo")),
+        (1, "cadastrado", Decisao("POL-BLQ-02", "bloquear_cartao", "dispositivo cadastrado")),
+        (1, "novo", Decisao("POL-BLQ-01", "humano", "dispositivo novo")),
     ],
 )
 def test_bloqueio_pelo_numero_de_cartoes_e_pelo_dispositivo(quantos, dispositivo, esperado):
     """Nenhum cartão bloqueável só informa; vários, pergunta qual (não escolhe sozinho); um só,
     bloqueia na hora: completo com dispositivo cadastrado, preventivo e com atendente com novo."""
     assert decidir_bloqueio(quantos, dispositivo) == esperado
+
+
+@pytest.mark.parametrize(
+    ("dispositivo", "tipo"), [("cadastrado", "completo"), ("novo", "preventivo")]
+)
+def test_tipo_do_bloqueio_vem_do_dispositivo_da_sessao(dispositivo, tipo):
+    assert tipo_de_bloqueio(dispositivo) == tipo
+
+
+def test_desbloqueio_fica_com_o_atendente():
+    assert decidir_desbloqueio() == Decisao("POL-BLQ-05", "humano")
