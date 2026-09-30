@@ -52,6 +52,9 @@ class Limites:
     noturno_fim_h: int  # fim do período noturno (exclusive)
     canais_digitais: frozenset[str]  # celular e computador
     seguranca_transferencia_usd: Decimal  # POL-SEG-01
+    janela_contestacao_dias: int  # POL-HUM-05: idade máxima da compra, a partir do "hoje" dos dados
+    reincidencia_pre_casos: int  # POL-HUM-06: pré-casos recentes do cliente que mandam para humano
+    reincidencia_dias: int  # POL-HUM-06: o que conta como recente, no relógio real
 
 
 def noturna_digital(fatos: Fatos, limites: Limites) -> bool:
@@ -93,20 +96,36 @@ def decidir_consulta(fatos: Fatos, limites: Limites) -> Decisao:
     return Decisao("POL-CON-04", "humano", "status desconhecido")
 
 
+def idade_da_compra(fatos: Fatos, hoje: date | None) -> int | None:
+    """Dias entre a compra e o "hoje" dos dados; sem uma das datas, desconhecida."""
+    if hoje is None or fatos.transaction_date is None:
+        return None
+    return (hoje - fatos.transaction_date.date()).days
+
+
 def decidir_contestacao(
     fatos: Fatos,
     limites: Limites,
     protocolo_existente: str | None,
     noturno_no_dia_usd: Decimal = Decimal("0"),
+    hoje: date | None = None,
+    pre_casos_recentes: int = 0,
 ) -> Decisao:
     """Pedido de contestação: pré-caso só para Approved do cliente, dentro dos limites simulados.
-    `noturno_no_dia_usd` é o que o assistente já registrou hoje de noturnas digitais do cliente."""
+    `noturno_no_dia_usd` é o que o assistente já registrou hoje de noturnas digitais do cliente;
+    `hoje` é o "hoje" dos dados (janela, POL-HUM-05) e `pre_casos_recentes` conta os pré-casos do
+    cliente na janela de reincidência (POL-HUM-06)."""
     if protocolo_existente is not None:
         return Decisao("POL-DISP-03", "responder", protocolo_existente)
     if transferencia_atipica(fatos, limites):
         return SEGURANCA
     if fatos.status != "Approved":
         return Decisao("POL-DISP-02", "humano", fatos.status)
+    idade = idade_da_compra(fatos, hoje)
+    if idade is not None and idade > limites.janela_contestacao_dias:
+        return Decisao("POL-HUM-05", "humano", f"compra de {idade} dias")
+    if pre_casos_recentes >= limites.reincidencia_pre_casos:
+        return Decisao("POL-HUM-06", "humano", f"{pre_casos_recentes} pré-casos recentes")
     if fatos.amount_usd is None:
         return Decisao("POL-HUM-02", "humano", "valor em USD indisponível")
     if noturna_digital(fatos, limites):

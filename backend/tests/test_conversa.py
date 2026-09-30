@@ -7,7 +7,16 @@ from concurrent.futures import ThreadPoolExecutor
 
 import httpx2 as httpx
 import pytest
-from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, servidor_http
+from conftest import (
+    abrir_conversa,
+    autenticar,
+    cliente,
+    conexao,
+    curar_tudo,
+    dizer,
+    raw_transacao,
+    servidor_http,
+)
 from sqlalchemy import text
 
 
@@ -863,3 +872,28 @@ def test_turnos_simultaneos_na_mesma_conversa_sao_serializados(cenario):
             respostas = list(grupo.map(enviar, range(6)))
     assert [r.status_code for r in respostas] == [200] * 6
     assert sorted(r.json()["numero"] for r in respostas) == [1, 2, 3, 4, 5, 6]
+
+
+def test_contestacao_de_compra_fora_da_janela_vai_para_humano(cenario):
+    """Compra de outubro de 2024, a mais de 120 dias do último dia dos dados: encaminha
+    (POL-HUM-05) com a pendência da janela, sem proposta nem pré-caso."""
+    with conexao(cenario) as con:
+        raw_transacao(
+            con, "TRX-VELHA", "CLI-A", "PRD-A", amount="30.00", merchant_name="Loja Antiga",
+            transaction_date="2024-10-01 10:00:00",
+        )  # fmt: skip
+    curar_tudo(cenario)
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        resposta = dizer(
+            http, auth, abrir_conversa(http, auth, "pt"), "Não reconheço a compra na Loja Antiga"
+        )
+    assert (resposta["regra"], resposta["acao"], resposta["transaction_id"]) == (
+        "POL-HUM-05", "humano", "TRX-VELHA"
+    )  # fmt: skip
+    assert resposta["resposta"].startswith("Esta compra é mais antiga que o prazo")
+    [registro] = handoffs(cenario)
+    assert registro["pendencias"][0].startswith(
+        "Revisar contestação de compra fora da janela de contestação (compra de "
+    )
+    assert pre_casos(cenario) == [] and contar(cenario, "propostas_pre_caso") == 0
