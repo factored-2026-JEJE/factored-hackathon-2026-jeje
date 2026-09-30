@@ -1,5 +1,7 @@
 """Reviews das conversas de teste: gravadas no banco, ligadas à conversa do dono, e publicadas como
-Issue (com a transcrição) quando há repositório e token; o GitHub aqui é um servidor falso local."""
+Issue (com a transcrição) quando há repositório e token e os dados carregados são a fixture; com a
+base real, nada vai para o GitHub (ACH-038). O GitHub aqui é um servidor falso local: fronteira de
+rede simulada (ENG-006), que valida o que sairia para o GitHub, não a integração real."""
 
 import json
 import threading
@@ -8,7 +10,7 @@ from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
-from conftest import abrir_conversa, autenticar, cliente, conexao, dizer
+from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, registrar_dataset
 from sqlalchemy import text
 
 from jeje import reviews as reviews_mod
@@ -24,6 +26,15 @@ REVIEW = {
 
 @pytest.fixture
 def cenario(cenario_conversa):
+    """Conversas de teste com a fixture sintética carregada: a única base que pode virar Issue."""
+    registrar_dataset(cenario_conversa, "v-fixture", "fixture")
+    return cenario_conversa
+
+
+@pytest.fixture
+def cenario_real(cenario_conversa):
+    """Os mesmos dados, registrados como a base real do desafio (fonte s3)."""
+    registrar_dataset(cenario_conversa, "v-real", "s3")
     return cenario_conversa
 
 
@@ -37,7 +48,8 @@ def reviews(settings) -> list[dict]:
 
 @contextmanager
 def github_falso(status: int = 201) -> Iterator[tuple[str, list[dict]]]:
-    """API do GitHub falsa: guarda cada pedido e responde como a criação de Issue."""
+    """API do GitHub falsa (fronteira simulada): guarda cada pedido e responde como a criação de
+    Issue."""
     pedidos: list[dict] = []
 
     class Tratador(BaseHTTPRequestHandler):
@@ -158,3 +170,33 @@ def test_reviews_pendentes_sao_publicadas_depois(cenario):
         engine.dispose()
     assert len(pedidos) == 1 and "**1. Cliente:** No reconozco" in pedidos[0]["body"]
     assert reviews(cenario)[0]["issue_url"] == "https://github.com/o/r/issues/7"
+
+
+def test_com_dados_reais_a_review_fica_so_no_banco(cenario_real):
+    """Com a base real carregada, o cliente e a transcrição nunca vão para o GitHub, mesmo com
+    repositório e token: a review fica só no banco (ACH-038)."""
+    with github_falso() as (url, pedidos):
+        config = cenario_real.model_copy(update={"github_api_url": url, "github_token": "tok"})
+        with cliente(config) as http:
+            auth = autenticar(http, "CLI-A")
+            conversa = conversar(http, auth)
+            resposta = http.post(f"/conversas/{conversa}/reviews", json=REVIEW, headers=auth)
+    assert (resposta.status_code, resposta.json()["issue_url"]) == (201, None)
+    assert pedidos == []
+    assert reviews(cenario_real) == [{"conversa_id": conversa, **REVIEW, "issue_url": None}]
+
+
+def test_pendentes_nao_viram_issue_com_dados_reais(cenario_real):
+    """A exportação das pendentes (make exportar-reviews) também não publica com a base real."""
+    with cliente(cenario_real) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = conversar(http, auth)
+        http.post(f"/conversas/{conversa}/reviews", json=REVIEW, headers=auth)
+    engine = create_db_engine(cenario_real)
+    try:
+        with github_falso() as (url, pedidos):
+            assert reviews_mod.publicar_pendentes(engine, url, "o/r", "tok") == (0, 1)
+    finally:
+        engine.dispose()
+    assert pedidos == []
+    assert reviews(cenario_real)[0]["issue_url"] is None
