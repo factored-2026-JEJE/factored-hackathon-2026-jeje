@@ -173,12 +173,18 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "bloqueio. Já passo o resumo para ele.",
     },
     "POL-BLQ-02": {
-        "es": "Si fue un error, pídeme deshacerlo y un agente lo revisa.",
-        "pt": "Se foi engano, peça para desfazer e um atendente revisa.",
+        "es": "Si fue un error, pídeme deshacerlo.",
+        "pt": "Se foi engano, peça para desfazer.",
     },
     "POL-BLQ-03": {
         "es": "No encontré ninguna tarjeta activa para bloquear en tu cuenta.",
         "pt": "Não encontrei nenhum cartão ativo para bloquear na sua conta.",
+    },
+    "POL-BLQ-04": {
+        "es": "¿Confirmas que quieres deshacer el bloqueo de tu {cartao} (referencia {bloqueio})? "
+        "Responde sí o no.",
+        "pt": "Você confirma que quer desfazer o bloqueio do seu {cartao} (referência {bloqueio})? "
+        "Responda sim ou não.",
     },
     "POL-BLQ-05": {
         "es": "Para deshacer un bloqueo, un agente revisa la solicitud. Ya le paso el resumen.",
@@ -190,6 +196,12 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "con los 4 últimos dígitos.",
         "pt": "Qual cartão você quer bloquear?\n{opcoes}\nResponda com o número da opção ou com "
         "os 4 últimos dígitos.",
+    },
+    "POL-BLQ-06-DESBLOQUEIO": {
+        "es": "¿Cuál tarjeta quieres desbloquear?\n{opcoes}\nResponde con el número de la opción "
+        "o con los 4 últimos dígitos.",
+        "pt": "Qual cartão você quer desbloquear?\n{opcoes}\nResponda com o número da opção ou "
+        "com os 4 últimos dígitos.",
     },
     "POL-BLQ-06-FRAUDE": {
         "es": "Por seguridad, voy a bloquear la tarjeta afectada. ¿Cuál es?\n{opcoes}\nResponde "
@@ -298,6 +310,14 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
     "BLOQUEIO-CANCELADO": {
         "es": "Listo, no bloqueé ninguna tarjeta. ¿Te ayudo con algo más?",
         "pt": "Tudo bem, não bloqueei nenhum cartão. Posso ajudar com mais alguma coisa?",
+    },
+    "DESBLOQUEIO-FEITO": {
+        "es": "Listo: deshice el bloqueo de tu {cartao} (referencia {bloqueio}).",
+        "pt": "Pronto: desfiz o bloqueio do seu {cartao} (referência {bloqueio}).",
+    },
+    "DESBLOQUEIO-CANCELADO": {
+        "es": "Listo, el bloqueo sigue. ¿Te ayudo con algo más?",
+        "pt": "Tudo bem, o bloqueio continua. Posso ajudar com mais alguma coisa?",
     },
     "RESUMO-CARTAO": {
         "es": "Entendí que quieres bloquear una tarjeta, pero no identifiqué cuál. ¿Quieres que "
