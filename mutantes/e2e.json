@@ -384,6 +384,21 @@
       "testes": [
         "pre_caso.spec.ts > contestar pela conversa, perder a resposta do sim, ver o protocolo e contestar de novo sem duplicar"
       ]
+    },
+    {
+      "id": "M-E2E-24",
+      "requisito": "R07",
+      "descricao": "Console de bloqueios não atualiza quando a conversa bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/App.tsx",
+          "de": "            <BloqueiosDoAtendimento versao={versao} />",
+          "para": "            <BloqueiosDoAtendimento versao={0} />"
+        }
+      ],
+      "testes": [
+        "conversa.spec.ts > caminho humano (es): relato de fraude encaminha e aparece na fila do atendente"
+      ]
     }
   ]
 }
