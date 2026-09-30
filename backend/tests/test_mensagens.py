@@ -15,6 +15,7 @@ from jeje.mensagens import (
     TransacaoVerificada,
     compor,
     descrever,
+    descrever_cartao,
     marcadores,
     valor,
 )
@@ -24,7 +25,8 @@ REGRAS_DA_MATRIZ = {
     "POL-CON-01", "POL-CON-02", "POL-CON-03", "POL-CON-04", "POL-CON-05", "POL-DISP-01",
     "POL-DISP-02", "POL-DISP-03", "POL-HUM-01", "POL-HUM-02", "POL-HUM-03", "POL-ESC-01",
     "POL-ID-02", "POL-HUM-04", "POL-SEG-01", "POL-CASO-01", "POL-CASO-02", "POL-CASO-03",
-    "POL-HUM-05", "POL-HUM-06",
+    "POL-HUM-05", "POL-HUM-06", "POL-BLQ-01", "POL-BLQ-02", "POL-BLQ-03", "POL-BLQ-05",
+    "POL-BLQ-06",
 }  # fmt: skip
 
 # Promessas que o atendimento automático não pode fazer (negações como "no es un reembolso" passam).
@@ -106,3 +108,17 @@ def test_compor_preenche_so_com_os_fatos_pedidos():
 def test_compor_recusa_marcador_faltando_ou_sobrando(fatos):
     with pytest.raises(ValueError, match="POL-CON-03"):
         compor("POL-CON-03", "es", **fatos)
+
+
+@pytest.mark.parametrize(
+    ("produto", "ultimos4", "idioma", "esperado"),
+    [
+        ("Tarjeta Crédito", "9241", "es", "tarjeta de crédito terminada en 9241"),
+        ("Tarjeta Débito", "5678", "pt", "cartão de débito final 5678"),
+        # Sem número na base (a fixture): só o tipo.
+        ("Tarjeta Crédito", None, "es", "tarjeta de crédito"),
+        ("Tarjeta Débito", None, "pt", "cartão de débito"),
+    ],
+)
+def test_cartao_dito_pelo_tipo_e_pelo_final(produto, ultimos4, idioma, esperado):
+    assert descrever_cartao(produto, ultimos4, idioma) == esperado

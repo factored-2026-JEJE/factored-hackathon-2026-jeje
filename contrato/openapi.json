@@ -2002,6 +2002,17 @@
               }
             ],
             "title": "Atendimento"
+          },
+          "bloqueio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bloqueio"
           }
         },
         "type": "object",
@@ -2018,7 +2029,8 @@
           "opcoes",
           "proposta",
           "protocolo",
-          "atendimento"
+          "atendimento",
+          "bloqueio"
         ],
         "title": "ResultadoDoTurno",
         "description": "O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."

@@ -8,7 +8,7 @@ carrega identidade de cliente nem ID de transação: identificador digitado no c
 
 import re
 import unicodedata
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -17,7 +17,16 @@ from typing import Literal
 
 from jeje.mensagens import Idioma, Status
 
-Intencao = Literal["fraude", "humano", "fora_de_escopo", "contestar", "consultar", "desconhecida"]
+Intencao = Literal[
+    "fraude",
+    "bloquear",
+    "desbloquear",
+    "humano",
+    "fora_de_escopo",
+    "contestar",
+    "consultar",
+    "desconhecida",
+]
 Resposta = Literal["sim", "nao"]
 Cortesia = Literal["saudacao", "agradecimento"]
 
@@ -128,6 +137,34 @@ RECUSA_DE_HUMANO = re.compile(
     r" (?:agente|asesor|atendente|humano|operador|persona|pessoa)(?![a-z0-9])"
 )
 
+# Pedido de bloqueio ou desbloqueio de cartão (PRD-007): verbo de pedido (infinitivo, imperativo,
+# "¿cómo bloqueo…?", "el bloqueo") perto de cartão. "¿Por qué bloquearon mi tarjeta?" e "meu cartão
+# foi bloqueado?" não pedem nada; roubo e perda já são relato de fraude, que também bloqueia.
+CARTAO = ("tarjeta*", "cartao", "cartoes")
+PEDIDO_DE_BLOQUEIO = Perto(
+    ("bloquear", "bloquearla", "bloquearlo", "bloquea", "bloquee", "bloqueen", "bloqueela",
+     "bloqueala", "bloqueenla", "bloqueia", "bloqueie", "bloqueiem", "como bloqueo",
+     "como bloqueio", "el bloqueo", "o bloqueio"),
+    CARTAO,
+)  # fmt: skip
+PEDIDO_DE_DESBLOQUEIO = Perto(
+    ("desbloquear", "desbloquearla", "desbloquearlo", "desbloquea", "desbloquee", "desbloqueen",
+     "desbloqueela", "desbloqueala", "desbloqueenla", "desbloqueia", "desbloqueie",
+     "desbloqueiem", "como desbloqueo", "como desbloqueio", "el desbloqueo", "o desbloqueio"),
+    CARTAO,
+)  # fmt: skip
+# Negação do pedido na mesma oração: "no quiero bloquear mi tarjeta", "não bloqueie meu cartão" e
+# "no la bloqueen" não pedem; em "no, bloquéenla" a vírgula separa o "no" do pedido.
+NEGACAO = (
+    r"(?<![a-z0-9])(?:no|nao|nunca)(?: (?:quiero|quero|necesito|preciso|precisa|precisam"
+    r"|hace falta|es necesario|e necessario|vayan a|van a|va a|vao|vai|pueden|podem|puede|pode"
+    r"|me|te|la|lo|a|o|mi|meu|minha|el|os|as|las|los))* "
+)
+NEGACOES = {
+    "bloquear": re.compile(NEGACAO + "bloque"),
+    "desbloquear": re.compile(NEGACAO + "desbloque"),
+}
+
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
 TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("fraude", ("fraude", "robaron", "robo de", "un robo", "robada", "robado", "roubaram",
@@ -136,6 +173,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
                 "alguem usou meu cartao",
                 "no fui yo", "nao fui eu")),
+    ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
+    ("desbloquear", (PEDIDO_DE_DESBLOQUEIO,)),
     ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
                 "persona real",
                 "pessoa de verdade", "hablar con alguien", "falar com alguem",
@@ -380,6 +419,11 @@ def _caso(limpo: str) -> bool:
     )
 
 
+def _oracoes(texto: str) -> list[str]:
+    """A mensagem normalizada, partida na pontuação: a negação só vale na própria oração."""
+    return [normalizar(parte) for parte in re.split(r"[,.;:!?¡¿]", texto)]
+
+
 def _status(limpo: str) -> str | None:
     citados = {status for status, termos in STATUS_CITADO if any(_casa(t, limpo) for t in termos)}
     return citados.pop() if len(citados) == 1 else None
@@ -401,8 +445,13 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "ultima": ULTIMA.search(limpo) is not None,
         "cortesia": _cortesia(limpo),
     }
+    oracoes = _oracoes(texto)
     for intencao, termos in TERMOS:
         if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):
+            continue
+        if intencao in NEGACOES and "bloque" not in limpo:
+            continue  # sem o verbo, nem testa os termos compostos, que são caros (ACH-107)
+        if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):
             continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
         if casados:
@@ -456,3 +505,26 @@ def comercio_citado(texto: str, comercios: Iterable[str]) -> str | None:
         if _casa(nome_limpo, limpo) or any(_casa(p, limpo) for p in (*distintivas, *ramo)):
             citados.add(nome)
     return citados.pop() if len(citados) == 1 else None
+
+
+# Cartão citado pelo final ("la terminada en 9241", "o de final 5678") ou pelo tipo ("la de
+# débito"). Só exatamente 4 dígitos: o número inteiro do cartão não é final de nada.
+FINAL_DE_CARTAO = re.compile(r"(?<!\d)\d{4}(?!\d)")
+TIPO_CITADO = {"Tarjeta Crédito": ("credito",), "Tarjeta Débito": ("debito",)}
+
+
+def cartao_citado(texto: str, cartoes: Sequence[tuple[str, str | None]]) -> int | None:
+    """Posição do cartão citado entre os do próprio cliente (tipo e 4 últimos dígitos de cada um):
+    pelo final e pelo tipo, os dois conferidos quando citados. Nada citado, nenhum ou mais de um
+    casado → None (quem escolhe é o cliente)."""
+    limpo = normalizar(texto)
+    finais = set(FINAL_DE_CARTAO.findall(texto))
+    tipos = {tipo for tipo, termos in TIPO_CITADO.items() if any(_casa(t, limpo) for t in termos)}
+    if not finais and not tipos:
+        return None
+    casados = [
+        i
+        for i, (tipo, ultimos4) in enumerate(cartoes)
+        if (not finais or ultimos4 in finais) and (not tipos or tipo in tipos)
+    ]
+    return casados[0] if len(casados) == 1 else None

@@ -104,3 +104,14 @@ def test_um_bloqueio_ativo_por_cartao_do_cliente(banco_migrado):
 def test_bloqueio_so_aceita_valores_conhecidos_e_desfeito_completo(banco_migrado, invalido):
     with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
         con.execute(BLOQUEIO, {**VALIDO, "id": "BL-1", **invalido})
+
+
+def test_conversa_aceita_o_estado_da_escolha_do_cartao(banco_migrado):
+    inserir = text(
+        "insert into app.conversas (id, customer_id, idioma, estado)"
+        " values (:id, 'CLI-A', 'es', :e)"
+    )
+    with conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": "c1", "e": "escolhendo_cartao"})
+    with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": "c2", "e": "escolhendo"})

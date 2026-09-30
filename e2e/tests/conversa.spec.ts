@@ -21,6 +21,7 @@ const TEXTOS = {
     semMotivo: (d: string) =>
       `La transacción ${d} fue rechazada y no tenemos el motivo registrado. Si quieres, te comunico con un agente.`,
     fraude: "Me robaron la tarjeta",
+    qualCartao: "Por seguridad, voy a bloquear la tarjeta afectada.",
     depois: "¿y ahora?",
     comHumano: (a: string) => `Tu caso ya está con un agente (referencia ${a}); la conversación sigue con esa persona.`,
   },
@@ -38,6 +39,7 @@ const TEXTOS = {
     semMotivo: (d: string) =>
       `A transação ${d} foi recusada e não temos o motivo registrado. Se quiser, eu passo você para um atendente.`,
     fraude: "Roubaram meu cartão",
+    qualCartao: "Por segurança, vou bloquear o cartão afetado.",
     depois: "e agora?",
     comHumano: (a: string) => `Seu caso já está com um atendente (referência ${a}); a conversa segue com essa pessoa.`,
   },
@@ -141,7 +143,9 @@ for (const idioma of ["es", "pt"] as const) {
   test(`caminho humano (${idioma}): relato de fraude encaminha e aparece na fila do atendente`, async ({ page, request }) => {
     const [primeira] = await personas(request);
     await entrarEConversar(page, primeira!.nome, idioma);
-    await dizer(page, t.fraude);
+    let relato = await dizer(page, t.fraude);
+    // Com vários cartões ativos, o assistente pergunta qual antes de bloquear e encaminhar (PRD-007).
+    if ((await relato.textContent())!.includes(t.qualCartao)) relato = await dizer(page, "1");
     const comHumano = page.getByRole("status").filter({ hasText: "Com atendimento humano" });
     await expect(comHumano).toContainText(/AT-\d+/);
     const atendimento = (await comHumano.textContent())!.match(/AT-\d+/)![0];
@@ -151,6 +155,14 @@ for (const idioma of ["es", "pt"] as const) {
     await expect(naFila).toContainText(`Pedido: “${t.fraude}”`);
     const fila: { id: string; regra: string; idioma: string; pedido: string }[] = await (await request.get("/api/atendimento/fila?limite=100")).json();
     expect(fila).toContainEqual(expect.objectContaining({ id: atendimento, regra: "POL-HUM-01", idioma, pedido: t.fraude }));
+
+    // O relato bloqueia o cartão ativo (ou cita o bloqueio de uma rodada anterior), e o bloqueio
+    // aparece no console; sem cartão ativo, nenhum bloqueio é citado.
+    const citados = (await relato.textContent())!.match(/BL-\d{8}/g) ?? [];
+    const ativos: { id: string; customer_id: string }[] = await (await request.get("/api/atendimento/bloqueios?limite=100")).json();
+    const doCliente = ativos.filter((b) => b.customer_id === primeira!.customer_id).map((b) => b.id);
+    expect(citados.length > 0).toBe(doCliente.length > 0);
+    for (const id of citados) expect(doCliente).toContain(id);
 
     // Depois do encaminhamento, a automação só lembra quem está com o caso.
     const lembrete = await dizer(page, t.depois);

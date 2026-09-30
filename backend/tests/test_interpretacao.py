@@ -7,7 +7,12 @@ from decimal import Decimal
 
 import pytest
 
-from jeje.interpretacao import Interpretacao, comercio_citado, interpretar
+from jeje.interpretacao import (
+    Interpretacao,
+    cartao_citado,
+    comercio_citado,
+    interpretar,
+)
 
 REFERENCIA = date(2026, 3, 1)
 
@@ -397,3 +402,69 @@ FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Ub
 )
 def test_comercio_citado_entre_os_do_cliente(comercios, texto, citado):
     assert comercio_citado(texto, comercios) == citado
+
+
+# ---- Bloqueio de cartão (PRD-007) ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        ("quiero bloquear mi tarjeta", "bloquear"),
+        ("bloqueen la tarjeta terminada en 9241, por favor", "bloquear"),
+        ("¿cómo bloqueo mi tarjeta de débito?", "bloquear"),
+        ("quero bloquear o meu cartão", "bloquear"),
+        ("bloqueia meu cartão de crédito", "bloquear"),
+        # A vírgula separa a negação do pedido: "no" responde outra coisa.
+        ("no, bloqueen mi tarjeta", "bloquear"),
+        ("quiero desbloquear mi tarjeta", "desbloquear"),
+        ("desbloqueia meu cartão", "desbloquear"),
+    ],
+)
+def test_pedido_de_bloqueio_ou_desbloqueio_com_verbo_de_pedido_perto_de_cartao(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "¿por qué bloquearon mi tarjeta?",  # pergunta pelo motivo
+        "mi tarjeta está bloqueada",  # estado
+        "meu cartão foi bloqueado?",
+        "no quiero bloquear mi tarjeta",  # negação
+        "não bloqueie meu cartão",
+        "no la bloqueen, solo quiero saber por qué rechazaron la compra",
+        "não quero desbloquear o cartão",
+        "quiero bloquear mi cuenta",  # não é cartão
+    ],
+)
+def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto):
+    assert ler(texto).intencao not in ("bloquear", "desbloquear")
+
+
+def test_roubo_e_perda_com_pedido_de_bloqueio_continuam_relato_de_fraude():
+    """Segurança primeiro: o relato encaminha (e, na conversa, também bloqueia)."""
+    assert ler("me robaron la tarjeta, bloquéenla").intencao == "fraude"
+    assert ler("perdi meu cartão, quero bloquear").intencao == "fraude"
+
+
+CARTOES = [("Tarjeta Crédito", "9241"), ("Tarjeta Débito", "5678"), ("Tarjeta Crédito", None)]
+
+
+@pytest.mark.parametrize(
+    ("cartoes", "texto", "citado"),
+    [
+        (CARTOES, "la terminada en 9241", 0),
+        (CARTOES, "o de final 5678", 1),
+        (CARTOES, "la de débito", 1),
+        (CARTOES[:2], "la de crédito", 0),
+        (CARTOES, "la de crédito", None),  # dois de crédito: quem escolhe é o cliente
+        (CARTOES, "la de 9241 o la de 5678", None),  # dois citados
+        (CARTOES, "la de débito terminada en 9241", None),  # final e tipo não batem
+        (CARTOES, "4000000000009241", None),  # número inteiro não é final
+        (CARTOES, "la terminada en 1234", None),  # final de nenhum cartão do cliente
+        (CARTOES[:1], "esa", None),  # nada citado não escolhe nem o único
+    ],
+)
+def test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente(cartoes, texto, citado):
+    assert cartao_citado(texto, cartoes) == citado

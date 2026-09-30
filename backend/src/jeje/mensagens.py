@@ -165,6 +165,38 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "pt": "Por segurança, não busco transações por identificadores escritos no chat. "
         "Pode me dizer o valor, a data ou o estabelecimento?",
     },
+    # Bloqueio simulado de cartão (PRD-007).
+    "POL-BLQ-01": {
+        "es": "Como el acceso es desde un dispositivo nuevo, un agente va a confirmar o deshacer "
+        "el bloqueo. Ya le paso el resumen.",
+        "pt": "Como o acesso é de um dispositivo novo, um atendente vai confirmar ou desfazer o "
+        "bloqueio. Já passo o resumo para ele.",
+    },
+    "POL-BLQ-02": {
+        "es": "Si fue un error, pídeme deshacerlo y un agente lo revisa.",
+        "pt": "Se foi engano, peça para desfazer e um atendente revisa.",
+    },
+    "POL-BLQ-03": {
+        "es": "No encontré ninguna tarjeta activa para bloquear en tu cuenta.",
+        "pt": "Não encontrei nenhum cartão ativo para bloquear na sua conta.",
+    },
+    "POL-BLQ-05": {
+        "es": "Para deshacer un bloqueo, un agente revisa la solicitud. Ya le paso el resumen.",
+        "pt": "Para desfazer um bloqueio, um atendente revisa o pedido. Já passo o resumo para "
+        "ele.",
+    },
+    "POL-BLQ-06": {
+        "es": "¿Cuál tarjeta quieres bloquear?\n{opcoes}\nResponde con el número de la opción o "
+        "con los 4 últimos dígitos.",
+        "pt": "Qual cartão você quer bloquear?\n{opcoes}\nResponda com o número da opção ou com "
+        "os 4 últimos dígitos.",
+    },
+    "POL-BLQ-06-FRAUDE": {
+        "es": "Por seguridad, voy a bloquear la tarjeta afectada. ¿Cuál es?\n{opcoes}\nResponde "
+        "con el número de la opción o con los 4 últimos dígitos.",
+        "pt": "Por segurança, vou bloquear o cartão afetado. Qual é?\n{opcoes}\nResponda com o "
+        "número da opção ou com os 4 últimos dígitos.",
+    },
     # Mensagens de fluxo da conversa (G10): não decidem nada, só conduzem o próximo passo.
     "SAUDACAO": {
         "es": "Hola. Puedo consultar el estado de tus transacciones y registrar una solicitud de "
@@ -246,6 +278,33 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "pt": "Esta conversa foi encerrada porque os dados foram atualizados. Abra uma nova "
         "conversa para continuar.",
     },
+    # O bloqueio feito ou encontrado, relido do banco e rotulado como simulação (PRD-007).
+    "BLOQUEIO-FEITO": {
+        "es": "Bloqueé tu {cartao} ({como}, referencia {bloqueio}).",
+        "pt": "Bloqueei o seu {cartao} ({como}, referência {bloqueio}).",
+    },
+    "BLOQUEIO-EXISTENTE": {
+        "es": "Tu {cartao} ya está bloqueada (referencia {bloqueio}).",
+        "pt": "O seu {cartao} já está bloqueado (referência {bloqueio}).",
+    },
+    "BLOQUEIOS-ATIVOS": {
+        "es": "Tarjetas ya bloqueadas por aquí: {bloqueados}.",
+        "pt": "Cartões já bloqueados por aqui: {bloqueados}.",
+    },
+    "BLOQUEIO-NAO-IDENTIFICADO": {
+        "es": "No identifiqué cuál tarjeta, así que no bloqueé ninguna.",
+        "pt": "Não identifiquei qual cartão, então não bloqueei nenhum.",
+    },
+    "BLOQUEIO-CANCELADO": {
+        "es": "Listo, no bloqueé ninguna tarjeta. ¿Te ayudo con algo más?",
+        "pt": "Tudo bem, não bloqueei nenhum cartão. Posso ajudar com mais alguma coisa?",
+    },
+    "RESUMO-CARTAO": {
+        "es": "Entendí que quieres bloquear una tarjeta, pero no identifiqué cuál. ¿Quieres que "
+        "te comunique con un agente?",
+        "pt": "Entendi que você quer bloquear um cartão, mas não identifiquei qual. Quer que eu "
+        "passe você para um atendente?",
+    },
     "COM-HUMANO": {
         "es": "Tu caso ya está con un agente (referencia {atendimento}); la conversación sigue con "
         "esa persona.",
@@ -280,6 +339,25 @@ def descrever(t: TransacaoVerificada, idioma: Idioma) -> str:
     """Identifica a transação na língua da resposta: onde, quanto e quando (fatos da curada)."""
     onde = f"{PREPOSICAO[idioma]} {t.merchant_name}" if t.merchant_name else t.transaction_id
     return f"{onde} de {valor(t.amount, t.currency)} ({t.transaction_date:%d/%m/%Y})"
+
+
+# Cartão dito ao cliente: o tipo e os 4 últimos dígitos (o número inteiro nem sai da curada).
+TIPO_DE_CARTAO: dict[str, dict[Idioma, str]] = {
+    "Tarjeta Crédito": {"es": "tarjeta de crédito", "pt": "cartão de crédito"},
+    "Tarjeta Débito": {"es": "tarjeta de débito", "pt": "cartão de débito"},
+}
+FINAL_DO_CARTAO: dict[Idioma, str] = {"es": "terminada en", "pt": "final"}
+# Bloqueio simulado (PRD-007): o tipo vem do dispositivo da sessão e é sempre rotulado.
+TIPO_DE_BLOQUEIO: dict[str, dict[Idioma, str]] = {
+    "preventivo": {"es": "bloqueo preventivo simulado", "pt": "bloqueio preventivo simulado"},
+    "completo": {"es": "bloqueo completo simulado", "pt": "bloqueio completo simulado"},
+}
+
+
+def descrever_cartao(produto: str, ultimos4: str | None, idioma: Idioma) -> str:
+    """O cartão na língua da resposta: o tipo e o final, quando a base tem o número."""
+    tipo = TIPO_DE_CARTAO[produto][idioma]
+    return tipo if ultimos4 is None else f"{tipo} {FINAL_DO_CARTAO[idioma]} {ultimos4}"
 
 
 def marcadores(clausula: str, idioma: Idioma) -> set[str]:

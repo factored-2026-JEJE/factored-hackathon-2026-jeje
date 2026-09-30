@@ -271,5 +271,16 @@ def decidir_bloqueio(quantos_bloqueaveis: int, dispositivo: str) -> Decisao:
     if quantos_bloqueaveis > 1:
         return Decisao("POL-BLQ-06", "esclarecer")
     if dispositivo == "cadastrado":
-        return Decisao("POL-BLQ-02", "bloquear_cartao", "completo")
-    return Decisao("POL-BLQ-01", "humano", "preventivo")
+        return Decisao("POL-BLQ-02", "bloquear_cartao", "dispositivo cadastrado")
+    return Decisao("POL-BLQ-01", "humano", "dispositivo novo")
+
+
+def tipo_de_bloqueio(dispositivo: str) -> str:
+    """Dispositivo cadastrado bloqueia por completo; novo, preventivamente (compras novas
+    barradas), e o atendente confirma ou desfaz. Vale no pedido e no relato de fraude (PRD-007)."""
+    return "completo" if dispositivo == "cadastrado" else "preventivo"
+
+
+def decidir_desbloqueio() -> Decisao:
+    """Pedido de desbloqueio: nesta fase, quem desfaz é o atendente, pelo console (POL-BLQ-05)."""
+    return Decisao("POL-BLQ-05", "humano")

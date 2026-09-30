@@ -824,6 +824,8 @@ export interface components {
             protocolo: string | null;
             /** Atendimento */
             atendimento: string | null;
+            /** Bloqueio */
+            bloqueio: string | null;
         };
         /** ReviewRegistrada */
         ReviewRegistrada: {
