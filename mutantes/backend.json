@@ -6374,8 +6374,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/reviews_api.py",
-          "de": "    if config.reviews_repo and config.github_token:",
-          "para": "    if config.reviews_repo:"
+          "de": "    if config.reviews_repo and config.github_token and publicavel:",
+          "para": "    if config.reviews_repo and publicavel:"
         }
       ],
       "testes": [
@@ -6703,6 +6703,36 @@
       ],
       "testes": [
         "tests/test_recarga.py::test_status_do_caso_depois_da_recarga_cita_so_o_registro_do_cliente"
+      ]
+    },
+    {
+      "id": "M-AVAL-12",
+      "requisito": "R08",
+      "descricao": "Review com a base real carregada vira Issue no GitHub, com o cliente e a transcrição (ACH-038)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "    if config.reviews_repo and config.github_token and publicavel:",
+          "para": "    if config.reviews_repo and config.github_token:"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_com_dados_reais_a_review_fica_so_no_banco"
+      ]
+    },
+    {
+      "id": "M-AVAL-13",
+      "requisito": "R08",
+      "descricao": "Exportação das pendentes publica Issue com a base real carregada (ACH-038)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews.py",
+          "de": "        if not dados_da_fixture(conexao):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_pendentes_nao_viram_issue_com_dados_reais"
       ]
     }
   ]
