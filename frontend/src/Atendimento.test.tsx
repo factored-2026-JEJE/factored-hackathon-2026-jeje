@@ -25,6 +25,7 @@ function servidor({ tokenValido = true } = {}) {
   let valido = tokenValido;
   const pedidos: { url: string; auth: string | null }[] = [];
   const dispositivos: string[] = [];
+  const perguntas: string[] = [];
   let dispositivo = "novo";
   const responder = (status: number, corpo: unknown) =>
     new Response(JSON.stringify(corpo), { status });
@@ -44,10 +45,23 @@ function servidor({ tokenValido = true } = {}) {
       if (auth !== `Bearer ${emitido}` || !valido) return responder(401, { detail: "Sessão ausente" });
       if (url === "/api/sessao") return responder(200, { ...ANA, dispositivo });
       if (url === "/api/minhas/transacoes") return responder(200, TRANSACOES);
+      if (url === "/api/conversas" && init?.method === "POST") {
+        const { idioma } = JSON.parse(String(init.body));
+        return responder(201, { conversa_id: "C1", idioma, estado: "livre", resposta: "Hola." });
+      }
+      if (url === "/api/conversas/C1/turnos" && init?.method === "POST") {
+        perguntas.push(JSON.parse(String(init.body)).texto);
+        return responder(200, {
+          conversa_id: "C1", numero: 1, idioma: "es", intencao: "consultar", regra: "POL-CON-03",
+          acao: "responder", estado: "livre", resposta: "respondido", transaction_id: "TRX-C1",
+          opcoes: [], proposta: null, protocolo: null, atendimento: null, bloqueio: null,
+          descricao: null, interpretacao: "regras", efeito: null, fontes: [],
+        });
+      }
       return responder(404, { detail: "Not Found" });
     }),
   );
-  return { pedidos, dispositivos, invalidar: () => (valido = false) };
+  return { pedidos, dispositivos, perguntas, invalidar: () => (valido = false) };
 }
 
 beforeEach(() => sessionStorage.clear());
@@ -124,4 +138,29 @@ test("recarregar a página mostra o dispositivo guardado pelo servidor", async (
   cleanup();
   render(<Atendimento />);
   expect(await screen.findByText("Dispositivo (simulação): cadastrado")).toBeInTheDocument();
+});
+
+async function perguntarSobreALinha(abrir: string) {
+  const api = servidor();
+  render(<Atendimento />);
+  await userEvent.click(await screen.findByRole("button", { name: "Entrar como Ana Souza" }));
+  const linha = within(await screen.findByRole("row", { name: /Almacenes Éxito/ }));
+  // Sem conversa aberta, não há a quem perguntar.
+  expect(linha.queryByRole("button", { name: "Perguntar sobre esta" })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: abrir }));
+  await userEvent.click(await linha.findByRole("button", { name: "Perguntar sobre esta" }));
+  expect(await screen.findByText("respondido")).toBeInTheDocument();
+  return api.perguntas;
+}
+
+test("perguntar sobre esta manda à conversa em espanhol as pistas da linha, nunca o identificador", async () => {
+  expect(await perguntarSobreALinha("Conversar em español")).toEqual([
+    "¿Qué pasó con la transacción de 189.900,55 del 10/03/2025 en Almacenes Éxito?",
+  ]);
+});
+
+test("perguntar sobre esta manda à conversa em português as pistas da linha", async () => {
+  expect(await perguntarSobreALinha("Conversar em português")).toEqual([
+    "O que aconteceu com a transação de 189.900,55 do dia 10/03/2025 na Almacenes Éxito?",
+  ]);
 });
