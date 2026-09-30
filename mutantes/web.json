@@ -936,6 +936,21 @@
         "src/Conversa.test.tsx > resposta perdida depois do sim: a tela relê a conversa, mostra o protocolo e não reenvia",
         "src/Conversa.test.tsx > reenviar relê a conversa antes: se o servidor já processou, não manda de novo"
       ]
+    },
+    {
+      "id": "M-WEB-68",
+      "requisito": "R02",
+      "descricao": "Resposta perdida: a tela dá por processada a mensagem que não chegou ao servidor (confere só que há histórico) e some com o Reenviar (ACH-105)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      if (!historico || !ultimo || historico.turnos.length <= mostrados || ultimo.mensagem !== limpa) return false;",
+          "para": "      if (!historico || !ultimo) return false;"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > mensagem que não chegou ao servidor continua com Reenviar, e o reenvio registra"
+      ]
     }
   ]
 }

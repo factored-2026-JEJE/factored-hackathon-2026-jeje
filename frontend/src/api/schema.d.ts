@@ -382,6 +382,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/atendimento/bloqueios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bloqueios
+         * @description Bloqueios de cartão ativos, os mais recentes primeiro.
+         */
+        get: operations["bloqueios_atendimento_bloqueios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/atendimento/bloqueios/{bloqueio_id}/desbloqueio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desbloquear
+         * @description O atendente desfaz o bloqueio a qualquer momento (passado o prazo, só ele desfaz).
+         */
+        post: operations["desbloquear_atendimento_bloqueios__bloqueio_id__desbloqueio_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/testadores": {
         parameters: {
             query?: never;
@@ -437,6 +477,42 @@ export interface components {
         AvaliacaoDeContestacao: {
             decisao: components["schemas"]["DecisaoDaPolitica"];
             proposta: components["schemas"]["Proposta"] | null;
+        };
+        /**
+         * BloqueioDeCartao
+         * @description Bloqueio simulado: o cartão aparece só pelo tipo e pelos 4 últimos dígitos.
+         */
+        BloqueioDeCartao: {
+            /** Id */
+            id: string;
+            /** Customer Id */
+            customer_id: string;
+            /** Product Id */
+            product_id: string;
+            /** Produto */
+            produto: string;
+            /** Ultimos4 */
+            ultimos4: string | null;
+            /** Tipo */
+            tipo: string;
+            /** Motivo */
+            motivo: string;
+            /** Dispositivo */
+            dispositivo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             */
+            criado_em: string;
+            /**
+             * Reversivel Ate
+             * Format: date-time
+             */
+            reversivel_ate: string;
+            /** Desfeito Em */
+            desfeito_em: string | null;
+            /** Desfeito Por */
+            desfeito_por: string | null;
         };
         /** ConversaAberta */
         ConversaAberta: {
@@ -1642,6 +1718,89 @@ export interface operations {
                 content?: never;
             };
             /** @description Encaminhamento já assumido por outro atendente */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bloqueios_atendimento_bloqueios_get: {
+        parameters: {
+            query?: {
+                limite?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BloqueioDeCartao"][];
+                };
+            };
+            /** @description Modo demo desligado ou persona não provisionada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    desbloquear_atendimento_bloqueios__bloqueio_id__desbloqueio_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bloqueio_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BloqueioDeCartao"];
+                };
+            };
+            /** @description Modo demo desligado ou bloqueio inexistente */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bloqueio já desfeito */
             409: {
                 headers: {
                     [name: string]: unknown;

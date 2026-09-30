@@ -171,6 +171,32 @@ def curada(base):
     return base
 
 
+# ---- Cartões (bloqueio simulado, PRD-007) ----------------------------------------------------
+
+CREDITO, DEBITO = "Tarjeta Crédito", "Tarjeta Débito"
+
+
+@pytest.fixture
+def cartoes(base):
+    """CLI-A: dois cartões ativos, um fechado e a conta PRD-A (não é cartão); CLI-B: um cartão
+    ativo; CLI-C: um cartão já bloqueado na base."""
+    with conexao(base) as con:
+        raw_produto(con, "CRT-A1", "CLI-A", product_type=CREDITO, product_number="4000000000009241")
+        raw_produto(con, "CRT-A2", "CLI-A", product_type=DEBITO, product_number="5000000000005678")
+        raw_produto(
+            con, "CRT-A3", "CLI-A", product_type=CREDITO, product_number="4000000000000000",
+            product_status="Closed",
+        )  # fmt: skip
+        raw_produto(con, "CRT-B1", "CLI-B", product_type=CREDITO, product_number="4111111111111111")
+        raw_cliente(con, "CLI-C")
+        raw_produto(
+            con, "CRT-C1", "CLI-C", product_type=DEBITO, product_number="5000000000003333",
+            product_status="Blocked",
+        )  # fmt: skip
+    curar_tudo(base)
+    return base
+
+
 def quarentena(settings, tabela: str) -> dict[str, list[str]]:
     with conexao(settings) as con:
         linhas = con.execute(
