@@ -1,5 +1,6 @@
-// Pré-caso pela conversa (a única porta do cliente): registrar, ver o protocolo na conversa e na
-// lista, e contestar de novo numa conversa nova sem criar outro pré-caso.
+// Pré-caso pela conversa (a única porta do cliente): registrar mesmo quando a resposta do "sí" se
+// perde (ACH-105), ver o protocolo na conversa e na lista, e contestar de novo numa conversa nova
+// sem criar outro pré-caso.
 import { expect, type Page, test } from "@playwright/test";
 import { auth, dataTexto, elegivel, type Transacao, valorTexto } from "./comum";
 
@@ -16,7 +17,7 @@ async function dizer(page: Page, texto: string) {
   return mensagens.last();
 }
 
-test("contestar pela conversa, confirmar, ver o protocolo e contestar de novo sem duplicar", async ({ page, request }, info) => {
+test("contestar pela conversa, perder a resposta do sim, ver o protocolo e contestar de novo sem duplicar", async ({ page, request }, info) => {
   const { persona, transacao, token } = await elegivel(request, "pre_caso", info);
   await page.goto("/");
   await page.getByRole("button", { name: `Entrar como ${persona.nome}` }).click();
@@ -24,14 +25,31 @@ test("contestar pela conversa, confirmar, ver o protocolo e contestar de novo se
   await expect(page.getByRole("log", { name: "Mensagens" }).locator("li")).toHaveCount(1);
 
   await expect(await dizer(page, contestar(transacao))).toContainText("¿Confirmas?");
+  // A API registra o "sí", mas a resposta não chega à tela: a conexão cai na volta.
+  await page.route(
+    "**/api/conversas/*/turnos",
+    async (rota) => {
+      await rota.fetch();
+      await rota.abort("connectionreset");
+    },
+    { times: 1 },
+  );
   await page.getByRole("button", { name: "Sí, confirmo" }).click();
-  const recebido = page.getByRole("status").filter({ hasText: "Pré-caso recebido" });
-  await expect(recebido).toContainText("Pré-caso recebido: protocolo PC-");
-  const protocolo = (await recebido.textContent())!.match(/PC-\d+/)![0];
+  // A tela relê a conversa e mostra o que ficou registrado, sem pedir para reenviar.
+  const registrado = page.getByRole("log", { name: "Mensagens" }).locator("li").last();
+  await expect(registrado).toContainText("Registré la solicitud con el protocolo PC-");
+  await expect(page.getByRole("button", { name: "Reenviar" })).toHaveCount(0);
+  const protocolo = (await registrado.textContent())!.match(/PC-\d+/)![0];
 
-  // Efeito conferido no backend, não só na tela.
+  // Efeito conferido no backend, não só na tela: o protocolo mostrado é o registrado, só um, e a
+  // conversa tem exatamente os dois turnos (nada foi reenviado).
   const preCasos: { protocolo: string; transaction_id: string }[] = await (await request.get("/api/minhas/pre-casos", { headers: auth(token) })).json();
-  expect(preCasos).toContainEqual(expect.objectContaining({ protocolo, transaction_id: transacao.transaction_id }));
+  expect(preCasos.filter((p) => p.transaction_id === transacao.transaction_id)).toEqual([
+    expect.objectContaining({ protocolo, transaction_id: transacao.transaction_id }),
+  ]);
+  const conversa = await page.evaluate(() => sessionStorage.getItem("jeje.conversa"));
+  const historico: { turnos: { acao: string }[] } = await (await request.get(`/api/conversas/${conversa}`, { headers: auth(token) })).json();
+  expect(historico.turnos.map((t) => t.acao)).toEqual(["propor_pre_caso", "registrar_pre_caso"]);
   await expect(page.getByRole("region", { name: "Meus pré-casos" })).toContainText(protocolo);
 
   // Conversa nova, mesma contestação: o assistente devolve o protocolo existente, nada novo.
