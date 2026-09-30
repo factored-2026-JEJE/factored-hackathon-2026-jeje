@@ -848,6 +848,97 @@
           }
         }
       }
+    },
+    "/testadores": {
+      "get": {
+        "summary": "Listar Testadores",
+        "description": "Quem do time pode avaliar conversas (logins do GitHub).",
+        "operationId": "listar_testadores_testadores_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Testadores Testadores Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou persona não provisionada"
+          }
+        }
+      }
+    },
+    "/conversas/{conversa_id}/reviews": {
+      "post": {
+        "summary": "Avaliar Conversa",
+        "description": "Grava a review da conversa (só do dono) e, com repositório e token, abre a Issue.",
+        "operationId": "avaliar_conversa_conversas__conversa_id__reviews_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversa_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Conversa Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDeReview"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewRegistrada"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversa não encontrada"
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "400": {
+            "description": "Corpo ilegível (não é JSON UTF-8)"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1356,6 +1447,42 @@
         ],
         "title": "Opcao"
       },
+      "PedidoDeReview": {
+        "properties": {
+          "avaliador": {
+            "type": "string",
+            "title": "Avaliador"
+          },
+          "nota": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Nota"
+          },
+          "resolveu": {
+            "type": "string",
+            "enum": [
+              "sim",
+              "parcial",
+              "nao"
+            ],
+            "title": "Resolveu"
+          },
+          "comentario": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Comentario"
+          }
+        },
+        "type": "object",
+        "required": [
+          "avaliador",
+          "nota",
+          "resolveu",
+          "comentario"
+        ],
+        "title": "PedidoDeReview"
+      },
       "PedidoDeSessao": {
         "properties": {
           "customer_id": {
@@ -1696,6 +1823,31 @@
         ],
         "title": "ResultadoDoTurno",
         "description": "O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."
+      },
+      "ReviewRegistrada": {
+        "properties": {
+          "review_id": {
+            "type": "integer",
+            "title": "Review Id"
+          },
+          "issue_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issue Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "review_id",
+          "issue_url"
+        ],
+        "title": "ReviewRegistrada"
       },
       "SessaoAberta": {
         "properties": {

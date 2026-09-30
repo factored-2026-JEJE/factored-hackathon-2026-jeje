@@ -19,6 +19,7 @@ from jeje.mensagens import Idioma, Status
 
 Intencao = Literal["fraude", "humano", "fora_de_escopo", "contestar", "consultar", "desconhecida"]
 Resposta = Literal["sim", "nao"]
+Cortesia = Literal["saudacao", "agradecimento"]
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,9 @@ class Interpretacao:
     data: date | None = None
     status: Status | None = None  # status citado (ex.: "rechazaron" → Declined)
     id_digitado: bool = False  # parece identificador de sistema (POL-ID-02)
+    caso: bool = False  # pergunta pelo pedido de revisão já registrado (POL-CASO-*)
+    ultima: bool = False  # "la última", "a mais recente": das que casarem, a mais recente
+    cortesia: Cortesia | None = None  # a mensagem inteira é cumprimento ou agradecimento
     sinais: tuple[str, ...] = ()  # termos que decidiram a intenção (auditoria)
 
 
@@ -89,6 +93,40 @@ PEDIDO_DE_CARGO = Perto(
      "quiero", "quero", "necesito", "preciso", "contactar", "contatar"),
     ("gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
+# Cobrança repetida é contestação quando o verbo de cobrar (ou de aparecer no extrato) está perto:
+# "me cobraron dos veces", "a Streaming Plus me cobrou 2x"; "intenté dos veces y me rechazaron"
+# continua consulta.
+COBRANCA_REPETIDA = Perto(
+    ("cobr*", "carg*", "debit*", "descont*", "sale", "salen", "salio", "aparece*", "aparecio",
+     "caiu", "cayo", "vino", "veio"),
+    ("dos veces", "2 veces", "duas vezes", "2 vezes", "2x", "doble", "dobro", "duplicad*",
+     "repetid*"),
+)  # fmt: skip
+
+# Pergunta pelo pedido de revisão já registrado: o pedido (com possessivo ou palavra de andamento
+# perto) ou o protocolo. "¿cómo va mi solicitud?", "status do meu pedido de revisão", "cadê o
+# protocolo"; "quiero abrir una disputa" e "quero um pedido de revisão" continuam contestação.
+PEDIDO_REGISTRADO = Perto(
+    ("mi", "mis", "meu", "meus", "minha", "minhas", "como esta", "como va", "como anda",
+     "como vai", "como ficou", "como segue", "estado", "status", "situacion", "situacao",
+     "andamento", "novedad*", "novidade*", "noticia*", "respuesta", "resposta", "ver",
+     "consultar", "que paso con", "o que houve com", "cade", "donde esta"),
+    ("pre caso", "precaso", "pre casos", "precasos", "solicitud*", "pedido de revisao",
+     "pedidos de revisao", "reclamo", "reclamos", "reclamacao", "reclamacion", "disputa",
+     "contestacao"),
+)  # fmt: skip
+# O protocolo é do próprio cliente e só existe depois do registro; digitado ("PC-00000003"), só
+# indica o assunto: a busca continua sendo pelos pré-casos do cliente da sessão (POL-ID-02).
+PROTOCOLO = ("protocolo", "protocolos")
+PROTOCOLO_DIGITADO = re.compile(r"(?<![a-z0-9])pc \d+")
+
+# Recusar o atendente não é pedir um: "no quiero un agente, solo dime cuál fue". Só a negação
+# aplicada ao atendente ("no quiero esperar, quiero un agente" continua pedido).
+RECUSA_DE_HUMANO = re.compile(
+    r"(?<![a-z0-9])(?:no quiero|nao quero|no necesito|nao preciso|sin|sem)"
+    r"(?: (?:hablar|falar)(?: con| com)?)?(?: (?:un|una|um|uma|el|la|o|a|ningun|nenhum))?"
+    r" (?:agente|asesor|atendente|humano|operador|persona|pessoa)(?![a-z0-9])"
+)
 
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
 TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
@@ -111,7 +149,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("contestar", ("no reconozco", "no la reconozco", "no lo reconozco", "nao reconheco",
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
-                   "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei")),
+                   "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
+                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar")),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
                    "negaram", "pendiente*", "pendente*", "revertid*", "estornad*", "estado",
@@ -168,12 +207,10 @@ CORTESIA = ("por favor", "gracias", "muchas gracias", "obrigado", "obrigada", "m
             "pues", "entonces", "entao", "bueno", "bom", "ya", "ja", "senor", "senhor")  # fmt: skip
 
 
-def _resposta(limpo: str) -> Resposta | None:
-    """Sim/não só quando a mensagem inteira é isso (cortesia à parte): "sí, pero no esa" ou
-    "¿y si me rechazaron?" não confirmam nada."""
-    vocabulario = [(p, "sim") for p in AFIRMATIVAS] + [(p, "nao") for p in NEGATIVAS]
-    vocabulario += [(p, "cortesia") for p in CORTESIA]
-    vocabulario.sort(key=lambda par: -len(par[0].split()))  # frase mais longa primeiro
+def _so_vocabulario(limpo: str, vocabulario: list[tuple[str, str]]) -> set[str] | None:
+    """Tipos das frases do vocabulário que compõem a mensagem inteira (a frase mais longa primeiro);
+    None se sobrar alguma palavra fora dele."""
+    vocabulario = sorted(vocabulario, key=lambda par: -len(par[0].split()))
     palavras, achados = limpo.split(), set()
     i = 0
     while i < len(palavras):
@@ -184,9 +221,54 @@ def _resposta(limpo: str) -> Resposta | None:
                 i += len(partes)
                 break
         else:
-            return None  # palavra fora do vocabulário: não é resposta curta
+            return None
+    return achados
+
+
+def _resposta(limpo: str) -> Resposta | None:
+    """Sim/não só quando a mensagem inteira é isso (cortesia à parte): "sí, pero no esa" ou
+    "¿y si me rechazaron?" não confirmam nada."""
+    vocabulario = [(p, "sim") for p in AFIRMATIVAS] + [(p, "nao") for p in NEGATIVAS]
+    vocabulario += [(p, "cortesia") for p in CORTESIA]
+    achados = _so_vocabulario(limpo, vocabulario)
+    if achados is None:
+        return None  # palavra fora do vocabulário: não é resposta curta
     achados.discard("cortesia")
     return achados.pop() if len(achados) == 1 else None
+
+
+# Cumprimento e agradecimento só quando a mensagem inteira é isso: "obrigado, e a outra?" continua
+# pedido. É vocabulário fechado: o leitor e5 não tem essa classe e lê "okay, obrigado" como fora do
+# escopo (0,81) e "perfeito, obrigada pela ajuda" como explicar_recusa (0,34).
+AGRADECIMENTOS = ("gracias", "muchas gracias", "mil gracias", "te agradezco", "le agradezco",
+                  "agradezco", "obrigado", "obrigada", "muito obrigado", "muito obrigada",
+                  "brigado", "brigada", "brigadao", "valeu", "vlw", "obg", "agradeco", "muy amable",
+                  "muito gentil", "muito amavel", "que amable", "adios", "chau", "chao", "tchau",
+                  "hasta luego", "hasta pronto", "nos vemos", "ate logo", "ate mais", "ate breve",
+                  "era eso", "eso era todo", "eso es todo", "nada mas", "era isso", "e isso",
+                  "e so isso", "so isso", "listo", "resolvio", "resolveu", "ya esta", "perfecto",
+                  "perfeito", "genial", "otimo", "excelente", "ok", "okay", "okey", "vale",
+                  "entendi", "entendido", "beleza", "blz", "show", "joia", "pela ajuda",
+                  "por la ayuda", "por tu ayuda", "por su ayuda", "por sua ajuda",
+                  "pela informacao", "por la informacion")  # fmt: skip
+SAUDACOES = ("hola", "oi", "ola", "opa", "buenas", "buen dia", "buenos dias", "buenas tardes",
+             "buenas noches", "bom dia", "boa tarde", "boa noite", "que tal", "e ai", "eai", "hey",
+             "alo")  # fmt: skip
+ENCHIMENTO_DA_CORTESIA = ("por favor", "pues", "entonces", "entao", "bueno", "bom", "ya", "ja",
+                          "senor", "senora", "senhor", "senhora", "muy", "muito", "mucho",
+                          "tudo bem", "tudo bom", "todo bien", "como estas", "como vai",
+                          "como esta", "si", "sim", "no", "nao", "y", "e", "amigo", "amiga",
+                          "cara")  # fmt: skip
+
+
+def _cortesia(limpo: str) -> Cortesia | None:
+    vocabulario = [(p, "agradecimento") for p in AGRADECIMENTOS]
+    vocabulario += [(p, "saudacao") for p in SAUDACOES]
+    vocabulario += [(p, "enchimento") for p in ENCHIMENTO_DA_CORTESIA]
+    achados = _so_vocabulario(limpo, vocabulario) or set()
+    if "agradecimento" in achados:
+        return "agradecimento"
+    return "saudacao" if "saudacao" in achados else None
 
 
 ORDINAIS = {
@@ -196,7 +278,7 @@ ORDINAIS = {
 }  # fmt: skip
 ENCHIMENTO_DA_ESCOLHA = frozenset(
     {"la", "el", "a", "o", "opcion", "opcao", "numero", "es", "e", "esa", "essa", "esta", "seria",
-     "por", "favor", "gracias", "obrigado", "obrigada"}
+     "por", "favor", "gracias", "obrigado", "obrigada", "quiero", "quero", "fue", "foi", "era"}
 )  # fmt: skip
 
 
@@ -221,6 +303,10 @@ MESES = {
 }  # fmt: skip
 DATA_NUMERICA = re.compile(r"(?<![\d.,])(\d{1,2})[/-](\d{1,2})(?:[/-](\d{4}|\d{2}))?(?![\d/-])")
 DATA_POR_EXTENSO = re.compile(r"(?<!\d)(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?(?!\d)")
+# Contagem não é valor: "me aparece 2 veces", "salen 2 cobros".
+CONTAGEM = re.compile(
+    r"(?<![\w.,])[1-9]\s*(?:veces|vezes|cobros?|cobran[çc]as?|cargos?)(?!\w)", re.IGNORECASE
+)
 VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
 # Identificadores do sistema (prefixos da base e dos protocolos) ou código longo com dígitos.
 IDENTIFICADOR = re.compile(
@@ -228,6 +314,14 @@ IDENTIFICADOR = re.compile(
     r"|\b[a-z]{2,4}-(?=[a-z0-9]*\d)[a-z0-9]{3,}\b"
     r"|\b(?=[a-z0-9]*\d)(?=[a-z0-9]*[a-z])[a-z0-9]{10,}\b",
     re.IGNORECASE,
+)
+
+
+# "Minha última compra", "la más reciente": critério do cliente entre as que casarem. "La última
+# vez que intenté" e "no último mês" falam de tempo, não da transação.
+ULTIMA = re.compile(
+    r"(?<![a-z0-9])(?:ultim[ao]|mas reciente|mais recente)"
+    r"(?! (?:vez|veces|vezes|mes|meses|dia|dias|semana|semanas|ano|anos|hora|horas))(?![a-z0-9])"
 )
 
 
@@ -264,18 +358,26 @@ def _data(texto: str, referencia: date) -> date | None:
 
 
 def _valor(texto: str) -> Decimal | None:
-    """Primeiro número que não é data nem parte de identificador; milhar com ponto ou espaço e
-    decimal com vírgula ou ponto ("COP 189.900,55", "45.90", "USD 12")."""
+    """Primeiro número que não é data, contagem nem parte de identificador; milhar com ponto ou
+    espaço e decimal com vírgula ou ponto ("COP 189.900,55", "45.90", "USD 12")."""
     sem_datas = DATA_NUMERICA.sub(" ", texto)
     sem_datas = DATA_POR_EXTENSO.sub(
         lambda m: " " if normalizar(m.group(2)) in MESES else m.group(0), sem_datas
     )
-    achado = VALOR.search(IDENTIFICADOR.sub(" ", sem_datas))
+    achado = VALOR.search(IDENTIFICADOR.sub(" ", CONTAGEM.sub(" ", sem_datas)))
     if achado is None:
         return None
     inteiro, fracao = achado.groups()
     digitos = re.sub(r"[.\s]", "", inteiro)
     return Decimal(f"{digitos}.{(fracao or '0').ljust(2, '0')}")
+
+
+def _caso(limpo: str) -> bool:
+    return (
+        _casou(PEDIDO_REGISTRADO, limpo) is not None
+        or any(_casa(p, limpo) for p in PROTOCOLO)
+        or PROTOCOLO_DIGITADO.search(limpo) is not None
+    )
 
 
 def _status(limpo: str) -> str | None:
@@ -285,16 +387,23 @@ def _status(limpo: str) -> str | None:
 
 def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interpretacao:
     limpo = normalizar(texto)
+    escolha = _escolha(limpo)
     pistas = {
         "idioma": _idioma(texto, limpo, idioma_anterior),
         "resposta": _resposta(limpo),
-        "escolha": _escolha(limpo),
-        "valor": _valor(texto),
+        "escolha": escolha,
+        # "A 1" é escolha, nunca valor: sem lista pendente, não vira busca de uma transação de 1,00.
+        "valor": None if escolha is not None else _valor(texto),
         "data": _data(texto, referencia),
         "status": _status(limpo),
         "id_digitado": IDENTIFICADOR.search(texto) is not None,
+        "caso": _caso(limpo),
+        "ultima": ULTIMA.search(limpo) is not None,
+        "cortesia": _cortesia(limpo),
     }
     for intencao, termos in TERMOS:
+        if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):
+            continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
         if casados:
             return Interpretacao(intencao=intencao, sinais=casados, **pistas)
@@ -309,14 +418,41 @@ COMUNS = frozenset(
 )  # fmt: skip
 
 
+# O que o cliente diz do comércio sem dizer o nome ("numa ótica", "los pasajes", "loja de roupa"):
+# palavra do nome → como o cliente fala dela, em ES e PT. Os nomes da base já dizem o ramo
+# ("Óptica Visión", "Viajes El Cóndor", "Boutique Moda"); o e5 sem treino, medido nas conversas da
+# QA, trocava "a compra da viagem" e "la ropa" por Uber, então aqui é vocabulário, não modelo.
+RAMO: dict[str, tuple[str, ...]] = {
+    "optica": ("otica", "oculos", "lentes", "gafas", "anteojos"),
+    "farmacia": ("drogaria", "drogueria", "remedio*", "medicamento*"),
+    "ferreteria": ("ferragem", "ferragens", "herramienta*", "ferramenta*"),
+    "viajes": ("viagem", "viagens", "viaje", "pasaje*", "passage*", "vuelo*", "voo", "voos"),
+    "cine": ("cinema", "pelicula*", "filme*"),
+    "cafe": ("cafezinho", "cafeteria"),
+    "moda": ("roupa*", "ropa", "vestido*"),
+    "boutique": ("roupa*", "ropa", "vestido*"),
+    "restaurante": ("almuerzo", "almoco", "jantar"),
+    "gasolinera": ("gasolina", "combustivel", "combustible"),
+    "clinica": ("medico", "doctor"),
+    "conciertos": ("concierto", "show", "shows"),
+    "streaming": ("assinatura", "suscripcion"),
+    "telefonica": ("telefone", "telefono"),
+    "mercado": ("supermercado", "mercearia"),
+    "super": ("supermercado",),
+}
+
+
 def comercio_citado(texto: str, comercios: Iterable[str]) -> str | None:
-    """Comércio (dentre os das transações do próprio cliente) citado na mensagem: nome inteiro ou
-    palavra distintiva dele. Mais de um citado → nenhum (quem escolhe é o cliente)."""
+    """Comércio (dentre os das transações do próprio cliente) citado na mensagem: nome inteiro,
+    palavra distintiva dele ou o ramo que o nome diz (RAMO). Mais de um citado → nenhum (quem
+    escolhe é o cliente)."""
     limpo = normalizar(texto)
     citados = set()
     for nome in comercios:
         nome_limpo = normalizar(nome)
-        distintivas = [p for p in nome_limpo.split() if len(p) >= 4 and p not in COMUNS]
-        if _casa(nome_limpo, limpo) or any(_casa(p, limpo) for p in distintivas):
+        palavras = nome_limpo.split()
+        distintivas = [p for p in palavras if len(p) >= 4 and p not in COMUNS]
+        ramo = [t for p in palavras for t in RAMO.get(p, ())]
+        if _casa(nome_limpo, limpo) or any(_casa(p, limpo) for p in (*distintivas, *ramo)):
             citados.add(nome)
     return citados.pop() if len(citados) == 1 else None

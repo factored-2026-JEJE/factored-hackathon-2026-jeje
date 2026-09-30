@@ -5,7 +5,7 @@ assinatura. Transação de outro cliente e transação inexistente são indistin
 consulta (nenhum dado, erro ou tempo diferente revela a existência).
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel
@@ -131,3 +131,23 @@ def comercios_do_cliente(conexao: Connection, customer_id: str) -> list[str]:
             {"cliente": customer_id},
         ).scalars()
     )
+
+
+# (banco, versão dos dados) → último dia com transação: a varredura roda uma vez por carga.
+_DIA_DOS_DADOS: dict[tuple[str | None, str], date | None] = {}
+
+
+def dia_dos_dados(conexao: Connection) -> date | None:
+    """Último dia com transação na base carregada. A base é um retrato: "ayer" ou "11 de marzo"
+    se leem a partir dele, não do relógio (a fixture é de março de 2025). Lido uma vez por versão
+    dos dados (a recarga troca a versão); sem versão registrada, lido de novo a cada vez."""
+    versao = conexao.execute(text("SELECT version FROM meta.dataset_version")).scalar()
+    chave = (conexao.engine.url.database, versao)
+    if versao is not None and chave in _DIA_DOS_DADOS:
+        return _DIA_DOS_DADOS[chave]
+    dia = conexao.execute(
+        text("SELECT max(transaction_date)::date FROM curated.transactions")
+    ).scalar()
+    if versao is not None:
+        _DIA_DOS_DADOS[chave] = dia
+    return dia

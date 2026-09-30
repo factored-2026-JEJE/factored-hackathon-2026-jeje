@@ -14,7 +14,7 @@ from typing import Literal, get_args
 
 from jeje.mensagens import Status
 
-Acao = Literal["responder", "esclarecer", "propor_pre_caso", "humano", "recusar"]
+Acao = Literal["responder", "esclarecer", "propor_pre_caso", "humano", "oferecer_humano", "recusar"]
 
 # Códigos de recusa com explicação aprovada (95% das recusas da base; DEV-005).
 CODIGOS_CATALOGADOS = frozenset({"05", "14", "51", "54"})
@@ -119,6 +119,14 @@ def decidir_contestacao(
     return Decisao("POL-DISP-01", "propor_pre_caso")
 
 
+def decidir_status_do_caso(quantos: int) -> Decisao:
+    """Status do pedido de revisão: só os pré-casos do cliente da sessão, relidos do banco. O
+    assistente informa o registro e o estado; não tem prazo nem resultado da revisão."""
+    if quantos == 0:
+        return Decisao("POL-CASO-03", "responder", "nenhum pré-caso do cliente")
+    return Decisao("POL-CASO-01" if quantos == 1 else "POL-CASO-02", "responder")
+
+
 # ---- Pedido na conversa (POL-HUM-01/03, POL-ESC-01, POL-ID-02) ---------------------------------
 
 ESCLARECIMENTOS_ATE_HUMANO = 2  # POL-HUM-03: perguntas de esclarecimento sem sucesso
@@ -140,9 +148,10 @@ def decidir_pedido(intencao: str, id_digitado: bool) -> Decisao | None:
 
 
 def decidir_esclarecimento(ja_feitos: int) -> Decisao:
-    """Transação não identificada: pergunta de novo até o limite; depois, humano."""
+    """Transação ou pedido não identificado: pergunta de novo até o limite; depois, oferece o
+    atendente (encaminha só com o sim: quem não quer atendente segue na conversa)."""
     if ja_feitos >= ESCLARECIMENTOS_ATE_HUMANO:
-        return Decisao("POL-HUM-03", "humano", "esclarecimentos sem sucesso")
+        return Decisao("POL-HUM-03", "oferecer_humano", "esclarecimentos sem sucesso")
     return Decisao("POL-CON-02", "esclarecer")
 
 
@@ -156,6 +165,7 @@ class Pista:
     valor: Decimal | None = None
     data: date | None = None
     comercio: str | None = None
+    ultima: bool = False  # "la última": das que casarem, a mais recente (critério do cliente)
 
 
 @dataclass(frozen=True)
@@ -193,8 +203,11 @@ def _casa(candidata: Candidata, pista: Pista) -> bool:
 def resolver_transacao(
     candidatas: list[Candidata], pista: Pista, maximo_opcoes: int = 5
 ) -> Resolucao:
-    """Nunca escolhe entre várias: uma → segue; várias → pergunta; nenhuma → pede dados."""
+    """Nunca escolhe entre várias: uma → segue; várias → pergunta; nenhuma → pede dados. O único
+    critério de escolha é o do cliente ("a última"): as candidatas vêm mais recentes primeiro."""
     casadas = [c for c in candidatas if _casa(c, pista)]
+    if pista.ultima and casadas:
+        casadas = casadas[:1]
     if len(casadas) == 1:
         return Resolucao("unica", (casadas[0].transaction_id,))
     if not casadas:

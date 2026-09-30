@@ -19,6 +19,7 @@ from jeje.politica import (
     decidir_contestacao,
     decidir_esclarecimento,
     decidir_pedido,
+    decidir_status_do_caso,
     noturna_digital,
     resolver_transacao,
 )
@@ -164,11 +165,34 @@ def test_pedido_segue_a_matriz_com_seguranca_primeiro(intencao, id_digitado, esp
     assert decidir_pedido(intencao, id_digitado) == esperado
 
 
-def test_dois_esclarecimentos_sem_sucesso_levam_ao_humano():
+def test_a_ultima_escolhe_a_mais_recente_das_que_casam():
+    """As candidatas chegam mais recentes primeiro; "a última" é o critério do cliente."""
+    candidatas = [
+        Candidata("T3", Decimal("20.00"), datetime(2025, 3, 14), "Uber"),
+        Candidata("T2", Decimal("45.90"), datetime(2025, 3, 12), "Cine Premium"),
+        Candidata("T1", Decimal("45.90"), datetime(2025, 3, 10), "Streaming Plus"),
+    ]
+    assert resolver_transacao(candidatas, Pista(ultima=True)).transacoes == ("T3",)
+    assert resolver_transacao(candidatas, Pista(Decimal("45.90"), ultima=True)).transacoes == (
+        "T2",
+    )
+    assert resolver_transacao(candidatas, Pista(Decimal("45.90"))).tipo == "varias"
+    assert resolver_transacao(candidatas, Pista(Decimal("9.99"), ultima=True)).tipo == "nenhuma"
+
+
+def test_status_do_caso_responde_sem_encaminhar_e_distingue_nenhum_um_e_varios():
+    assert decidir_status_do_caso(0) == Decisao(
+        "POL-CASO-03", "responder", "nenhum pré-caso do cliente"
+    )
+    assert decidir_status_do_caso(1) == Decisao("POL-CASO-01", "responder")
+    assert decidir_status_do_caso(2) == Decisao("POL-CASO-02", "responder")
+
+
+def test_dois_esclarecimentos_sem_sucesso_oferecem_o_humano():
     assert decidir_esclarecimento(0) == Decisao("POL-CON-02", "esclarecer")
     assert decidir_esclarecimento(1) == Decisao("POL-CON-02", "esclarecer")
     assert decidir_esclarecimento(2) == Decisao(
-        "POL-HUM-03", "humano", "esclarecimentos sem sucesso"
+        "POL-HUM-03", "oferecer_humano", "esclarecimentos sem sucesso"
     )
 
 

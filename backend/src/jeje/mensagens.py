@@ -25,11 +25,22 @@ MOTIVO_DO_CODIGO: dict[str, dict[Idioma, str]] = {
     "05": {"es": "no autorizada por el emisor", "pt": "não autorizada pelo emissor"},
 }
 
+# O pedido em andamento, dito de volta ao cliente no resumo (RESUMO-TRANSACAO).
+PEDIDO: dict[str, dict[Idioma, str]] = {
+    "consultar": {"es": "consultar una transacción", "pt": "consultar uma transação"},
+    "contestar": {"es": "pedir la revisión de un cobro", "pt": "pedir a revisão de uma cobrança"},
+}
+
 ESTADO: dict[Status, dict[Idioma, str]] = {
     "Approved": {"es": "aprobada", "pt": "aprovada"},
     "Declined": {"es": "rechazada", "pt": "recusada"},
     "Pending": {"es": "pendiente", "pt": "pendente"},
     "Reversed": {"es": "revertida", "pt": "estornada"},
+}
+
+# Estado do pré-caso (app.pre_casos.estado); a automação só grava "recebido".
+ESTADO_DO_CASO: dict[str, dict[Idioma, str]] = {
+    "recebido": {"es": "recibida, en espera de revisión", "pt": "recebido, aguardando revisão"},
 }
 
 CLAUSULAS: dict[str, dict[Idioma, str]] = {
@@ -79,6 +90,28 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
     "POL-DISP-03": {
         "es": "Ya existe la solicitud {protocolo} para la transacción {transacao}.",
         "pt": "Já existe o pedido {protocolo} para a transação {transacao}.",
+    },
+    "POL-CASO-01": {
+        "es": "Tu solicitud de revisión {protocolo}, de la transacción {transacao}, se registró el "
+        "{registro} y está {estado_caso}. No tengo más información sobre la revisión ni un plazo.",
+        "pt": "Seu pedido de revisão {protocolo}, da transação {transacao}, foi registrado em "
+        "{registro} e está {estado_caso}. Não tenho mais informações sobre a revisão nem um prazo.",
+    },
+    "POL-CASO-02": {
+        "es": "Estas son tus solicitudes de revisión:\n{casos}\nNo tengo más información sobre la "
+        "revisión ni un plazo.",
+        "pt": "Estes são os seus pedidos de revisão:\n{casos}\nNão tenho mais informações sobre a "
+        "revisão nem um prazo.",
+    },
+    "CASO-ITEM": {
+        "es": "{protocolo}: transacción {transacao}, registrada el {registro}, {estado_caso}",
+        "pt": "{protocolo}: transação {transacao}, registrado em {registro}, {estado_caso}",
+    },
+    "POL-CASO-03": {
+        "es": "No encontré solicitudes de revisión registradas en tu cuenta. Puedo consultar una "
+        "transacción o registrar una solicitud de revisión de un cobro que no reconoces.",
+        "pt": "Não encontrei pedidos de revisão registrados na sua conta. Posso consultar uma "
+        "transação ou registrar um pedido de revisão de uma cobrança que você não reconhece.",
     },
     "POL-DISP-02": {
         "es": "La transacción {transacao} está {estado} y no se puede disputar automáticamente. "
@@ -133,6 +166,10 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "pt": "Não entendi o seu pedido. Posso consultar uma transação ou registrar um pedido de "
         "revisão. Pode me dizer o valor, a data ou o estabelecimento?",
     },
+    "AGRADECIMENTO": {
+        "es": "¡Con gusto! ¿Te ayudo con algo más?",
+        "pt": "Por nada! Posso ajudar com mais alguma coisa?",
+    },
     "CONFIRMACAO-PENDENTE": {
         "es": "¿Confirmas el registro de la solicitud de revisión de la transacción {transacao}? "
         "Responde sí o no.",
@@ -146,6 +183,46 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
     "CANCELADO": {
         "es": "Listo, no registré nada. ¿Te ayudo con algo más?",
         "pt": "Tudo bem, não registrei nada. Posso ajudar com mais alguma coisa?",
+    },
+    # Mensagem que não cabe na etapa: o que foi entendido e o que se está tentando, com a oferta
+    # do atendente; o "não" volta à etapa.
+    "RESUMO-PEDIDO": {
+        "es": "No logré entender tu pedido. ¿Quieres que te comunique con un agente?",
+        "pt": "Não consegui entender o seu pedido. Quer que eu passe você para um atendente?",
+    },
+    "RESUMO-TRANSACAO": {
+        "es": "Entendí que quieres {pedido} y estoy buscando la transacción, pero todavía no la "
+        "identifiqué.",
+        "pt": "Entendi que você quer {pedido} e estou procurando a transação, mas ainda não "
+        "consegui identificá-la.",
+    },
+    "RESUMO-CONFIRMACAO": {
+        "es": "Estoy esperando tu confirmación para registrar la solicitud de revisión de la "
+        "transacción {transacao}.",
+        "pt": "Estou esperando sua confirmação para registrar o pedido de revisão da transação "
+        "{transacao}.",
+    },
+    "RESUMO-FOCO": {
+        "es": "Sobre la transacción {transacao}: en el registro consta que está {estado}, y no "
+        "tengo más información que esa.",
+        "pt": "Sobre a transação {transacao}: no registro consta que ela está {estado}, e não "
+        "tenho outra informação além disso.",
+    },
+    "OFERTA-ATENDENTE": {
+        "es": "Si no es eso, ¿quieres que te comunique con un agente?",
+        "pt": "Se não for isso, quer que eu passe você para um atendente?",
+    },
+    "OFERTA-FORA": {
+        "es": "Para eso, ¿quieres que te comunique con un agente?",
+        "pt": "Para isso, quer que eu passe você para um atendente?",
+    },
+    "RETOMAR": {
+        "es": "Está bien, sigamos.",
+        "pt": "Tudo bem, vamos continuar.",
+    },
+    "RETOMAR-LIVRE": {
+        "es": "Está bien. ¿En qué más te ayudo?",
+        "pt": "Tudo bem. Em que mais posso ajudar?",
     },
     "ATENDIMENTO": {
         "es": "Referencia de la atención: {atendimento}.",

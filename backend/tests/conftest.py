@@ -256,6 +256,16 @@ def cenario_conversa(base):
             merchant_name="Farmacia Salud",
             channel="App",
         )
+        # Mesmo comércio do TRX-A6 com outro valor, a mais antiga de todas: só "Cine Premium" não
+        # basta, só "45,90" também não; as duas pistas, ditas em turnos diferentes, sim.
+        raw_transacao(
+            con,
+            "TRX-A8",
+            **a,
+            transaction_date="2025-03-08 19:00:00",
+            amount="9.99",
+            merchant_name="Cine Premium",
+        )
         # Mesmo valor, data e comércio do TRX-A1, mas de outro cliente.
         raw_transacao(con, "TRX-B1", "CLI-B", "PRD-B", transaction_date="2025-03-10 14:09:12",
                       amount="45.90", merchant_name="Streaming Plus")  # fmt: skip

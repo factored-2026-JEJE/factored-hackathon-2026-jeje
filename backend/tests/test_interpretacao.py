@@ -93,6 +93,27 @@ def test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer(texto, intencao):
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # Cobrança repetida, com o verbo de cobrar ou de aparecer perto, é contestação.
+        ("me cobraron dos veces el streaming", "contestar"),
+        ("a Streaming Plus me cobrou 2x no cartão", "contestar"),
+        ("ya pero me aparece 2 veces", "contestar"),
+        ("veio uma cobrança em dobro", "contestar"),
+        ("el cargo salió duplicado", "contestar"),
+        # Pedir que revisem a cobrança também.
+        ("yo quiero q la revisen pq no es normal", "contestar"),
+        ("quero reclamar dessa compra", "contestar"),
+        # Tentar duas vezes, sem cobrança repetida, continua consulta.
+        ("intenté dos veces y me rechazaron el pago", "consultar"),
+        ("tentei 2 vezes pagar e foi recusado", "consultar"),
+    ],
+)
+def test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         # Cargo de quem atende citado de passagem não é pedido de humano (ACH-104).
         ("El gerente de la tienda dice que el pago no pasó, ¿por qué?", "consultar"),
         ("O gerente da loja disse que meu cartão foi recusado, por quê?", "consultar"),
@@ -105,6 +126,22 @@ def test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer(texto, intencao):
     ],
 )
 def test_cargo_de_quem_atende_so_pede_humano_com_verbo_de_pedido(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # Recusar o atendente não é pedir um.
+        ("Pero no quiero un agente, solo dime cuál fue la de mayor monto", "desconhecida"),
+        ("não quero falar com atendente, quero ver a compra da Uber", "consultar"),
+        ("sin agente por favor", "desconhecida"),
+        # Pedido, com negação de outra coisa, continua pedido.
+        ("no entiendo nada, quiero hablar con un agente", "humano"),
+        ("no quiero esperar, quiero un agente", "humano"),
+    ],
+)
+def test_recusar_o_atendente_nao_e_pedir_um(texto, intencao):
     assert ler(texto).intencao == intencao
 
 
@@ -160,6 +197,8 @@ def test_resposta_curta_so_quando_a_mensagem_inteira_responde(texto, resposta):
         ("opção 3", 3),
         ("a primeira", 1),
         ("la 2 por favor", 2),
+        ("quero a primeira", 1),
+        ("fue la segunda", 2),
         ("es la primera vez que me pasa", None),
         ("10", None),
         ("la segunda compra de 45,90", None),
@@ -181,6 +220,13 @@ def test_escolha_so_em_resposta_curta(texto, escolha):
         ("la compra del 10/03/2025", None),
         ("la compra del 5 de marzo", None),
         ("TRX-FX6", None),
+        # Escolha curta não é valor.
+        ("A 1", None),
+        ("la 2 por favor", None),
+        # Contagem não é valor.
+        ("me aparece 2 veces", None),
+        ("pq salen 2 cobros? son de 45,90", Decimal("45.90")),
+        ("caiu 2 vezes", None),
         ("soy CLI-00AAKZ5VX42P", None),
     ],
 )
@@ -256,8 +302,72 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
         "idioma", "intencao", "resposta", "escolha", "valor", "data", "status", "id_digitado",
-        "sinais",
+        "caso", "ultima", "cortesia", "sinais",
     }  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("texto", "cortesia"),
+    [
+        ("okay, obrigado", "agradecimento"),
+        ("muchas gracias, muy amable", "agradecimento"),
+        ("perfeito, obrigada pela ajuda", "agradecimento"),
+        ("era isso, tchau", "agradecimento"),
+        ("no, gracias", "agradecimento"),
+        ("oi, tudo bem?", "saudacao"),
+        ("hola, buenas tardes", "saudacao"),
+        # Com pedido junto, é o pedido que vale.
+        ("obrigado, e a outra transação?", None),
+        ("hola, quiero saber por qué rechazaron mi compra", None),
+        ("gracias por nada, sigo sin mi dinero", None),
+        ("", None),
+    ],
+)
+def test_cortesia_so_quando_a_mensagem_inteira_e_cumprimento_ou_agradecimento(texto, cortesia):
+    assert ler(texto).cortesia == cortesia
+
+
+@pytest.mark.parametrize(
+    ("texto", "ultima"),
+    [
+        ("quero saber pq minha ultima transacao foi recusada", True),
+        ("¿por qué rechazaron mi último pago?", True),
+        ("a compra mais recente", True),
+        ("la última", True),
+        # Tempo, não a transação; e o plural pede várias.
+        ("la última vez que intenté me rechazaron", False),
+        ("no último mês me cobraram duas vezes", False),
+        ("quero ver minhas últimas transações", False),
+    ],
+)
+def test_ultima_e_a_mais_recente_e_nao_a_ultima_vez(texto, ultima):
+    assert ler(texto).ultima is ultima
+
+
+@pytest.mark.parametrize(
+    ("texto", "caso"),
+    [
+        ("¿Cómo va mi solicitud de revisión?", True),
+        ("como está o meu pedido de revisão?", True),
+        ("¿qué pasó con mi reclamo?", True),
+        ("quero ver meus pedidos de revisão", True),
+        ("quiero ver el pre-caso", True),
+        ("cadê o protocolo?", True),
+        ("¿cómo va el PC-00000003?", True),
+        # Pedir uma revisão nova é contestação, não pergunta pela registrada.
+        ("quiero abrir una disputa", False),
+        ("quero fazer um pedido de revisão", False),
+        ("no reconozco el cobro de 45,90, que lo revisen", False),
+        ("en mi caso la compra fue rechazada", False),
+        ("quiero una solicitud de préstamo", False),
+    ],
+)
+def test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo(texto, caso):
+    assert ler(texto).caso is caso
+
+
+FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Uber", "Ferretería",
+      "Cine Premium", 'Viajes "El Cóndor", S.A.', "Almacenes Éxito", "Farmacia Salud"]  # fmt: skip
 
 
 @pytest.mark.parametrize(
@@ -269,6 +379,20 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
         (["Taxi Seguro", "Uber"], "uber o taxi", None),
         (["Almacenes Éxito"], "la de exito", "Almacenes Éxito"),
         (["Farmacia Salud"], "compra na farmácia", "Farmacia Salud"),
+        # O ramo que o nome diz, como o cliente fala dele.
+        (FX, "foi numa ótica acho, deu ruim na hora de pagar", "Óptica Visión"),
+        (FX, "eu disse que foi loja de roupa!", "Boutique Moda"),
+        (FX, "los pasajes de avión", 'Viajes "El Cóndor", S.A.'),
+        (FX, "a compra da viagem", 'Viajes "El Cóndor", S.A.'),
+        (FX, "la de las herramientas", "Ferretería"),
+        (FX, "comprei remédio", "Farmacia Salud"),
+        (FX, "o cafezinho de 12", "Café Central"),
+        (FX, "la película", "Cine Premium"),
+        (["Mercado Central", "Super Ahorro"], "fue en el supermercado", None),  # dois ramos iguais
+        # Mensagens sem comércio continuam sem.
+        (FX, "no sé, fue en una tienda, creo que fue caro", None),
+        (FX, "e agora o que eu faço", None),
+        (FX, "me cobraron dos veces", None),
     ],
 )
 def test_comercio_citado_entre_os_do_cliente(comercios, texto, citado):

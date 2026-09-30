@@ -1,0 +1,18 @@
+# Demonstração para o time pelo túnel (make demo): projeto compose próprio (jeje-demo, banco
+# separado da stack do make up), fixture sintética, leitor e5 (serviço api do compose.yaml) e site
+# em 127.0.0.1:${DEMO_PORTA:-8082}, que o cloudflared publica. Reviews ficam só no banco; publicar
+# depois com COMPOSE_PROJECT_NAME=jeje-demo make exportar-reviews.
+services:
+  seed:
+    environment:
+      DATASET_SOURCE: fixture
+      DATASET_RAW_DIR: /fixture/raw
+      DATASET_MANIFEST_DIR: /fixture/manifesto
+    volumes: !override
+      - ./data/fixture:/fixture:ro
+  api:
+    environment:
+      GITHUB_TOKEN: ""
+  web:
+    ports: !override
+      - "127.0.0.1:${DEMO_PORTA:-8082}:8080"
