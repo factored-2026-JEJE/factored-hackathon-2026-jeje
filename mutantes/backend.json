@@ -6737,6 +6737,176 @@
       ]
     },
     {
+      "id": "M-ITP-42",
+      "requisito": "R03",
+      "descricao": "Negação ignorada: \"no quiero bloquear mi tarjeta\" bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):\n            continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-43",
+      "requisito": "R03",
+      "descricao": "Negação vale na mensagem toda: \"no, bloqueen mi tarjeta\" não bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return [normalizar(parte) for parte in re.split(r\"[,.;:!?¡¿]\", texto)]",
+          "para": "    return [normalizar(texto)]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_bloqueio_ou_desbloqueio_com_verbo_de_pedido_perto_de_cartao"
+      ]
+    },
+    {
+      "id": "M-ITP-44",
+      "requisito": "R03",
+      "descricao": "Pretérito e particípio viram pedido: \"¿por qué bloquearon mi tarjeta?\" bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(\"bloquear\", \"bloquearla\", \"bloquearlo\",",
+          "para": "(\"bloque*\", \"bloquearla\", \"bloquearlo\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-45",
+      "requisito": "R03",
+      "descricao": "Conta vira cartão: \"quiero bloquear mi cuenta\" bloqueia um cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\")",
+          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"cuenta\", \"conta\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-46",
+      "requisito": "R03",
+      "descricao": "Pedido de bloqueio não é reconhecido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_bloqueio_ou_desbloqueio_com_verbo_de_pedido_perto_de_cartao"
+      ]
+    },
+    {
+      "id": "M-ITP-47",
+      "requisito": "R03",
+      "descricao": "Pedido de desbloqueio não é reconhecido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO,)),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_bloqueio_ou_desbloqueio_com_verbo_de_pedido_perto_de_cartao"
+      ]
+    },
+    {
+      "id": "M-ITP-48",
+      "requisito": "R03",
+      "descricao": "Pedido de bloqueio vence o relato de roubo (a fraude deixa de encaminhar)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
+          "para": ""
+        },
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"fraude\", (\"fraude\", \"robaron\",",
+          "para": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n    (\"fraude\", (\"fraude\", \"robaron\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_roubo_e_perda_com_pedido_de_bloqueio_continuam_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-49",
+      "requisito": "R03",
+      "descricao": "Cartão citado sem conferir o tipo: o final de outro tipo escolhe o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if (not finais or ultimos4 in finais) and (not tipos or tipo in tipos)",
+          "para": "        if (not finais or ultimos4 in finais)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-50",
+      "requisito": "R03",
+      "descricao": "Dois cartões citados: escolhe um sem perguntar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return casados[0] if len(casados) == 1 else None",
+          "para": "    return casados[0] if casados else None"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-51",
+      "requisito": "R08",
+      "descricao": "Número inteiro do cartão vira final",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "FINAL_DE_CARTAO = re.compile(r\"(?<!\\d)\\d{4}(?!\\d)\")",
+          "para": "FINAL_DE_CARTAO = re.compile(r\"\\d{4}(?!\\d)\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-52",
+      "requisito": "R03",
+      "descricao": "Mensagem sem citação escolhe o único cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if not finais and not tipos:\n        return None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente"
+      ]
+    },
+    {
       "id": "M-LLM-22",
       "requisito": "R08",
       "descricao": "Cumprimento, agradecimento ou \"a última\" vão para o modelo (que os lê como fora do escopo)",
@@ -6749,6 +6919,21 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_o_que_as_regras_entendem_nem_chega_ao_modelo"
+      ]
+    },
+    {
+      "id": "M-LLM-23",
+      "requisito": "R03",
+      "descricao": "O modelo pode pedir bloqueio de cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    \"fraude\", \"humano\", \"fora_de_escopo\", \"contestar\", \"consultar\", \"desconhecida\"\n]",
+          "para": "    \"fraude\", \"bloquear\", \"humano\", \"fora_de_escopo\", \"contestar\", \"consultar\", \"desconhecida\"\n]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_saida_invalida_ou_com_campo_a_mais_fica_com_as_regras"
       ]
     },
     {
