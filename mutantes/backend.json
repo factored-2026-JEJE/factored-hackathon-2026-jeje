@@ -6659,6 +6659,51 @@
       "testes": [
         "tests/test_conversa.py::test_agradecimento_no_meio_da_escolha_mantem_a_lista"
       ]
+    },
+    {
+      "id": "M-CONV-46",
+      "requisito": "R08",
+      "descricao": "Status do caso exige que a transação do pré-caso ainda seja do cliente: depois de uma recarga que a tira ou muda de dono, o turno dá 500 (ACH-037)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        t = self._do_cliente(caso.transaction_id)\n        fatos = {",
+          "para": "        t = self._verificada(caso.transaction_id)\n        fatos = {"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_status_do_caso_depois_da_recarga_cita_so_o_registro_do_cliente"
+      ]
+    },
+    {
+      "id": "M-CONV-47",
+      "requisito": "R08",
+      "descricao": "Transação do pré-caso que não é mais do cliente vira foco da conversa: o turno seguinte dá 500 (ACH-037)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                return Saida(decisao.regra, \"responder\", (resposta,), \"livre\", foco)",
+          "para": "                return Saida(decisao.regra, \"responder\", (resposta,), \"livre\", {\"foco\": casos[0].transaction_id})"
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_status_do_caso_depois_da_recarga_cita_so_o_registro_do_cliente"
+      ]
+    },
+    {
+      "id": "M-CONV-48",
+      "requisito": "R02",
+      "descricao": "Status do caso sem a transação na curada não identifica a transação do pré-caso (sem o identificador registrado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            fatos[\"transacao\"] = caso.transaction_id",
+          "para": "            fatos[\"transacao\"] = \"\""
+        }
+      ],
+      "testes": [
+        "tests/test_recarga.py::test_status_do_caso_depois_da_recarga_cita_so_o_registro_do_cliente"
+      ]
     }
   ]
 }
