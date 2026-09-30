@@ -449,6 +449,8 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
     for intencao, termos in TERMOS:
         if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):
             continue
+        if intencao in NEGACOES and "bloque" not in limpo:
+            continue  # sem o verbo, nem testa os termos compostos, que são caros (ACH-107)
         if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):
             continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
