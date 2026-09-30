@@ -284,3 +284,56 @@ def tipo_de_bloqueio(dispositivo: str) -> str:
 def decidir_desbloqueio() -> Decisao:
     """Pedido de desbloqueio: nesta fase, quem desfaz é o atendente, pelo console (POL-BLQ-05)."""
     return Decisao("POL-BLQ-05", "humano")
+
+
+# ---- Descrição das regras ("por que esta resposta?", DEV-031) -----------------------------------
+
+# O que cada regra que a conversa devolve quer dizer, para quem usa a tela: a da matriz de autonomia
+# e as mensagens de fluxo. Texto de explicação, não de decisão: quem decide são as funções acima.
+DESCRICOES: dict[str, str] = {
+    "POL-CON-01": "Consulta: a transação foi aprovada; a resposta diz o que consta no registro.",
+    "POL-CON-02": "Mais de uma transação (ou nenhuma) casa com o pedido: o assistente pergunta "
+    "qual, sem escolher sozinho.",
+    "POL-CON-03": "Recusa com código catalogado: o motivo é o significado genérico do padrão "
+    "ISO 8583.",
+    "POL-CON-04": "Recusa sem motivo registrado (ou status desconhecido): o assistente oferece um "
+    "atendente.",
+    "POL-CON-05": "Transação pendente ou estornada: a resposta diz o status do registro.",
+    "POL-DISP-01": "Contestação dentro dos limites simulados: o assistente propõe o pré-caso e só "
+    "registra com um sim explícito.",
+    "POL-DISP-02": "Transação não aprovada não se contesta automaticamente: vai para o atendente.",
+    "POL-DISP-03": "Já existe pré-caso para esta transação: a resposta devolve o protocolo, sem "
+    "duplicar.",
+    "POL-HUM-01": "Relato de fraude, roubo ou perda: vai para o atendente, e o cartão é bloqueado "
+    "(simulação).",
+    "POL-HUM-02": "Contestação acima do limite simulado: vai para o atendente.",
+    "POL-HUM-03": "Pedido de atendente, ou esclarecimentos sem sucesso: a conversa vai para um "
+    "atendente.",
+    "POL-HUM-04": "Transação noturna pelo app ou pela web acima do limite simulado: vai para o "
+    "atendente.",
+    "POL-HUM-05": "Compra fora da janela de contestação: vai para o atendente.",
+    "POL-HUM-06": "Vários pré-casos recentes do cliente: a contestação vai para o atendente.",
+    "POL-SEG-01": "Transferência de alto valor: análise de segurança por um atendente.",
+    "POL-ESC-01": "Fora do que o assistente atende (empréstimo, investimento, senha…): ele diz e "
+    "oferece um atendente.",
+    "POL-ID-02": "Identificador digitado no chat não é usado para buscar: o assistente pede valor, "
+    "data ou comércio.",
+    "POL-CASO-01": "Status do pedido de revisão: o pré-caso do cliente, relido do banco.",
+    "POL-CASO-02": "Status dos pedidos de revisão: os pré-casos do cliente, relidos do banco.",
+    "POL-CASO-03": "O cliente ainda não tem pedido de revisão registrado.",
+    "POL-BLQ-01": "Bloqueio de cartão com dispositivo novo: preventivo (simulação), e o atendente "
+    "confirma ou desfaz.",
+    "POL-BLQ-02": "Bloqueio de cartão com dispositivo cadastrado: completo (simulação), visível no "
+    "console do atendente.",
+    "POL-BLQ-03": "Nenhum cartão ativo para bloquear: o assistente só informa.",
+    "POL-BLQ-05": "Desbloqueio de cartão: fica com o atendente.",
+    "POL-BLQ-06": "Vários cartões ativos: o assistente pergunta qual, sem escolher sozinho.",
+    "AJUDA": "Mensagem não entendida: o assistente pede de novo e, depois do limite, oferece um "
+    "atendente.",
+    "CANCELADO": "O cliente disse não: nada foi registrado.",
+    "CORTESIA": "Cumprimento ou agradecimento: resposta cordial, sem mudar a etapa.",
+    "ENCERRADA": "A recarga dos dados encerrou a conversa: é preciso abrir uma nova.",
+    "RETOMAR": "O cliente recusou o atendente: a conversa volta para onde estava.",
+    "RESUMO": "Mensagem fora da etapa: o assistente diz o que entendeu e oferece um atendente.",
+    "COM-HUMANO": "O caso já está com um atendente: a automação só lembra a referência.",
+}

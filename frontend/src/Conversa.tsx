@@ -19,7 +19,54 @@ const RESPOSTAS: Record<Idioma, { sim: string; nao: string; confirmar: string }>
   pt: { sim: "Sim", nao: "Não", confirmar: "Sim, confirmo" },
 };
 
-type Fala = { id: number; autor: "cliente" | "assistente"; texto: string };
+// "Por que esta resposta?" (DEV-031): o que a API disse do turno. No turno reaberto pelo
+// histórico, só a regra e a ação.
+type Motivo = Pick<ResultadoDoTurno, "regra" | "acao"> &
+  Partial<Pick<ResultadoDoTurno, "descricao" | "efeito" | "fontes" | "interpretacao">>;
+
+type Fala = { id: number; autor: "cliente" | "assistente"; texto: string; motivo?: Motivo };
+
+const motivoDo = (t: ResultadoDoTurno): Motivo => ({
+  regra: t.regra,
+  acao: t.acao,
+  descricao: t.descricao,
+  efeito: t.efeito,
+  fontes: t.fontes,
+  interpretacao: t.interpretacao,
+});
+
+/** A regra que decidiu a resposta, o que ela quer dizer, o efeito criado e de onde vieram os fatos. */
+function PorQue({ motivo }: { motivo: Motivo }) {
+  return (
+    <details className="por-que">
+      <summary>Por que esta resposta?</summary>
+      <dl>
+        <dt>Regra</dt>
+        <dd>{motivo.descricao ? `${motivo.regra}: ${motivo.descricao}` : motivo.regra}</dd>
+        <dt>Ação</dt>
+        <dd>{motivo.acao}</dd>
+        {motivo.efeito && (
+          <>
+            <dt>Efeito</dt>
+            <dd>{motivo.efeito}</dd>
+          </>
+        )}
+        {motivo.fontes && motivo.fontes.length > 0 && (
+          <>
+            <dt>Fontes</dt>
+            <dd>{motivo.fontes.join(", ")}</dd>
+          </>
+        )}
+        {motivo.interpretacao && (
+          <>
+            <dt>Leitura</dt>
+            <dd>{motivo.interpretacao}</dd>
+          </>
+        )}
+      </dl>
+    </details>
+  );
+}
 
 type Situacao = {
   idioma: Idioma;
@@ -46,10 +93,10 @@ function guardar(conversaId: string | null) {
   }
 }
 
-/** Conversa com o assistente (sem modelo): cada resposta, opção e protocolo vêm da API. */
 // Efeitos que o console do atendente precisa ver: pré-caso, encaminhamento e bloqueio.
 const AVISAM_O_CONSOLE = ["registrar_pre_caso", "humano", "bloquear_cartao"];
 
+/** Conversa com o assistente (sem modelo): cada resposta, opção e protocolo vêm da API. */
 export function Conversa({
   token,
   aoExpirar,
@@ -67,7 +114,12 @@ export function Conversa({
   const [falha, setFalha] = useState<{ mensagem: string; detalhe: string } | null>(null);
   const [carregando, setCarregando] = useState(true);
   const proximo = useRef(0);
-  const fala = (autor: Fala["autor"], conteudo: string): Fala => ({ id: proximo.current++, autor, texto: conteudo });
+  const fala = (autor: Fala["autor"], conteudo: string, motivo?: Motivo): Fala => ({
+    id: proximo.current++,
+    autor,
+    texto: conteudo,
+    motivo,
+  });
 
   // Recarregar a página reabre a conversa desta aba pelo histórico: nada é reenviado.
   useEffect(() => {
@@ -88,7 +140,7 @@ export function Conversa({
         setFalas(
           historico.turnos.flatMap((t) => [
             { id: proximo.current++, autor: "cliente" as const, texto: t.mensagem },
-            { id: proximo.current++, autor: "assistente" as const, texto: t.resposta },
+            { id: proximo.current++, autor: "assistente" as const, texto: t.resposta, motivo: { regra: t.regra, acao: t.acao } },
           ]),
         );
         setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: null });
@@ -122,7 +174,7 @@ export function Conversa({
     setFalha(null);
     try {
       const turno = await enviarMensagem(token, conversaId, limpa);
-      setFalas((atuais) => [...atuais, fala("cliente", limpa), fala("assistente", turno.resposta)]);
+      setFalas((atuais) => [...atuais, fala("cliente", limpa), fala("assistente", turno.resposta, motivoDo(turno))]);
       setSituacao({
         idioma: turno.idioma,
         estado: turno.estado,
@@ -153,7 +205,7 @@ export function Conversa({
       const ultimo = historico?.turnos.at(-1);
       const mostrados = falas.filter((f) => f.autor === "cliente").length;
       if (!historico || !ultimo || historico.turnos.length <= mostrados || ultimo.mensagem !== limpa) return false;
-      setFalas((atuais) => [...atuais, fala("cliente", ultimo.mensagem), fala("assistente", ultimo.resposta)]);
+      setFalas((atuais) => [...atuais, fala("cliente", ultimo.mensagem), fala("assistente", ultimo.resposta, { regra: ultimo.regra, acao: ultimo.acao })]);
       setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: null });
       setTexto("");
       setFalha(null);
@@ -217,6 +269,7 @@ export function Conversa({
             <li key={f.id} className={`fala fala-${f.autor}`}>
               <span className="autor">{f.autor === "cliente" ? "Você" : "Assistente"}</span>
               <p>{f.texto}</p>
+              {f.motivo && <PorQue motivo={f.motivo} />}
             </li>
           ))}
         </ol>

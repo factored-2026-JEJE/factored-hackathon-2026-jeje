@@ -826,6 +826,14 @@ export interface components {
             atendimento: string | null;
             /** Bloqueio */
             bloqueio: string | null;
+            /** Descricao */
+            descricao: string | null;
+            /** Interpretacao */
+            interpretacao: string;
+            /** Efeito */
+            efeito: string | null;
+            /** Fontes */
+            fontes: string[];
         };
         /** ReviewRegistrada */
         ReviewRegistrada: {
