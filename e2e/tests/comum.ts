@@ -15,8 +15,18 @@ export type Transacao = {
   channel: string | null;
 };
 
-// Limites do compose (PRD-001), reescritos aqui como oráculo independente do código da política.
-export const LIMITES = { padrao: 5000, noturno: 1000, seguranca: 50000, canais: ["App", "Web"], inicio: 20, fim: 6 };
+// Limites do compose (PRD-001 e PRD-008), reescritos aqui como oráculo independente do código da
+// política. A reincidência vale 3 no compose.yaml; nas stacks da fixture (compose.ci.yaml) ela sobe
+// para 10, e o oráculo só aceita POL-HUM-06 quando a persona tem pré-casos recentes suficientes.
+export const LIMITES = {
+  padrao: 5000, noturno: 1000, seguranca: 50000, canais: ["App", "Web"], inicio: 20, fim: 6,
+  janelaDias: 120, reincidencia: 3, reincidenciaDias: 30,
+};
+
+/** Dias entre duas datas ISO (só a parte da data). */
+export function diasEntre(de: string, ate: string): number {
+  return Math.round((Date.parse(ate.slice(0, 10)) - Date.parse(de.slice(0, 10))) / 86_400_000);
+}
 
 /** Feita à noite (20h–6h, horário local da transação) por celular ou computador. */
 export function noturnaDigital(t: Transacao): boolean {
