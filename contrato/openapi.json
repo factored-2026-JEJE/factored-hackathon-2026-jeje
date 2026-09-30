@@ -849,6 +849,103 @@
         }
       }
     },
+    "/atendimento/bloqueios": {
+      "get": {
+        "summary": "Bloqueios",
+        "description": "Bloqueios de cartão ativos, os mais recentes primeiro.",
+        "operationId": "bloqueios_atendimento_bloqueios_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BloqueioDeCartao"
+                  },
+                  "title": "Response Bloqueios Atendimento Bloqueios Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou persona não provisionada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atendimento/bloqueios/{bloqueio_id}/desbloqueio": {
+      "post": {
+        "summary": "Desbloquear",
+        "description": "O atendente desfaz o bloqueio a qualquer momento (passado o prazo, só ele desfaz).",
+        "operationId": "desbloquear_atendimento_bloqueios__bloqueio_id__desbloqueio_post",
+        "parameters": [
+          {
+            "name": "bloqueio_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Bloqueio Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BloqueioDeCartao"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou bloqueio inexistente"
+          },
+          "409": {
+            "description": "Bloqueio já desfeito"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/testadores": {
       "get": {
         "summary": "Listar Testadores",
@@ -983,6 +1080,99 @@
           "proposta"
         ],
         "title": "AvaliacaoDeContestacao"
+      },
+      "BloqueioDeCartao": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "product_id": {
+            "type": "string",
+            "title": "Product Id"
+          },
+          "produto": {
+            "type": "string",
+            "title": "Produto"
+          },
+          "ultimos4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimos4"
+          },
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "motivo": {
+            "type": "string",
+            "title": "Motivo"
+          },
+          "dispositivo": {
+            "type": "string",
+            "title": "Dispositivo"
+          },
+          "criado_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criado Em"
+          },
+          "reversivel_ate": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Reversivel Ate"
+          },
+          "desfeito_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desfeito Em"
+          },
+          "desfeito_por": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desfeito Por"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "customer_id",
+          "product_id",
+          "produto",
+          "ultimos4",
+          "tipo",
+          "motivo",
+          "dispositivo",
+          "criado_em",
+          "reversivel_ate",
+          "desfeito_em",
+          "desfeito_por"
+        ],
+        "title": "BloqueioDeCartao",
+        "description": "Bloqueio simulado: o cartão aparece só pelo tipo e pelos 4 últimos dígitos."
       },
       "ConversaAberta": {
         "properties": {

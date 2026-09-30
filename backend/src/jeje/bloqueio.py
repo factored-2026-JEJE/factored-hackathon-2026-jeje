@@ -12,15 +12,28 @@ from jeje import politica
 
 # Tipos de produto que são cartão na base do desafio.
 CARTOES = ("Tarjeta Crédito", "Tarjeta Débito")
+COLUNAS = (
+    "id, customer_id, product_id, produto, ultimos4, tipo, motivo, dispositivo, criado_em,"
+    " reversivel_ate, desfeito_em, desfeito_por"
+)
 
 
 class NaoBloqueavel(Exception):
     """O produto não é um cartão ativo do cliente da sessão."""
 
 
+class NaoEncontrado(Exception):
+    """Bloqueio inexistente."""
+
+
+class JaDesfeito(Exception):
+    """O bloqueio já foi desfeito."""
+
+
 @dataclass(frozen=True)
 class Bloqueio:
     id: str
+    customer_id: str
     product_id: str
     produto: str
     ultimos4: str | None
@@ -29,6 +42,8 @@ class Bloqueio:
     dispositivo: str
     criado_em: datetime
     reversivel_ate: datetime
+    desfeito_em: datetime | None = None
+    desfeito_por: str | None = None
 
 
 def cartoes_do_cliente(conexao: Connection, customer_id: str) -> list[politica.Cartao]:
@@ -51,8 +66,7 @@ def cartoes_do_cliente(conexao: Connection, customer_id: str) -> list[politica.C
 def bloqueio_ativo(conexao: Connection, customer_id: str, product_id: str) -> Bloqueio | None:
     linha = conexao.execute(
         text(
-            "SELECT id, product_id, produto, ultimos4, tipo, motivo, dispositivo, criado_em,"
-            " reversivel_ate FROM app.bloqueios"
+            f"SELECT {COLUNAS} FROM app.bloqueios"
             " WHERE customer_id = :cliente AND product_id = :produto AND desfeito_em IS NULL"
         ),
         {"cliente": customer_id, "produto": product_id},
@@ -106,3 +120,34 @@ def bloquear(
     if relido is None:
         raise RuntimeError("bloqueio não encontrado na releitura; nada foi bloqueado")
     return relido, inserido == 1
+
+
+def ativos(conexao: Connection, limite: int) -> list[Bloqueio]:
+    """Bloqueios ativos, os mais recentes primeiro (console do atendente): com dispositivo
+    cadastrado, o aviso ao atendente é o bloqueio aparecer ali (PRD-007)."""
+    linhas = conexao.execute(
+        text(
+            f"SELECT {COLUNAS} FROM app.bloqueios WHERE desfeito_em IS NULL"
+            " ORDER BY criado_em DESC, id DESC LIMIT :limite"
+        ),
+        {"limite": limite},
+    )
+    return [Bloqueio(**linha._mapping) for linha in linhas]
+
+
+def desfazer(conexao: Connection, bloqueio_id: str, por: str) -> Bloqueio:
+    """Desfaz o bloqueio ativo e devolve o registro como ficou; ninguém desfaz duas vezes.
+    Inexistente: NaoEncontrado; já desfeito: JaDesfeito."""
+    linha = conexao.execute(
+        text(
+            "UPDATE app.bloqueios SET desfeito_em = now(), desfeito_por = :por"
+            f" WHERE id = :id AND desfeito_em IS NULL RETURNING {COLUNAS}"
+        ),
+        {"id": bloqueio_id, "por": por},
+    ).first()
+    if linha is not None:
+        return Bloqueio(**linha._mapping)
+    existe = conexao.execute(
+        text("SELECT 1 FROM app.bloqueios WHERE id = :id"), {"id": bloqueio_id}
+    ).first()
+    raise JaDesfeito(bloqueio_id) if existe else NaoEncontrado(bloqueio_id)

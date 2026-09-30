@@ -110,6 +110,7 @@ PUBLICAS = {
     ("GET", "/dados/qualidade"), ("GET", "/metricas"), ("GET", "/personas"), ("POST", "/sessoes"),
     ("GET", "/testadores"),
     ("GET", "/atendimento/fila"), ("POST", "/atendimento/fila/{handoff_id}/assumir"),
+    ("GET", "/atendimento/bloqueios"), ("POST", "/atendimento/bloqueios/{bloqueio_id}/desbloqueio"),
 }  # fmt: skip
 
 

@@ -7,6 +7,8 @@ import httpx2 as httpx
 from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, servidor_http
 from sqlalchemy import text
 
+from jeje import bloqueio
+
 
 def test_fila_mostra_os_encaminhamentos_com_o_resumo_na_ordem(cenario_conversa):
     with cliente(cenario_conversa) as http:
@@ -93,3 +95,91 @@ def test_assumir_deixa_evento_com_o_atendimento_e_a_regra(cenario_conversa):
         acoes = [tuple(linha) for linha in con.execute(text(consulta))]
     assert assumido.status_code == 200
     assert acoes == [("assumir_atendimento", atendimento, "POL-HUM-01")]
+
+
+# ---- Bloqueios de cartão (PRD-007) --------------------------------------------------------------
+
+
+def bloquear(settings, cliente_id: str, cartao: str, dispositivo: str = "cadastrado") -> str:
+    """Bloqueio feito direto pelo módulo (a conversa ainda não bloqueia neste passo)."""
+    with conexao(settings) as con:
+        feito, _ = bloqueio.bloquear(con, cliente_id, cartao, "completo", "pedido", dispositivo, 7)
+    return feito.id
+
+
+def eventos_de_desbloqueio(settings) -> list[tuple]:
+    with conexao(settings) as con:
+        return [
+            tuple(linha)
+            for linha in con.execute(
+                text(
+                    "select acao, regra, efeito, fontes from app.eventos"
+                    " where tipo = 'acao' and acao = 'desbloquear_cartao'"
+                )
+            )
+        ]
+
+
+def test_console_mostra_os_bloqueios_ativos_mais_recentes_primeiro(cartoes):
+    a1, a2, b1 = (bloquear(cartoes, "CLI-A", "CRT-A1"), bloquear(cartoes, "CLI-A", "CRT-A2"),
+                  bloquear(cartoes, "CLI-B", "CRT-B1", "novo"))  # fmt: skip
+    with conexao(cartoes) as con:
+        con.execute(
+            text("update app.bloqueios set desfeito_em = now(), desfeito_por = 'cliente'"
+                 " where id = :id"), {"id": a2},
+        )  # fmt: skip
+    with cliente(cartoes) as http:
+        lista = http.get("/atendimento/bloqueios")
+        so_um = http.get("/atendimento/bloqueios", params={"limite": 1}).json()
+    assert lista.status_code == 200
+    assert [b["id"] for b in lista.json()] == [b1, a1]
+    assert [b["id"] for b in so_um] == [b1]
+    recente = lista.json()[0]
+    assert (recente["customer_id"], recente["produto"], recente["ultimos4"]) == (
+        "CLI-B", "Tarjeta Crédito", "1111"
+    )  # fmt: skip
+    assert (recente["tipo"], recente["motivo"], recente["dispositivo"]) == (
+        "completo", "pedido", "novo"
+    )  # fmt: skip
+    assert (recente["desfeito_em"], recente["desfeito_por"]) == (None, None)
+    assert "4111111111111111" not in lista.text
+
+
+def test_atendente_desbloqueia_uma_vez_e_fica_o_evento(cartoes):
+    feito = bloquear(cartoes, "CLI-A", "CRT-A1")
+    with cliente(cartoes) as http:
+        desfeito = http.post(f"/atendimento/bloqueios/{feito}/desbloqueio")
+        de_novo = http.post(f"/atendimento/bloqueios/{feito}/desbloqueio")
+        inexistente = http.post("/atendimento/bloqueios/BL-99999999/desbloqueio")
+        lista = http.get("/atendimento/bloqueios").json()
+    assert desfeito.status_code == 200
+    corpo = desfeito.json()
+    assert (corpo["id"], corpo["desfeito_por"]) == (feito, "atendente")
+    assert corpo["desfeito_em"] is not None
+    assert (de_novo.status_code, inexistente.status_code) == (409, 404)
+    assert lista == []
+    assert eventos_de_desbloqueio(cartoes) == [
+        ("desbloquear_cartao", "POL-BLQ-05", feito, ["app.bloqueios"])
+    ]
+    with conexao(cartoes) as con:
+        [a1, *_] = bloqueio.cartoes_do_cliente(con, "CLI-A")
+    assert (a1.product_id, a1.bloqueio) == ("CRT-A1", None)
+
+
+def test_dois_atendentes_ao_mesmo_tempo_desbloqueiam_uma_vez_so(cartoes):
+    feito = bloquear(cartoes, "CLI-A", "CRT-A1")
+    with servidor_http(cartoes) as url:
+        alvo = f"{url}/atendimento/bloqueios/{feito}/desbloqueio"
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            respostas = list(executor.map(lambda _: httpx.post(alvo), range(6)))
+    assert sorted(r.status_code for r in respostas) == [200] + [409] * 5
+    assert len(eventos_de_desbloqueio(cartoes)) == 1
+
+
+def test_bloqueios_nao_existem_fora_do_modo_demo(cartoes):
+    feito = bloquear(cartoes, "CLI-A", "CRT-A1")
+    with cliente(cartoes.model_copy(update={"modo_demo": False})) as http:
+        lista = http.get("/atendimento/bloqueios")
+        desfeito = http.post(f"/atendimento/bloqueios/{feito}/desbloqueio")
+    assert (lista.status_code, desfeito.status_code) == (404, 404)
+    assert eventos_de_desbloqueio(cartoes) == []
