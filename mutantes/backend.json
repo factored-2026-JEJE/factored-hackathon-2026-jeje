@@ -3971,8 +3971,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        contexto = {\"pedido\": pedido, \"esclarecimentos\": pedidos_de_novo + 1}",
-          "para": "        contexto = {\"pedido\": pedido, \"esclarecimentos\": pedidos_de_novo}"
+          "de": "        contexto = {**self._em_curso(), \"esclarecimentos\": pedidos_de_novo + 1}",
+          "para": "        contexto = {**self._em_curso(), \"esclarecimentos\": pedidos_de_novo}"
         }
       ],
       "testes": [
@@ -3986,8 +3986,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            self.contexto = {\"pedido\": self.mensagem[:280], \"status\": self.lida.status}",
-          "para": "            self.contexto = {**self.contexto, \"pedido\": self.mensagem[:280], \"status\": self.lida.status}"
+          "de": "            self.contexto = {**self._em_curso({}), \"status\": self.lida.status}",
+          "para": "            self.contexto = {**self.contexto, **self._em_curso({}), \"status\": self.lida.status}"
         },
         {
           "arquivo": "src/jeje/conversa.py",
@@ -8420,6 +8420,111 @@
       ]
     },
     {
+      "id": "M-HO-08",
+      "requisito": "R03",
+      "descricao": "O texto do caso escolhe primeiro a fala com menos campos novos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "key=lambda i: (len(campos[i] - cobertos), -len(falas[i]))",
+          "para": "key=lambda i: (-len(campos[i] - cobertos), -len(falas[i]))"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_no_limite_entra_primeiro_a_fala_com_mais_campos_novos"
+      ]
+    },
+    {
+      "id": "M-HO-09",
+      "requisito": "R03",
+      "descricao": "No empate de campos novos, entra a fala mais longa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "key=lambda i: (len(campos[i] - cobertos), -len(falas[i]))",
+          "para": "key=lambda i: (len(campos[i] - cobertos), len(falas[i]))"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_no_empate_de_campos_novos_entra_a_fala_mais_curta"
+      ]
+    },
+    {
+      "id": "M-HO-10",
+      "requisito": "R03",
+      "descricao": "As falas do caso vão na ordem da escolha, não na ordem em que foram ditas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    return \" \".join(falas[i] for i in sorted(escolhidas))\n",
+          "para": "    return \" \".join(falas[i] for i in escolhidas)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_texto_do_pedido_junta_as_falas_com_campos_na_ordem_em_que_foram_ditas"
+      ]
+    },
+    {
+      "id": "M-HO-11",
+      "requisito": "R03",
+      "descricao": "O texto do caso passa do limite do contrato",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "if i not in escolhidas and usado + 1 + len(fala) <= limite and campos[i] - cobertos",
+          "para": "if i not in escolhidas and campos[i] - cobertos"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_no_limite_entra_primeiro_a_fala_com_mais_campos_novos"
+      ]
+    },
+    {
+      "id": "M-HO-12",
+      "requisito": "R03",
+      "descricao": "Fala que não acrescenta campo novo entra no caso (redundância)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "if i not in escolhidas and usado + 1 + len(fala) <= limite and campos[i] - cobertos",
+          "para": "if i not in escolhidas and usado + 1 + len(fala) <= limite and campos[i]"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_fala_sem_campo_novo_fica_de_fora_mesmo_cabendo"
+      ]
+    },
+    {
+      "id": "M-HO-13",
+      "requisito": "R03",
+      "descricao": "Sem campo em nenhuma fala, o caso vai sem texto",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    if not escolhidas:\n        return falas[0]\n",
+          "para": "    if not escolhidas:\n        return \"\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_sem_campo_em_nenhuma_fala_vai_a_primeira_como_hoje"
+      ]
+    },
+    {
+      "id": "M-HO-14",
+      "requisito": "R03",
+      "descricao": "O texto do caso leva as quebras de linha e os espaços das falas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    falas = [\" \".join(f.split()) for f in falas]\n",
+          "para": "    falas = list(falas)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_texto_do_pedido_junta_as_falas_numa_linha_so"
+      ]
+    },
+    {
       "id": "M-CONV-85",
       "requisito": "R07",
       "descricao": "O caso de bloqueio não fica ligado aos bloqueios do cliente (não fica sabendo do desbloqueio)",
@@ -8449,6 +8554,96 @@
       ],
       "testes": [
         "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
+      ]
+    },
+    {
+      "id": "M-CONV-89",
+      "requisito": "R03",
+      "descricao": "Pedido novo não guarda o turno em que começou (o caso volta a levar só a primeira e a última fala)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            return {\"pedido\": self.mensagem[:280], \"desde\": self.numero}\n",
+          "para": "            return {\"pedido\": self.mensagem[:280]}\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_leva_as_falas_do_pedido_com_campos_e_o_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-90",
+      "requisito": "R03",
+      "descricao": "O caso junta falas de pedidos anteriores da conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "{\"conversa\": self.conversa_id, \"desde\": desde}",
+          "para": "{\"conversa\": self.conversa_id, \"desde\": 1}"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_nao_leva_as_falas_de_um_pedido_anterior"
+      ]
+    },
+    {
+      "id": "M-CONV-91",
+      "requisito": "R03",
+      "descricao": "A proposta de pré-caso não leva o pedido em curso (o atendente recebe só a última fala)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                \"foco\": t.transaction_id,\n                **self._em_curso(),\n",
+          "para": "                \"foco\": t.transaction_id,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_leva_as_falas_do_pedido_com_campos_e_o_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-92",
+      "requisito": "R03",
+      "descricao": "Conversa de antes do deploy perde a primeira mensagem do pedido no caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            anteriores = [self.contexto[\"pedido\"]] if \"pedido\" in self.contexto else []\n",
+          "para": "            anteriores = []\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_conversa_de_antes_do_deploy_leva_a_primeira_mensagem_e_a_de_agora"
+      ]
+    },
+    {
+      "id": "M-CONV-93",
+      "requisito": "R03",
+      "descricao": "A intenção da fala não conta como campo do caso (o pedido e o pedido de atendente ficam de fora)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if lida.intencao != \"desconhecida\":\n            campos.add(f\"pedido:{lida.intencao}\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_leva_as_falas_do_pedido_com_campos_e_o_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-94",
+      "requisito": "R03",
+      "descricao": "O comércio citado não conta como campo do caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if comercio_citado(fala, self._comercios) is not None:\n            campos.add(\"comercio\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_leva_as_falas_do_pedido_com_campos_e_o_pedido_de_atendente"
       ]
     },
     {
