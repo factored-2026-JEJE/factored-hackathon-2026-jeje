@@ -9038,6 +9038,21 @@
       "testes": [
         "tests/test_conversa.py::test_aceite_comum_da_oferta_do_atendente_encaminha"
       ]
+    },
+    {
+      "id": "M-CONV-88",
+      "requisito": "R03",
+      "descricao": "O aceite largo da oferta do atendente (\"sí, pásame\") também desfaz o bloqueio (ACH-123)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando_desbloqueio\":\n            if self.lida.resposta == \"sim\":\n",
+          "para": "        if self.estado == \"confirmando_desbloqueio\":\n            if self.lida.resposta == \"sim\" or self.lida.aceita_oferta:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_aceite_largo_da_oferta_nao_desfaz_o_bloqueio"
+      ]
     }
   ]
 }
