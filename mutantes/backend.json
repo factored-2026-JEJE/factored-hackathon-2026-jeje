@@ -4503,8 +4503,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", texto))",
-          "para": "    sem_datas = MOEDA_COLADA.sub(r\"\\1 \", texto)"
+          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", MIL.sub(r\"\\g<1>000\", texto)))",
+          "para": "    sem_datas = MOEDA_COLADA.sub(r\"\\1 \", MIL.sub(r\"\\g<1>000\", texto))"
         }
       ],
       "testes": [
@@ -6270,8 +6270,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "VALOR.search(IDENTIFICADOR.sub(\" \", CONTAGEM.sub(\" \", sem_datas)))",
-          "para": "VALOR.search(IDENTIFICADOR.sub(\" \", sem_datas))"
+          "de": "    limpo = NAO_E_DINHEIRO.sub(\" \", IDENTIFICADOR.sub(\" \", CONTAGEM.sub(\" \", sem_datas)))\n",
+          "para": "    limpo = NAO_E_DINHEIRO.sub(\" \", IDENTIFICADOR.sub(\" \", sem_datas))\n"
         }
       ],
       "testes": [
@@ -9605,8 +9605,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", texto))\n",
-          "para": "    sem_datas = DATA_NUMERICA.sub(\" \", texto)\n"
+          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", MIL.sub(r\"\\g<1>000\", texto)))\n",
+          "para": "    sem_datas = DATA_NUMERICA.sub(\" \", MIL.sub(r\"\\g<1>000\", texto))\n"
         }
       ],
       "testes": [
@@ -10213,6 +10213,201 @@
       ],
       "testes": [
         "tests/test_qual_transacao.py::test_pergunta_pelo_campo_que_mais_divide_as_candidatas"
+      ]
+    },
+    {
+      "id": "M-ITP-77",
+      "requisito": "R02",
+      "descricao": "Os números que não são dinheiro voltam a ser lidos como valor (ACH-129)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    limpo = NAO_E_DINHEIRO.sub(\" \", IDENTIFICADOR.sub(\" \", CONTAGEM.sub(\" \", sem_datas)))\n",
+          "para": "    limpo = IDENTIFICADOR.sub(\" \", CONTAGEM.sub(\" \", sem_datas))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-78",
+      "requisito": "R02",
+      "descricao": "Com dois números, vale o primeiro, não o marcado como dinheiro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    inteiro, fracao = (marcados or achados)[0].groups()\n",
+          "para": "    inteiro, fracao = achados[0].groups()\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-79",
+      "requisito": "R02",
+      "descricao": "\"30 mil pesos\" vale 30, não 30.000",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "MIL.sub(r\"\\g<1>000\", texto)",
+          "para": "texto"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-80",
+      "requisito": "R02",
+      "descricao": "\"El día 15\" não vira data",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    elif achado := DIA_DO_MES.search(texto):\n        return _dia_mais_recente(int(achado.group(1)), referencia)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_dia_do_mes_e_mes_abreviado_viram_data"
+      ]
+    },
+    {
+      "id": "M-ITP-81",
+      "requisito": "R02",
+      "descricao": "O mês abreviado (\"15 de mar\") não vira data",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"ene\": 1, \"jan\": 1, \"feb\": 2, \"fev\": 2, \"mar\": 3, \"abr\": 4, \"may\": 5, \"mai\": 5, \"jun\": 6,\n    \"jul\": 7, \"ago\": 8, \"sep\": 9, \"set\": 9, \"oct\": 10, \"out\": 10, \"nov\": 11, \"dic\": 12, \"dez\": 12,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_dia_do_mes_e_mes_abreviado_viram_data"
+      ]
+    },
+    {
+      "id": "M-ITP-82",
+      "requisito": "R02",
+      "descricao": "O tempo (\"hace 3 días\", \"faz 2 semanas\") volta a ser valor (ACH-127)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "r\"(?<![\\w.,])\\d+\\s*(?:d[ií]as?|semanas?|mes(?:es)?|m[eê]s|horas?|minutos?|a[nñ]os?\"\n    r\"|cuotas?|parcelas?)(?!\\w)\"\n",
+          "para": "r\"(?<![\\w.,])\\d+\\s*(?:cuotas?|parcelas?)(?!\\w)\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-83",
+      "requisito": "R02",
+      "descricao": "As parcelas (\"3 cuotas\") voltam a ser valor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|cuotas?|parcelas?)(?!\\w)\"\n",
+          "para": "    r\")(?!\\w)\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-84",
+      "requisito": "R02",
+      "descricao": "A hora (\"10:30\", \"15h\") volta a ser valor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|(?<![\\w.,])\\d{1,2}(?::\\d{2}|\\s*h(?:s|rs)?)(?!\\w)\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-85",
+      "requisito": "R02",
+      "descricao": "A hora com \"a las\" ou \"às\" volta a ser valor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|(?:a\\s+las|a\\s+la|às)\\s+\\d{1,2}(?::\\d{2})?(?![\\d.,])\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-86",
+      "requisito": "R02",
+      "descricao": "O final do cartão volta a ser valor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|(?:terminad[ao]|termina|final|finalizad[ao])\\s+(?:en\\s+|em\\s+)?\\d{4}(?!\\d)\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-87",
+      "requisito": "R02",
+      "descricao": "O dia do mês (\"el día 15\") volta a ser valor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|d[ií]a\\s+\\d{1,2}(?![\\d.,/-])\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-88",
+      "requisito": "R02",
+      "descricao": "O número da conta volta a ser valor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|(?:cuenta|conta|tel[eé]fono|telefone|celular)\\s*(?:n[uú]mero|n[ºo°]\\.?|#)?\\s*\\d{3,}\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
+      ]
+    },
+    {
+      "id": "M-ITP-89",
+      "requisito": "R02",
+      "descricao": "O número com zero à esquerda (\"018000\") volta a ser valor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|(?<![\\w.,])0\\d{2,}\",\n",
+          "para": "    r\"\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
       ]
     }
   ]
