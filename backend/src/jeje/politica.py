@@ -210,6 +210,8 @@ class Resolucao:
     tipo: Literal["unica", "varias", "nenhuma"]
     transacoes: tuple[str, ...]  # IDs (no máximo `maximo_opcoes` em "varias")
     regra: str = "POL-CON-02"
+    # Com muitas possíveis (ranking do DEV-037), o campo a perguntar no lugar da lista.
+    campo: str | None = None
 
 
 def _sem_acento(texto: str) -> str:
