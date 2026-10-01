@@ -13,6 +13,7 @@ from jeje import (
     atendimento_api,
     conversa_api,
     health,
+    intencao_api,
     interpretacao_modelo,
     logs,
     metricas_api,
@@ -72,6 +73,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(atendimento_api.router)
     app.include_router(reviews_api.router)
     app.include_router(acesso_api.router)
+    app.include_router(intencao_api.router)
     for erro in INDISPONIVEL:
         app.add_exception_handler(erro, banco_indisponivel)
     app.add_exception_handler(recarga.Recarregando, recarga.em_recarga)

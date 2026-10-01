@@ -15,15 +15,33 @@ import schemathesis
 from conftest import registrar_dataset, servidor_http
 from hypothesis import settings
 
+from jeje.intencao.modelo import Classificador
+from jeje.leitor.corpus import Corpus, Exemplo
+from jeje.leitor.fontes import Arquivo
+
 DETERMINISTICO = settings(derandomize=True, database=None)
 
 
 @pytest.fixture
-def esquema_da_api(banco_migrado):
-    # Estado normal de operação: banco migrado e um dataset registrado. Os estados 503 da
-    # readiness têm testes exatos em test_health.py (Schemathesis trata todo 5xx como falha).
+def esquema_da_api(banco_migrado, tmp_path):
+    # Estado normal de operação: banco migrado, um dataset registrado e o artefato do portão de
+    # intenção (um pequeno, treinado aqui: a imagem de teste não tem o do build). Os estados 503
+    # da readiness e do portão têm testes exatos (Schemathesis trata todo 5xx como falha).
     registrar_dataset(banco_migrado, version="v", source="fixture")
-    with servidor_http(banco_migrado) as url:
+    exemplos = [
+        Exemplo(texto, fluxo, "es")
+        for fluxo, textos in {
+            "explicar_recusa": ["pago rechazado", "tarjeta rechazada", "compra rechazada"],
+            "relato_de_fraude": ["me robaron la tarjeta", "robaron mi celular", "fraude"],
+        }.items()
+        for texto in textos
+    ]
+    Classificador.treinado(
+        Corpus(treino=exemplos, calibracao=[], teste=exemplos),
+        fontes=(Arquivo("teste.csv", "file:///teste.csv", 1, "a" * 64),),
+    ).salvar(tmp_path / "intencao.joblib")
+    com_portao = banco_migrado.model_copy(update={"intencao_modelo": tmp_path / "intencao.joblib"})
+    with servidor_http(com_portao) as url:
         yield schemathesis.openapi.from_url(f"{url}/openapi.json")
 
 

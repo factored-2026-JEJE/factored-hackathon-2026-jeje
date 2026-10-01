@@ -68,6 +68,9 @@ class Settings(BaseSettings):
     # build da imagem (estágio `modelo`), e a confiança mínima para ele decidir (ACH-028).
     leitor_modelo: Path
     leitor_e5: Path
+    # Portão de intenção de Enzo (TF-IDF, jeje.intencao): artefato do build, lido na primeira
+    # chamada das rotas /intencao; sem ele, as rotas respondem 503.
+    intencao_modelo: Path
     leitor_limite: float = Field(gt=0, le=1)
     # Servidor Ollama, modelo e tempo máximo por chamada (usados só com INTERPRETADOR=ollama).
     ollama_url: str
