@@ -3972,12 +3972,12 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa_api.py",
-          "de": "    texto: str = Field(min_length=1, max_length=conversa.LIMITE_MENSAGEM)",
-          "para": "    texto: str"
+          "de": "    texto: str = Field(min_length=1, max_length=conversa.LIMITE_MENSAGEM, pattern=SEM_CONTROLE)",
+          "para": "    texto: str = Field(pattern=SEM_CONTROLE)"
         }
       ],
       "testes": [
-        "tests/test_conversa.py::test_mensagem_vazia_ou_longa_demais_e_recusada_na_borda"
+        "tests/test_conversa.py::test_mensagem_vazia_longa_demais_ou_com_caractere_de_controle_e_recusada_na_borda"
       ]
     },
     {
@@ -8087,6 +8087,21 @@
       ],
       "testes": [
         "tests/test_sessao_api.py::test_dispositivo_do_acesso_volta_na_sessao_e_valor_estranho_e_422"
+      ]
+    },
+    {
+      "id": "M-API-17",
+      "requisito": "R09",
+      "descricao": "Mensagem com caractere de controle aceita na borda (o NUL vira 503 \"tente de novo\" para sempre; ACH-153)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa_api.py",
+          "de": "max_length=conversa.LIMITE_MENSAGEM, pattern=SEM_CONTROLE)",
+          "para": "max_length=conversa.LIMITE_MENSAGEM)"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_mensagem_vazia_longa_demais_ou_com_caractere_de_controle_e_recusada_na_borda"
       ]
     },
     {
