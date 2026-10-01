@@ -69,6 +69,19 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Encontré más de una transacción posible. ¿Cuál de estas es?\n{opcoes}",
         "pt": "Encontrei mais de uma transação possível. Qual destas é?\n{opcoes}",
     },
+    # Muitas transações possíveis (DEV-037): pergunta pelo campo que mais divide, no lugar da lista.
+    "CON-PERGUNTA-data": {
+        "es": "Encontré varias transacciones posibles. ¿Recuerdas la fecha?",
+        "pt": "Encontrei várias transações possíveis. Você lembra a data?",
+    },
+    "CON-PERGUNTA-valor": {
+        "es": "Encontré varias transacciones posibles. ¿Recuerdas el valor?",
+        "pt": "Encontrei várias transações possíveis. Você lembra o valor?",
+    },
+    "CON-PERGUNTA-comercio": {
+        "es": "Encontré varias transacciones posibles. ¿En qué comercio fue?",
+        "pt": "Encontrei várias transações possíveis. Em qual estabelecimento foi?",
+    },
     "CON-NENHUMA": {
         "es": "No encontré esa transacción en tu cuenta. ¿Me indicas el valor, la fecha o el "
         "comercio?",
