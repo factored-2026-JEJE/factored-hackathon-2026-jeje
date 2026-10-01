@@ -9,9 +9,10 @@ test("o guia mostra os três caminhos em espanhol e português e leva a cada aba
   for (const caminho of ["Normal path: contest a charge", "Ambiguous path", "Human path"]) {
     expect(screen.getByRole("heading", { name: caminho })).toBeInTheDocument();
   }
+  // O exemplo da contestação é de cada persona (DEV-073), não uma transação da fixture.
+  expect(screen.queryByText(/45,90/)).not.toBeInTheDocument();
+  expect(screen.getByText(/the customer list shows a ready sentence for each customer/)).toBeInTheDocument();
   for (const frase of [
-    "No reconozco el cobro de 45,90 del 10/03",
-    "Não reconheço a cobrança de 45,90 do dia 10/03",
     "¿Por qué rechazaron mi compra?",
     "Por que recusaram minha compra?",
     "Me robaron la tarjeta",

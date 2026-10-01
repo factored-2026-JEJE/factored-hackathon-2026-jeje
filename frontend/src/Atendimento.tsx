@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   abrirSessao,
   type Dispositivo,
+  type ExemploDeContestacao,
   type Idioma,
   listarPersonas,
   meusPreCasos,
@@ -35,6 +36,17 @@ const valor = (t: Transacao) =>
 
 const quando = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+
+// O exemplo do guia (DEV-073): uma compra contestável da própria persona, com valor e dia que só ela
+// tem, na frase que o cliente digitaria em cada língua.
+function frasesDoExemplo(e: ExemploDeContestacao): [string, string] {
+  const quantia = quantiaDoCliente(e.valor);
+  const [, mes, dia] = e.data.split("-");
+  return [
+    `No reconozco el cobro de ${quantia} del ${dia}/${mes}`,
+    `Não reconheço a cobrança de ${quantia} do dia ${dia}/${mes}`,
+  ];
+}
 
 type Sessao = { token: string; cliente: Persona; dispositivo: Dispositivo };
 
@@ -86,12 +98,17 @@ function MeusPreCasos({ token, versao }: { token: string; versao: number }) {
   );
 }
 
-// "Perguntar sobre esta" (PRD-006): as pistas da linha como o cliente escreveria (valor com milhar
-// em ponto e decimal em vírgula, data dd/mm/aaaa e o comércio), na língua da conversa aberta. Nunca
-// o identificador da transação: as regras procuram pelas pistas (POL-ID-02).
+// O valor como o cliente escreveria: milhar em ponto e decimal em vírgula ("1.234,56").
+function quantiaDoCliente(valor: string): string {
+  const [inteiro = "0", centavos = "00"] = Number(valor).toFixed(2).split(".");
+  return `${inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${centavos}`;
+}
+
+// "Perguntar sobre esta" (PRD-006): as pistas da linha como o cliente escreveria (valor, data
+// dd/mm/aaaa e o comércio), na língua da conversa aberta. Nunca o identificador da transação: as
+// regras procuram pelas pistas (POL-ID-02).
 function perguntaSobre(t: Transacao, idioma: Idioma): string {
-  const [inteiro = "0", centavos = "00"] = Number(t.amount).toFixed(2).split(".");
-  const quantia = `${inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${centavos}`;
+  const quantia = quantiaDoCliente(t.amount);
   const [ano, mes, dia] = t.transaction_date.slice(0, 10).split("-");
   const data = `${dia}/${mes}/${ano}`;
   if (idioma === "es") {
@@ -272,8 +289,15 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
                 reincidência. */}
             <span className="nota">
               cartões para bloquear: {persona.cartoes_bloqueaveis} · recusas: {persona.transacoes_recusadas} · pré-casos
-              recentes: {persona.pre_casos_recentes}
+              recentes: {persona.pre_casos_recentes} · contestáveis: {persona.contestaveis}
             </span>
+            {persona.exemplo && (
+              <span className="nota exemplo">
+                {" "}
+                para contestar: <q>{frasesDoExemplo(persona.exemplo)[0]}</q> /{" "}
+                <q>{frasesDoExemplo(persona.exemplo)[1]}</q>
+              </span>
+            )}
           </li>
         ))}
       </ul>
