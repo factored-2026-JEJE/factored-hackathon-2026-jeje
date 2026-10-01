@@ -10,10 +10,13 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import Depends, Request
-from pydantic import Field
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from jeje.politica import Limites
+
+# Senha dos jurados: longa o bastante para não ser adivinhada sem limite de tentativas.
+MINIMO_DA_SENHA = 16
 
 
 class Settings(BaseSettings):
@@ -84,6 +87,23 @@ class Settings(BaseSettings):
     github_token: str
     # Nível dos logs da aplicação (saída padrão, uma linha por acontecimento; ver jeje.logs).
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"]
+    # Acesso dos jurados (PRD-009, ver jeje.acesso): com senha, toda rota fora a saúde e o próprio
+    # acesso exige o cookie de acesso; vazia, o portão fica desligado. A senha é segredo (o compose
+    # da publicação a tira do .env). A publicação marca o acesso como obrigatório: sem senha, a API
+    # não sobe. O cookie vale as horas configuradas e é `Secure` atrás do HTTPS da publicação.
+    acesso_senha: SecretStr
+    acesso_obrigatorio: bool
+    acesso_validade_horas: int = Field(gt=0)
+    acesso_cookie_seguro: bool
+
+    @model_validator(mode="after")
+    def _acesso_com_senha_forte(self) -> "Settings":
+        senha = self.acesso_senha.get_secret_value()
+        if self.acesso_obrigatorio and not senha:
+            raise ValueError("ACESSO_OBRIGATORIO exige ACESSO_SENHA")
+        if senha and len(senha) < MINIMO_DA_SENHA:
+            raise ValueError(f"ACESSO_SENHA precisa de pelo menos {MINIMO_DA_SENHA} caracteres")
+        return self
 
     def limites(self) -> Limites:
         """Os limites da política, na forma que ela usa."""

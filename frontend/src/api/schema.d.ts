@@ -85,7 +85,8 @@ export interface paths {
         };
         /**
          * Listar Personas
-         * @description Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado).
+         * @description Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado), com as dicas
+         *     de cada caminho.
          */
         get: operations["listar_personas_personas_get"];
         put?: never;
@@ -462,6 +463,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/acesso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Situacao */
+        get: operations["situacao_acesso_get"];
+        put?: never;
+        /**
+         * Entrar
+         * @description Senha certa: cookie HttpOnly com a validade do compose. Sem senha configurada, nada a
+         *     fazer. A senha nunca vai para o log.
+         */
+        post: operations["entrar_acesso_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -686,6 +709,11 @@ export interface components {
             /** Descricao */
             descricao: string;
         };
+        /** PedidoDeAcesso */
+        PedidoDeAcesso: {
+            /** Senha */
+            senha: string;
+        };
         /** PedidoDeReview */
         PedidoDeReview: {
             /** Avaliador */
@@ -717,6 +745,32 @@ export interface components {
             customer_id: string;
             /** Nome */
             nome: string;
+        };
+        /**
+         * PersonaDaDemo
+         * @description Persona da lista de acesso, com as dicas para escolher o caminho da demonstração (PRD-009):
+         *     contagens da base e do canal.
+         */
+        PersonaDaDemo: {
+            /** Customer Id */
+            customer_id: string;
+            /** Nome */
+            nome: string;
+            /**
+             * Cartoes Bloqueaveis
+             * @description Cartões ativos ainda sem bloqueio feito por aqui
+             */
+            cartoes_bloqueaveis: number;
+            /**
+             * Transacoes Recusadas
+             * @description Transações recusadas do cliente
+             */
+            transacoes_recusadas: number;
+            /**
+             * Pre Casos Recentes
+             * @description Pré-casos dentro da janela da reincidência (POL-HUM-06)
+             */
+            pre_casos_recentes: number;
         };
         /** PreCaso */
         PreCaso: {
@@ -887,6 +941,19 @@ export interface components {
         Situacao: {
             transacao: components["schemas"]["Transacao"];
             decisao: components["schemas"]["DecisaoDaPolitica"];
+        };
+        /** SituacaoDoAcesso */
+        SituacaoDoAcesso: {
+            /**
+             * Restrito
+             * @description A demonstração pede a senha dos jurados
+             */
+            restrito: boolean;
+            /**
+             * Liberado
+             * @description Quem pergunta já pode usar a demonstração
+             */
+            liberado: boolean;
         };
         /** Transacao */
         Transacao: {
@@ -1089,7 +1156,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Persona"][];
+                    "application/json": components["schemas"]["PersonaDaDemo"][];
                 };
             };
             /** @description Modo demo desligado ou persona não provisionada */
@@ -1905,6 +1972,64 @@ export interface operations {
             };
             /** @description Conversa não encontrada */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    situacao_acesso_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SituacaoDoAcesso"];
+                };
+            };
+        };
+    };
+    entrar_acesso_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PedidoDeAcesso"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Senha incorreta */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { Atendimento } from "./Atendimento";
 import { BloqueiosDoAtendimento } from "./BloqueiosDoAtendimento";
+import { ComoTestar } from "./ComoTestar";
 import { FilaDoAtendimento } from "./FilaDoAtendimento";
 import { IndicadoresDaEda } from "./IndicadoresDaEda";
 import { MetricasDoAtendimento } from "./MetricasDoAtendimento";
 import { QualidadeDosDados } from "./QualidadeDosDados";
 import { StatusDoSistema } from "./StatusDoSistema";
 
-// Três áreas da demonstração, cada uma com endereço próprio: #cliente, #atendente e #operacao.
+// Três áreas da demonstração, cada uma com endereço próprio (#cliente, #atendente e #operacao), e
+// o guia dos jurados em inglês (#how-to-test, PRD-009). Sem endereço, abre a do cliente.
 const ABAS = [
   ["cliente", "Cliente"],
   ["atendente", "Atendente"],
   ["operacao", "Operação"],
+  ["how-to-test", "How to test"],
 ] as const;
 type Aba = (typeof ABAS)[number][0];
 
@@ -72,6 +75,9 @@ export function App() {
           <StatusDoSistema />
           <QualidadeDosDados />
           <IndicadoresDaEda />
+        </div>
+        <div role="tabpanel" id="painel-how-to-test" aria-labelledby="aba-how-to-test" hidden={aba !== "how-to-test"}>
+          <ComoTestar />
         </div>
       </main>
     </>

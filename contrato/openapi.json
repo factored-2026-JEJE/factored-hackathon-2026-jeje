@@ -101,7 +101,7 @@
     "/personas": {
       "get": {
         "summary": "Listar Personas",
-        "description": "Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado).",
+        "description": "Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado), com as dicas\nde cada caminho.",
         "operationId": "listar_personas_personas_get",
         "responses": {
           "200": {
@@ -110,7 +110,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/Persona"
+                    "$ref": "#/components/schemas/PersonaDaDemo"
                   },
                   "type": "array",
                   "title": "Response Listar Personas Personas Get"
@@ -1036,6 +1036,57 @@
           }
         }
       }
+    },
+    "/acesso": {
+      "get": {
+        "summary": "Situacao",
+        "operationId": "situacao_acesso_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SituacaoDoAcesso"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Entrar",
+        "description": "Senha certa: cookie HttpOnly com a validade do compose. Sem senha configurada, nada a\nfazer. A senha nunca vai para o log.",
+        "operationId": "entrar_acesso_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDeAcesso"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Senha incorreta"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1663,6 +1714,21 @@
         ],
         "title": "Opcao"
       },
+      "PedidoDeAcesso": {
+        "properties": {
+          "senha": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Senha"
+          }
+        },
+        "type": "object",
+        "required": [
+          "senha"
+        ],
+        "title": "PedidoDeAcesso"
+      },
       "PedidoDeReview": {
         "properties": {
           "avaliador": {
@@ -1739,6 +1805,43 @@
           "nome"
         ],
         "title": "Persona"
+      },
+      "PersonaDaDemo": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "cartoes_bloqueaveis": {
+            "type": "integer",
+            "title": "Cartoes Bloqueaveis",
+            "description": "Cartões ativos ainda sem bloqueio feito por aqui"
+          },
+          "transacoes_recusadas": {
+            "type": "integer",
+            "title": "Transacoes Recusadas",
+            "description": "Transações recusadas do cliente"
+          },
+          "pre_casos_recentes": {
+            "type": "integer",
+            "title": "Pre Casos Recentes",
+            "description": "Pré-casos dentro da janela da reincidência (POL-HUM-06)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id",
+          "nome",
+          "cartoes_bloqueaveis",
+          "transacoes_recusadas",
+          "pre_casos_recentes"
+        ],
+        "title": "PersonaDaDemo",
+        "description": "Persona da lista de acesso, com as dicas para escolher o caminho da demonstração (PRD-009):\ncontagens da base e do canal."
       },
       "PreCaso": {
         "properties": {
@@ -2198,6 +2301,26 @@
           "decisao"
         ],
         "title": "Situacao"
+      },
+      "SituacaoDoAcesso": {
+        "properties": {
+          "restrito": {
+            "type": "boolean",
+            "title": "Restrito",
+            "description": "A demonstração pede a senha dos jurados"
+          },
+          "liberado": {
+            "type": "boolean",
+            "title": "Liberado",
+            "description": "Quem pergunta já pode usar a demonstração"
+          }
+        },
+        "type": "object",
+        "required": [
+          "restrito",
+          "liberado"
+        ],
+        "title": "SituacaoDoAcesso"
       },
       "Transacao": {
         "properties": {

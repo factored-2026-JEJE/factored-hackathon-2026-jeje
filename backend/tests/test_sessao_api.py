@@ -3,10 +3,10 @@
 import re
 
 import pytest
-from conftest import cliente, conexao
+from conftest import cliente, conexao, curar_tudo, raw_transacao
 from sqlalchemy import text
 
-from jeje import sessao
+from jeje import bloqueio, sessao
 
 
 @pytest.fixture
@@ -24,10 +24,43 @@ def entrar(http, customer_id: str) -> dict:
 
 
 def test_personas_listadas_na_ordem_provisionada(api):
-    assert api.get("/personas").json() == [
-        {"customer_id": "CLI-A", "nome": "CLI-A"},
-        {"customer_id": "CLI-C", "nome": "Ana Souza"},
+    assert [(p["customer_id"], p["nome"]) for p in api.get("/personas").json()] == [
+        ("CLI-A", "CLI-A"),
+        ("CLI-C", "Ana Souza"),
     ]
+
+
+def test_personas_trazem_dicas_para_escolher_o_caminho_da_demo(cartoes):
+    """Para quem testa escolher a persona de cada caminho (PRD-009): cartões que ainda dá para
+    bloquear, transações recusadas e pré-casos dentro da janela da reincidência (POL-HUM-06)."""
+    with conexao(cartoes) as con:
+        raw_transacao(con, "TRX-A1", "CLI-A", "CRT-A1", transaction_status="Declined")
+        raw_transacao(con, "TRX-A2", "CLI-A", "CRT-A1")
+        raw_transacao(con, "TRX-B1", "CLI-B", "CRT-B1", transaction_status="Declined")
+        raw_transacao(con, "TRX-B2", "CLI-B", "CRT-B1", transaction_status="Declined")
+        raw_transacao(con, "TRX-C1", "CLI-C", "CRT-C1")
+    curar_tudo(cartoes)
+    with conexao(cartoes) as con:
+        sessao.provisionar_personas(con, 3)
+        bloqueio.bloquear(con, "CLI-A", "CRT-A2", "completo", "pedido", "cadastrado", 7)
+        con.execute(
+            text(
+                "INSERT INTO app.pre_casos (protocolo, customer_id, transaction_id, proposta_id,"
+                " criado_em) VALUES ('PC-1', 'CLI-B', 'TRX-B1', 'P1', now()),"
+                " ('PC-2', 'CLI-B', 'TRX-B2', 'P2', now() - interval '31 days')"
+            )
+        )
+    with cliente(cartoes) as http:
+        dicas = {
+            p["customer_id"]: (
+                p["cartoes_bloqueaveis"],
+                p["transacoes_recusadas"],
+                p["pre_casos_recentes"],
+            )
+            for p in http.get("/personas").json()
+        }
+    # CLI-A: dois cartões ativos, um já bloqueado por aqui; o fechado não conta.
+    assert dicas == {"CLI-A": (1, 1, 0), "CLI-B": (1, 2, 1), "CLI-C": (0, 0, 0)}
 
 
 def test_sessao_identifica_o_cliente_e_lista_so_as_transacoes_dele(api):
@@ -103,10 +136,12 @@ def test_transacao_com_nul_no_endereco_e_422_e_nunca_500(api):
     assert api.get("/minhas/transacoes/TRX%00A1", headers=cabecalho).status_code == 422
 
 
-# Rotas sem sessão de propósito: saúde, agregados sem dado de cliente e o acesso de demonstração
-# (esses dois só com MODO_DEMO). Rota nova fica fora daqui e, portanto, precisa exigir sessão.
+# Rotas sem sessão de propósito: saúde, agregados sem dado de cliente, o acesso de demonstração
+# (esses dois só com MODO_DEMO) e o acesso dos jurados (a senha da publicação, PRD-009). Rota nova
+# fica fora daqui e, portanto, precisa exigir sessão.
 PUBLICAS = {
-    ("GET", "/health"), ("GET", "/health/ready"), ("GET", "/dados/eda"),
+    ("GET", "/health"), ("GET", "/health/ready"), ("GET", "/acesso"), ("POST", "/acesso"),
+    ("GET", "/dados/eda"),
     ("GET", "/dados/qualidade"), ("GET", "/metricas"), ("GET", "/personas"), ("POST", "/sessoes"),
     ("GET", "/testadores"),
     ("GET", "/atendimento/fila"), ("POST", "/atendimento/fila/{handoff_id}/assumir"),
