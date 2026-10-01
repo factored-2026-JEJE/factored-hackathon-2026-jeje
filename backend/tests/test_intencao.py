@@ -6,6 +6,8 @@ pequeno: a imagem de teste não tem o do build. Os testes do corpus ficaram com 
 (`test_leitor_treino.py`).
 """
 
+import re
+
 import joblib
 import pytest
 from conftest import cliente
@@ -149,6 +151,19 @@ def test_rota_recusa_texto_vazio_so_espacos_ou_longo_demais(com_modelo):
         # O limite vale antes de tirar os espaços (U+0085 é espaço): caso achado pelo Schemathesis.
         for texto in ("", "   ", "x" * 1001, "\u0085" + "x" * 1000):
             assert http.post("/intencao/classificar", json={"texto": texto}).status_code == 422
+
+
+def test_contrato_declara_como_espaco_o_mesmo_que_a_rota_recusa(com_modelo):
+    """O texto só de espaços recebe 422, e o contrato declara isso com um padrão. "\x1c" é espaço
+    para o Python e não para o JSON Schema: passava pelo contrato e recebia 422 (achado pelo
+    Schemathesis no gate da publicação)."""
+    with cliente(com_modelo) as http:
+        esquemas = http.get("/openapi.json").json()["components"]["schemas"]
+        recusado = http.post("/intencao/classificar", json={"texto": "\x1c\x85 "})
+    padrao = esquemas["jeje__intencao_api__Mensagem"]["properties"]["texto"]["pattern"]
+    todos = [chr(c) for c in range(0x110000)]
+    assert {c for c in todos if not re.search(padrao, c)} == {c for c in todos if c.isspace()}
+    assert recusado.status_code == 422
 
 
 def test_rota_responde_400_documentado_para_corpo_que_nao_e_utf8(com_modelo):
