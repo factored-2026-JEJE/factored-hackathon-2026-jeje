@@ -8,7 +8,7 @@ import threading
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, StringConstraints, field_validator
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from jeje.intencao.modelo import Classificador, Metadados, ModeloInvalido, Previsao
 
@@ -34,10 +34,20 @@ def classificador_da_requisicao(request: Request) -> Classificador:
 ClassificadorDep = Annotated[Classificador, Depends(classificador_da_requisicao)]
 
 
+# Os espaços do Python (`str.isspace`), escritos um a um: o contrato declara que o texto precisa de
+# algo além deles. O `\s` do JSON Schema não tem U+001C a U+001F nem U+0085, que o Python tira no
+# `strip`; com `\s`, "\x1c" passaria pelo contrato e receberia 422 (achado pelo Schemathesis).
+ESPACOS = r"\t-\r\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000"
+
+
 class Mensagem(BaseModel):
     # Uma mensagem de chat. Os limites valem para o texto recebido, como publica o contrato;
     # só depois os espaços das pontas saem, e texto só com espaços não é classificável (422).
-    texto: Annotated[str, StringConstraints(min_length=1, max_length=1000)]
+    texto: Annotated[
+        str,
+        StringConstraints(min_length=1, max_length=1000),
+        Field(json_schema_extra={"pattern": f"[^{ESPACOS}]"}),
+    ]
 
     @field_validator("texto")
     @classmethod

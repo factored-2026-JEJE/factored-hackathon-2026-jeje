@@ -9086,6 +9086,21 @@
       ]
     },
     {
+      "id": "M-INTENCAO-27",
+      "requisito": "R06",
+      "descricao": "O contrato declara como espaço menos do que a rota recusa (\"\\x1c\" passa pelo contrato e recebe 422)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao_api.py",
+          "de": "ESPACOS = r\"\\t-\\r\\u001c-\\u0020",
+          "para": "ESPACOS = r\"\\t-\\r\\u0020"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_contrato_declara_como_espaco_o_mesmo_que_a_rota_recusa"
+      ]
+    },
+    {
       "id": "M-ACS-01",
       "requisito": "R08",
       "descricao": "Sem o portão: com a senha configurada, tudo abre sem o cookie",
