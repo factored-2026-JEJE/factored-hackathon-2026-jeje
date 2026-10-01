@@ -30,6 +30,11 @@ class Evento:
     modelo_latencia_ms: Decimal | None = None
     modelo_tokens_entrada: int | None = None
     modelo_tokens_saida: int | None = None
+    # Como a transação do turno foi achada (DEV-071, conversa.RastroDaResolucao).
+    resolvedor: str | None = None
+    calibracao: str | None = None
+    probabilidade: float | None = None
+    possiveis: int | None = None
 
 
 def desde(inicio: float) -> Decimal:
@@ -44,9 +49,11 @@ def registrar(conexao: Connection, e: Evento) -> None:
         text(
             "INSERT INTO app.eventos (tipo, conversa_id, numero, intencao, regra, acao, efeito,"
             " fontes, erro, latencia_ms, interpretacao, modelo_latencia_ms, modelo_tokens_entrada,"
-            " modelo_tokens_saida, requisicao) VALUES (:tipo, :conversa, :numero, :intencao,"
-            " :regra, :acao, :efeito, CAST(:fontes AS jsonb), :erro, :latencia, :interpretacao,"
-            " :modelo_ms, :tokens_entrada, :tokens_saida, :requisicao)"
+            " modelo_tokens_saida, requisicao, resolvedor, calibracao, probabilidade, possiveis)"
+            " VALUES (:tipo, :conversa, :numero, :intencao, :regra, :acao, :efeito,"
+            " CAST(:fontes AS jsonb), :erro, :latencia, :interpretacao, :modelo_ms,"
+            " :tokens_entrada, :tokens_saida, :requisicao, :resolvedor, :calibracao,"
+            " :probabilidade, :possiveis)"
         ),
         {
             "tipo": e.tipo,
@@ -64,6 +71,10 @@ def registrar(conexao: Connection, e: Evento) -> None:
             "tokens_entrada": e.modelo_tokens_entrada,
             "tokens_saida": e.modelo_tokens_saida,
             "requisicao": None if requisicao == "-" else requisicao,
+            "resolvedor": e.resolvedor,
+            "calibracao": e.calibracao,
+            "probabilidade": e.probabilidade,
+            "possiveis": e.possiveis,
         },
     )
 
