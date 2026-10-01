@@ -4442,8 +4442,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", texto)",
-          "para": "    sem_datas = texto"
+          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", texto))",
+          "para": "    sem_datas = MOEDA_COLADA.sub(r\"\\1 \", texto)"
         }
       ],
       "testes": [
@@ -4547,8 +4547,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"no fui yo\", \"nao fui eu\", \"no la hice yo\", \"no lo hice yo\")),",
-          "para": "                \"no la hice yo\", \"no lo hice yo\")),"
+          "de": "                \"no fui yo\", \"nao fui eu\", \"no la hice yo\", \"no lo hice yo\",\n",
+          "para": "                \"no la hice yo\", \"no lo hice yo\",\n"
         }
       ],
       "testes": [
@@ -8520,8 +8520,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"nao fui eu\", \"no la hice yo\", \"no lo hice yo\")),",
-          "para": "\"nao fui eu\")),"
+          "de": "\"nao fui eu\", \"no la hice yo\", \"no lo hice yo\",\n",
+          "para": "\"nao fui eu\",\n"
         }
       ],
       "testes": [
