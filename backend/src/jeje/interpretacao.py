@@ -120,6 +120,15 @@ COBRANCA_REPETIDA = Perto(
     ("dos veces", "2 veces", "duas vezes", "2 vezes", "2x", "doble", "dobro", "duplicad*",
      "repetid*"),
 )  # fmt: skip
+# Pedido de contestação com substantivo perto da transação ("una contestación a esta compra", "abrir
+# un reclamo por la compra", "uma reclamação da cobrança"): sobrava só "compra", e a conversa
+# respondia como consulta (ACH-120). Sem a transação perto, "hacer una disputa" (segurança da
+# conta) e "una reclamación para un análisis" não decidem nada.
+PEDIDO_DE_CONTESTACAO = Perto(
+    ("contestacion", "contestacao", "reclamo", "reclamacion", "reclamacao", "disputa", "objecion",
+     "objecao", "impugnacion", "impugnacao"),
+    ("compra", "cobro", "cobranca", "cargo", "transaccion", "transacao"),
+)  # fmt: skip
 
 # Pergunta pelo pedido de revisão já registrado: o pedido (com possessivo ou palavra de andamento
 # perto) ou o protocolo. "¿cómo va mi solicitud?", "status do meu pedido de revisão", "cadê o
@@ -181,7 +190,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackearon", "hackearam", "invadiram", "asalt*", "assalt*", PERDA_DE_MEIO,
                 "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
                 "alguem usou meu cartao",
-                "no fui yo", "nao fui eu")),
+                "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo")),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO,)),
     ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
@@ -198,7 +207,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
                    "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
-                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar")),
+                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar", PEDIDO_DE_CONTESTACAO)),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
                    "negaram", "pendiente*", "pendente*", "revertid*", "estornad*", "estado",
