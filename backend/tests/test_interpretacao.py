@@ -468,6 +468,22 @@ FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Ub
         (FX, "o cafezinho de 12", "Café Central"),
         (FX, "la película", "Cine Premium"),
         (["Mercado Central", "Super Ahorro"], "fue en el supermercado", None),  # dois ramos iguais
+        # ACH-150: o canal, a saudação, o nome de pessoa e as palavras do dia a dia não citam o
+        # comércio sozinhos; com o lugar antes ou o nome inteiro, citam.
+        (["Internet Plus"], "lo compré por internet", None),
+        (["Internet Plus"], "paguei pela internet", None),
+        (["Empresa Telefónica"], "me llamaron por teléfono", None),
+        (["Empresa Telefónica"], "recibí una llamada telefónica", None),
+        (["Empresa Telefónica"], "falei pelo telefone", None),
+        (["Restaurante El Buen Sabor"], "Buen día, no reconozco un cobro", None),
+        (["Tienda Don José"], "Hola, soy José", None),
+        (["Super Ahorro"], "salió de mi cuenta de ahorro", None),
+        (["Farmacia Salud"], "lo necesito por mi salud", None),
+        (["Clínica Médica"], "tenía una cita médica", None),
+        (["Internet Plus"], "el cobro de Internet Plus", "Internet Plus"),
+        (["Tienda Don José"], "compré en Don José", "Tienda Don José"),
+        (["Super Ahorro"], "foi na Super Ahorro", "Super Ahorro"),
+        (["Restaurante El Buen Sabor"], "la cena en El Buen Sabor", "Restaurante El Buen Sabor"),
         # Mensagens sem comércio continuam sem.
         (FX, "no sé, fue en una tienda, creo que fue caro", None),
         (FX, "e agora o que eu faço", None),

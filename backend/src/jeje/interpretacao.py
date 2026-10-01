@@ -732,10 +732,24 @@ RAMO: dict[str, tuple[str, ...]] = {
     "clinica": ("medico", "doctor"),
     "conciertos": ("concierto", "show", "shows"),
     "streaming": ("assinatura", "suscripcion"),
-    "telefonica": ("telefone", "telefono"),
     "mercado": ("supermercado", "mercearia"),
     "super": ("supermercado",),
 }
+
+
+# Palavras de nome de comércio que são também palavras comuns (ACH-150). O canal ("por internet",
+# "pelo telefone", "llamada telefónica") nunca cita o comércio sozinho. A saudação, o nome de pessoa
+# e as palavras do dia a dia ("buen día", "soy José", "cuenta de ahorro", "por mi salud", "cita
+# médica") só citam com o lugar antes ("en Don José", "na Super Ahorro"). O nome inteiro sempre cita.
+CANAIS = frozenset({"internet", "telefonica", "telefono", "telefone", "online"})
+DO_DIA_A_DIA = frozenset({"buen", "jose", "ahorro", "salud", "medica"})
+LUGAR = r"(?<![a-z0-9])(?:en|na|no|em|al|ao)(?: [a-z0-9]+){0,2} "
+
+
+def _cita(palavra: str, limpo: str) -> bool:
+    if palavra in DO_DIA_A_DIA:
+        return _regex(LUGAR + _padrao(palavra)).search(limpo) is not None
+    return _casa(palavra, limpo)
 
 
 def comercio_citado(texto: str, comercios: Iterable[str]) -> str | None:
@@ -747,9 +761,9 @@ def comercio_citado(texto: str, comercios: Iterable[str]) -> str | None:
     for nome in comercios:
         nome_limpo = normalizar(nome)
         palavras = nome_limpo.split()
-        distintivas = [p for p in palavras if len(p) >= 4 and p not in COMUNS]
+        distintivas = [p for p in palavras if len(p) >= 4 and p not in COMUNS | CANAIS]
         ramo = [t for p in palavras for t in RAMO.get(p, ())]
-        if _casa(nome_limpo, limpo) or any(_casa(p, limpo) for p in (*distintivas, *ramo)):
+        if _casa(nome_limpo, limpo) or any(_cita(p, limpo) for p in (*distintivas, *ramo)):
             citados.add(nome)
     return citados.pop() if len(citados) == 1 else None
 
