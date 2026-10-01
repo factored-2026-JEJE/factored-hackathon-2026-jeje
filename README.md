@@ -22,11 +22,14 @@ Medido na base do desafio (seção “Por que este fluxo” da interface, com a 
 
 O assistente automatiza exatamente isso: explica a situação de uma transação do próprio cliente e
 registra o pedido de revisão (pré-caso) de uma cobrança não reconhecida, sempre com confirmação
-explícita. Com os limites de valor, horário e canal, 86,3% das transações aprovadas em USD da base
-poderiam ter a contestação registrada sem atendente. A janela de 120 dias, contada do último dia dos
-dados (18/06/2026), deixa contestável pelo assistente 11,2% dessas compras (a base cobre três anos);
-dentro da janela, 85,7% seguem sem atendente. O resto vai para um atendente com o resumo pronto. A base não
-tem conversas em português (transcrições 100% em espanhol): os casos em português são do time.
+explícita. Com os limites de valor, horário e canal, 86,3% das transações aprovadas com valor em
+dólar da base (3.979.375: as em USD e as em COP ou ARS com `amount_usd`) poderiam ter a contestação
+registrada sem atendente. A janela de 120 dias, contada do último dia dos dados (18/06/2026), deixa
+contestável pelo assistente 11,2% dessas compras (a base cobre três anos); dentro da janela, 86,3%
+seguem sem atendente, 9,6% da base. Os três números são os que a validação reproduziu (DADOS-08);
+a medição anterior do time dava 85,7% dentro da janela, que não se reproduziu. O resto vai para um
+atendente com o resumo pronto. A base não tem conversas em português (transcrições 100% em
+espanhol): os casos em português são do time.
 
 ## Como funciona
 
