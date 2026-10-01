@@ -83,8 +83,9 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 - **Bloquear o cartão (simulado):** "Quiero bloquear mi tarjeta" → com um cartão ativo, bloqueia na
   hora. No acesso, escolha o dispositivo: *cadastrado* dá bloqueio completo, que só aparece no
   console; *novo* (o padrão) dá bloqueio preventivo e encaminha ao atendente. Com vários cartões,
-  ele pergunta qual (número da opção ou os 4 últimos dígitos). O relato de roubo também bloqueia e
-  sempre encaminha. Dentro do prazo, "Quiero desbloquear mi tarjeta" desfaz com um sim, se o
+  ele pergunta qual (número da opção ou os 4 últimos dígitos). O relato de roubo encaminha na hora
+  e também bloqueia: com vários cartões, o caso já está na fila quando ele pergunta qual bloquear.
+  Dentro do prazo, "Quiero desbloquear mi tarjeta" desfaz com um sim, se o
   bloqueio foi pedido pelo cliente; o resto o atendente desfaz no console ("Desbloquear BL-…").
 
 A conversa vai por etapas (pedido → transação → confirmação). O que não cabe na etapa recebe o que
@@ -277,8 +278,10 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   (nada a bloquear), POL-BLQ-04 (o cliente desfaz pela conversa, com um sim explícito, o bloqueio
   que ele mesmo pediu, dentro do prazo), POL-BLQ-05 (o resto do desbloqueio fica com o atendente, a
   qualquer momento: bloqueio por roubo ou perda, fora do prazo ou feito pelo banco) e POL-BLQ-06
-  (vários cartões: pergunta qual). O relato de roubo ou perda (POL-HUM-01) bloqueia e sempre
-  encaminha; sem cartão identificado na resposta, encaminha sem bloquear. O prazo de reversão é de
+  (vários cartões: pergunta qual). O relato de roubo ou perda (POL-HUM-01) encaminha na hora: com
+  um cartão, bloqueia no mesmo turno; com vários, a conversa pergunta qual bloquear com o caso já no
+  atendente, e a resposta só bloqueia e anota no mesmo caso, sem abrir outro (sem cartão
+  identificado, nada é bloqueado). O prazo de reversão é de
   7 dias (`JANELA_DESBLOQUEIO_DIAS`). Na fixture, a segunda persona tem um cartão de débito
   numerado, usado só pela jornada E2E de bloqueio e desbloqueio.
 - Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado. O status do caso

@@ -21,7 +21,7 @@ const TEXTOS = {
     semMotivo: (d: string) =>
       `La transacción ${d} fue rechazada y no tenemos el motivo registrado. Si quieres, te comunico con un agente.`,
     fraude: "Me robaron la tarjeta",
-    qualCartao: "Por seguridad, voy a bloquear la tarjeta afectada.",
+    qualCartao: "Mientras tanto, puedo bloquear ahora la tarjeta afectada.",
     depois: "¿y ahora?",
     comHumano: (a: string) => `Tu caso ya está con un agente (referencia ${a}); la conversación sigue con esa persona.`,
   },
@@ -39,7 +39,7 @@ const TEXTOS = {
     semMotivo: (d: string) =>
       `A transação ${d} foi recusada e não temos o motivo registrado. Se quiser, eu passo você para um atendente.`,
     fraude: "Roubaram meu cartão",
-    qualCartao: "Por segurança, vou bloquear o cartão afetado.",
+    qualCartao: "Enquanto isso, posso bloquear agora o cartão afetado.",
     depois: "e agora?",
     comHumano: (a: string) => `Seu caso já está com um atendente (referência ${a}); a conversa segue com essa pessoa.`,
   },
@@ -144,8 +144,15 @@ for (const idioma of ["es", "pt"] as const) {
     const [primeira] = await personas(request);
     await entrarEConversar(page, primeira!.nome, idioma);
     let relato = await dizer(page, t.fraude);
-    // Com vários cartões ativos, o assistente pergunta qual antes de bloquear e encaminhar (PRD-007).
-    if ((await relato.textContent())!.includes(t.qualCartao)) relato = await dizer(page, "1");
+    // Com vários cartões ativos, o caso já vai ao atendente e o assistente pergunta qual cartão
+    // bloquear agora; a resposta bloqueia e anota no mesmo caso (PRD-009: encaminha já).
+    const primeiro = (await relato.textContent())!;
+    if (primeiro.includes(t.qualCartao)) {
+      const caso = primeiro.match(/AT-\d+/)![0];
+      const naHora: { id: string }[] = await (await request.get("/api/atendimento/fila?limite=100")).json();
+      expect(naHora.map((e) => e.id)).toContain(caso);
+      relato = await dizer(page, "1");
+    }
     const comHumano = page.getByRole("status").filter({ hasText: "Com atendimento humano" });
     await expect(comHumano).toContainText(/AT-\d+/);
     const atendimento = (await comHumano.textContent())!.match(/AT-\d+/)![0];
