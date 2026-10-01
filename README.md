@@ -96,7 +96,8 @@ A conversa vai por etapas (pedido → transação → confirmação). O que não
 foi entendido e a oferta de um atendente ("Falar com um atendente" encaminha, "Continuar aqui" volta
 para onde estava), no lugar de um "não entendi" repetido. As pistas da transação somam entre os turnos (o status citado é pista,
 não filtro), "a última" escolhe a mais recente, e cumprimento ou agradecimento recebe resposta
-cordial sem perder a etapa. Data sem ano é lida a partir do último dia dos dados quando a base é
+cordial sem perder a etapa ("no resolvió" e "não era isso", com a negação antes do fechamento,
+são insatisfação, não cortesia). Data sem ano é lida a partir do último dia dos dados quando a base é
 mais antiga que o relógio. Contestar é só pela conversa. O valor é lido com milhar em ponto, espaço
 ou vírgula seguida de 3 dígitos e decimal em vírgula ou ponto ("189.900,55", "6,050.00", "45.90",
 "13,45"), com ou sem o código da moeda, inclusive colado ("USD13,45"); a transação casa com o valor
