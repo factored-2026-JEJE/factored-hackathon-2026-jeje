@@ -222,6 +222,21 @@ def test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha(cenario, disposi
     ]
 
 
+def test_quem_pergunta_como_evitar_fraude_vai_ao_atendente_sem_bloquear(cenario):
+    """ACH-144 (P3 do NOV-35): a pergunta de prevenção lida como fraude vai ao atendente pela
+    POL-HUM-01, mas não bloqueia o cartão; o relato de vítima continua bloqueando."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        pergunta = "¿Cómo puedo evitar caer en un fraude con la tarjeta?"
+        turno = dizer(http, auth, abrir_conversa(http, auth, "es"), pergunta)
+    assert (turno["regra"], turno["acao"], turno["estado"]) == (
+        "POL-HUM-01", "humano", "com_humano"
+    )  # fmt: skip
+    assert (turno["bloqueio"], bloqueios(cenario)) == (None, [])
+    [registro] = handoffs(cenario)
+    assert (registro["regra"], registro["pedido"]) == ("POL-HUM-01", pergunta)
+
+
 CARTAO_DE_A = {
     "CRT-A1": ("tarjeta de crédito terminada en 9241", "cartão de crédito final 9241"),
     "CRT-A2": ("tarjeta de débito terminada en 5678", "cartão de débito final 5678"),

@@ -816,3 +816,66 @@ def cita_cartao(texto: str) -> bool:
     limpo = normalizar(texto)
     tipos = [t for termos in TIPO_CITADO.values() for t in termos]
     return FINAL_DE_CARTAO.search(texto) is not None or any(_casa(t, limpo) for t in tipos)
+
+
+# ---- Prevenção não é relato (ACH-144) -----------------------------------------------------------
+# Listas e regra medidas pela validação no NOV-35 (EV-174): a pergunta de prevenção ou a suspeita
+# sem perda, sem termo de vítima não negado, não é relato de quem perdeu o cartão ou o dinheiro.
+PREVENCAO = (
+    "evitar", "no caer", "nao cair", "como me protejo", "como me proteger", "dicas", "consejos",
+    "medo de", "miedo de", "prevenir", "proteger", "es golpe", "e golpe", "era golpe",
+    "sera golpe", "es una estafa", "e uma fraude", "protegerme", "me proteger", "protegerse",
+    "cuidados", "recomendaciones", "recomendacoes", "como identificar", "como reconocer",
+    "como reconhecer", "como saber si", "como saber se", "como detectar", "seria golpe",
+    "seria una estafa", "era una estafa", "sera una estafa", "es fraude", "e fraude", "era fraude",
+    "es un fraude", "e um golpe", "era um golpe", "sera um golpe", "es legitimo", "es legitima",
+    "e legitimo", "e legitima", "es real", "e real", "es verdadero", "es verdadera",
+    "e verdadeiro", "e verdadeira"
+)  # fmt: skip
+SUSPEITA_SEM_PERDA = (
+    "no di", "no le di", "no les di", "nao dei", "nao passei", "no pase", "no entregue",
+    "nao forneci", "no clique", "no hice clic", "no di clic", "nao cliquei", "no abri", "nao abri",
+    "no respondi", "nao respondi", "no cai", "nao cai", "no perdi", "nao perdi", "sin perder",
+    "sem perder", "no paso nada", "nao aconteceu nada", "por las dudas", "por via das duvidas",
+    "solo para confirmar", "so para confirmar", "quiero confirmar", "quero confirmar",
+    "queria confirmar"
+)  # fmt: skip
+VITIMA = (
+    "cai", "me aplicaron", "sofri", "sufri", "me estafaron", "estafaron", "fui vitima",
+    "fui victima", "foi vitima", "perdi", "me robaron", "roubaram", "me roubaram", "transferi",
+    "transfiri", "hice una transferencia", "fiz um pix", "fiz uma transferencia", "me sacaron",
+    "tiraram", "me quitaron", "apareceram", "aparecieron", "me clonaron", "clonaron", "clonaram",
+    "hackearon", "hackearam", "invadiram", "invadieron", "le di", "les di", "di mis", "passei",
+    "pase mis", "dei meus", "entregue", "forneci", "pague", "paguei", "deposite", "depositei",
+    "envie", "mandei", "me cobraron", "cobraram", "descontaron", "debitaron", "sumiu",
+    "desaparecio", "desapareceu", "se llevaron", "levaram", "no reconozco", "nao reconheco",
+    "que no hice", "que nao fiz", "sin autorizar", "sem autorizacao", "no autorice",
+    "nao autorizei", "me enganaron", "me enganaram", "fui enganado", "fui enganada", "usaron",
+    "usaram"
+)  # fmt: skip
+NEGA_A_VITIMA = (
+    "no", "nao", "nunca", "ni", "nem", "jamas", "jamais"
+)  # fmt: skip
+PRONOMES_DA_VITIMA = (
+    "me", "le", "les", "lhe", "te", "se", "o", "a", "la", "lo"
+)  # fmt: skip
+
+
+def _vitima(limpo: str) -> bool:
+    """Algum termo de vítima sem negação logo antes (ou antes do pronome que o precede)."""
+    for termo in VITIMA:
+        for achado in _regex(_padrao(termo)).finditer(limpo):
+            antes = limpo[: achado.start()].split()
+            if antes and antes[-1] in PRONOMES_DA_VITIMA:
+                antes = antes[:-1]
+            if not (antes and antes[-1] in NEGA_A_VITIMA):
+                return True
+    return False
+
+
+def prevencao(texto: str) -> bool:
+    """Pergunta de prevenção ou suspeita sem perda, sem vítima: a fraude lida assim vai ao
+    atendente sem bloquear o cartão (P3 do NOV-35)."""
+    limpo = normalizar(texto)
+    sinal = any(_casa(t, limpo) for t in (*PREVENCAO, *SUSPEITA_SEM_PERDA))
+    return sinal and not _vitima(limpo)
