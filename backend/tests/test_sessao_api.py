@@ -83,6 +83,17 @@ def test_transacao_de_outro_cliente_responde_igual_a_inexistente(api):
     assert api.get("/minhas/transacoes/TRX-A1", headers=cabecalho).json()["amount"] == "189.77"
 
 
+def test_data_da_transacao_sai_como_o_contrato_declara(api):
+    """ACH-113: a base não informa o fuso, e a data sai sem deslocamento ("2025-03-10T14:09:12").
+    O contrato declara isso (data e hora locais), e não `date-time`, que promete o deslocamento."""
+    cabecalho = entrar(api, "CLI-A")
+    valor = api.get("/minhas/transacoes/TRX-A1", headers=cabecalho).json()["transaction_date"]
+    contrato = api.get("/openapi.json").json()["components"]["schemas"]["Transacao"]
+    declarado = contrato["properties"]["transaction_date"]
+    assert "format" not in declarado
+    assert re.fullmatch(declarado["pattern"], valor)
+
+
 def test_cliente_escolhido_na_url_e_ignorado(api):
     cabecalho = entrar(api, "CLI-A")
     resposta = api.get("/minhas/transacoes?customer_id=CLI-C", headers=cabecalho)
