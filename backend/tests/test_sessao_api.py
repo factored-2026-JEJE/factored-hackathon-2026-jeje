@@ -137,11 +137,12 @@ def test_transacao_com_nul_no_endereco_e_422_e_nunca_500(api):
 
 
 # Rotas sem sessão de propósito: saúde, agregados sem dado de cliente, o acesso de demonstração
-# (esses dois só com MODO_DEMO) e o acesso dos jurados (a senha da publicação, PRD-009). Rota nova
-# fica fora daqui e, portanto, precisa exigir sessão.
+# (esses dois só com MODO_DEMO), o acesso dos jurados (a senha da publicação, PRD-009) e o portão de
+# intenção de Enzo (só classifica o texto recebido). Rota nova fica fora daqui e, portanto, precisa
+# exigir sessão.
 PUBLICAS = {
     ("GET", "/health"), ("GET", "/health/ready"), ("GET", "/acesso"), ("POST", "/acesso/entrada"),
-    ("GET", "/dados/eda"),
+    ("POST", "/intencao/classificar"), ("GET", "/intencao/modelo"), ("GET", "/dados/eda"),
     ("GET", "/dados/qualidade"), ("GET", "/metricas"), ("GET", "/personas"), ("POST", "/sessoes"),
     ("GET", "/testadores"),
     ("GET", "/atendimento/fila"), ("POST", "/atendimento/fila/{handoff_id}/assumir"),

@@ -501,6 +501,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/intencao/classificar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Classificar
+         * @description Fluxo mais provável, probabilidade de cada fluxo e os n-gramas que decidiram.
+         */
+        post: operations["classificar_intencao_classificar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/intencao/modelo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Modelo
+         * @description Versão, fontes fixadas e métricas no held-out por idioma do modelo em uso.
+         */
+        get: operations["modelo_intencao_modelo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -571,6 +611,11 @@ export interface components {
             estado: string;
             /** Resposta */
             resposta: string;
+        };
+        /** CorpoInvalido */
+        CorpoInvalido: {
+            /** Detail */
+            detail: string;
         };
         /** DatasetInfo */
         DatasetInfo: {
@@ -676,10 +721,20 @@ export interface components {
             /** Version */
             version: string;
         };
-        /** Mensagem */
-        Mensagem: {
-            /** Texto */
-            texto: string;
+        /** Metadados */
+        Metadados: {
+            /** Versao */
+            versao: string;
+            /** Sklearn */
+            sklearn: string;
+            /** Fontes */
+            fontes: string[];
+            /** Exemplos Treino */
+            exemplos_treino: number;
+            /** Metricas Teste */
+            metricas_teste: {
+                [key: string]: components["schemas"]["MetricasIdioma"];
+            };
         };
         /** Metricas */
         Metricas: {
@@ -707,6 +762,15 @@ export interface components {
                 [key: string]: number;
             };
             modelo: components["schemas"]["UsoDoModelo"];
+        };
+        /** MetricasIdioma */
+        MetricasIdioma: {
+            /** Exemplos */
+            exemplos: number;
+            /** Acuracia */
+            acuracia: number;
+            /** F1 Macro */
+            f1_macro: number;
         };
         /** NovaConversa */
         NovaConversa: {
@@ -801,6 +865,32 @@ export interface components {
              * Format: date-time
              */
             criado_em: string;
+        };
+        /** Previsao */
+        Previsao: {
+            /**
+             * Fluxo
+             * @enum {string}
+             */
+            fluxo: "explicar_recusa" | "explicar_pendencia" | "explicar_estorno" | "ver_transacoes" | "abrir_disputa" | "relato_de_fraude" | "fora_de_escopo";
+            /** Confianca */
+            confianca: number;
+            /** Probabilidades */
+            probabilidades: components["schemas"]["Probabilidade"][];
+            /** Sinais */
+            sinais: string[];
+            /** Modelo */
+            modelo: string;
+        };
+        /** Probabilidade */
+        Probabilidade: {
+            /**
+             * Fluxo
+             * @enum {string}
+             */
+            fluxo: "explicar_recusa" | "explicar_pendencia" | "explicar_estorno" | "ver_transacoes" | "abrir_disputa" | "relato_de_fraude" | "fora_de_escopo";
+            /** Probabilidade */
+            probabilidade: number;
         };
         /** Proposta */
         Proposta: {
@@ -1058,6 +1148,16 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** Mensagem */
+        jeje__conversa_api__Mensagem: {
+            /** Texto */
+            texto: string;
+        };
+        /** Mensagem */
+        jeje__intencao_api__Mensagem: {
+            /** Texto */
+            texto: string;
         };
     };
     responses: never;
@@ -1638,7 +1738,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Mensagem"];
+                "application/json": components["schemas"]["jeje__conversa_api__Mensagem"];
             };
         };
         responses: {
@@ -2066,6 +2166,82 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    classificar_intencao_classificar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["jeje__intencao_api__Mensagem"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Previsao"];
+                };
+            };
+            /** @description Corpo não é UTF-8 decodificável */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorpoInvalido"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Modelo de intenção indisponível (artefato ausente) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    modelo_intencao_modelo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Metadados"];
+                };
+            };
+            /** @description Modelo de intenção indisponível (artefato ausente) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

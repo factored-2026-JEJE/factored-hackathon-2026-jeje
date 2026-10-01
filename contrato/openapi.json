@@ -641,7 +641,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Mensagem"
+                "$ref": "#/components/schemas/jeje__conversa_api__Mensagem"
               }
             }
           }
@@ -1092,6 +1092,80 @@
           }
         }
       }
+    },
+    "/intencao/classificar": {
+      "post": {
+        "summary": "Classificar",
+        "description": "Fluxo mais provável, probabilidade de cada fluxo e os n-gramas que decidiram.",
+        "operationId": "classificar_intencao_classificar_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/jeje__intencao_api__Mensagem"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Previsao"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Corpo não é UTF-8 decodificável",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorpoInvalido"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Modelo de intenção indisponível (artefato ausente)"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/intencao/modelo": {
+      "get": {
+        "summary": "Modelo",
+        "description": "Versão, fontes fixadas e métricas no held-out por idioma do modelo em uso.",
+        "operationId": "modelo_intencao_modelo_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Metadados"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Modelo de intenção indisponível (artefato ausente)"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1274,6 +1348,19 @@
           "resposta"
         ],
         "title": "ConversaAberta"
+      },
+      "CorpoInvalido": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "CorpoInvalido"
       },
       "DatasetInfo": {
         "properties": {
@@ -1583,20 +1670,44 @@
         ],
         "title": "Liveness"
       },
-      "Mensagem": {
+      "Metadados": {
         "properties": {
-          "texto": {
+          "versao": {
             "type": "string",
-            "maxLength": 500,
-            "minLength": 1,
-            "title": "Texto"
+            "title": "Versao"
+          },
+          "sklearn": {
+            "type": "string",
+            "title": "Sklearn"
+          },
+          "fontes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fontes"
+          },
+          "exemplos_treino": {
+            "type": "integer",
+            "title": "Exemplos Treino"
+          },
+          "metricas_teste": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MetricasIdioma"
+            },
+            "type": "object",
+            "title": "Metricas Teste"
           }
         },
         "type": "object",
         "required": [
-          "texto"
+          "versao",
+          "sklearn",
+          "fontes",
+          "exemplos_treino",
+          "metricas_teste"
         ],
-        "title": "Mensagem"
+        "title": "Metadados"
       },
       "Metricas": {
         "properties": {
@@ -1678,6 +1789,29 @@
           "modelo"
         ],
         "title": "Metricas"
+      },
+      "MetricasIdioma": {
+        "properties": {
+          "exemplos": {
+            "type": "integer",
+            "title": "Exemplos"
+          },
+          "acuracia": {
+            "type": "number",
+            "title": "Acuracia"
+          },
+          "f1_macro": {
+            "type": "number",
+            "title": "F1 Macro"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exemplos",
+          "acuracia",
+          "f1_macro"
+        ],
+        "title": "MetricasIdioma"
       },
       "NovaConversa": {
         "properties": {
@@ -1876,6 +2010,81 @@
           "criado_em"
         ],
         "title": "PreCaso"
+      },
+      "Previsao": {
+        "properties": {
+          "fluxo": {
+            "type": "string",
+            "enum": [
+              "explicar_recusa",
+              "explicar_pendencia",
+              "explicar_estorno",
+              "ver_transacoes",
+              "abrir_disputa",
+              "relato_de_fraude",
+              "fora_de_escopo"
+            ],
+            "title": "Fluxo"
+          },
+          "confianca": {
+            "type": "number",
+            "title": "Confianca"
+          },
+          "probabilidades": {
+            "items": {
+              "$ref": "#/components/schemas/Probabilidade"
+            },
+            "type": "array",
+            "title": "Probabilidades"
+          },
+          "sinais": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sinais"
+          },
+          "modelo": {
+            "type": "string",
+            "title": "Modelo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fluxo",
+          "confianca",
+          "probabilidades",
+          "sinais",
+          "modelo"
+        ],
+        "title": "Previsao"
+      },
+      "Probabilidade": {
+        "properties": {
+          "fluxo": {
+            "type": "string",
+            "enum": [
+              "explicar_recusa",
+              "explicar_pendencia",
+              "explicar_estorno",
+              "ver_transacoes",
+              "abrir_disputa",
+              "relato_de_fraude",
+              "fora_de_escopo"
+            ],
+            "title": "Fluxo"
+          },
+          "probabilidade": {
+            "type": "number",
+            "title": "Probabilidade"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fluxo",
+          "probabilidade"
+        ],
+        "title": "Probabilidade"
       },
       "Proposta": {
         "properties": {
@@ -2572,6 +2781,36 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "jeje__conversa_api__Mensagem": {
+        "properties": {
+          "texto": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Texto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "texto"
+        ],
+        "title": "Mensagem"
+      },
+      "jeje__intencao_api__Mensagem": {
+        "properties": {
+          "texto": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Texto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "texto"
+        ],
+        "title": "Mensagem"
       }
     },
     "securitySchemes": {
