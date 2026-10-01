@@ -173,18 +173,46 @@ RECUSA_DE_HUMANO = re.compile(
 # "¿cómo bloqueo…?", "el bloqueo") perto de cartão. "¿Por qué bloquearon mi tarjeta?" e "meu cartão
 # foi bloqueado?" não pedem nada; roubo e perda já são relato de fraude, que também bloqueia.
 CARTAO = ("tarjeta*", "cartao", "cartoes")
+# Congelar e travar também pedem bloqueio (ACH-140), nas formas de pedido: "mi tarjeta está
+# congelada" e "o cartão travou na maquininha" contam o estado, não pedem nada.
 PEDIDO_DE_BLOQUEIO = Perto(
     ("bloquear", "bloquearla", "bloquearlo", "bloquea", "bloquee", "bloqueen", "bloqueela",
      "bloqueala", "bloqueenla", "bloqueia", "bloqueie", "bloqueiem", "como bloqueo",
-     "como bloqueio", "el bloqueo", "o bloqueio"),
+     "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congela", "congele", "congelen",
+     "congelem", "congelarla", "congelala", "travar", "trava", "trave", "travem"),
     CARTAO,
 )  # fmt: skip
+# Reativar, achar o cartão e liberar de novo também pedem desbloqueio (ACH-140); ativar um cartão
+# novo, não.
 PEDIDO_DE_DESBLOQUEIO = Perto(
     ("desbloquear", "desbloquearla", "desbloquearlo", "desbloquea", "desbloquee", "desbloqueen",
      "desbloqueela", "desbloqueala", "desbloqueenla", "desbloqueia", "desbloqueie",
-     "desbloqueiem", "como desbloqueo", "como desbloqueio", "el desbloqueo", "o desbloqueio"),
+     "desbloqueiem", "como desbloqueo", "como desbloqueio", "el desbloqueo", "o desbloqueio",
+     "reactivar", "reactiva", "reactive", "reactiven", "reativar", "reativa", "reative",
+     "reativem"),
     CARTAO,
 )  # fmt: skip
+# O cartão achado ("ya apareció mi tarjeta", "achei meu cartão"): o cartão logo depois do verbo.
+# "Encontré un pago con tarjeta no autorizado" é outra coisa.
+CARTAO_ACHADO = Perto(
+    ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"), CARTAO, entre=1
+)
+# Dinheiro sendo tirado da conta é relato de fraude (ACH-140); "¿por qué me estás robando con
+# las comisiones?" sem o dinheiro ou a conta perto, não.
+DINHEIRO_TIRADO = Perto(
+    ("robando", "roubando", "tirando"), ("plata", "dinero", "dinheiro", "cuenta", "conta")
+)
+# Não querer falar com o robô é pedir uma pessoa (ACH-140). "Robô" sem acento é "robo", que em
+# espanhol é roubo: o relato de fraude vem antes e só casa "un robo" e "robo de".
+SEM_ROBO = Perto(("no quiero", "nao quero"), ("robot", "robo", "bot", "maquina"))
+# Os radicais dos verbos acima: sem nenhum deles, os pedidos de bloqueio e desbloqueio não casam.
+RADICAIS_DE_BLOQUEIO = (
+    "bloque", "congel", "trav", "reactiv", "reativ", "aparec", "achei", "encontr", "liber",
+)  # fmt: skip
+LIBERAR_DE_NOVO = Perto(
+    ("liberar", "libera", "libere", "liberem", "liberen"),
+    ("de novo", "novamente", "de nuevo", "otra vez"),
+)
 # Negação do pedido na mesma oração: "no quiero bloquear mi tarjeta", "não bloqueie meu cartão" e
 # "no la bloqueen" não pedem; em "no, bloquéenla" a vírgula separa o "no" do pedido.
 NEGACAO = (
@@ -193,8 +221,8 @@ NEGACAO = (
     r"|me|te|la|lo|a|o|mi|meu|minha|el|os|as|las|los))* "
 )
 NEGACOES = {
-    "bloquear": re.compile(NEGACAO + "bloque"),
-    "desbloquear": re.compile(NEGACAO + "desbloque"),
+    "bloquear": re.compile(NEGACAO + "(?:bloque|congel|trav)"),
+    "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ)"),
 }
 
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
@@ -208,14 +236,16 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
                 # a leitura continua a de hoje.
                 "es fraudulent*", "e fraudulent*", "son fraudulent*", "sao fraudulent*",
-                "fue fraudulent*", "foi fraudulent*")),
+                "fue fraudulent*", "foi fraudulent*",
+                # Golpe e dinheiro tirado da conta (ACH-140).
+                "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO)),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
-    ("desbloquear", (PEDIDO_DE_DESBLOQUEIO,)),
+    ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO)),
     ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
                 "persona real",
                 "pessoa de verdade", "hablar con alguien", "falar com alguem",
                 "hablar con una persona", "falar com uma pessoa", "una persona", "uma pessoa",
-                "alguien", "alguem")),
+                "alguien", "alguem", SEM_ROBO)),
     # "Tarjeta de crédito" é comum numa contestação: crédito sozinho não é fora de escopo.
     ("fora_de_escopo", ("prestamo", "emprestimo", "linea de credito", "limite de credito",
                         "inversion", "invertir", "investimento", "investir", "contrasena", "senha",
@@ -508,7 +538,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
     for intencao, termos in TERMOS:
         if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):
             continue
-        if intencao in NEGACOES and "bloque" not in limpo:
+        if intencao in NEGACOES and not any(r in limpo for r in RADICAIS_DE_BLOQUEIO):
             continue  # sem o verbo, os pares não casam: pular poupa ~20% da leitura (ACH-107)
         if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):
             continue
