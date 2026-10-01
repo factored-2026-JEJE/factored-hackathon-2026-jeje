@@ -90,29 +90,16 @@ class Perto:
     entre: int = PALAVRAS_ENTRE
 
 
-def _entre(termo: Perto) -> str:
-    return rf"(?: [a-z0-9]+){{0,{termo.entre}}} "
-
-
-@lru_cache(maxsize=256)
-def _algum_par(termo: Perto) -> re.Pattern[str]:
-    """Todos os pares do composto numa expressão só. A maioria das mensagens não casa nenhum, e
-    testar par a par custava uma busca por par (centenas no relato de golpe, ACH-142)."""
-    um = "|".join(_padrao(a) for a in termo.um)
-    outro = "|".join(_padrao(b) for b in termo.outro)
-    entre = _entre(termo)
-    return re.compile(f"(?:{um}){entre}(?:{outro})|(?:{outro}){entre}(?:{um})")
-
-
 def _casou(termo: str | Perto, limpo: str) -> str | None:
     """O termo que casou na mensagem (no composto, o primeiro par na ordem dos grupos, unido por
-    `+`) ou None."""
+    `+`) ou None. Só se testam os pares com os dois termos na mensagem: testar todos custava uma
+    busca por par, centenas no relato de golpe (ACH-142)."""
     if isinstance(termo, str):
         return termo if _casa(termo, limpo) else None
-    if not _algum_par(termo).search(limpo):
-        return None
-    entre = _entre(termo)
-    for a, b in product(termo.um, termo.outro):
+    entre = rf"(?: [a-z0-9]+){{0,{termo.entre}}} "
+    um = [a for a in termo.um if _casa(a, limpo)]
+    outro = [b for b in termo.outro if _casa(b, limpo)]
+    for a, b in product(um, outro):
         x, y = _padrao(a), _padrao(b)
         if _regex(f"{x}{entre}{y}|{y}{entre}{x}").search(limpo):
             return f"{a}+{b}"
