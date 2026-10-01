@@ -154,6 +154,24 @@ def test_pedido_de_contestacao_com_substantivo_e_contestacao(texto, intencao):
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # ACH-120 ampliado (EV-147): a transação negada como do cliente era consulta.
+        ("Hay un cobro que no es mío", "contestar"),
+        ("Tem uma cobrança que não é minha", "contestar"),
+        ("Ese cargo no es mío", "contestar"),
+        ("Essa compra não é minha", "contestar"),
+        ("Hay un cobro de 30 dólares que no es mío", "contestar"),
+        ("Tem uma cobrança de 64,50 que não é minha", "contestar"),
+        # Sem a transação perto, nada muda.
+        ("¿Por qué rechazaron mi pago? Ese error no es mío", "consultar"),
+    ],
+)
+def test_transacao_que_nao_e_do_cliente_e_contestacao(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         # Cargo de quem atende citado de passagem não é pedido de humano (ACH-104).
         ("El gerente de la tienda dice que el pago no pasó, ¿por qué?", "consultar"),
         ("O gerente da loja disse que meu cartão foi recusado, por quê?", "consultar"),

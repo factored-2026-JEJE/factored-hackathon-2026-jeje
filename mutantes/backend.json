@@ -4744,8 +4744,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"revisem\", \"reclamar\", PEDIDO_DE_CONTESTACAO)),",
-          "para": "\"revisem\", \"reclamar\", PEDIDO_DE_CONTESTACAO,\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
+          "de": "\"revisem\", \"reclamar\", PEDIDO_DE_CONTESTACAO,\n                   TRANSACAO_NEGADA)),",
+          "para": "\"revisem\", \"reclamar\", PEDIDO_DE_CONTESTACAO,\n                   TRANSACAO_NEGADA, \"reembolso\", \"devolucion\", \"devolucao\")),"
         }
       ],
       "testes": [
@@ -8566,8 +8566,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"reclamar\", PEDIDO_DE_CONTESTACAO)),",
-          "para": "\"reclamar\")),"
+          "de": "\"reclamar\", PEDIDO_DE_CONTESTACAO,\n                   TRANSACAO_NEGADA)),",
+          "para": "\"reclamar\",\n                   TRANSACAO_NEGADA)),"
         }
       ],
       "testes": [
@@ -9369,6 +9369,66 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_negar_ou_perguntar_nao_aceita_a_oferta"
+      ]
+    },
+    {
+      "id": "M-ITP-64",
+      "requisito": "R02",
+      "descricao": "A transação negada como do cliente (\"no es mío\") fica fora da contestação (ACH-120 ampliado)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "PEDIDO_DE_CONTESTACAO,\n                   TRANSACAO_NEGADA)),",
+          "para": "PEDIDO_DE_CONTESTACAO)),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_que_nao_e_do_cliente_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-65",
+      "requisito": "R02",
+      "descricao": "A transação negada com o valor no meio (\"un cobro de 30 dólares que no es mío\") não casa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    entre=5,\n)  # fmt: skip",
+          "para": ")  # fmt: skip"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_que_nao_e_do_cliente_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-66",
+      "requisito": "R02",
+      "descricao": "O termo composto ignora a janela própria e usa sempre a de 3 palavras",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "rf\"(?: [a-z0-9]+){{0,{termo.entre}}} \"",
+          "para": "rf\"(?: [a-z0-9]+){{0,{PALAVRAS_ENTRE}}} \""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_que_nao_e_do_cliente_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-67",
+      "requisito": "R02",
+      "descricao": "\"No es mío\" sem a transação perto também vira contestação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "PEDIDO_DE_CONTESTACAO,\n                   TRANSACAO_NEGADA)),",
+          "para": "PEDIDO_DE_CONTESTACAO,\n                   \"no es mio\")),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_que_nao_e_do_cliente_e_contestacao"
       ]
     },
     {
