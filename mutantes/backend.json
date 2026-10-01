@@ -8918,6 +8918,21 @@
       "testes": [
         "tests/test_limpeza.py::test_toda_tabela_do_canal_tem_destino_na_limpeza"
       ]
+    },
+    {
+      "id": "M-LMP-11",
+      "requisito": "R06",
+      "descricao": "A limpeza recomeça a sequência dos protocolos (um PC- se repetiria)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "    # As avaliadas ficam como registro da review, sem nada pendente.\n",
+          "para": "    conexao.execute(text(\"ALTER SEQUENCE app.protocolo_seq RESTART\"))\n    # As avaliadas ficam como registro da review, sem nada pendente.\n"
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpar_de_novo_nao_apaga_nada_e_as_referencias_nao_se_repetem"
+      ]
     }
   ]
 }
