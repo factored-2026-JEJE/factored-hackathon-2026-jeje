@@ -1524,6 +1524,51 @@
       "testes": [
         "src/Acesso.test.tsx > sem senha configurada, a demonstração abre direto"
       ]
+    },
+    {
+      "id": "M-WEB-107",
+      "requisito": "R08",
+      "descricao": "A lista das personas não diz quantas contestáveis cada uma tem",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": " · contestáveis: {persona.contestaveis}",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > cada persona traz quantas contestáveis tem e a frase pronta com uma compra dela"
+      ]
+    },
+    {
+      "id": "M-WEB-108",
+      "requisito": "R08",
+      "descricao": "A frase do exemplo troca o dia e o mês",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "  const [, mes, dia] = e.data.split(\"-\");\n",
+          "para": "  const [, dia, mes] = e.data.split(\"-\");\n"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > cada persona traz quantas contestáveis tem e a frase pronta com uma compra dela"
+      ]
+    },
+    {
+      "id": "M-WEB-109",
+      "requisito": "R08",
+      "descricao": "O guia volta ao exemplo da fixture (45,90 do 10/03)",
+      "trocas": [
+        {
+          "arquivo": "src/ComoTestar.tsx",
+          "de": "            date of one of the customer&apos;s own purchases: the customer list shows a ready sentence for each customer,\n",
+          "para": "            date: <q>No reconozco el cobro de 45,90 del 10/03</q>; the customer list shows a ready sentence for each customer,\n"
+        }
+      ],
+      "testes": [
+        "src/ComoTestar.test.tsx > o guia mostra os três caminhos em espanhol e português e leva a cada aba"
+      ]
     }
   ]
 }
