@@ -253,8 +253,9 @@ class _Turno:
             return self._pedido_de_bloqueio()
         if self.lida.intencao == "desbloquear":
             return self._pedido_de_desbloqueio()
-        if self._resumiu() and self.lida.resposta is None:
-            # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.
+        if self._resumiu() and self.lida.resposta is None and not self.lida.aceita_oferta:
+            # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela. O aceite
+            # largo ("sí, pásame") é resposta à oferta e encaminha (ACH-125 da validação).
             self.estado, self.contexto = self._etapa_resumida()
         if self.estado == "confirmando" and self.lida.resposta is not None:
             return self._confirmar() if self.lida.resposta == "sim" else self._cancelar()
