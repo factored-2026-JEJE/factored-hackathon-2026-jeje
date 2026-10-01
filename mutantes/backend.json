@@ -4880,8 +4880,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
-          "para": "    sinais = (lida.caso, lida.ultima, lida.cortesia is not None)"
+          "de": "        lida.id_digitado,\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -6377,7 +6377,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.\n            self.estado, self.contexto = self._etapa_resumida()\n",
+          "de": "            self.estado, self.contexto = self._etapa_resumida()\n",
           "para": "            pass\n"
         }
       ],
@@ -6756,8 +6756,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
-          "para": "    sinais = (lida.id_digitado, lida.ultima, lida.cortesia is not None)"
+          "de": "        lida.caso,\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -7050,8 +7050,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)",
-          "para": "    sinais = (lida.id_digitado, lida.caso)"
+          "de": "        lida.ultima,\n        lida.cortesia is not None,\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -7071,6 +7071,22 @@
       ],
       "testes": [
         "tests/test_interpretacao_modelo.py::test_saida_invalida_ou_com_campo_a_mais_fica_com_as_regras"
+      ]
+    },
+    {
+      "id": "M-LLM-24",
+      "requisito": "R02",
+      "descricao": "O aceite largo da oferta vai para o leitor, que o lê como fora de escopo (ACH-125 da validação)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.aceita_oferta,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_aceite_da_oferta_e_das_regras_e_nao_chega_ao_leitor",
+        "tests/test_interpretacao_leitor.py::test_no_modo_leitor_o_aceite_comum_da_oferta_encaminha"
       ]
     },
     {
@@ -9715,6 +9731,21 @@
       ],
       "testes": [
         "tests/test_bloqueio_conversa.py::test_aceite_largo_da_oferta_nao_desfaz_o_bloqueio"
+      ]
+    },
+    {
+      "id": "M-CONV-95",
+      "requisito": "R03",
+      "descricao": "O aceite largo de uma oferta que guarda a etapa volta à etapa em vez de encaminhar (ACH-125 da validação)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self._resumiu() and self.lida.resposta is None and not self.lida.aceita_oferta:\n",
+          "para": "        if self._resumiu() and self.lida.resposta is None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_aceite_comum_encaminha_tambem_nas_ofertas_que_guardam_a_etapa"
       ]
     }
   ]
