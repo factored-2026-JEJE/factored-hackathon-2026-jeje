@@ -1258,8 +1258,23 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/curado.py",
-          "de": "CONSULTADAS_POR_CLIENTE = (\"transactions\",)",
+          "de": "CONSULTADAS_POR_CLIENTE = (\"transactions\", \"products\")",
           "para": "CONSULTADAS_POR_CLIENTE = ()"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
+      "id": "M-CUR-07",
+      "requisito": "R06",
+      "descricao": "Produtos fora das tabelas consultadas por cliente (modelo e migrations divergem; os cartões do cliente voltam a varrer a tabela)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/curado.py",
+          "de": "CONSULTADAS_POR_CLIENTE = (\"transactions\", \"products\")",
+          "para": "CONSULTADAS_POR_CLIENTE = (\"transactions\",)"
         }
       ],
       "testes": [
@@ -8495,6 +8510,22 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_bloqueio_so_se_liga_a_caso_que_existe"
+      ]
+    },
+    {
+      "id": "M-MIG-16",
+      "requisito": "R06",
+      "descricao": "Migration não cria o índice por cliente dos produtos",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0022_indice_dos_produtos_por_cliente.py",
+          "de": "    op.create_index(\n        \"ix_curated_products_customer_id\", \"products\", [\"customer_id\"], schema=\"curated\"\n    )\n",
+          "para": "    pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations",
+        "tests/test_carga.py::test_carga_mantem_o_indice_por_cliente_da_curada"
       ]
     },
     {

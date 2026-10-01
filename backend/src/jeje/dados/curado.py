@@ -42,9 +42,10 @@ TIPO_SQLALCHEMY = {
     "boolean": Boolean,
 }
 
-# Tabelas que o atendimento consulta pelo cliente da sessão (jeje.consultas): índice em
-# customer_id, senão cada consulta varre a tabela inteira (353 ms nos 4,4 mi de transações).
-CONSULTADAS_POR_CLIENTE = ("transactions",)
+# Tabelas que o atendimento consulta pelo cliente da sessão (jeje.consultas e os cartões do
+# jeje.bloqueio): índice em customer_id, senão cada consulta varre a tabela inteira (353 ms nos
+# 4,4 mi de transações; ~30 ms em três núcleos nos 400 mil produtos).
+CONSULTADAS_POR_CLIENTE = ("transactions", "products")
 
 # Tabelas referenciadas com exigência de mesmo cliente precisam de UNIQUE (chave, customer_id).
 REFERENCIADAS_POR_CLIENTE = {
