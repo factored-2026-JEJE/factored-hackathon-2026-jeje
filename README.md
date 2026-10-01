@@ -118,11 +118,20 @@ com mais a conversa pergunta pelo campo que mais as divide, fora o que o cliente
 comercio fue?"). Os pesos e o limiar vêm de `make calibrar-transacao` (`python -m
 jeje.calibrar_qual_transacao`), que sorteia 6.000 clientes da base, descreve uma transação de cada
 um em ES e PT e lê a frase com os extratores da conversa; o arquivo versionado
-(`backend/src/jeje/qual_transacao.json`) só tem agregados. No teste da calibração (dados reais),
-a conversa resolve direto 96% dos pedidos com pista, contra 58% do filtro exato sozinho, sem
-nenhuma proposta errada, e pede dados de novo em 0,04%, contra 40%; nos históricos densos (10
-clientes juntos), 83% contra 53%. `RESOLVEDOR_DE_TRANSACAO: "filtro"` no `compose.yaml` volta ao
-filtro exato.
+(`backend/src/jeje/qual_transacao.json`) só tem agregados.
+
+Os números vêm de dois testes, e cada um vale para as suas frases:
+- **Teste da calibração** (frases do mesmo gerador, dados reais): a conversa resolve direto 80% dos
+  pedidos com pista, contra 58% do filtro exato sozinho. Outros 15% viram botões (com o número
+  solto, a possível vira opção) e 5% a pergunta pelo campo. Pede dados de novo em 0,04%, contra
+  40%. Nos históricos densos (10 clientes juntos), 72% contra 53%.
+- **Teste independente da validação** (REG-07, outro gerador de frases, antes da proteção do
+  ACH-143): 71% direto contra 38% do filtro exato, com 0,4% de proposta errada, também com outro
+  número antes do valor desde o DEV-063 (EV-166).
+
+A garantia do conjunto vale para frases como as da calibração. Com as da validação, ele cobriu a
+certa em 88% das vezes em que o ranking decidiu; no resto, a conversa mostrou as possíveis em vez
+de propor. `RESOLVEDOR_DE_TRANSACAO: "filtro"` no `compose.yaml` volta ao filtro exato.
 
 Atalhos sob a conversa mandam frases prontas (consultar, contestar, status do pedido, bloquear
 cartão e pedir um atendente), e "Perguntar sobre esta", em cada linha das transações, manda à
