@@ -371,8 +371,10 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
   automática (demonstração); sessões valem 60 min e caem na recarga; propostas vencem em 10 min.
   Um banco real precisaria de prazo de retenção definido.
 - Minimização: o leitor (e o modelo local) recebe só a mensagem, nunca cliente, transação ou sessão; os logs não
-  guardam mensagem, token nem cliente; o encaminhamento leva o pedido cortado em 280 caracteres e só
-  fatos verificados da transação.
+  guardam mensagem, token nem cliente; o encaminhamento leva só fatos verificados da transação e,
+  em até 280 caracteres, as falas do cliente no pedido em curso que trazem algo novo ao atendente:
+  o pedido, cada pista (valor, data, status, comércio) e o pedido de atendente. A escolha é por
+  cobertura desses campos, na ordem em que foram ditas, e a fala sem fato fica de fora (DEV-036).
 - Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~3 ms de CPU por
   mensagem (p50 de 2,8 ms e p95 de 4,9 ms nas 6.568 mensagens do teste do BANKING77 es/pt, da
   validação e do portunhol, com a máquina carregada; eram ~100 ms antes de cada expressão ser
