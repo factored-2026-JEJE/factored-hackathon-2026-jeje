@@ -56,6 +56,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# Dados que o pacote lê do próprio diretório (o corretor de digitação, DEV-060).
+[tool.setuptools.package-data]
+jeje = ["palavras_conhecidas.txt"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
