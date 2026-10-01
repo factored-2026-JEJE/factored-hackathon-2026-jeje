@@ -17,6 +17,10 @@ Bloqueio de cartão (PRD-007): o pedido e o relato de fraude bloqueiam o cartão
 bloqueável, pelo dispositivo da sessão (nunca pelo chat); com vários, pergunta qual. O relato
 encaminha na hora: com vários cartões, a pergunta vem com o caso já no atendente, e a resposta só
 bloqueia e anota no mesmo caso (PRD-009: encaminha já e bloqueia depois).
+
+O texto do caso para o atendente sai das falas do cliente no pedido em curso, escolhidas pelos
+campos que cada uma traz (DEV-036, NOV-11): o contexto de cada etapa guarda o turno em que o pedido
+começou.
 """
 
 import json
@@ -35,6 +39,7 @@ from jeje.interpretacao import (
     cartao_citado,
     cita_cartao,
     comercio_citado,
+    interpretar,
 )
 from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
@@ -180,6 +185,8 @@ class _Turno:
         self,
         conexao: Connection,
         customer_id: str,
+        conversa_id: str,
+        numero: int,
         estado: Estado,
         contexto: dict,
         lida: Interpretacao,
@@ -191,6 +198,7 @@ class _Turno:
         inicio: float,
     ) -> None:
         self.conexao, self.customer_id = conexao, customer_id
+        self.conversa_id, self.numero = conversa_id, numero
         self.estado, self.contexto = estado, contexto
         self.lida, self.mensagem, self.idioma = lida, mensagem, lida.idioma
         self.limites, self.ttl_minutos = limites, ttl_minutos
@@ -330,7 +338,7 @@ class _Turno:
         transaction_id = contexto.get("transaction_id") or contexto.get("foco")
         oferta = {
             "etapa": {"estado": estado, "contexto": contexto},
-            "pedido": contexto.get("pedido", self.mensagem[:280]),
+            **self._em_curso(contexto),
             "acoes": self._acoes_json(),
         }
         if transaction_id is not None:
@@ -377,12 +385,11 @@ class _Turno:
         entendido zera a contagem (o contexto é trocado)."""
         pedidos_de_novo = self.contexto.get("esclarecimentos", 0)
         decisao = politica.decidir_esclarecimento(pedidos_de_novo)
-        pedido = self.contexto.get("pedido", self.mensagem[:280])
         if decisao.acao == "oferecer_humano":
             self._anotar("esclarecer", f"{pedidos_de_novo} mensagens seguidas não entendidas")
             resumo = (texto("RESUMO-PEDIDO", self.idioma),)
-            return self._oferecer(resumo, decisao.regra, "livre", {"pedido": pedido})
-        contexto = {"pedido": pedido, "esclarecimentos": pedidos_de_novo + 1}
+            return self._oferecer(resumo, decisao.regra, "livre", self._em_curso())
+        contexto = {**self._em_curso(), "esclarecimentos": pedidos_de_novo + 1}
         return Saida("AJUDA", "esclarecer", (texto("AJUDA", self.idioma),), "livre", contexto)
 
     # ---- resolução da transação --------------------------------------------------------------
@@ -404,14 +411,18 @@ class _Turno:
         return consultas.candidatas_do_cliente(self.conexao, self.customer_id, status)
 
     @cached_property
+    def _comercios(self) -> list[str]:
+        """Os comércios das transações do próprio cliente."""
+        return consultas.comercios_do_cliente(self.conexao, self.customer_id)
+
+    @cached_property
     def _comercio(self) -> str | None:
         """Comércio citado, entre os das transações do próprio cliente."""
-        comercios = consultas.comercios_do_cliente(self.conexao, self.customer_id)
-        return comercio_citado(self.mensagem, comercios)
+        return comercio_citado(self.mensagem, self._comercios)
 
     def _resolver(self, intencao: str, novo_assunto: bool) -> Saida:
         if novo_assunto:
-            self.contexto = {"pedido": self.mensagem[:280], "status": self.lida.status}
+            self.contexto = {**self._em_curso({}), "status": self.lida.status}
             self.acoes = []
         status = self.lida.status or self.contexto.get("status")
         if intencao == "contestar":
@@ -458,7 +469,7 @@ class _Turno:
             for n, tid in enumerate(opcoes_ids, start=1)
         )
         contexto = {
-            "pedido": self.contexto.get("pedido", self.mensagem[:280]),
+            **self._em_curso(),
             "status": self.contexto.get("status"),
             "intencao": intencao,
             "opcoes": [o.transaction_id for o in opcoes],
@@ -529,7 +540,11 @@ class _Turno:
         oferece = decisao.regra == "POL-CON-04"
         contexto = {"foco": t.transaction_id}
         if oferece:
-            contexto |= {"transaction_id": t.transaction_id, "acoes": self._acoes_json()}
+            contexto |= {
+                "transaction_id": t.transaction_id,
+                **self._em_curso(),
+                "acoes": self._acoes_json(),
+            }
         return Saida(
             decisao.regra,
             "responder",
@@ -551,6 +566,7 @@ class _Turno:
                 "proposta_id": proposta.id,
                 "transaction_id": t.transaction_id,
                 "foco": t.transaction_id,
+                **self._em_curso(),
                 "acoes": self._acoes_json(),
             }
             return Saida(
@@ -815,17 +831,16 @@ class _Turno:
         """Pergunta qual cartão bloquear ou desbloquear, com as opções numeradas. A pergunta é
         repetida até o limite de esclarecimentos; depois, oferece o atendente."""
         perguntas = self.contexto.get("perguntas", 0) if self.estado == "escolhendo_cartao" else 0
-        pedido = self.contexto.get("pedido", self.mensagem[:280])
         decisao = politica.decidir_esclarecimento(perguntas)
         if decisao.acao == "oferecer_humano":
             self._anotar("esclarecer", f"{perguntas} perguntas sem identificar o cartão")
             resumo = (texto("RESUMO-CARTAO", self.idioma),)
-            return self._oferecer(resumo, decisao.regra, "livre", {"pedido": pedido})
+            return self._oferecer(resumo, decisao.regra, "livre", self._em_curso())
         clausula = "POL-BLQ-06-DESBLOQUEIO" if motivo == "desbloqueio" else "POL-BLQ-06"
         contexto = {
             "cartoes": [c.product_id for c in candidatos],
             "motivo": motivo,
-            "pedido": pedido,
+            **self._em_curso(),
             "perguntas": perguntas + 1,
             "acoes": self._acoes_json(),
         }
@@ -991,7 +1006,7 @@ class _Turno:
                 customer_id=self.customer_id,
                 regra=decisao.regra,
                 idioma=self.idioma,
-                pedido=self.contexto.get("pedido") or self.mensagem,
+                pedido=handoff.texto_por_campos(self._falas_do_pedido(), self._campos),
                 transacao=t,
                 acoes=tuple(self.acoes),
                 pendencias=(pendencia,),
@@ -1001,6 +1016,50 @@ class _Turno:
             self._fonte("app.bloqueios")
             bloqueio.ligar(self.conexao, self.customer_id, atendimento)
         return atendimento
+
+    def _em_curso(self, contexto: dict | None = None) -> dict:
+        """O pedido em curso, levado de etapa em etapa no contexto: a primeira mensagem dele (para
+        os resumos) e o turno em que começou (o texto do caso junta as falas desde ele). Sem pedido
+        no contexto, ele começa agora."""
+        contexto = self.contexto if contexto is None else contexto
+        if "pedido" not in contexto:
+            return {"pedido": self.mensagem[:280], "desde": self.numero}
+        return {k: contexto[k] for k in ("pedido", "desde") if k in contexto}
+
+    def _falas_do_pedido(self) -> list[str]:
+        """O que o cliente disse no pedido em curso, na ordem: as mensagens desde o turno em que ele
+        começou e a de agora. Contexto de antes do DEV-036, sem o turno: a primeira e a de agora."""
+        desde = self.contexto.get("desde")
+        if desde is None:
+            anteriores = [self.contexto["pedido"]] if "pedido" in self.contexto else []
+        else:
+            self._fonte("app.turnos")
+            anteriores = list(
+                self.conexao.execute(
+                    text(
+                        "SELECT mensagem FROM app.turnos WHERE conversa_id = :conversa"
+                        " AND numero >= :desde ORDER BY numero"
+                    ),
+                    {"conversa": self.conversa_id, "desde": desde},
+                ).scalars()
+            )
+        return [*anteriores, self.mensagem]
+
+    def _campos(self, fala: str) -> frozenset[str]:
+        """O que uma fala do cliente diz ao atendente, pelos mesmos extratores das regras: o pedido
+        (a intenção) e as pistas da transação (os campos do NOV-11)."""
+        lida = interpretar(fala, self.idioma, self._hoje)
+        pistas = {"valor": lida.valor, "data": lida.data, "status": lida.status}
+        campos = {nome for nome, pista in pistas.items() if pista is not None}
+        if lida.intencao != "desconhecida":
+            campos.add(f"pedido:{lida.intencao}")
+        if comercio_citado(fala, self._comercios) is not None:
+            campos.add("comercio")
+        return frozenset(campos)
+
+    @cached_property
+    def _hoje(self) -> date:
+        return consultas.hoje_dos_dados(self.conexao)
 
     def _encaminhar(
         self,
@@ -1144,9 +1203,12 @@ def turno(
     `dispositivo` é o da sessão (PRD-007), nunca o que a mensagem diz."""
     linha = _do_dono(conexao, customer_id, conversa_id, "estado, contexto, turnos", True)
     lida = leitura.lida
+    numero = linha.turnos + 1
     atual = _Turno(
         conexao,
         customer_id,
+        conversa_id,
+        numero,
         linha.estado,
         dict(linha.contexto),
         lida,
@@ -1158,7 +1220,6 @@ def turno(
         inicio,
     )
     saida = atual.executar()
-    numero = linha.turnos + 1
     resultado = ResultadoDoTurno(
         conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes)
     )
