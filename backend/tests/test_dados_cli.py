@@ -112,6 +112,40 @@ def test_cli_devolve_erro_e_mensagem_quando_arquivo_diverge(
     assert contagens(banco_migrado) == (0, 0, 0)
 
 
+def recusa(settings) -> tuple:
+    with conexao(settings) as con:
+        consulta = "select version, recusada_versao, recusada_motivo from meta.dataset_version"
+        return tuple(con.execute(text(consulta)).one())
+
+
+def test_versao_nova_recusada_mantem_a_anterior_e_o_seed_segue(
+    ambiente_fixture, banco_migrado, monkeypatch, capsys
+):
+    """ACH-112: com uma versão carregada, a nova que o contrato recusa (coluna nova, manifesto
+    regenerado) não derruba o serviço: o seed sai com 0, a anterior continua valendo e a recusa
+    fica gravada para a prontidão. A próxima carga boa apaga a recusa."""
+    raiz, manifestos = ambiente_fixture
+    monkeypatch.setenv("DATABASE_URL", banco_migrado.database_url)
+    assert main(["jeje.dados", "preparar"]) == 0
+    anterior = recusa(banco_migrado)[0]
+
+    (raiz / "branches.csv").write_text("branch_id,coluna_nova\nSUC-1,x\n", encoding="utf-8")
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, ["complaints", "branches"]))
+    nova = manifesto.versao(manifestos, ["complaints", "branches"])
+    capsys.readouterr()
+    assert main(["jeje.dados", "preparar"]) == 0
+    assert f"versão {nova[:12]} recusada" in capsys.readouterr().err
+    versao, recusada, motivo = recusa(banco_migrado)
+    assert (versao, recusada, contagens(banco_migrado)) == (anterior, nova, (2, 1, 0))
+    assert "branches" in motivo
+
+    escrever_csv(raiz, "branches.csv", "branches", [{"branch_id": "SUC-1"}, {"branch_id": "SUC-2"}])
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, ["complaints", "branches"]))
+    assert main(["jeje.dados", "preparar"]) == 0
+    assert recusa(banco_migrado)[1:] == (None, None)
+    assert contagens(banco_migrado) == (2, 2, 0)
+
+
 def test_preparar_recarrega_quando_o_pipeline_gravado_e_antigo(
     ambiente_fixture, banco_migrado, capsys
 ):

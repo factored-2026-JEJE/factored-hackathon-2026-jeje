@@ -51,6 +51,10 @@ class DatasetVersion(Base):
     # sha256 do código do pipeline de dados que produziu raw/curated: mudar contrato recarrega.
     pipeline: Mapped[str] = mapped_column(Text, server_default="")
     loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # A última versão que a carga recusou com esta valendo (ACH-112); a próxima carga boa apaga.
+    recusada_versao: Mapped[str | None] = mapped_column(Text)
+    recusada_motivo: Mapped[str | None] = mapped_column(Text)
+    recusada_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Persona(Base):

@@ -1032,7 +1032,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/__main__.py",
-          "de": "    if versao_no_banco(settings) == (versao, pipeline):",
+          "de": "    if anterior == (versao, pipeline):",
           "para": "    if False:"
         }
       ],
@@ -1552,6 +1552,21 @@
       ]
     },
     {
+      "id": "M-CARGA-13",
+      "requisito": "R09",
+      "descricao": "A carga boa não apaga a recusa anterior (a página diz recusada com os dados novos no ar; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "\"pipeline = excluded.pipeline, loaded_at = now(), recusada_versao = null, \"\n                    \"recusada_motivo = null, recusada_em = null\"",
+          "para": "\"pipeline = excluded.pipeline, loaded_at = now()\""
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_versao_nova_recusada_mantem_a_anterior_e_o_seed_segue"
+      ]
+    },
+    {
       "id": "M-VER-01",
       "requisito": "R04",
       "descricao": "Versão do pipeline só olha os nomes dos arquivos",
@@ -1573,12 +1588,42 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/__main__.py",
-          "de": "    if versao_no_banco(settings) == (versao, pipeline):",
-          "para": "    if (versao_no_banco(settings) or (None,))[0] == versao:"
+          "de": "    if anterior == (versao, pipeline):",
+          "para": "    if (anterior or (None,))[0] == versao:"
         }
       ],
       "testes": [
         "tests/test_dados_cli.py::test_preparar_recarrega_quando_o_pipeline_gravado_e_antigo"
+      ]
+    },
+    {
+      "id": "M-CLI-09",
+      "requisito": "R06",
+      "descricao": "Versão recusada derruba o serviço mesmo com a anterior no banco (o seed sai com 1; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "        if anterior is None:\n            raise\n",
+          "para": "        raise\n"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_versao_nova_recusada_mantem_a_anterior_e_o_seed_segue"
+      ]
+    },
+    {
+      "id": "M-CLI-10",
+      "requisito": "R09",
+      "descricao": "A recusa não fica gravada (a prontidão não tem como mostrá-la; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "        registrar_recusa(settings, versao, str(erro))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_versao_nova_recusada_mantem_a_anterior_e_o_seed_segue"
       ]
     },
     {
