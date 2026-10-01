@@ -102,6 +102,21 @@ ou vírgula seguida de 3 dígitos e decimal em vírgula ou ponto ("189.900,55", 
 "13,45"), com ou sem o código da moeda, inclusive colado ("USD13,45"); a transação casa com o valor
 dito com tolerância de 1 centavo.
 
+Quando o filtro exato não acha nenhuma transação (o valor dito de cabeça, a data errada por um
+dia), as do próprio cliente que podem ser a descrita (do comércio citado; sem comércio, com o valor
+a até 10% ou a data a até 7 dias) são ordenadas pelas pistas (DEV-037). Um conjunto conformal diz
+quando uma delas é a certa com garantia (α = 5%): aí a conversa segue com ela, sempre com a
+confirmação antes do pré-caso. Sem essa garantia, mostra as possíveis: até três viram botões, e
+com mais a conversa pergunta pelo campo que mais as divide, fora o que o cliente já disse ("¿En qué
+comercio fue?"). Os pesos e o limiar vêm de `make calibrar-transacao` (`python -m
+jeje.calibrar_qual_transacao`), que sorteia 6.000 clientes da base, descreve uma transação de cada
+um em ES e PT e lê a frase com os extratores da conversa; o arquivo versionado
+(`backend/src/jeje/qual_transacao.json`) só tem agregados. No teste da calibração (dados reais),
+a conversa resolve direto 96% dos pedidos com pista, contra 58% do filtro exato sozinho, sem
+nenhuma proposta errada, e pede dados de novo em 0,04%, contra 40%; nos históricos densos (10
+clientes juntos), 83% contra 53%. `RESOLVEDOR_DE_TRANSACAO: "filtro"` no `compose.yaml` volta ao
+filtro exato.
+
 Atalhos sob a conversa mandam frases prontas (consultar, contestar, status do pedido, bloquear
 cartão e pedir um atendente), e "Perguntar sobre esta", em cada linha das transações, manda à
 conversa as pistas da linha (nunca o identificador). Sob cada resposta, "Por que esta resposta?"
