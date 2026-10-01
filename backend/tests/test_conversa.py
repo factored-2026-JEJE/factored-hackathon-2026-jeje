@@ -779,21 +779,21 @@ def test_muitas_possiveis_viram_pergunta_pelo_campo_que_o_cliente_nao_disse(cena
 
 
 def test_numero_solto_vira_opcao_e_o_sim_a_escolhe(cenario):
-    """ACH-143: "unos 13" sem moeda, data nem comércio pode ser o dia ou o final do cartão: a única
-    possível (os 12,00 do Café Central) vira opção, e o sim a escolhe. Com "dólares", segue
-    direto."""
+    """ACH-143: o número sem moeda, data nem comércio nunca segue direto: "unos 190000" só pode ser
+    a de 189.900,55 (o arredondamento dela, ACH-152), que vira opção, e o sim a escolhe. Com
+    "pesos", segue direto."""
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         conversa = abrir_conversa(http, auth, "es")
-        opcao = dizer(http, auth, conversa, "No reconozco el cobro de unos 13")
+        opcao = dizer(http, auth, conversa, "No reconozco el cobro de unos 190000")
         escolhida = dizer(http, auth, conversa, "sí")
         outra = abrir_conversa(http, auth, "es")
-        direta = dizer(http, auth, outra, "No reconozco el cobro de unos 13 dólares")
+        direta = dizer(http, auth, outra, "No reconozco el cobro de unos 190000 pesos")
     assert (opcao["acao"], opcao["estado"]) == ("esclarecer", "esclarecendo")
-    assert [o["transaction_id"] for o in opcao["opcoes"]] == ["TRX-A5"]
+    assert [o["transaction_id"] for o in opcao["opcoes"]] == ["TRX-A2"]
     assert opcao["resposta"].startswith("Encontré una transacción que puede ser. ¿Es esta?\n1. ")
-    assert escolhida["transaction_id"] == "TRX-A5"
-    assert direta["transaction_id"] == "TRX-A5"
+    assert escolhida["transaction_id"] == "TRX-A2"
+    assert direta["transaction_id"] == "TRX-A2"
 
 
 def test_palavra_solta_nao_vence_o_valor_exato_de_outra_transacao(cenario):
