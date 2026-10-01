@@ -6,6 +6,7 @@ inteira nem dados de outros clientes. A transação só entra se veio de consult
 """
 
 import json
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 
 from sqlalchemy import Connection, text
@@ -67,6 +68,18 @@ def registrar(conexao: Connection, e: Encaminhamento) -> str:
             "pendencias": json.dumps(list(e.pendencias)),
         },
     ).scalar_one()
+
+
+def anotar(conexao: Connection, handoff_id: str, acoes: Sequence[Acao]) -> None:
+    """Acrescenta ao encaminhamento o que a conversa fez depois de encaminhar (o bloqueio do
+    cartão escolhido no relato de fraude, PRD-009). Sem o encaminhamento, nada é anotado e o turno
+    é desfeito por quem chama."""
+    anotado = conexao.execute(
+        text("UPDATE app.handoffs SET acoes = acoes || CAST(:acoes AS jsonb) WHERE id = :id"),
+        {"id": handoff_id, "acoes": json.dumps([asdict(a) for a in acoes])},
+    ).rowcount
+    if anotado != 1:
+        raise RuntimeError("encaminhamento não encontrado; nada foi anotado")
 
 
 class NaoEncontrado(Exception):

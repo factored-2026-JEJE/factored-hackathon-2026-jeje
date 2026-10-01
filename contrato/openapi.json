@@ -1362,6 +1362,18 @@
             "type": "string",
             "title": "Estado"
           },
+          "atendimento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Atendimento",
+            "description": "Caso que está com o atendente (AT-…), se a conversa já foi encaminhada"
+          },
           "turnos": {
             "items": {
               "$ref": "#/components/schemas/TurnoRegistrado"
@@ -1375,6 +1387,7 @@
           "conversa_id",
           "idioma",
           "estado",
+          "atendimento",
           "turnos"
         ],
         "title": "Historico"
