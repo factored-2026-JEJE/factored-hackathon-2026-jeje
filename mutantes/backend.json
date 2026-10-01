@@ -6940,7 +6940,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO,)),\n",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO)),\n",
           "para": ""
         }
       ],
@@ -9701,6 +9701,141 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_transacao_que_nao_e_do_cliente_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-68",
+      "requisito": "R02",
+      "descricao": "Congelar o cartão não pede bloqueio (ACH-140)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"congelar\", \"congela\", \"congele\", \"congelen\",",
+          "para": "\"congelem_\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-69",
+      "requisito": "R02",
+      "descricao": "Reativar o cartão não pede desbloqueio (ACH-140)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"reactivar\", \"reactiva\", \"reactive\", \"reactiven\", \"reativar\", \"reativa\", \"reative\",\n     \"reativem\"),",
+          "para": "     \"reativem\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-70",
+      "requisito": "R02",
+      "descricao": "O cartão achado casa com o cartão longe do verbo (\"encontré un pago con tarjeta\" vira desbloqueio)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"ya aparecio\", \"ja apareceu\", \"achei\", \"encontrei\", \"encontre\"), CARTAO, entre=1\n",
+          "para": "    (\"ya aparecio\", \"ja apareceu\", \"achei\", \"encontrei\", \"encontre\"), CARTAO\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-71",
+      "requisito": "R02",
+      "descricao": "\"Robando\" sozinho vira relato de fraude (a queixa de tarifa vai ao atendente como fraude)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "DINHEIRO_TIRADO = Perto(\n    (\"robando\", \"roubando\", \"tirando\"), (\"plata\", \"dinero\", \"dinheiro\", \"cuenta\", \"conta\")\n)",
+          "para": "DINHEIRO_TIRADO = \"robando\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_queixa_de_tarifa_com_robando_nao_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-72",
+      "requisito": "R02",
+      "descricao": "Não querer falar com o robô não pede uma pessoa (ACH-140)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"alguien\", \"alguem\", SEM_ROBO)),",
+          "para": "                \"alguien\", \"alguem\")),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-73",
+      "requisito": "R02",
+      "descricao": "\"No quiero congelar\" vira pedido de bloqueio (a negação só conhece bloquear)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"bloquear\": re.compile(NEGACAO + \"(?:bloque|congel|trav)\"),",
+          "para": "\"bloquear\": re.compile(NEGACAO + \"bloque\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-74",
+      "requisito": "R02",
+      "descricao": "O pré-filtro do bloqueio só conhece \"bloque\" (congelar e reativar nunca casam)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"bloque\", \"congel\", \"trav\", \"reactiv\", \"reativ\", \"aparec\", \"achei\", \"encontr\", \"liber\",\n",
+          "para": "    \"bloque\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-75",
+      "requisito": "R02",
+      "descricao": "Golpe não é relato de fraude (ACH-140)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"golpe\", \"estafa\", \"estafaron\", \"pix que nao fiz\", DINHEIRO_TIRADO)),",
+          "para": "\"estafa\", \"estafaron\", \"pix que nao fiz\", DINHEIRO_TIRADO)),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-76",
+      "requisito": "R02",
+      "descricao": "Liberar o cartão de novo não pede desbloqueio (ACH-140)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO)),",
+          "para": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO)),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
       ]
     },
     {
