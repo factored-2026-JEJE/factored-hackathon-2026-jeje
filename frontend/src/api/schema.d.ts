@@ -513,6 +513,11 @@ export interface components {
             desfeito_em: string | null;
             /** Desfeito Por */
             desfeito_por: string | null;
+            /**
+             * Atendimento
+             * @description Caso do atendente ligado ao bloqueio (AT-…): todo desbloqueio é anotado nele
+             */
+            atendimento: string | null;
         };
         /** ConversaAberta */
         ConversaAberta: {

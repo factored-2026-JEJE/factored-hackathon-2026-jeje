@@ -56,6 +56,8 @@ export function BloqueiosDoAtendimento({ versao }: { versao: number }) {
             <p>
               Motivo: {MOTIVO[b.motivo] ?? b.motivo} · dispositivo {b.dispositivo} · desde {quando(b.criado_em)} · prazo
               de reversão até {quando(b.reversivel_ate)}
+              {/* O caso fica sabendo se o bloqueio for desfeito, pelo cliente ou aqui (PRD-009). */}
+              {b.atendimento && ` · caso ${b.atendimento}`}
             </p>
             <button type="button" onClick={() => void desbloquear(b.id)}>
               Desbloquear {b.id}

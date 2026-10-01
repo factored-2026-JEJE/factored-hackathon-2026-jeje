@@ -1404,6 +1404,21 @@
       "testes": [
         "src/Conversa.test.tsx > relato de fraude com vários cartões: o caso já está com o atendente enquanto a conversa pergunta o cartão"
       ]
+    },
+    {
+      "id": "M-WEB-99",
+      "requisito": "R07",
+      "descricao": "O console não mostra o caso ligado ao bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/BloqueiosDoAtendimento.tsx",
+          "de": "              {b.atendimento && ` · caso ${b.atendimento}`}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/BloqueiosDoAtendimento.test.tsx > mostra cada bloqueio ativo com o cartão só pelo tipo e pelo final, na ordem da API"
+      ]
     }
   ]
 }
