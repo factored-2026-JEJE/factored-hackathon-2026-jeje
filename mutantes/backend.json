@@ -10432,7 +10432,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    r\"|(?<![\\w.,])0\\d{2,}\",\n",
+          "de": "    r\"|(?<![\\w.,])(?<!\\d\\s)0\\d{2,}\",\n",
           "para": "    r\"\",\n"
         }
       ],
@@ -11383,6 +11383,21 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_recusa_da_transacao_apontada"
+      ]
+    },
+    {
+      "id": "M-ITP-137",
+      "requisito": "R03",
+      "descricao": "O grupo de milhar depois do espaço volta a ser lido como código (\"1 000 dólares\" vira 1; ACH-155)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|(?<![\\w.,])(?<!\\d\\s)0\\d{2,}\",",
+          "para": "    r\"|(?<![\\w.,])0\\d{2,}\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_com_milhar_separado_por_espaco"
       ]
     },
     {
