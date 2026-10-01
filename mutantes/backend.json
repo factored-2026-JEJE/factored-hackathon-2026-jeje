@@ -4442,8 +4442,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", texto)",
-          "para": "    sem_datas = texto"
+          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", texto))",
+          "para": "    sem_datas = MOEDA_COLADA.sub(r\"\\1 \", texto)"
         }
       ],
       "testes": [
@@ -4547,8 +4547,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"no fui yo\", \"nao fui eu\", \"no la hice yo\", \"no lo hice yo\")),",
-          "para": "                \"no la hice yo\", \"no lo hice yo\")),"
+          "de": "                \"no fui yo\", \"nao fui eu\", \"no la hice yo\", \"no lo hice yo\",\n",
+          "para": "                \"no la hice yo\", \"no lo hice yo\",\n"
         }
       ],
       "testes": [
@@ -8520,8 +8520,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"nao fui eu\", \"no la hice yo\", \"no lo hice yo\")),",
-          "para": "\"nao fui eu\")),"
+          "de": "\"nao fui eu\", \"no la hice yo\", \"no lo hice yo\",\n",
+          "para": "\"nao fui eu\",\n"
         }
       ],
       "testes": [
@@ -8932,6 +8932,126 @@
       ],
       "testes": [
         "tests/test_limpeza.py::test_limpar_de_novo_nao_apaga_nada_e_as_referencias_nao_se_repetem"
+      ]
+    },
+    {
+      "id": "M-ITP-58",
+      "requisito": "R02",
+      "descricao": "\"A compra é fraudulenta\" volta a ser consulta (ACH-121)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"es fraudulent*\", \"e fraudulent*\", \"son fraudulent*\", \"sao fraudulent*\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_dizer_que_a_compra_e_fraudulenta_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-59",
+      "requisito": "R02",
+      "descricao": "Vírgula de milhar volta a ser decimal (\"6,050\" vira 6; DEV-043)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "VALOR = re.compile(r\"(?<![\\w.,-])(\\d{1,3}(?:[.,\\s]\\d{3})+|\\d+)(?:[.,](\\d{1,2}))?(?![\\w-])\")\n",
+          "para": "VALOR = re.compile(r\"(?<![\\w.,-])(\\d{1,3}(?:[.\\s]\\d{3})+|\\d+)(?:[.,](\\d{1,2}))?(?![\\w-])\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado"
+      ]
+    },
+    {
+      "id": "M-ITP-60",
+      "requisito": "R02",
+      "descricao": "O milhar com vírgula não sai dos dígitos (o valor quebra)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    digitos = re.sub(r\"[.,\\s]\", \"\", inteiro)\n",
+          "para": "    digitos = re.sub(r\"[.\\s]\", \"\", inteiro)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado"
+      ]
+    },
+    {
+      "id": "M-ITP-61",
+      "requisito": "R02",
+      "descricao": "O código da moeda colado ao número esconde o valor (\"USD13,45\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", texto))\n",
+          "para": "    sem_datas = DATA_NUMERICA.sub(\" \", texto)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado"
+      ]
+    },
+    {
+      "id": "M-ITP-62",
+      "requisito": "R02",
+      "descricao": "Os aceites comuns não aceitam a oferta do atendente (ACH-123)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return achados is not None and achados - {\"cortesia\"} == {\"sim\"}\n",
+          "para": "    return False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_aceites_comuns_aceitam_a_oferta_mas_nao_confirmam_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-63",
+      "requisito": "R02",
+      "descricao": "Palavra fora do vocabulário (negação, pergunta) não impede o aceite da oferta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return achados is not None and achados - {\"cortesia\"} == {\"sim\"}\n",
+          "para": "    return achados is None or achados - {\"cortesia\"} == {\"sim\"}\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_negar_ou_perguntar_nao_aceita_a_oferta"
+      ]
+    },
+    {
+      "id": "M-CONV-87",
+      "requisito": "R02",
+      "descricao": "A conversa ignora o aceite comum da oferta do atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"oferecendo_humano\" and (self.lida.resposta or self.lida.aceita_oferta):\n",
+          "para": "        if self.estado == \"oferecendo_humano\" and (self.lida.resposta):\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_aceite_comum_da_oferta_do_atendente_encaminha"
+      ]
+    },
+    {
+      "id": "M-CONV-88",
+      "requisito": "R03",
+      "descricao": "O aceite largo da oferta do atendente (\"sí, pásame\") também desfaz o bloqueio (ACH-123)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando_desbloqueio\":\n            if self.lida.resposta == \"sim\":\n",
+          "para": "        if self.estado == \"confirmando_desbloqueio\":\n            if self.lida.resposta == \"sim\" or self.lida.aceita_oferta:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_aceite_largo_da_oferta_nao_desfaz_o_bloqueio"
       ]
     }
   ]

@@ -432,6 +432,19 @@ def test_cliente_desfaz_pela_conversa_o_bloqueio_que_pediu_dentro_do_prazo(cenar
     assert handoffs(cenario) == []
 
 
+@pytest.mark.parametrize("mensagem", ["sí, adelante", "pode passar", "beleza", "por favor"])
+def test_aceite_largo_da_oferta_nao_desfaz_o_bloqueio(cenario, mensagem):
+    """ACH-123: o aceite largo vale só para a oferta do atendente; desbloquear pede o sim
+    estrito."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "quiero bloquear mi tarjeta")
+        dizer(http, auth, conversa, "quiero desbloquear mi tarjeta")
+        dizer(http, auth, conversa, mensagem)
+    assert desfeitos(cenario) == []
+
+
 def test_nao_ao_desbloqueio_mantem_o_bloqueio(cenario):
     with cliente(cenario) as http:
         auth = entrar(http, "CLI-B", "cadastrado")

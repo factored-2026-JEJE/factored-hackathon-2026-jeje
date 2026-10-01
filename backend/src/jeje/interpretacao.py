@@ -37,6 +37,9 @@ class Interpretacao:
     idioma: Idioma
     intencao: Intencao
     resposta: Resposta | None = None  # a mensagem inteira é um sim ou um não
+    # A mensagem inteira aceita a oferta do atendente, com o aceite largo do dia a dia ("sí,
+    # pásame", "pode passar", "beleza"). Vale só para a oferta: confirmar ação pede `resposta`.
+    aceita_oferta: bool = False
     escolha: int | None = None  # posição (1..9) numa lista de opções apresentada antes
     valor: Decimal | None = None
     data: date | None = None
@@ -190,7 +193,11 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackearon", "hackearam", "invadiram", "asalt*", "assalt*", PERDA_DE_MEIO,
                 "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
                 "alguem usou meu cartao",
-                "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo")),
+                "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo",
+                # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
+                # a leitura continua a de hoje.
+                "es fraudulent*", "e fraudulent*", "son fraudulent*", "sao fraudulent*",
+                "fue fraudulent*", "foi fraudulent*")),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO,)),
     ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
@@ -282,6 +289,22 @@ def _so_vocabulario(limpo: str, vocabulario: list[tuple[str, str]]) -> set[str] 
     return achados
 
 
+# Aceites do dia a dia que só valem para a oferta do atendente (sem efeito financeiro, ACH-123): a
+# confirmação de pré-caso ou de desbloqueio continua pedindo o sim estrito de AFIRMATIVAS.
+ACEITES_DA_OFERTA = ("pasame", "comunicame", "adelante", "pode passar", "pode ser", "com certeza",
+                     "isso mesmo", "beleza", "uhum", "por favor", "obvio", "afirmativo", "sip",
+                     "va", "bueno", "quero", "simm")  # fmt: skip
+
+
+def _aceita_oferta(limpo: str) -> bool:
+    """A mensagem inteira aceita (um sim, estrito ou largo, e cortesia): qualquer outra palavra,
+    como uma negação ou uma pergunta, deixa a oferta sem aceite."""
+    vocabulario = [(p, "sim") for p in (*AFIRMATIVAS, *ACEITES_DA_OFERTA)]
+    vocabulario += [(p, "cortesia") for p in CORTESIA if p not in ACEITES_DA_OFERTA]
+    achados = _so_vocabulario(limpo, vocabulario)
+    return achados is not None and achados - {"cortesia"} == {"sim"}
+
+
 def _resposta(limpo: str) -> Resposta | None:
     """Sim/não só quando a mensagem inteira é isso (cortesia à parte): "sí, pero no esa" ou
     "¿y si me rechazaron?" não confirmam nada."""
@@ -364,7 +387,11 @@ DATA_POR_EXTENSO = re.compile(r"(?<!\d)(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))
 CONTAGEM = re.compile(
     r"(?<![\w.,])[1-9]\s*(?:veces|vezes|cobros?|cobran[çc]as?|cargos?)(?!\w)", re.IGNORECASE
 )
-VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
+# Milhar com ponto, espaço ou vírgula seguida de exatamente 3 dígitos ("189.900,55", "6,050.00",
+# o formato do México e dos EUA); decimal com vírgula ou ponto e 1 ou 2 dígitos ("13,45", "1,5").
+VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.,\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
+# Código da moeda colado ao número ("USD13,45"): separado antes de procurar o valor (DEV-043).
+MOEDA_COLADA = re.compile(r"(?<![a-z])(usd|mxn|cop|ars|brl|eur)(?=\d)", re.IGNORECASE)
 # Identificadores do sistema (prefixos da base e dos protocolos) ou código longo com dígitos.
 IDENTIFICADOR = re.compile(
     r"\b(?:trx|cli|prd|suc|pc|at)-[a-z0-9]+\b"
@@ -415,9 +442,10 @@ def _data(texto: str, referencia: date) -> date | None:
 
 
 def _valor(texto: str) -> Decimal | None:
-    """Primeiro número que não é data, contagem nem parte de identificador; milhar com ponto ou
-    espaço e decimal com vírgula ou ponto ("COP 189.900,55", "45.90", "USD 12")."""
-    sem_datas = DATA_NUMERICA.sub(" ", texto)
+    """Primeiro número que não é data, contagem nem parte de identificador; milhar com ponto,
+    espaço ou vírgula e decimal com vírgula ou ponto ("COP 189.900,55", "6,050.00", "45.90",
+    "USD13,45")."""
+    sem_datas = DATA_NUMERICA.sub(" ", MOEDA_COLADA.sub(r"\1 ", texto))
     sem_datas = DATA_POR_EXTENSO.sub(
         lambda m: " " if normalizar(m.group(2)) in MESES else m.group(0), sem_datas
     )
@@ -425,7 +453,7 @@ def _valor(texto: str) -> Decimal | None:
     if achado is None:
         return None
     inteiro, fracao = achado.groups()
-    digitos = re.sub(r"[.\s]", "", inteiro)
+    digitos = re.sub(r"[.,\s]", "", inteiro)
     return Decimal(f"{digitos}.{(fracao or '0').ljust(2, '0')}")
 
 
@@ -453,6 +481,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
     pistas = {
         "idioma": _idioma(texto, limpo, idioma_anterior),
         "resposta": _resposta(limpo),
+        "aceita_oferta": _aceita_oferta(limpo),
         "escolha": escolha,
         # "A 1" é escolha, nunca valor: sem lista pendente, não vira busca de uma transação de 1,00.
         "valor": None if escolha is not None else _valor(texto),
