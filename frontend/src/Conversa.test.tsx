@@ -401,3 +401,40 @@ test("desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o co
   expect(aoMudar).toHaveBeenCalledTimes(1);
 });
 
+test("relato de fraude com vários cartões: o caso já está com o atendente enquanto a conversa pergunta o cartão", async () => {
+  const perguntando = turno({
+    intencao: "fraude",
+    regra: "POL-HUM-01",
+    acao: "humano",
+    estado: "escolhendo_cartao",
+    resposta: "Por seguridad, un agente va a atender este caso. Mientras tanto, puedo bloquear ahora la tarjeta afectada.",
+    transaction_id: null,
+    proposta: null,
+    atendimento: "AT-00000002",
+  });
+  servidor([{ status: 200, corpo: perguntando }]);
+  const aoIdioma = vi.fn();
+  render(<Conversa token="tok" aoExpirar={vi.fn()} aoMudar={vi.fn()} aoIdioma={aoIdioma} />);
+  await abrirEPedir("Me clonaron una tarjeta");
+  expect(await screen.findByText("Com atendimento humano (AT-00000002).")).toBeInTheDocument();
+  // A resposta (o cartão a bloquear) segue livre, mas sem atalhos nem "Perguntar sobre esta".
+  expect(screen.getByLabelText("Mensagem")).toBeEnabled();
+  expect(screen.queryByRole("group", { name: "Atalhos" })).not.toBeInTheDocument();
+  expect(aoIdioma).toHaveBeenLastCalledWith(null);
+});
+
+test("reabrir a conversa mostra o caso que está com o atendente", async () => {
+  sessionStorage.setItem("jeje.conversa", "C1");
+  const historico = {
+    conversa_id: "C1",
+    idioma: "es",
+    estado: "com_humano",
+    atendimento: "AT-00000003",
+    turnos: [
+      { numero: 1, mensagem: "Me robaron la tarjeta", resposta: "Por seguridad, un agente va a atender este caso.", regra: "POL-HUM-01", acao: "humano", estado: "com_humano", criado_em: "2026-10-01T10:00:00Z" },
+    ],
+  };
+  servidor([], historico);
+  montar();
+  expect(await screen.findByText("Com atendimento humano (AT-00000003).")).toBeInTheDocument();
+});

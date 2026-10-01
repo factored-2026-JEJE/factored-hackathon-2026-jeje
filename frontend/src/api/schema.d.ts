@@ -590,6 +590,11 @@ export interface components {
             idioma: "es" | "pt";
             /** Estado */
             estado: string;
+            /**
+             * Atendimento
+             * @description Caso que está com o atendente (AT-…), se a conversa já foi encaminhada
+             */
+            atendimento: string | null;
             /** Turnos */
             turnos: components["schemas"]["TurnoRegistrado"][];
         };
