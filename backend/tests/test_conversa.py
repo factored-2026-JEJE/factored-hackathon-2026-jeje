@@ -806,6 +806,40 @@ def test_palavra_solta_nao_vence_o_valor_exato_de_outra_transacao(cenario):
     assert resposta["transaction_id"] == "TRX-A3"
 
 
+def test_esa_no_na_confirmacao_pergunta_qual_e_e_a_recusada_nao_volta(cenario):
+    """ACH-145: "No, esa no" recusa a transação proposta, não o pedido: nada é gravado, a conversa
+    pergunta qual é, e a recusada não volta ("la de 45,90" acha a outra de 45,90)."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        proposta = dizer(http, auth, conversa, "No reconozco el cobro de Streaming Plus")
+        recusa = dizer(http, auth, conversa, "No, esa no")
+        outra = dizer(http, auth, conversa, "la de 45,90")
+    assert (proposta["acao"], proposta["transaction_id"]) == ("propor_pre_caso", "TRX-A1")
+    assert (recusa["acao"], recusa["estado"]) == ("esclarecer", "esclarecendo")
+    assert recusa["resposta"] == (
+        "Entendido, no es esa. ¿Cuál es? ¿Me indicas el valor, la fecha o el comercio?"
+    )
+    assert (outra["acao"], outra["transaction_id"]) == ("propor_pre_caso", "TRX-A6")
+    assert pre_casos(cenario) == []
+
+
+def test_as_recusadas_nao_voltam_depois_da_segunda_proposta(cenario):
+    """ACH-145: recusadas as duas de 45,90, a mesma pista não propõe a primeira de novo: as recusas
+    seguem com o pedido de etapa em etapa."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco el cobro de Streaming Plus")
+        dizer(http, auth, conversa, "No, esa no")
+        segunda = dizer(http, auth, conversa, "la de 45,90")
+        dizer(http, auth, conversa, "No, esa no")
+        nenhuma = dizer(http, auth, conversa, "la de 45,90")
+    assert segunda["transaction_id"] == "TRX-A6"
+    assert (nenhuma["acao"], nenhuma["transaction_id"]) == ("esclarecer", None)
+    assert pre_casos(cenario) == []
+
+
 def test_com_o_filtro_exato_a_pista_aproximada_pede_dados(cenario):
     """RESOLVEDOR_DE_TRANSACAO=filtro: o comportamento de antes, para comparar e voltar."""
     com_filtro = cenario.model_copy(update={"resolvedor_de_transacao": "filtro"})
