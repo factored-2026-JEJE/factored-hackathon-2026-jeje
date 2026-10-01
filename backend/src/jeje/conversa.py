@@ -250,7 +250,7 @@ class _Turno:
             self.estado, self.contexto = self._etapa_resumida()
         if self.estado == "confirmando" and self.lida.resposta is not None:
             return self._confirmar() if self.lida.resposta == "sim" else self._cancelar()
-        if self.estado == "oferecendo_humano" and self.lida.resposta is not None:
+        if self.estado == "oferecendo_humano" and (self.lida.resposta or self.lida.aceita_oferta):
             if self.lida.resposta == "nao":
                 return self._retomar() if self._resumiu() else self._cancelar()
             aceito = politica.Decisao("POL-HUM-03", "humano", "aceitou o atendente oferecido")

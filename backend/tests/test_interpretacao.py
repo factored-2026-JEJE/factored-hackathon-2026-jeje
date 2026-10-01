@@ -341,8 +341,8 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     """O contrato não tem onde pôr cliente ou transação: quem identifica é a sessão, e a transação
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
-        "idioma", "intencao", "resposta", "escolha", "valor", "data", "status", "id_digitado",
-        "caso", "ultima", "cortesia", "sinais",
+        "idioma", "intencao", "resposta", "aceita_oferta", "escolha", "valor", "data", "status",
+        "id_digitado", "caso", "ultima", "cortesia", "sinais",
     }  # fmt: skip
 
 
@@ -541,3 +541,59 @@ def test_ler_uma_mensagem_custa_poucos_milissegundos():
             interpretar(frase, "es", REFERENCIA)
             tempos.append((time.perf_counter() - inicio) * 1000)
     assert statistics.median(tempos) <= 10
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "Essa transação é fraudulenta",
+        "A compra de 19,99 na Uber é fraudulenta",
+        "Esta transacción es fraudulenta",
+        "La compra de 30 dólares en Farmacia Salud es fraudulenta",
+    ],
+)
+def test_dizer_que_a_compra_e_fraudulenta_e_relato_de_fraude(texto):
+    """ACH-121 (DEV-020r): o adjetivo também relata fraude, que vai ao atendente (POL-HUM-01)."""
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "valor"),
+    [
+        ("No reconozco el cobro de 6,050", Decimal("6050.00")),
+        ("No reconozco el cobro de 6,050.00", Decimal("6050.00")),
+        ("No reconozco el cobro de USD13,45", Decimal("13.45")),
+        ("Não reconheço a cobrança de usd13.45", Decimal("13.45")),
+        ("No reconozco el cobro de 13,45", Decimal("13.45")),
+        ("No reconozco el cobro de 1,5", Decimal("1.50")),
+        ("No reconozco el cobro de COP 189.900,55", Decimal("189900.55")),
+        ("No reconozco el cobro de 45.90", Decimal("45.90")),
+    ],
+)
+def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor):
+    """DEV-043 (EXP-007): vírgula seguida de exatamente 3 dígitos é milhar ("6,050" e "6,050.00"),
+    o código da moeda colado ao número não impede a leitura, e o decimal com vírgula ou ponto
+    continua ("13,45", "1,5", "45.90")."""
+    assert ler(texto).valor == valor
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "sí, pásame", "sí, por favor, comunícame", "sí, adelante", "bueno", "por favor", "obvio",
+        "afirmativo", "sip", "va", "pode passar", "sim, pode passar", "pode ser", "com certeza",
+        "isso mesmo", "beleza", "uhum", "quero", "simm",
+    ],
+)  # fmt: skip
+def test_aceites_comuns_aceitam_a_oferta_mas_nao_confirmam_acao(texto):
+    """ACH-123 (DEV-020t): depois da oferta do atendente (sem efeito financeiro), o aceite é mais
+    largo; o sim que confirma pré-caso ou desbloqueio continua estrito."""
+    lida = ler(texto)
+    assert (lida.aceita_oferta, lida.resposta) == (True, None)
+
+
+@pytest.mark.parametrize(
+    "texto", ["no", "não quero", "sí, pero no esa", "¿y si me rechazaron?", "por favor, no"]
+)
+def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
+    assert ler(texto).aceita_oferta is False

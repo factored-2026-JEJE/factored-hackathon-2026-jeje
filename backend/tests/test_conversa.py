@@ -711,13 +711,30 @@ def test_recusa_sem_motivo_oferece_atendente_e_so_encaminha_com_sim(cenario):
     assert {"acao": "consultar_situacao", "resultado": "POL-CON-04"} in registro["acoes"]
 
 
+@pytest.mark.parametrize("aceite", ["sí, pásame", "sí, adelante", "por favor", "pode passar"])
+def test_aceite_comum_da_oferta_do_atendente_encaminha(cenario, aceite):
+    """ACH-123 (DEV-020t): depois da oferta do atendente, o aceite comum encaminha."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "¿Por qué rechazaron lo de Uber?")
+        aceita = dizer(http, auth, conversa, aceite)
+    assert (aceita["regra"], aceita["acao"], aceita["estado"]) == (
+        "POL-HUM-03", "humano", "com_humano"
+    )  # fmt: skip
+
+
 # ---- O que não pode acontecer -----------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     "mensagem",
-    ["¿y si no es esa?", "sí pero no esa", "puede ser", "no", "cancelar"],
-)
+    [
+        "¿y si no es esa?", "sí pero no esa", "puede ser", "no", "cancelar",
+        # O aceite largo da oferta do atendente não confirma ação (ACH-123).
+        "sí, adelante", "por favor", "pode passar", "beleza",
+    ],
+)  # fmt: skip
 def test_efeito_so_com_sim_explicito(cenario, mensagem):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
