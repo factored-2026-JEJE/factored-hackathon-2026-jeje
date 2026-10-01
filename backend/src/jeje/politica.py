@@ -195,6 +195,7 @@ class Pista:
     data: date | None = None
     comercio: str | None = None
     ultima: bool = False  # "la última": das que casarem, a mais recente (critério do cliente)
+    valor_marcado: bool = False  # com moeda, símbolo ou centavos (Interpretacao.valor_marcado)
 
 
 @dataclass(frozen=True)

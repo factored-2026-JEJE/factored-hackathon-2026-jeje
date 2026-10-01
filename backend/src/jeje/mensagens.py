@@ -82,6 +82,11 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Encontré varias transacciones posibles. ¿En qué comercio fue?",
         "pt": "Encontrei várias transações possíveis. Em qual estabelecimento foi?",
     },
+    # Uma só possível, sem pista que garanta (o número solto, ACH-143): a transação vira opção.
+    "CON-UMA-POSSIVEL": {
+        "es": "Encontré una transacción que puede ser. ¿Es esta?\n{opcoes}",
+        "pt": "Encontrei uma transação que pode ser. É esta?\n{opcoes}",
+    },
     "CON-NENHUMA": {
         "es": "No encontré esa transacción en tu cuenta. ¿Me indicas el valor, la fecha o el "
         "comercio?",

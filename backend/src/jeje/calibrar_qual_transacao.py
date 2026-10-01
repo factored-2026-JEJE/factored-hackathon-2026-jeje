@@ -139,7 +139,8 @@ def _caso(chave: str, idioma: str, alvo, candidatas: list, hoje: date, grupo: st
     frase = descrever(alvo, idioma, hoje, random.Random(f"{SEMENTE}:{chave}:frase"))
     comercios = sorted({c.merchant_name for c in candidatas if c.merchant_name})
     lida = interpretar(frase, idioma, hoje)
-    pista = politica.Pista(lida.valor, lida.data, comercio_citado(frase, comercios))
+    comercio = comercio_citado(frase, comercios)
+    pista = politica.Pista(lida.valor, lida.data, comercio, valor_marcado=lida.valor_marcado)
     if not tem_pista(pista):
         return None
     certa = [c.transaction_id for c in candidatas].index(alvo.transaction_id)
