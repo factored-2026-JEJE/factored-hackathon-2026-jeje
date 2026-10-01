@@ -6544,8 +6544,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "        \"valor\": None if escolha is not None else _valor(texto),",
-          "para": "        \"valor\": _valor(texto),"
+          "de": "    valor, valor_marcado = (None, False) if escolha is not None else _valor(texto)",
+          "para": "    valor, valor_marcado = _valor(texto)"
         }
       ],
       "testes": [
@@ -10948,6 +10948,216 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_ler_uma_mensagem_custa_poucos_milissegundos"
+      ]
+    },
+    {
+      "id": "M-ITP-127",
+      "requisito": "R02",
+      "descricao": "O valor nunca vem marcado como dinheiro (ACH-143)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "), bool(marcados) or bool(fracao)",
+          "para": "), False"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_marcado_tem_moeda_simbolo_ou_centavos"
+      ]
+    },
+    {
+      "id": "M-ITP-128",
+      "requisito": "R02",
+      "descricao": "Os centavos não marcam o valor como dinheiro (ACH-143)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "bool(marcados) or bool(fracao)",
+          "para": "bool(marcados)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_marcado_tem_moeda_simbolo_ou_centavos"
+      ]
+    },
+    {
+      "id": "M-ITP-129",
+      "requisito": "R02",
+      "descricao": "A moeda não marca o valor como dinheiro (ACH-143)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "bool(marcados) or bool(fracao)",
+          "para": "bool(fracao)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_marcado_tem_moeda_simbolo_ou_centavos"
+      ]
+    },
+    {
+      "id": "M-QT-21",
+      "requisito": "R03",
+      "descricao": "O ranking segue direto com o número solto (ACH-143)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
+          "para": "    direta = True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto"
+      ]
+    },
+    {
+      "id": "M-QT-22",
+      "requisito": "R03",
+      "descricao": "O valor marcado não basta para seguir direto",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
+          "para": "    direta = pista.ultima or pista.data is not None or pista.comercio is not None\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto"
+      ]
+    },
+    {
+      "id": "M-QT-23",
+      "requisito": "R03",
+      "descricao": "\"A última\" não basta para seguir direto",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
+          "para": "    direta = pista.valor_marcado or pista.data is not None or pista.comercio is not None\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto"
+      ]
+    },
+    {
+      "id": "M-QT-24",
+      "requisito": "R03",
+      "descricao": "A data não basta para seguir direto",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
+          "para": "    direta = pista.valor_marcado or pista.ultima or pista.comercio is not None\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto"
+      ]
+    },
+    {
+      "id": "M-QT-25",
+      "requisito": "R03",
+      "descricao": "O comércio não basta para seguir direto",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
+          "para": "    direta = pista.valor_marcado or pista.ultima or pista.data is not None\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto"
+      ]
+    },
+    {
+      "id": "M-QT-26",
+      "requisito": "R03",
+      "descricao": "Com o número solto e o conjunto de uma, mostra só ela, não as possíveis",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    if len(conjunto) != 1 or not direta:\n",
+          "para": "    if len(conjunto) != 1:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto"
+      ]
+    },
+    {
+      "id": "M-QT-27",
+      "requisito": "R03",
+      "descricao": "O conjunto de uma segue direto sem olhar a pista (ACH-143)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    if len(conjunto) == 1 and direta:\n",
+          "para": "    if len(conjunto) == 1:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto"
+      ]
+    },
+    {
+      "id": "M-QT-28",
+      "requisito": "R03",
+      "descricao": "A calibração mede sem o valor marcado (o de cabeça segue direto na medida)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/calibrar_qual_transacao.py",
+          "de": "    pista = politica.Pista(lida.valor, lida.data, comercio, valor_marcado=lida.valor_marcado)\n",
+          "para": "    pista = politica.Pista(lida.valor, lida.data, comercio)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_caso_da_calibracao_le_o_valor_marcado_como_a_conversa"
+      ]
+    },
+    {
+      "id": "M-CONV-98",
+      "requisito": "R03",
+      "descricao": "O sim não escolhe a única opção (\"¿Es esta?\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if len(opcoes) == 1 and self.lida.resposta == \"sim\":\n            return opcoes[0]\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_numero_solto_vira_opcao_e_o_sim_a_escolhe"
+      ]
+    },
+    {
+      "id": "M-CONV-99",
+      "requisito": "R03",
+      "descricao": "A única opção é apresentada como \"más de una\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        chave = \"CON-UMA-POSSIVEL\" if len(opcoes) == 1 else \"POL-CON-02\"\n",
+          "para": "        chave = \"POL-CON-02\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_numero_solto_vira_opcao_e_o_sim_a_escolhe"
+      ]
+    },
+    {
+      "id": "M-CONV-100",
+      "requisito": "R03",
+      "descricao": "A pista da conversa perde o valor marcado (\"unos 13 dólares\" não segue direto)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            lida.valor, lida.data, self._comercio, lida.ultima, lida.valor_marcado\n",
+          "para": "            lida.valor, lida.data, self._comercio, lida.ultima\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_numero_solto_vira_opcao_e_o_sim_a_escolhe"
       ]
     }
   ]
