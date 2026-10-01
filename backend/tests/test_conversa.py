@@ -796,6 +796,17 @@ def test_numero_solto_vira_opcao_e_o_sim_a_escolhe(cenario):
     assert direta["transaction_id"] == "TRX-A5"
 
 
+def test_comercio_dito_nao_vence_o_valor_exato_de_outra_transacao(cenario):
+    """DEV-072: "45,90 en Uber" não casa nenhuma; a de Uber (20,00) não segue direto contra o
+    valor exato dito, e as de 45,90 também viram opção."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        resposta = dizer(http, auth, conversa, "No reconozco el cobro de 45,90 USD en Uber")
+    assert (resposta["acao"], resposta["estado"]) == ("esclarecer", "esclarecendo")
+    assert {o["transaction_id"] for o in resposta["opcoes"]} == {"TRX-A1", "TRX-A3", "TRX-A6"}
+
+
 def test_com_o_filtro_exato_a_pista_aproximada_pede_dados(cenario):
     """RESOLVEDOR_DE_TRANSACAO=filtro: o comportamento de antes, para comparar e voltar."""
     com_filtro = cenario.model_copy(update={"resolvedor_de_transacao": "filtro"})
