@@ -1053,11 +1053,13 @@
             }
           }
         }
-      },
+      }
+    },
+    "/acesso/entrada": {
       "post": {
         "summary": "Entrar",
         "description": "Senha certa: cookie HttpOnly com a validade do compose. Sem senha configurada, nada a\nfazer. A senha nunca vai para o log.",
-        "operationId": "entrar_acesso_post",
+        "operationId": "entrar_acesso_entrada_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1071,6 +1073,9 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "description": "Corpo ilegível (não é JSON UTF-8)"
           },
           "401": {
             "description": "Senha incorreta"

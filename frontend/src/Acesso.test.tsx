@@ -16,7 +16,7 @@ function servidor(restrito: boolean, liberadoNoInicio: boolean) {
     vi.fn(async (url: string, init?: RequestInit) => {
       const r = (status: number, corpo?: unknown) =>
         new Response(corpo === undefined ? null : JSON.stringify(corpo), { status });
-      if (url === "/api/acesso" && init?.method === "POST") {
+      if (url === "/api/acesso/entrada" && init?.method === "POST") {
         const { senha } = JSON.parse(String(init.body)) as { senha: string };
         enviadas.push(senha);
         if (senha !== CERTA) return r(401, { detail: "senha_incorreta" });

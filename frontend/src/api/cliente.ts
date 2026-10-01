@@ -207,7 +207,7 @@ export async function situacaoDoAcesso(): Promise<SituacaoDoAcesso> {
 
 /** Entra com a senha dos jurados: a API devolve o cookie de acesso; senha errada, `false`. */
 export async function entrarComSenha(senha: string): Promise<boolean> {
-  const resposta = await fetch("/api/acesso", {
+  const resposta = await fetch("/api/acesso/entrada", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ senha }),

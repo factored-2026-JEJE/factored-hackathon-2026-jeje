@@ -140,7 +140,7 @@ def test_transacao_com_nul_no_endereco_e_422_e_nunca_500(api):
 # (esses dois só com MODO_DEMO) e o acesso dos jurados (a senha da publicação, PRD-009). Rota nova
 # fica fora daqui e, portanto, precisa exigir sessão.
 PUBLICAS = {
-    ("GET", "/health"), ("GET", "/health/ready"), ("GET", "/acesso"), ("POST", "/acesso"),
+    ("GET", "/health"), ("GET", "/health/ready"), ("GET", "/acesso"), ("POST", "/acesso/entrada"),
     ("GET", "/dados/eda"),
     ("GET", "/dados/qualidade"), ("GET", "/metricas"), ("GET", "/personas"), ("POST", "/sessoes"),
     ("GET", "/testadores"),
