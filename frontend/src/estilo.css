@@ -48,6 +48,9 @@ h3 { font-size: 1.05rem; }
 .lateral, .atendimento { display: grid; gap: 1rem; }
 .dados { display: grid; gap: 1rem; }
 @media (max-width: 860px) { .colunas { grid-template-columns: 1fr; } }
+/* Celular (ACH-156): a tabela rola dentro dela, e nenhum filho da grade alarga a página. */
+@media (max-width: 860px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+.pagina > *, .colunas > *, section { min-width: 0; }
 
 .cartao, .dados > section, .atendimento > table {
   background: var(--cartao); border: 1px solid var(--borda); border-radius: 10px; padding: 1rem;
