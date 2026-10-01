@@ -426,7 +426,6 @@ class _Turno:
         """Novo pedido: sem pista, vale a transação em foco (a última de que se falou)."""
         foco = self.contexto.get("foco")
         if foco is not None and not self._tem_pista():
-            self.resolucao = RastroDaResolucao("foco")
             return self._agir(intencao, foco)
         return self._resolver(intencao, novo_assunto=True)
 
