@@ -9,7 +9,7 @@ rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	metricas exportar-reviews avaliar-leitor contrato contrato-explorar testar-modelo check gate repro \
-	e2e-pelo-portao publicar publicacao-down
+	e2e-pelo-portao publicar publicacao-down limpar demo-limpar
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -28,6 +28,14 @@ demo: ## Sobe a demonstração e abre o túnel (precisa do cloudflared); o ender
 
 demo-down: ## Para a demonstração (mantém o banco e as reviews)
 	$(DEMO) down
+
+# Limpeza dos dados de teste (ACH-040): sai o estado do canal (conversas, pré-casos, encaminhamentos,
+# bloqueios, sessões e eventos), sem recarregar a base; ficam as personas e as reviews do time.
+limpar: ## Apaga os dados de teste da stack do make up (a API responde 503 enquanto limpa)
+	docker compose exec -T api python -m jeje.limpeza
+
+demo-limpar: ## O mesmo na demonstração do time (make demo)
+	$(DEMO) exec -T api python -m jeje.limpeza
 
 # Publicação para os jurados (PRD-009): o main limpo, com o gate (CI no build) e as jornadas pelo
 # portão verdes, sobe na stack jeje-pub (dados reais, senha obrigatória, sem portas no host) e sai

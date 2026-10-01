@@ -15,6 +15,12 @@ area=$(mktemp -d)
 trap 'rm -rf "$area"' EXIT
 falhas=0
 
+# O túnel conecta alguns segundos depois de a stack ficar saudável: espera até 2 min pela saúde.
+for _ in $(seq 60); do
+  [ "$(curl -s -o /dev/null -w '%{http_code}' "$url/api/health")" = 200 ] && break
+  sleep 2
+done
+
 conferir() {  # nome, esperado, obtido
   if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FALHA $1: esperado $2, veio $3"; falhas=$((falhas + 1)); fi
 }
