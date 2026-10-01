@@ -50,6 +50,9 @@ x-app-env: &app-env
   # "modelo") e a confiança calibrada mínima para ele decidir; abaixo, seguem as regras.
   LEITOR_MODELO: /opt/modelos/leitor.joblib
   LEITOR_E5: /opt/modelos/e5
+  # Portão de intenção de Enzo (TF-IDF): artefato do build, servido nas rotas /intencao e comparado
+  # com o leitor no make avaliar-leitor (PRD-009).
+  INTENCAO_MODELO: /opt/modelos/intencao.joblib
   LEITOR_LIMITE: "0.8"
   OLLAMA_URL: http://host.docker.internal:11434
   OLLAMA_MODELO: qwen2.5:7b

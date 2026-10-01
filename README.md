@@ -210,6 +210,38 @@ e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu c
   mutantes já rodam com regras (`compose.ci.yaml`); os testes do leitor usam um codificador falso
   (a imagem de testes não tem torch).
 
+### Portão de intenção TF-IDF (Enzo)
+
+O primeiro classificador de Enzo (tag `arquivo/intencao-classificador`) está no produto ao lado
+do leitor e5. É um TF-IDF de n-gramas de caracteres (2 a 5, dentro das palavras), seguido de
+regressão logística. Ele treina no mesmo corpus e nos mesmos fluxos do leitor, no estágio
+`intencao` da imagem (~1 min, sem o e5), e o artefato tem 2 MB.
+
+Ele não decide nada na conversa. Responde em duas rotas, e sem o artefato as duas dão 503 e o
+resto da API segue:
+
+- `POST /intencao/classificar`: o fluxo, a probabilidade de cada fluxo e os n-gramas que mais
+  pesaram, em ~3 ms por mensagem;
+- `GET /intencao/modelo`: a versão, as fontes e as métricas por idioma.
+
+No teste do BANKING77 (3.080 frases por idioma), a acurácia é 0,900 em en, 0,892 em es e 0,896
+em pt.
+
+No `make avaliar-leitor`, ele entra na mesma comparação, por mensagem, em es e pt:
+
+| Leitura | Certo (es / pt) | Fora de escopo lido como ação (es / pt) |
+|---|---|---|
+| Só as regras | 14,6% / 15,0% | 0,3% / 0,4% |
+| Regras e leitor e5 a 0,8 (a API) | 66,0% / 63,1% | 0,6% / 0,9% |
+| Regras e TF-IDF a 0,8 | 55,4% / 56,2% | 0,5% / 0,6% |
+| Leitor e5 sozinho | 89,3% / 87,8% | 3,1% / 3,4% |
+| TF-IDF sozinho | 89,6% / 90,0% | 3,0% / 2,8% |
+
+Sozinhos, os dois acertam o mesmo, com o TF-IDF à frente em pt. No limite da API, o e5 decide
+mais frases (53% contra 41% em es), porque as probabilidades do TF-IDF são menos concentradas: ele
+não tem a calibração por temperatura do leitor. Por isso a cascata da API continua com o e5. Pela
+regra do time, nada de Enzo é trocado sem resultado melhor.
+
 ### Modelo local (Ollama, opcional)
 
 `INTERPRETADOR: "ollama"` troca o leitor por um modelo local (Ollama do host, `qwen2.5:7b`) no
@@ -274,7 +306,7 @@ make check          # segredos + lint + testes + mutantes (cada teste precisa pe
 make e2e            # jornadas no navegador (Chromium e Firefox) contra a stack no ar
 make gate           # check + e2e + mutantes de ponta a ponta
 make metricas       # métricas recomputadas dos eventos de cada turno
-make avaliar-leitor # leitor por mensagem no teste do BANKING77 es/pt: regras vs cascata (sem banco)
+make avaliar-leitor # leitura por mensagem no BANKING77 es/pt: regras, e5 e TF-IDF (sem banco)
 make testar-modelo  # integração real com o Ollama pela ponte (fora do gate)
 make repro          # do zero: clone limpo, stack isolada com a fixture, segredos e todos os gates
 ```
