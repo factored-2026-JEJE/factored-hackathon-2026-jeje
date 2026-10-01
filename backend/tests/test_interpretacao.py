@@ -942,3 +942,41 @@ def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao
     """ACH-144 (NOV-35 da validação): a pergunta de prevenção ou a suspeita sem perda, sem termo
     de vítima não negado, não é relato de quem perdeu o cartão ou o dinheiro."""
     assert interpretacao.prevencao(texto) == prevencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # DEV-060 (NOV-24): a palavra de intenção com uma letra errada conta como a certa.
+        ("No reconosco un cargo de 45,90", "contestar"),
+        ("Nao reconheso uma cobransa de 45,90", "contestar"),
+        ("me robron la tarjeta", "fraude"),
+        ("quiero hablar con un atenente", "humano"),
+        # Palavra do vocabulário, curta ou longe de um termo não muda a leitura.
+        ("He probado la app y no funciona", "desconhecida"),
+        ("Quiero contratar un seguro", "desconhecida"),
+        ("meu cartão pessoal foi recusado", "consultar"),
+        ("¿estoy hablando con un robot?", "desconhecida"),
+        ("A loja precisa de um gerente novo", "desconhecida"),  # "precisa" não vira "preciso"
+    ],
+)
+def test_erro_de_digitacao_na_palavra_de_intencao(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
+    """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe"."""
+    texto = "paguei a aula de golfe com o cartão"
+    assert interpretacao.corrigir(texto) == (texto, ())
+
+
+def test_a_correcao_de_digitacao_fica_nos_sinais():
+    assert ler("me robron la tarjeta").sinais[-1] == "digitacao:robron→robaron"
+
+
+def test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem():
+    linhas = interpretacao.VOCABULARIO_DO_ARQUIVO.read_text(encoding="utf-8").splitlines()
+    pares = [linha.split("\t") for linha in linhas]
+    assert [p for p, _ in pares] == sorted({p for p, _ in pares})
+    assert all(interpretacao.normalizar(p) == p and int(n) >= 1 for p, n in pares)
+    assert interpretacao.VOCABULARIO["reconozco"] >= 2 and interpretacao.VOCABULARIO["probado"] == 1
