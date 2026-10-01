@@ -66,6 +66,16 @@ def test_aceite_da_oferta_e_das_regras_e_nao_chega_ao_leitor(texto):
     assert modelo.lidos == [] and cargas == []
 
 
+@pytest.mark.parametrize("texto", ["No, esa no", "Não, essa não"])
+def test_recusa_da_transacao_proposta_e_das_regras_e_nao_chega_ao_leitor(texto):
+    """ACH-145: "no, esa no" é das regras (a recusa da transação proposta); o leitor a leria como
+    outra coisa."""
+    ler, modelo, cargas = leitor(fluxo="fora_de_escopo", confianca=0.98)
+    leitura = ler(texto, "es", REFERENCIA)
+    assert leitura.fonte == "regras" and leitura.lida.outra
+    assert modelo.lidos == [] and cargas == []
+
+
 def test_leitor_confiante_preenche_intencao_e_status_pelo_fluxo():
     ler, modelo, _ = leitor(fluxo="explicar_estorno", confianca=0.93)
     leitura = ler(VAGA, "pt", REFERENCIA)

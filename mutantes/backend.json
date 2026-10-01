@@ -11294,6 +11294,96 @@
       "testes": [
         "tests/test_conversa.py::test_palavra_solta_nao_vence_o_valor_exato_de_outra_transacao"
       ]
+    },
+    {
+      "id": "M-ITP-135",
+      "requisito": "R02",
+      "descricao": "A recusa da transação apontada nunca é lida (ACH-145)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return achados is not None and \"outra\" in achados\n",
+          "para": "    return False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_recusa_da_transacao_apontada"
+      ]
+    },
+    {
+      "id": "M-ITP-136",
+      "requisito": "R02",
+      "descricao": "\"No, esa no\" com o \"no\" junto deixa de ser recusa da transação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    vocabulario = [(p, \"outra\") for p in OUTRA] + [(p, \"nao\") for p in NEGATIVAS]\n",
+          "para": "    vocabulario = [(p, \"outra\") for p in OUTRA]\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_recusa_da_transacao_apontada"
+      ]
+    },
+    {
+      "id": "M-LLM-25",
+      "requisito": "R02",
+      "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.aceita_oferta,\n        lida.outra,\n",
+          "para": "        lida.aceita_oferta,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_recusa_da_transacao_proposta_e_das_regras_e_nao_chega_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-CONV-101",
+      "requisito": "R03",
+      "descricao": "\"No, esa no\" na confirmação vira o resumo da etapa, com a mesma proposta (ACH-145)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando\" and self.lida.outra:\n            return self._outra_transacao()\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_esa_no_na_confirmacao_pergunta_qual_e_e_a_recusada_nao_volta"
+      ]
+    },
+    {
+      "id": "M-CONV-102",
+      "requisito": "R03",
+      "descricao": "A transação recusada volta a ser proposta no mesmo pedido (ACH-145)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        return [c for c in todas if c.transaction_id not in recusadas]\n",
+          "para": "        return todas\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_esa_no_na_confirmacao_pergunta_qual_e_e_a_recusada_nao_volta"
+      ]
+    },
+    {
+      "id": "M-CONV-103",
+      "requisito": "R03",
+      "descricao": "As recusas não seguem com o pedido de etapa em etapa (ACH-145)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "for k in (\"pedido\", \"desde\", \"recusadas\") if k in contexto}",
+          "para": "for k in (\"pedido\", \"desde\") if k in contexto}"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_as_recusadas_nao_voltam_depois_da_segunda_proposta"
+      ]
     }
   ]
 }
