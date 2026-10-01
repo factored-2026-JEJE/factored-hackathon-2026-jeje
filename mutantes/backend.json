@@ -4563,8 +4563,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "if len(p) >= 4 and p not in COMUNS]",
-          "para": "if len(p) >= 4]"
+          "de": "if len(p) >= 4 and p not in COMUNS | CANAIS]",
+          "para": "if len(p) >= 4 and p not in CANAIS]"
         }
       ],
       "testes": [
@@ -11002,7 +11002,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
+          "de": "    direta = not exatas and (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
           "para": "    direta = True\n"
         }
       ],
@@ -11017,8 +11017,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
-          "para": "    direta = pista.ultima or pista.data is not None or pista.comercio is not None\n"
+          "de": "        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n",
+          "para": "        pista.ultima or pista.data is not None or pista.comercio is not None\n"
         }
       ],
       "testes": [
@@ -11032,8 +11032,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
-          "para": "    direta = pista.valor_marcado or pista.data is not None or pista.comercio is not None\n"
+          "de": "        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n",
+          "para": "        pista.valor_marcado or pista.data is not None or pista.comercio is not None\n"
         }
       ],
       "testes": [
@@ -11047,8 +11047,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
-          "para": "    direta = pista.valor_marcado or pista.ultima or pista.comercio is not None\n"
+          "de": "        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n",
+          "para": "        pista.valor_marcado or pista.ultima or pista.comercio is not None\n"
         }
       ],
       "testes": [
@@ -11062,8 +11062,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
-          "para": "    direta = pista.valor_marcado or pista.ultima or pista.data is not None\n"
+          "de": "        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n",
+          "para": "        pista.valor_marcado or pista.ultima or pista.data is not None\n"
         }
       ],
       "testes": [
@@ -11158,6 +11158,111 @@
       ],
       "testes": [
         "tests/test_conversa.py::test_numero_solto_vira_opcao_e_o_sim_a_escolhe"
+      ]
+    },
+    {
+      "id": "M-ITP-130",
+      "requisito": "R02",
+      "descricao": "O canal (\"por internet\", \"llamada telefónica\") volta a citar o comércio (ACH-150)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "p not in COMUNS | CANAIS]",
+          "para": "p not in COMUNS]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-131",
+      "requisito": "R02",
+      "descricao": "A palavra do dia a dia (\"soy José\", \"Buen día\") cita o comércio sem o lugar antes (ACH-150)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if palavra in DO_DIA_A_DIA:\n        return _regex(LUGAR + _padrao(palavra)).search(limpo) is not None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-132",
+      "requisito": "R02",
+      "descricao": "\"En\" deixa de marcar o lugar (\"compré en Don José\" não cita)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?:en|na|no|em|al|ao)",
+          "para": "(?:na|no|em|al|ao)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-133",
+      "requisito": "R02",
+      "descricao": "O lugar só vale colado na palavra (\"en Don José\" não cita)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "LUGAR = r\"(?<![a-z0-9])(?:en|na|no|em|al|ao)(?: [a-z0-9]+){0,2} \"",
+          "para": "LUGAR = r\"(?<![a-z0-9])(?:en|na|no|em|al|ao) \""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-ITP-134",
+      "requisito": "R02",
+      "descricao": "O telefone volta a ser o ramo da Empresa Telefónica (\"me llamaron por teléfono\" cita)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"streaming\": (\"assinatura\", \"suscripcion\"),\n",
+          "para": "    \"streaming\": (\"assinatura\", \"suscripcion\"),\n    \"telefonica\": (\"telefone\", \"telefono\"),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+      ]
+    },
+    {
+      "id": "M-QT-29",
+      "requisito": "R03",
+      "descricao": "O valor exato de outro comércio não impede seguir direto (DEV-072)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    direta = not exatas and (",
+          "para": "    direta = ("
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_valor_exato_de_outro_comercio_nao_deixa_seguir_direto"
+      ]
+    },
+    {
+      "id": "M-QT-30",
+      "requisito": "R03",
+      "descricao": "A de outro comércio com o valor exato não vira opção (DEV-072)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    aceitas = sorted({*aceitas, *exatas})\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_valor_exato_de_outro_comercio_nao_deixa_seguir_direto"
       ]
     }
   ]
