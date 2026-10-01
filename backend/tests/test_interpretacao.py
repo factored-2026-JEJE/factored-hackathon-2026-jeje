@@ -705,8 +705,10 @@ def test_cita_cartao_quando_diz_final_ou_tipo(texto, cita):
 
 def test_ler_uma_mensagem_custa_poucos_milissegundos():
     """ACH-107: cada mensagem passa por mais termos do que o cache do `re` guarda (512); com as
-    expressões recompiladas a cada chamada, a leitura levava ~100 ms. Compiladas uma vez, fica
-    perto de 2 ms; o limite de 10 ms deixa folga para a máquina carregada."""
+    expressões recompiladas a cada chamada, a leitura levava ~100 ms. Compiladas uma vez, ficava
+    perto de 2 ms; com os termos do golpe (ACH-142), testar os pares um a um levou a ~6 ms. Com
+    todos os pares de cada composto numa expressão só, fica perto de 1 ms; o limite de 3 ms deixa
+    folga para a máquina carregada."""
     frases = [
         "¿Por qué me rechazaron la compra de 45,90 del 10/03?",
         "No reconozco el cobro de Uber",
@@ -723,7 +725,7 @@ def test_ler_uma_mensagem_custa_poucos_milissegundos():
             inicio = time.perf_counter()
             interpretar(frase, "es", REFERENCIA)
             tempos.append((time.perf_counter() - inicio) * 1000)
-    assert statistics.median(tempos) <= 10
+    assert statistics.median(tempos) <= 3
 
 
 @pytest.mark.parametrize(
