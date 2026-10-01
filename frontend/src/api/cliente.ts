@@ -33,6 +33,7 @@ export async function buscarEda(sinal?: AbortSignal): Promise<IndicadorEda[]> {
 export type Persona = components["schemas"]["Persona"];
 /** Persona da lista de acesso, com as dicas de cada caminho da demonstração (PRD-009). */
 export type PersonaDaDemo = components["schemas"]["PersonaDaDemo"];
+export type ExemploDeContestacao = components["schemas"]["ExemploDeContestacao"];
 export type SessaoAberta = components["schemas"]["SessaoAberta"];
 export type Transacao = components["schemas"]["Transacao"];
 

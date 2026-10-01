@@ -663,6 +663,21 @@ export interface components {
              */
             criado_em: string;
         };
+        /**
+         * ExemploDeContestacao
+         * @description Uma transação da persona para o guia dos jurados, como o cliente a vê.
+         */
+        ExemploDeContestacao: {
+            /** Valor */
+            valor: string;
+            /** Moeda */
+            moeda: string;
+            /**
+             * Data
+             * Format: date
+             */
+            data: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -851,6 +866,13 @@ export interface components {
              * @description Pré-casos dentro da janela da reincidência (POL-HUM-06)
              */
             pre_casos_recentes: number;
+            /**
+             * Contestaveis
+             * @description Compras dentro da janela de contestação que a conversa propõe contestar sem atendente (POL-DISP-01)
+             */
+            contestaveis: number;
+            /** @description Uma delas, com valor e dia que nenhuma outra transação do cliente repete: a frase do guia com esse valor e essa data acha só ela */
+            exemplo: components["schemas"]["ExemploDeContestacao"] | null;
         };
         /** PreCaso */
         PreCaso: {

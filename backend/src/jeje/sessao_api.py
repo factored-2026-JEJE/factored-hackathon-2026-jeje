@@ -1,6 +1,7 @@
 """Rotas de sessão de teste e dependência que identifica o cliente em toda rota protegida."""
 
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -30,6 +31,14 @@ class Persona(BaseModel):
     nome: str
 
 
+class ExemploDeContestacao(BaseModel):
+    """Uma transação da persona para o guia dos jurados, como o cliente a vê."""
+
+    valor: Decimal
+    moeda: str
+    data: date
+
+
 class PersonaDaDemo(Persona):
     """Persona da lista de acesso, com as dicas para escolher o caminho da demonstração (PRD-009):
     contagens da base e do canal."""
@@ -38,6 +47,14 @@ class PersonaDaDemo(Persona):
     transacoes_recusadas: int = Field(description="Transações recusadas do cliente")
     pre_casos_recentes: int = Field(
         description="Pré-casos dentro da janela da reincidência (POL-HUM-06)"
+    )
+    contestaveis: int = Field(
+        description="Compras dentro da janela de contestação que a conversa propõe contestar sem"
+        " atendente (POL-DISP-01)"
+    )
+    exemplo: ExemploDeContestacao | None = Field(
+        description="Uma delas, com valor e dia que nenhuma outra transação do cliente repete: a"
+        " frase do guia com esse valor e essa data acha só ela"
     )
 
 
@@ -94,7 +111,7 @@ def listar_personas(engine: EngineDep, config: ConfigDep) -> list[PersonaDaDemo]
     """Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado), com as dicas
     de cada caminho."""
     with engine.connect() as conexao:
-        dicas = sessao.personas_com_dicas(conexao, config.reincidencia_dias)
+        dicas = sessao.personas_com_dicas(conexao, config.limites())
     return [PersonaDaDemo(**linha) for linha in dicas]
 
 

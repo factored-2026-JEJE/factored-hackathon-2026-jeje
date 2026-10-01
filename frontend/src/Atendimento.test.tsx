@@ -5,7 +5,15 @@ import userEvent from "@testing-library/user-event";
 import type { Transacao } from "./api/cliente";
 import { Atendimento } from "./Atendimento";
 
-const ANA = { customer_id: "CLI-C", nome: "Ana Souza", cartoes_bloqueaveis: 2, transacoes_recusadas: 3, pre_casos_recentes: 1 };
+const ANA = {
+  customer_id: "CLI-C",
+  nome: "Ana Souza",
+  cartoes_bloqueaveis: 2,
+  transacoes_recusadas: 3,
+  pre_casos_recentes: 1,
+  contestaveis: 4,
+  exemplo: { valor: "1234.5", moeda: "USD", data: "2025-03-07" },
+};
 const TRANSACOES: Transacao[] = [
   {
     transaction_id: "TRX-C1",
@@ -75,6 +83,15 @@ test("entrar como persona abre sessão e mostra só as transações dela", async
   const linha = within(await screen.findByRole("row", { name: /Almacenes Éxito/ }));
   expect(linha.getByText("Recusada")).toBeInTheDocument();
   expect(linha.getByText("COP 189.900,55")).toBeInTheDocument();
+});
+
+test("cada persona traz quantas contestáveis tem e a frase pronta com uma compra dela", async () => {
+  // DEV-073: o exemplo do guia é da própria persona, não uma transação da fixture.
+  servidor();
+  render(<Atendimento />);
+  expect(await screen.findByText(/contestáveis: 4/)).toBeInTheDocument();
+  expect(screen.getByText("No reconozco el cobro de 1.234,50 del 07/03")).toBeInTheDocument();
+  expect(screen.getByText("Não reconheço a cobrança de 1.234,50 do dia 07/03")).toBeInTheDocument();
 });
 
 test("pede as transações com o token emitido e nunca com o id do cliente", async () => {

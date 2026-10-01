@@ -5,6 +5,7 @@ assinatura. Transação de outro cliente e transação inexistente são indistin
 consulta (nenhum dado, erro ou tempo diferente revela a existência).
 """
 
+from collections.abc import Sequence
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated
@@ -116,6 +117,36 @@ def fatos_dos_pre_casos_de_hoje(conexao: Connection, customer_id: str) -> list[F
         {"cliente": customer_id},
     )
     return [_fatos(linha) for linha in linhas]
+
+
+def aprovadas_desde(
+    conexao: Connection, clientes: Sequence[str], desde: date
+) -> list[tuple[str, Decimal, str, Fatos]]:
+    """As aprovadas dos clientes desde o dia, mais recentes primeiro: (cliente, valor e moeda como
+    o cliente vê, fatos para a política). É de onde sai o exemplo de contestação das personas."""
+    linhas = conexao.execute(
+        text(
+            f"SELECT t.customer_id, t.amount, t.currency, {COLUNAS_DOS_FATOS}"
+            " FROM curated.transactions t WHERE t.customer_id = ANY(:clientes)"
+            " AND t.transaction_status = 'Approved' AND t.transaction_date >= :desde"
+            " ORDER BY t.customer_id, t.transaction_date DESC, t.transaction_id"
+        ),
+        {"clientes": list(clientes), "desde": desde},
+    )
+    return [(linha.customer_id, linha.amount, linha.currency, _fatos(linha)) for linha in linhas]
+
+
+def valor_e_dia_repetidos(conexao: Connection, clientes: Sequence[str]) -> set[tuple]:
+    """(cliente, valor, dia) de mais de uma transação do cliente: a frase com esse valor e esse dia
+    não aponta uma só."""
+    linhas = conexao.execute(
+        text(
+            "SELECT customer_id, amount, transaction_date::date FROM curated.transactions"
+            " WHERE customer_id = ANY(:clientes) GROUP BY 1, 2, 3 HAVING count(*) > 1"
+        ),
+        {"clientes": list(clientes)},
+    )
+    return {tuple(linha) for linha in linhas}
 
 
 def candidatas_do_cliente(

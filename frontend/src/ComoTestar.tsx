@@ -24,9 +24,9 @@ export function ComoTestar() {
           <h3>Normal path: contest a charge</h3>
           <p>
             Click <strong>Perguntar sobre esta</strong> on a row of <em>Minhas transações</em>, or type the amount and
-            date: <q>No reconozco el cobro de 45,90 del 10/03</q> / <q>Não reconheço a cobrança de 45,90 do dia 10/03</q>.
-            The assistant finds the transaction and proposes a review request, registered only after{" "}
-            <q>Sí, confirmo</q> / <q>Sim, confirmo</q>.
+            date of one of the customer&apos;s own purchases: the customer list shows a ready sentence for each customer,
+            in Spanish and Portuguese, after <em>para contestar</em>. The assistant finds the transaction and proposes a
+            review request, registered only after <q>Sí, confirmo</q> / <q>Sim, confirmo</q>.
           </p>
         </li>
         <li>
