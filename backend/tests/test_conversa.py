@@ -965,8 +965,12 @@ def test_lingua_da_resposta_segue_a_do_cliente(cenario):
     assert ok["idioma"] == "pt"  # empate mantém a língua anterior
 
 
-@pytest.mark.parametrize("texto_enviado", ["", "x" * 501])
-def test_mensagem_vazia_ou_longa_demais_e_recusada_na_borda(cenario, texto_enviado):
+@pytest.mark.parametrize("texto_enviado", ["", "x" * 501, "\u0000", "hola\u0000", "a\u001bb"])
+def test_mensagem_vazia_longa_demais_ou_com_caractere_de_controle_e_recusada_na_borda(
+    cenario, texto_enviado
+):
+    """ACH-153: o caractere de controle (o NUL não cabe no banco) dava 503 "tente de novo" para
+    sempre; agora é 422 na borda, como a mensagem vazia, sem turno gravado."""
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         conversa = abrir_conversa(http, auth, "es")
