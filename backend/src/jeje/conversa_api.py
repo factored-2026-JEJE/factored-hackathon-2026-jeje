@@ -34,8 +34,12 @@ class ConversaAberta(BaseModel):
     resposta: str
 
 
+# Sem caractere de controle (fora tab e quebra de linha): o NUL nem cabe no banco (ACH-153).
+SEM_CONTROLE = r"^[^\x00-\x08\x0b\x0c\x0e-\x1f\x7f]*$"
+
+
 class Mensagem(BaseModel):
-    texto: str = Field(min_length=1, max_length=conversa.LIMITE_MENSAGEM)
+    texto: str = Field(min_length=1, max_length=conversa.LIMITE_MENSAGEM, pattern=SEM_CONTROLE)
 
 
 class Opcao(BaseModel):
