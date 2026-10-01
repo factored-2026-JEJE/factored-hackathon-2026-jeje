@@ -264,9 +264,12 @@ def test_lote_com_coluna_nova_e_recusado_e_a_versao_anterior_continua(banco_migr
     assert versao == anterior.versao
 
 
-def test_carga_mantem_o_indice_por_cliente_da_curada(banco_migrado, tmp_path):
+@pytest.mark.parametrize("tabela", ["transactions", "products"])
+def test_carga_mantem_o_indice_por_cliente_da_curada(banco_migrado, tmp_path, tabela):
     """O atendimento filtra a curada pelo cliente da sessão em toda consulta: sem índice, cada uma
-    varre a tabela inteira (353 ms nos dados reais). A carga refaz a curada, e o índice continua."""
+    varre a tabela inteira (353 ms nas transações dos dados reais; ~30 ms e três núcleos nos
+    produtos, a cada turno que procura os cartões do cliente). A carga refaz a curada, e o índice
+    continua."""
     raiz, manifestos = tmp_path / "raw", tmp_path / "manifesto"
     tabelas = ["customers", "products", "transactions"]
     _base_transacional(raiz)
@@ -276,6 +279,6 @@ def test_carga_mantem_o_indice_por_cliente_da_curada(banco_migrado, tmp_path):
     carregar(banco_migrado, raiz, manifestos, tabelas, "fixture", "p1")
     with conexao(banco_migrado) as con:
         con.execute(text("SET LOCAL enable_seqscan = off"))
-        consulta = "EXPLAIN SELECT * FROM curated.transactions WHERE customer_id = 'CLI-A'"
+        consulta = f"EXPLAIN SELECT * FROM curated.{tabela} WHERE customer_id = 'CLI-A'"
         plano = "\n".join(con.execute(text(consulta)).scalars())
-    assert "ix_curated_transactions_customer_id" in plano
+    assert f"ix_curated_{tabela}_customer_id" in plano
