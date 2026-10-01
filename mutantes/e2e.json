@@ -429,6 +429,21 @@
       "testes": [
         "bloqueio.spec.ts > bloquear o cartão pela conversa e desfazer dentro do prazo, com o console acompanhando"
       ]
+    },
+    {
+      "id": "M-E2E-27",
+      "requisito": "R07",
+      "descricao": "Desfazer o bloqueio do relato de roubo não anota no caso do atendente",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/bloqueio.py",
+          "de": "        if desfeito.atendimento is not None:\n            acao = handoff.Acao(\"desbloquear_cartao\", f\"{desfeito.id}: desfeito pelo {por}\")\n            handoff.anotar(conexao, desfeito.atendimento, (acao,))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "bloqueio.spec.ts > relato de roubo: o cliente desfaz o bloqueio em até 7 dias pela conversa, e o caso do atendente fica sabendo"
+      ]
     }
   ]
 }
