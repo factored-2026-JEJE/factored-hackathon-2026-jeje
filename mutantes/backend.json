@@ -9012,12 +9012,12 @@
     {
       "id": "M-ITP-63",
       "requisito": "R02",
-      "descricao": "Negar com palavra de aceite (\"por favor, no\") aceita a oferta",
+      "descricao": "Palavra fora do vocabulário (negação, pergunta) não impede o aceite da oferta",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    vocabulario += [(p, \"nao\") for p in NEGATIVAS]\n",
-          "para": ""
+          "de": "    return achados is not None and achados - {\"cortesia\"} == {\"sim\"}\n",
+          "para": "    return achados is None or achados - {\"cortesia\"} == {\"sim\"}\n"
         }
       ],
       "testes": [
