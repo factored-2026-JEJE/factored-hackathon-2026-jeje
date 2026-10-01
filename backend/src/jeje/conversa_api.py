@@ -2,6 +2,7 @@
 
 import logging
 import time
+from dataclasses import asdict
 from datetime import datetime
 from typing import Annotated, Literal
 
@@ -13,6 +14,7 @@ from jeje import conversa, eventos, politica
 from jeje.config import ConfigDep
 from jeje.db import EngineDep
 from jeje.interpretacao_modelo import Leitura
+from jeje.models import RESOLVEDORES
 from jeje.pre_caso_api import ID_PROPOSTA, Proposta
 from jeje.sessao_api import CORPO_ILEGIVEL, RESPOSTAS_SESSAO, SessaoDep
 
@@ -48,6 +50,18 @@ class Opcao(BaseModel):
     descricao: str
 
 
+class ResolucaoDoTurno(BaseModel):
+    """Como a transação do turno foi achada (DEV-071)."""
+
+    resolvedor: Literal[RESOLVEDORES] = Field(
+        description="Filtro exato, ranking com garantia (DEV-037), escolha do cliente numa lista"
+        " ou a transação já em curso na conversa"
+    )
+    calibracao: str | None = Field(description="Versão da calibração do ranking")
+    probabilidade: float | None = Field(description="Probabilidade da primeira, pelo ranking")
+    possiveis: int | None = Field(description="Quantas transações podiam ser a descrita")
+
+
 class ResultadoDoTurno(BaseModel):
     """O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."""
 
@@ -71,6 +85,7 @@ class ResultadoDoTurno(BaseModel):
     interpretacao: str
     efeito: str | None
     fontes: list[str]
+    resolucao: ResolucaoDoTurno | None
 
 
 class TurnoRegistrado(BaseModel):
@@ -179,6 +194,7 @@ def enviar_mensagem(
         interpretacao=leitura.fonte,
         efeito=resultado.efeito,
         fontes=list(resultado.fontes),
+        resolucao=None if (r := resultado.resolucao) is None else ResolucaoDoTurno(**asdict(r)),
     )
 
 
