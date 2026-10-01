@@ -386,6 +386,27 @@ def test_cortesia_so_quando_a_mensagem_inteira_e_cumprimento_ou_agradecimento(te
 
 
 @pytest.mark.parametrize(
+    "texto",
+    [
+        # ACH-128 (DEV-062): a negação antes do fechamento é insatisfação, não agradecimento.
+        "no resolvió", "no entendí", "no era eso", "no, no era eso", "no ok", "não resolveu",
+        "não entendi", "não era isso", "não é isso", "não, não resolveu", "todavía no resolvió",
+        "ainda não resolveu",
+    ],
+)  # fmt: skip
+def test_negacao_antes_do_fechamento_nao_e_cortesia(texto):
+    assert ler(texto).cortesia is None
+
+
+@pytest.mark.parametrize(
+    "texto",
+    ["no, gracias", "não, obrigado", "listo, gracias", "resolveu, valeu", "gracias", "obrigado"],
+)
+def test_agradecimento_com_ou_sem_negacao_continua_cortesia(texto):
+    assert ler(texto).cortesia == "agradecimento"
+
+
+@pytest.mark.parametrize(
     ("texto", "ultima"),
     [
         ("quero saber pq minha ultima transacao foi recusada", True),
