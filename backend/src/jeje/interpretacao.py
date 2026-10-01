@@ -77,23 +77,24 @@ def _casa(termo: str, limpo: str) -> bool:
     return _regex(_padrao(termo)).search(limpo) is not None
 
 
+PALAVRAS_ENTRE = 3
+
+
 @dataclass(frozen=True)
 class Perto:
-    """Termo composto: um termo de cada grupo, em qualquer ordem, separados por no máximo
-    `PALAVRAS_ENTRE` palavras."""
+    """Termo composto: um termo de cada grupo, em qualquer ordem, separados por no máximo `entre`
+    palavras."""
 
     um: tuple[str, ...]
     outro: tuple[str, ...]
-
-
-PALAVRAS_ENTRE = 3
+    entre: int = PALAVRAS_ENTRE
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
     """O termo que casou na mensagem (no composto, o par, unido por `+`) ou None."""
     if isinstance(termo, str):
         return termo if _casa(termo, limpo) else None
-    entre = rf"(?: [a-z0-9]+){{0,{PALAVRAS_ENTRE}}} "
+    entre = rf"(?: [a-z0-9]+){{0,{termo.entre}}} "
     for a, b in product(termo.um, termo.outro):
         x, y = _padrao(a), _padrao(b)
         if _regex(f"{x}{entre}{y}|{y}{entre}{x}").search(limpo):
@@ -131,6 +132,16 @@ PEDIDO_DE_CONTESTACAO = Perto(
     ("contestacion", "contestacao", "reclamo", "reclamacion", "reclamacao", "disputa", "objecion",
      "objecao", "impugnacion", "impugnacao"),
     ("compra", "cobro", "cobranca", "cargo", "transaccion", "transacao"),
+)  # fmt: skip
+# A transação negada como do cliente ("hay un cobro que no es mío", "essa compra não é minha") é não
+# reconhecer (ACH-120 ampliado, EV-147). A janela é maior porque o valor costuma vir no meio ("un
+# cobro de 30 dólares que no es mío"); sem a transação perto, "ese error no es mío" não decide nada.
+TRANSACAO_NEGADA = Perto(
+    ("no es mio", "no es mia", "no son mios", "no son mias", "nao e minha", "nao e meu",
+     "nao sao minhas", "nao sao meus"),
+    ("compra", "compras", "cobro", "cobros", "cobranca", "cobrancas", "cargo", "cargos",
+     "transaccion", "transacao"),
+    entre=5,
 )  # fmt: skip
 
 # Pergunta pelo pedido de revisão já registrado: o pedido (com possessivo ou palavra de andamento
@@ -214,7 +225,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
                    "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
-                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar", PEDIDO_DE_CONTESTACAO)),
+                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar", PEDIDO_DE_CONTESTACAO,
+                   TRANSACAO_NEGADA)),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
                    "negaram", "pendiente*", "pendente*", "revertid*", "estornad*", "estado",
