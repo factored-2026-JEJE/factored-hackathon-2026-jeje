@@ -11311,6 +11311,36 @@
       ]
     },
     {
+      "id": "M-QT-33",
+      "requisito": "R07",
+      "descricao": "A única do conjunto segue direto mesmo sem casar com todas as pistas (a transação ausente vira proposta de uma parecida; ACH-152)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "        if pista.ultima or consistente(candidatas[conjunto[0]], pista):",
+          "para": "        if True:"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_proposta_direta_so_quando_a_transacao_casa_com_todas_as_pistas"
+      ]
+    },
+    {
+      "id": "M-QT-34",
+      "requisito": "R07",
+      "descricao": "Consistência aceita a data a até 7 dias (a de 3 dias depois segue direto; ACH-152)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "if pista.data is not None and abs((candidata.transaction_date.date() - pista.data).days) > 1:",
+          "para": "if pista.data is not None and abs((candidata.transaction_date.date() - pista.data).days) > 7:"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_proposta_direta_so_quando_a_transacao_casa_com_todas_as_pistas"
+      ]
+    },
+    {
       "id": "M-CONV-109",
       "requisito": "R03",
       "descricao": "A conversa ignora a regra do valor exato contra a palavra solta (DEV-072)",

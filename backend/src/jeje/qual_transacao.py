@@ -89,6 +89,22 @@ def concorda(candidata: Candidata, pista: Pista) -> bool:
     return valor or (dias is not None and dias <= 7)
 
 
+def consistente(candidata: Candidata, pista: Pista) -> bool:
+    """A candidata casa com todas as pistas ditas: o valor compatível, a data a até 1 dia e o mesmo
+    comércio (ACH-152, regra R2 do QT-04). O conjunto conformal supõe que a descrita está entre as
+    candidatas; quando o cliente descreve uma que não existe, só a consistência de todas as pistas
+    separa a certa de uma parecida."""
+    if (
+        pista.valor is not None
+        and pista.valor > 0
+        and not compativel(pista.valor, candidata.amount)
+    ):
+        return False
+    if pista.data is not None and abs((candidata.transaction_date.date() - pista.data).days) > 1:
+        return False
+    return pista.comercio is None or candidata.merchant_name == pista.comercio
+
+
 def elegiveis(candidatas: Sequence[Candidata], pista: Pista) -> list[int]:
     return [i for i, c in enumerate(candidatas) if concorda(c, pista)]
 
@@ -224,7 +240,10 @@ def resolver(
         conjunto = [i for i, _ in ordem]  # sem garantia de uma só: as possíveis
     ids = tuple(candidatas[i].transaction_id for i in conjunto)
     if len(conjunto) == 1 and direta:
-        return Resolucao("unica", ids)
+        # Só segue direto a que casa com todas as pistas; senão, ela vira opção ("¿Es esta?").
+        if pista.ultima or consistente(candidatas[conjunto[0]], pista):
+            return Resolucao("unica", ids)
+        return Resolucao("varias", ids)
     if len(conjunto) <= OPCOES_NA_TELA:
         return Resolucao("varias", ids)
     pesos = np.zeros(len(candidatas))
