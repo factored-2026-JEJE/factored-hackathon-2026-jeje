@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import type { Transacao } from "./api/cliente";
 import { Atendimento } from "./Atendimento";
 
-const ANA = { customer_id: "CLI-C", nome: "Ana Souza" };
+const ANA = { customer_id: "CLI-C", nome: "Ana Souza", cartoes_bloqueaveis: 2, transacoes_recusadas: 3, pre_casos_recentes: 1 };
 const TRANSACOES: Transacao[] = [
   {
     transaction_id: "TRX-C1",
@@ -163,4 +163,11 @@ test("perguntar sobre esta manda à conversa em português as pistas da linha", 
   expect(await perguntarSobreALinha("Conversar em português")).toEqual([
     "O que aconteceu com a transação de 189.900,55 do dia 10/03/2025 na Almacenes Éxito?",
   ]);
+});
+
+test("cada persona mostra as dicas para escolher o caminho da demonstração", async () => {
+  servidor();
+  render(<Atendimento />);
+  const item = (await screen.findByRole("button", { name: "Entrar como Ana Souza" })).closest("li");
+  expect(item).toHaveTextContent("cartões para bloquear: 2 · recusas: 3 · pré-casos recentes: 1");
 });

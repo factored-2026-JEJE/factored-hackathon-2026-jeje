@@ -141,3 +141,7 @@ th, td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var
   font-size: 0.85rem;
   padding: 0.3rem 0.7rem;
 }
+/* Portão e guia dos jurados (PRD-009). */
+.acesso { max-width: 32rem; }
+.guia .passos { padding-left: 1.2rem; display: grid; gap: 0.6rem; }
+.guia h3 { margin: 0.2rem 0; font-size: 1rem; }

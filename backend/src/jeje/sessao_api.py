@@ -30,6 +30,17 @@ class Persona(BaseModel):
     nome: str
 
 
+class PersonaDaDemo(Persona):
+    """Persona da lista de acesso, com as dicas para escolher o caminho da demonstração (PRD-009):
+    contagens da base e do canal."""
+
+    cartoes_bloqueaveis: int = Field(description="Cartões ativos ainda sem bloqueio feito por aqui")
+    transacoes_recusadas: int = Field(description="Transações recusadas do cliente")
+    pre_casos_recentes: int = Field(
+        description="Pré-casos dentro da janela da reincidência (POL-HUM-06)"
+    )
+
+
 # Formato dos identificadores da base (ex.: CLI-G4X2AMVD62NR). Rejeitar na borda evita que texto
 # arbitrário (inclusive NUL, que o PostgreSQL não aceita) chegue ao banco.
 ID_DA_BASE = r"^[A-Za-z0-9-]{1,64}$"
@@ -79,13 +90,12 @@ SessaoDep = Annotated[sessao.SessaoAtiva, Depends(sessao_da_requisicao)]
 
 
 @router.get("/personas", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)
-def listar_personas(engine: EngineDep) -> list[Persona]:
-    """Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado)."""
+def listar_personas(engine: EngineDep, config: ConfigDep) -> list[PersonaDaDemo]:
+    """Personas de demonstração (acesso de teste explícito, só com MODO_DEMO ligado), com as dicas
+    de cada caminho."""
     with engine.connect() as conexao:
-        linhas = conexao.execute(
-            text("SELECT customer_id, nome FROM app.personas ORDER BY ordem")
-        ).mappings()
-        return [Persona(**linha) for linha in linhas]
+        dicas = sessao.personas_com_dicas(conexao, config.reincidencia_dias)
+    return [PersonaDaDemo(**linha) for linha in dicas]
 
 
 @router.post(

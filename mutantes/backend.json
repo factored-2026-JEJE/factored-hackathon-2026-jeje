@@ -2177,9 +2177,9 @@
       "descricao": "Personas listadas fora da ordem provisionada",
       "trocas": [
         {
-          "arquivo": "src/jeje/sessao_api.py",
-          "de": "text(\"SELECT customer_id, nome FROM app.personas ORDER BY ordem\")",
-          "para": "text(\"SELECT customer_id, nome FROM app.personas ORDER BY customer_id DESC\")"
+          "arquivo": "src/jeje/sessao.py",
+          "de": "\" ORDER BY p.ordem\"",
+          "para": "\" ORDER BY p.customer_id DESC\""
         }
       ],
       "testes": [
@@ -8541,6 +8541,232 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_pedido_de_contestacao_com_substantivo_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ACS-01",
+      "requisito": "R08",
+      "descricao": "Sem o portão: com a senha configurada, tudo abre sem o cookie",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/api.py",
+          "de": "    app.middleware(\"http\")(acesso.portao)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_com_senha_toda_rota_exige_o_cookie_de_acesso"
+      ]
+    },
+    {
+      "id": "M-ACS-02",
+      "requisito": "R08",
+      "descricao": "O próprio acesso fica atrás do portão: ninguém consegue entrar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso.py",
+          "de": "LIVRES = frozenset({\"/health\", \"/health/ready\", \"/acesso\", \"/acesso/entrada\"})\n",
+          "para": "LIVRES = frozenset({\"/health\", \"/health/ready\"})\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_saude_e_o_proprio_acesso_respondem_sem_o_cookie",
+        "tests/test_acesso.py::test_senha_certa_libera_com_cookie_httponly_e_a_errada_nao"
+      ]
+    },
+    {
+      "id": "M-ACS-03",
+      "requisito": "R08",
+      "descricao": "A saúde fica atrás do portão (o healthcheck da publicação quebra)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso.py",
+          "de": "LIVRES = frozenset({\"/health\", \"/health/ready\", \"/acesso\", \"/acesso/entrada\"})\n",
+          "para": "LIVRES = frozenset({\"/acesso\", \"/acesso/entrada\"})\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_saude_e_o_proprio_acesso_respondem_sem_o_cookie"
+      ]
+    },
+    {
+      "id": "M-ACS-04",
+      "requisito": "R08",
+      "descricao": "Cookie vencido continua abrindo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso.py",
+          "de": "    if not expira.isdigit() or int(expira) <= agora:\n",
+          "para": "    if not expira.isdigit():\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_cookie_vencido_adulterado_ou_de_outra_senha_nao_libera"
+      ]
+    },
+    {
+      "id": "M-ACS-05",
+      "requisito": "R08",
+      "descricao": "Cookie adulterado abre (a assinatura não é conferida)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso.py",
+          "de": "    return hmac.compare_digest(assinatura, esperada)\n",
+          "para": "    return True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_cookie_vencido_adulterado_ou_de_outra_senha_nao_libera"
+      ]
+    },
+    {
+      "id": "M-ACS-06",
+      "requisito": "R08",
+      "descricao": "A chave do cookie não sai da senha: trocar a senha não fecha os cookies antigos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso.py",
+          "de": "    return hashlib.sha256(b\"jeje-acesso\\x00\" + senha.encode()).digest()\n",
+          "para": "    return b\"chave-fixa-de-todo-mundo-00000000\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_cookie_vencido_adulterado_ou_de_outra_senha_nao_libera"
+      ]
+    },
+    {
+      "id": "M-ACS-07",
+      "requisito": "R08",
+      "descricao": "Qualquer senha entra",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso.py",
+          "de": "    return hmac.compare_digest(\n        hashlib.sha256(enviada.encode()).digest(), hashlib.sha256(senha.encode()).digest()\n    )\n",
+          "para": "    return True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_senha_certa_libera_com_cookie_httponly_e_a_errada_nao"
+      ]
+    },
+    {
+      "id": "M-ACS-08",
+      "requisito": "R08",
+      "descricao": "O cookie de acesso fica legível pelo JavaScript da página",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso_api.py",
+          "de": "        httponly=True,\n",
+          "para": "        httponly=False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_senha_certa_libera_com_cookie_httponly_e_a_errada_nao"
+      ]
+    },
+    {
+      "id": "M-ACS-09",
+      "requisito": "R08",
+      "descricao": "Na publicação, o cookie de acesso também vai por HTTP",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso_api.py",
+          "de": "        secure=config.acesso_cookie_seguro,\n",
+          "para": "        secure=False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_na_publicacao_o_cookie_e_seguro"
+      ]
+    },
+    {
+      "id": "M-ACS-10",
+      "requisito": "R08",
+      "descricao": "A publicação sobe sem senha (o portão obrigatório fica aberto)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/config.py",
+          "de": "        if self.acesso_obrigatorio and not senha:\n            raise ValueError(\"ACESSO_OBRIGATORIO exige ACESSO_SENHA\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_publicacao_sem_senha_ou_com_senha_fraca_nao_sobe"
+      ]
+    },
+    {
+      "id": "M-ACS-11",
+      "requisito": "R08",
+      "descricao": "Senha curta serve",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/config.py",
+          "de": "        if senha and len(senha) < MINIMO_DA_SENHA:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_publicacao_sem_senha_ou_com_senha_fraca_nao_sobe"
+      ]
+    },
+    {
+      "id": "M-ACS-12",
+      "requisito": "R08",
+      "descricao": "Sem senha configurada, o portão fecha mesmo assim",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/acesso.py",
+          "de": "    return not senha or valido(request.cookies.get(COOKIE), senha, time.time())\n",
+          "para": "    return valido(request.cookies.get(COOKIE), senha, time.time())\n"
+        }
+      ],
+      "testes": [
+        "tests/test_acesso.py::test_sem_senha_o_portao_fica_desligado"
+      ]
+    },
+    {
+      "id": "M-SES-13",
+      "requisito": "R02",
+      "descricao": "As dicas contam como bloqueável o cartão já bloqueado por aqui",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "                \"  AND NOT EXISTS (SELECT 1 FROM app.bloqueios b WHERE b.customer_id =\"\n                \"   pr.customer_id AND b.product_id = pr.product_id AND b.desfeito_em IS NULL)\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_personas_trazem_dicas_para_escolher_o_caminho_da_demo"
+      ]
+    },
+    {
+      "id": "M-SES-14",
+      "requisito": "R02",
+      "descricao": "As dicas contam toda transação como recusada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "                \"  AND t.transaction_status = 'Declined' GROUP BY t.customer_id),\"\n",
+          "para": "                \"  GROUP BY t.customer_id),\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_personas_trazem_dicas_para_escolher_o_caminho_da_demo"
+      ]
+    },
+    {
+      "id": "M-SES-15",
+      "requisito": "R02",
+      "descricao": "As dicas contam pré-casos fora da janela da reincidência",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "                \"  AND c.criado_em >= now() - make_interval(days => :dias) GROUP BY c.customer_id)\"\n",
+          "para": "                \"  GROUP BY c.customer_id)\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_personas_trazem_dicas_para_escolher_o_caminho_da_demo"
       ]
     }
   ]

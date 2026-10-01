@@ -8,6 +8,8 @@ from fastapi import Depends, FastAPI
 
 from jeje import (
     __version__,
+    acesso,
+    acesso_api,
     atendimento_api,
     conversa_api,
     health,
@@ -69,8 +71,11 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(metricas_api.router)
     app.include_router(atendimento_api.router)
     app.include_router(reviews_api.router)
+    app.include_router(acesso_api.router)
     for erro in INDISPONIVEL:
         app.add_exception_handler(erro, banco_indisponivel)
     app.add_exception_handler(recarga.Recarregando, recarga.em_recarga)
+    # O portão de acesso (PRD-009) fica dentro do log: a recusa também sai com o id da requisição.
+    app.middleware("http")(acesso.portao)
     app.middleware("http")(logs.por_requisicao)
     return app

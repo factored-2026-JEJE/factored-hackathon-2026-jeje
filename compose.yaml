@@ -67,6 +67,13 @@ x-app-env: &app-env
   GITHUB_TOKEN: ${GITHUB_TOKEN:-}
   # Logs da aplicação: DEBUG mostra também as sondas de saúde; INFO é o normal.
   LOG_LEVEL: INFO
+  # Acesso dos jurados (PRD-009): o portão de senha fica desligado aqui (senha vazia). A publicação
+  # o liga e o torna obrigatório (compose.publicacao.yaml, SENHA_DOS_JURADOS no .env); a demo pode
+  # ligá-lo (compose.demo.yaml, SENHA_DA_DEMO no .env). O cookie vale 7 dias.
+  ACESSO_SENHA: ""
+  ACESSO_OBRIGATORIO: "false"
+  ACESSO_VALIDADE_HORAS: "168"
+  ACESSO_COOKIE_SEGURO: "false"
 
 # Testes do backend: imagem com dependências de desenvolvimento, banco efêmero db-test.
 x-backend-test: &backend-test

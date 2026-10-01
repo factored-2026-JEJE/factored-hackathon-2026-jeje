@@ -444,6 +444,21 @@
       "testes": [
         "bloqueio.spec.ts > relato de roubo: o cliente desfaz o bloqueio em até 7 dias pela conversa, e o caso do atendente fica sabendo"
       ]
+    },
+    {
+      "id": "M-E2E-28",
+      "requisito": "R08",
+      "descricao": "O guia dos jurados fica sem aba e sem endereço",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/App.tsx",
+          "de": "  [\"how-to-test\", \"How to test\"],\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "guia.spec.ts > o guia dos jurados abre pelo endereço e leva à aba do cliente"
+      ]
     }
   ]
 }

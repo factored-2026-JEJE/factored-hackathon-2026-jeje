@@ -42,3 +42,11 @@ test("o endereço escolhe a aba ao abrir, e a aba escondida continua montada", a
   // O acesso (e a conversa, depois de entrar) não é desmontado ao trocar de aba.
   expect(await screen.findByRole("button", { name: "Entrar como Ana Souza", hidden: true })).not.toBeVisible();
 });
+
+test("o guia dos jurados tem aba e endereço próprios (#how-to-test)", async () => {
+  window.history.replaceState(null, "", "/#how-to-test");
+  render(<App />);
+  expect(await screen.findByRole("tab", { name: "How to test" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("heading", { name: "How to test this demo" })).toBeVisible();
+  expect(document.getElementById("painel-cliente")).not.toBeVisible();
+});
