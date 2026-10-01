@@ -4563,8 +4563,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "if len(p) >= 4 and p not in COMUNS | CANAIS]",
-          "para": "if len(p) >= 4 and p not in CANAIS]"
+          "de": "        comuns = COMUNS | PALAVRAS_COMUNS_DO_NOME\n",
+          "para": "        comuns = PALAVRAS_COMUNS_DO_NOME\n"
         }
       ],
       "testes": [
@@ -4578,8 +4578,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            citados.add(nome)\n    return citados.pop() if len(citados) == 1 else None",
-          "para": "            citados.add(nome)\n    return citados.pop() if citados else None"
+          "de": "    if len(citados) != 1:\n        return None, None\n    return next(iter(citados.items()))\n",
+          "para": "    if not citados:\n        return None, None\n    return next(iter(citados.items()))\n"
         }
       ],
       "testes": [
@@ -11002,7 +11002,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    direta = not exatas and (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
+          "de": "    direta = (\n        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None\n    )\n",
           "para": "    direta = True\n"
         }
       ],
@@ -11163,12 +11163,12 @@
     {
       "id": "M-ITP-130",
       "requisito": "R02",
-      "descricao": "O canal (\"por internet\", \"llamada telefónica\") volta a citar o comércio (ACH-150)",
+      "descricao": "As palavras comuns do nome (\"por internet\", \"Buen día\", \"soy José\") voltam a citar o comércio (ACH-150)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "p not in COMUNS | CANAIS]",
-          "para": "p not in COMUNS]"
+          "de": "        comuns = COMUNS | PALAVRAS_COMUNS_DO_NOME\n",
+          "para": "        comuns = COMUNS\n"
         }
       ],
       "testes": [
@@ -11178,50 +11178,20 @@
     {
       "id": "M-ITP-131",
       "requisito": "R02",
-      "descricao": "A palavra do dia a dia (\"soy José\", \"Buen día\") cita o comércio sem o lugar antes (ACH-150)",
+      "descricao": "O nome inteiro sai como palavra solta (e perderia para o valor exato)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    if palavra in DO_DIA_A_DIA:\n        return _regex(LUGAR + _padrao(palavra)).search(limpo) is not None\n",
-          "para": ""
+          "de": "            citados[nome] = \"nome\"\n",
+          "para": "            citados[nome] = \"palavra\"\n"
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
+        "tests/test_interpretacao.py::test_comercio_citado_diz_se_veio_do_nome_inteiro_ou_de_uma_palavra"
       ]
     },
     {
       "id": "M-ITP-132",
-      "requisito": "R02",
-      "descricao": "\"En\" deixa de marcar o lugar (\"compré en Don José\" não cita)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "(?:en|na|no|em|al|ao)",
-          "para": "(?:na|no|em|al|ao)"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
-      ]
-    },
-    {
-      "id": "M-ITP-133",
-      "requisito": "R02",
-      "descricao": "O lugar só vale colado na palavra (\"en Don José\" não cita)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "LUGAR = r\"(?<![a-z0-9])(?:en|na|no|em|al|ao)(?: [a-z0-9]+){0,2} \"",
-          "para": "LUGAR = r\"(?<![a-z0-9])(?:en|na|no|em|al|ao) \""
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_comercio_citado_entre_os_do_cliente"
-      ]
-    },
-    {
-      "id": "M-ITP-134",
       "requisito": "R02",
       "descricao": "O telefone volta a ser o ramo da Empresa Telefónica (\"me llamaron por teléfono\" cita)",
       "trocas": [
@@ -11238,31 +11208,46 @@
     {
       "id": "M-QT-29",
       "requisito": "R03",
-      "descricao": "O valor exato de outro comércio não impede seguir direto (DEV-072)",
+      "descricao": "A palavra solta vence o valor exato de outro comércio (DEV-072)",
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    direta = not exatas and (",
-          "para": "    direta = ("
+          "de": "    return None if outro else comercio\n",
+          "para": "    return comercio\n"
         }
       ],
       "testes": [
-        "tests/test_qual_transacao.py::test_valor_exato_de_outro_comercio_nao_deixa_seguir_direto"
+        "tests/test_qual_transacao.py::test_palavra_solta_nao_vence_o_valor_exato_de_outro_comercio"
       ]
     },
     {
       "id": "M-QT-30",
       "requisito": "R03",
-      "descricao": "A de outro comércio com o valor exato não vira opção (DEV-072)",
+      "descricao": "O nome inteiro também perde para o valor exato de outro comércio",
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "    aceitas = sorted({*aceitas, *exatas})\n",
-          "para": ""
+          "de": "    if como != \"palavra\" or valor is None:\n",
+          "para": "    if valor is None:\n"
         }
       ],
       "testes": [
-        "tests/test_qual_transacao.py::test_valor_exato_de_outro_comercio_nao_deixa_seguir_direto"
+        "tests/test_qual_transacao.py::test_palavra_solta_nao_vence_o_valor_exato_de_outro_comercio"
+      ]
+    },
+    {
+      "id": "M-CONV-109",
+      "requisito": "R03",
+      "descricao": "A conversa ignora a regra do valor exato contra a palavra solta (DEV-072)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        return qual_transacao.comercio_que_vale(\n            comercio, como, self.lida.valor, self._candidatas(None)\n        )\n",
+          "para": "        return comercio\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_palavra_solta_nao_vence_o_valor_exato_de_outra_transacao"
       ]
     }
   ]
