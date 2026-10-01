@@ -297,9 +297,9 @@ ACEITES_DA_OFERTA = ("pasame", "comunicame", "adelante", "pode passar", "pode se
 
 
 def _aceita_oferta(limpo: str) -> bool:
-    """A mensagem inteira aceita (um sim, estrito ou largo, e cortesia), sem nenhuma negação."""
+    """A mensagem inteira aceita (um sim, estrito ou largo, e cortesia): qualquer outra palavra,
+    como uma negação ou uma pergunta, deixa a oferta sem aceite."""
     vocabulario = [(p, "sim") for p in (*AFIRMATIVAS, *ACEITES_DA_OFERTA)]
-    vocabulario += [(p, "nao") for p in NEGATIVAS]
     vocabulario += [(p, "cortesia") for p in CORTESIA if p not in ACEITES_DA_OFERTA]
     achados = _so_vocabulario(limpo, vocabulario)
     return achados is not None and achados - {"cortesia"} == {"sim"}
