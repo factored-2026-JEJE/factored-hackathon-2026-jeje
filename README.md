@@ -176,7 +176,12 @@ a documentação e o contrato; só a saúde e o próprio acesso abrem. Quem entr
    (`make e2e-pelo-portao`), sobe a stack `jeje-pub` (dados reais, sem portas no host, imagens com a
    tag do commit, tudo volta sozinho depois de um reinício) e confere o endereço público
    (`scripts/conferir-publicacao.sh`): sem acesso, 401; senha errada, 401; a certa, cookie seguro.
-3. **Tirar do ar:** `make publicacao-down` (o banco fica).
+3. **Voltar a um commit anterior:** `make voltar COMMIT=<sha>`, com um commit já publicado nesta
+   máquina (as imagens dele ficam com a tag do commit). As imagens antigas não conhecem as
+   migrations novas, e o migrate delas falharia; então a imagem de agora desce o banco até a
+   migration do commit antigo (`alembic downgrade`), e só depois as imagens dele sobem. No fim, a
+   mesma conferência do endereço público (ACH-116).
+4. **Tirar do ar:** `make publicacao-down` (o banco fica).
 
 ## Recarga dos dados
 
