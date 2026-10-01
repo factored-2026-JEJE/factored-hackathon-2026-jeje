@@ -6377,7 +6377,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela.\n            self.estado, self.contexto = self._etapa_resumida()\n",
+          "de": "            self.estado, self.contexto = self._etapa_resumida()\n",
           "para": "            pass\n"
         }
       ],
