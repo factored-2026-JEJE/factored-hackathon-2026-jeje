@@ -12,6 +12,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from functools import lru_cache
 from itertools import product
 from typing import Literal
 
@@ -61,8 +62,16 @@ def _padrao(termo: str) -> str:
     return rf"(?<![a-z0-9]){re.escape(termo)}(?![a-z0-9])"
 
 
+@lru_cache(maxsize=4096)
+def _regex(padrao: str) -> re.Pattern[str]:
+    """Cada expressão é compilada uma vez por processo. Uma mensagem passa por mais termos do que o
+    cache do `re` guarda (512), e recompilar tudo custava ~100 ms por mensagem (ACH-107). O limite
+    cobre os termos fixos com folga; os nomes de comércio, que variam, giram no fim da fila."""
+    return re.compile(padrao)
+
+
 def _casa(termo: str, limpo: str) -> bool:
-    return re.search(_padrao(termo), limpo) is not None
+    return _regex(_padrao(termo)).search(limpo) is not None
 
 
 @dataclass(frozen=True)
@@ -84,7 +93,7 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
     entre = rf"(?: [a-z0-9]+){{0,{PALAVRAS_ENTRE}}} "
     for a, b in product(termo.um, termo.outro):
         x, y = _padrao(a), _padrao(b)
-        if re.search(f"{x}{entre}{y}|{y}{entre}{x}", limpo):
+        if _regex(f"{x}{entre}{y}|{y}{entre}{x}").search(limpo):
             return f"{a}+{b}"
     return None
 
@@ -450,7 +459,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         if intencao == "humano" and RECUSA_DE_HUMANO.search(limpo):
             continue
         if intencao in NEGACOES and "bloque" not in limpo:
-            continue  # sem o verbo, nem testa os termos compostos, que são caros (ACH-107)
+            continue  # sem o verbo, os pares não casam: pular poupa ~20% da leitura (ACH-107)
         if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):
             continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
