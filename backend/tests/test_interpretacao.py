@@ -791,6 +791,20 @@ def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor
 @pytest.mark.parametrize(
     ("texto", "valor"),
     [
+        ("No reconozco el cobro de 1 000 dólares", Decimal("1000.00")),
+        ("Não reconheço a cobrança de 100 000 pesos", Decimal("100000.00")),
+        ("No reconozco el cobro de 3 400 000 pesos", Decimal("3400000.00")),
+        ("No reconozco el cobro de 25 000 pesos", Decimal("25000.00")),
+    ],
+)
+def test_valor_com_milhar_separado_por_espaco(texto, valor):
+    """ACH-155: o grupo de milhar depois do espaço ("1 000") não é um código com zero à esquerda."""
+    assert ler(texto).valor == valor
+
+
+@pytest.mark.parametrize(
+    ("texto", "valor"),
+    [
         # REG-05 (ACH-129): o número com cara de dinheiro, não o primeiro número da frase.
         ("En mi tarjeta terminada en 6604 hay un cargo de 45,90 dólares que no reconozco",
          Decimal("45.90")),
