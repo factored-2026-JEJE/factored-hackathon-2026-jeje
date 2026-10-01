@@ -17,6 +17,7 @@ from jeje.qual_transacao import (
     ATRIBUTOS,
     Calibracao,
     atributos,
+    campo_que_mais_divide,
     concorda,
     limiar,
     probabilidades,
@@ -130,6 +131,22 @@ def test_com_mais_de_tres_possiveis_pergunta_pelo_campo_que_mais_divide():
     ]
     assert resolver_es(cinco_dias, Pista(Decimal("46"))).campo == "data"
     assert resolver_es(cinco_dias, Pista(Decimal("46"), data=date(2025, 3, 12))).campo == "comercio"
+
+
+def test_pergunta_pelo_campo_que_mais_divide_as_candidatas():
+    mesmo_valor = [
+        STREAMING,
+        Candidata("T4", Decimal("45.90"), datetime(2025, 3, 12), "Uber"),
+        Candidata("T5", Decimal("45.90"), datetime(2025, 3, 12), "Uber"),
+    ]
+    pesos = np.array([1 / 3] * 3)
+    # O valor não divide nada; data e comércio dividem igual, e a data vem primeiro.
+    assert campo_que_mais_divide(mesmo_valor, pesos, [0, 1, 2]) == "data"
+    # Só o comércio divide: a mesma data e o mesmo valor, comércios diferentes.
+    mesmo_dia = [STREAMING, Candidata("T6", Decimal("45.90"), datetime(2025, 3, 10), "Uber")]
+    assert campo_que_mais_divide(mesmo_dia, np.array([0.5, 0.5]), [0, 1]) == "comercio"
+    # Nada divide: nenhuma pergunta.
+    assert campo_que_mais_divide([STREAMING, STREAMING], np.array([0.5, 0.5]), [0, 1]) is None
 
 
 @pytest.mark.parametrize("idioma", ["es", "pt"])
