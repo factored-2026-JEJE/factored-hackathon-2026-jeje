@@ -1379,13 +1379,24 @@
             "type": "string",
             "format": "date-time",
             "title": "Loaded At"
+          },
+          "recusada": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VersaoRecusada"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
         "required": [
           "version",
           "source",
-          "loaded_at"
+          "loaded_at",
+          "recusada"
         ],
         "title": "DatasetInfo"
       },
@@ -2900,6 +2911,31 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VersaoRecusada": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "motivo": {
+            "type": "string",
+            "title": "Motivo"
+          },
+          "em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "motivo",
+          "em"
+        ],
+        "title": "VersaoRecusada",
+        "description": "A versão nova que a carga recusou com esta valendo (ACH-112)."
       },
       "jeje__conversa_api__Mensagem": {
         "properties": {

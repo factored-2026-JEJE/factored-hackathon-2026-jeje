@@ -20,10 +20,19 @@ class Liveness(BaseModel):
     version: str
 
 
+class VersaoRecusada(BaseModel):
+    """A versão nova que a carga recusou com esta valendo (ACH-112)."""
+
+    version: str
+    motivo: str
+    em: datetime
+
+
 class DatasetInfo(BaseModel):
     version: str
     source: str
     loaded_at: datetime
+    recusada: VersaoRecusada | None
 
 
 class Readiness(BaseModel):
@@ -44,7 +53,14 @@ def readiness(response: Response, engine: EngineDep) -> Readiness:
     try:
         with engine.connect() as conexao:
             linha = conexao.execute(
-                select(DatasetVersion.version, DatasetVersion.source, DatasetVersion.loaded_at)
+                select(
+                    DatasetVersion.version,
+                    DatasetVersion.source,
+                    DatasetVersion.loaded_at,
+                    DatasetVersion.recusada_versao,
+                    DatasetVersion.recusada_motivo,
+                    DatasetVersion.recusada_em,
+                )
             ).first()
     except ProgrammingError:
         response.status_code = 503
@@ -59,4 +75,14 @@ def readiness(response: Response, engine: EngineDep) -> Readiness:
     if linha is None:
         response.status_code = 503
         return Readiness(status="unavailable", database="ok", dataset=None)
-    return Readiness(status="ready", database="ok", dataset=DatasetInfo(**linha._mapping))
+    recusada = (
+        None
+        if linha.recusada_versao is None
+        else VersaoRecusada(
+            version=linha.recusada_versao, motivo=linha.recusada_motivo, em=linha.recusada_em
+        )
+    )
+    dataset = DatasetInfo(
+        version=linha.version, source=linha.source, loaded_at=linha.loaded_at, recusada=recusada
+    )
+    return Readiness(status="ready", database="ok", dataset=dataset)
