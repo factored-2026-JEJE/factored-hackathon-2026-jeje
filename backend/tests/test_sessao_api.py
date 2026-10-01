@@ -63,6 +63,38 @@ def test_personas_trazem_dicas_para_escolher_o_caminho_da_demo(cartoes):
     assert dicas == {"CLI-A": (1, 1, 0), "CLI-B": (1, 2, 1), "CLI-C": (0, 0, 0)}
 
 
+def test_personas_trazem_as_contestaveis_e_um_exemplo_que_acha_so_ela(cartoes):
+    """DEV-073 (ACH-151 da validação): o guia manda digitar o valor e a data de uma transação da
+    própria persona. Contestável é o que a política propõe sem atendente (aprovada, na janela e
+    dentro do limite); o exemplo é a mais recente com valor e dia que nenhuma outra repete."""
+    with conexao(cartoes) as con:
+        # CLI-A: as duas mais recentes repetem valor e dia; a seguinte é o exemplo.
+        for tid, quando in (("TRX-A1", "2025-03-14 10:00:00"), ("TRX-A2", "2025-03-14 18:00:00")):
+            raw_transacao(con, tid, "CLI-A", "CRT-A1", amount="20.00", transaction_date=quando)
+        raw_transacao(con, "TRX-A3", "CLI-A", "CRT-A1", amount="45.90")
+        # Fora: acima do limite simulado e recusada (a recusada é a mais recente da base).
+        raw_transacao(
+            con, "TRX-A4", "CLI-A", "CRT-A1", amount="9000.00",
+            transaction_date="2025-03-15 10:00:00",
+        )  # fmt: skip
+        raw_transacao(
+            con, "TRX-A5", "CLI-A", "CRT-A1", amount="12.00", transaction_status="Declined",
+            transaction_date="2025-03-16 10:00:00",
+        )  # fmt: skip
+        # CLI-B: só uma, fora da janela de contestação.
+        raw_transacao(con, "TRX-B1", "CLI-B", "CRT-B1", transaction_date="2024-09-01 10:00:00")
+    curar_tudo(cartoes)
+    with conexao(cartoes) as con:
+        sessao.provisionar_personas(con, 3)
+    with cliente(cartoes) as http:
+        dicas = {
+            p["customer_id"]: (p["contestaveis"], p["exemplo"])
+            for p in http.get("/personas").json()
+        }
+    assert dicas["CLI-A"] == (3, {"valor": "45.90", "moeda": "USD", "data": "2025-03-10"})
+    assert dicas["CLI-B"] == (0, None)
+
+
 def test_sessao_identifica_o_cliente_e_lista_so_as_transacoes_dele(api):
     cabecalho = entrar(api, "CLI-C")
     assert api.get("/sessao", headers=cabecalho).json() == {
