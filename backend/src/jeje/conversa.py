@@ -25,6 +25,7 @@ começou.
 
 import json
 import secrets
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -33,7 +34,7 @@ from typing import Literal
 
 from sqlalchemy import Connection, text
 
-from jeje import bloqueio, consultas, eventos, handoff, politica, pre_caso
+from jeje import bloqueio, consultas, eventos, handoff, politica, pre_caso, qual_transacao
 from jeje.interpretacao import (
     Interpretacao,
     cartao_citado,
@@ -196,6 +197,7 @@ class _Turno:
         dispositivo: str,
         janela_desbloqueio_dias: int,
         inicio: float,
+        calibracao: qual_transacao.Calibracao | None = None,
     ) -> None:
         self.conexao, self.customer_id = conexao, customer_id
         self.conversa_id, self.numero = conversa_id, numero
@@ -205,6 +207,8 @@ class _Turno:
         # Bloqueio de cartão (PRD-007): o dispositivo vem da sessão, nunca da mensagem.
         self.dispositivo, self.janela_desbloqueio_dias = dispositivo, janela_desbloqueio_dias
         self.inicio = inicio
+        # "Qual transação" (DEV-037): com a calibração, ranking e conjunto; sem, o filtro exato.
+        self.calibracao = calibracao
         self.acoes: list[handoff.Acao] = [handoff.Acao(**a) for a in contexto.get("acoes", [])]
         self.fontes: dict[str, None] = {}  # de onde vieram os fatos e onde houve escrita (trace)
 
@@ -437,19 +441,44 @@ class _Turno:
         if resolucao.tipo == "nenhuma" and not novo_assunto and pista != (atual := self._pista()):
             # A soma não casa nada (uma pista de antes estava errada): vale a mensagem de agora.
             pista, resolucao = atual, self._resolucao(status, atual)
+        if resolucao.tipo == "nenhuma":
+            resolucao = self._pelo_ranking(status, pista)
         if resolucao.tipo == "unica":
             return self._agir(intencao, resolucao.transacoes[0])
-        return self._perguntar(intencao, resolucao.transacoes, pista)
+        return self._perguntar(intencao, resolucao.transacoes, pista, resolucao.campo)
 
     def _pista(self) -> politica.Pista:
         return politica.Pista(self.lida.valor, self.lida.data, self._comercio, self.lida.ultima)
 
     def _resolucao(self, status: str | None, pista: politica.Pista) -> politica.Resolucao:
-        resolucao = politica.resolver_transacao(self._candidatas(status), pista, MAXIMO_OPCOES)
+        return self._com_ou_sem_status(status, pista, politica.resolver_transacao)
+
+    def _pelo_ranking(self, status: str | None, pista: politica.Pista) -> politica.Resolucao:
+        """O filtro exato não achou nenhuma: com a calibração, as que mais se aproximam das pistas,
+        no conjunto conformal (DEV-037). Sem a calibração (RESOLVEDOR_DE_TRANSACAO=filtro) ou sem
+        pista, continua nenhuma, e a conversa pede dados."""
+        if self.calibracao is None or not qual_transacao.tem_pista(pista):
+            return politica.Resolucao("nenhuma", ())
+        calibracao, idioma, hoje = self.calibracao, self.idioma, self._hoje
+
+        def pelo_conjunto(
+            candidatas: list[politica.Candidata], pista: politica.Pista, maximo: int
+        ) -> politica.Resolucao:
+            return qual_transacao.resolver(candidatas, pista, calibracao, idioma, hoje, maximo)
+
+        return self._com_ou_sem_status(status, pista, pelo_conjunto)
+
+    def _com_ou_sem_status(
+        self,
+        status: str | None,
+        pista: politica.Pista,
+        resolver: Callable[[list[politica.Candidata], politica.Pista, int], politica.Resolucao],
+    ) -> politica.Resolucao:
+        resolucao = resolver(self._candidatas(status), pista, MAXIMO_OPCOES)
         if resolucao.tipo == "nenhuma" and status is not None and pista != politica.Pista():
             # O status citado é pista, não filtro: "¿por qué rechazaron la de Boutique Moda?"
             # sobre uma aprovada acha a aprovada, e a resposta diz o status verdadeiro.
-            resolucao = politica.resolver_transacao(self._candidatas(None), pista, MAXIMO_OPCOES)
+            resolucao = resolver(self._candidatas(None), pista, MAXIMO_OPCOES)
         return resolucao
 
     def _perguntar(
@@ -457,14 +486,18 @@ class _Turno:
         intencao: str,
         opcoes_ids: tuple[str, ...] | None,
         pista: politica.Pista | None = None,
+        campo: str | None = None,
     ) -> Saida:
         """Pergunta qual transação (ou pede dados, se nenhuma casou); `None` repete as opções já
-        apresentadas. Passado o limite de esclarecimentos, diz o que entendeu e oferece o
-        atendente (POL-HUM-03); o "não" volta a esta pergunta."""
+        apresentadas. Com muitas possíveis, pergunta pelo `campo` que mais as divide, sem lista: a
+        resposta soma às pistas (DEV-037). Passado o limite de esclarecimentos, diz o que entendeu
+        e oferece o atendente (POL-HUM-03); o "não" volta a esta pergunta."""
         feitos = self.contexto.get("esclarecimentos", 0)
         decisao = politica.decidir_esclarecimento(feitos)
         if opcoes_ids is None:
             opcoes_ids = tuple(self.contexto.get("opcoes", ()))
+        if campo is not None:
+            opcoes_ids = ()  # a pergunta é pelo campo; as possíveis não são mostradas
         opcoes = tuple(
             Opcao(n, tid, descrever(self._verificada(tid), self.idioma))
             for n, tid in enumerate(opcoes_ids, start=1)
@@ -485,6 +518,9 @@ class _Turno:
             resumo = texto("RESUMO-TRANSACAO", self.idioma, pedido=pedido)
             textos = (resumo, texto("OFERTA-ATENDENTE", self.idioma))
             return self._oferecer(textos, decisao.regra, "esclarecendo", contexto)
+        if campo is not None:
+            pergunta = texto(f"CON-PERGUNTA-{campo}", self.idioma)
+            return Saida("POL-CON-02", "esclarecer", (pergunta,), "esclarecendo", contexto)
         if not opcoes:
             pedido_de_dados = texto("CON-NENHUMA", self.idioma)
             return Saida("POL-CON-02", "esclarecer", (pedido_de_dados,), "esclarecendo", contexto)
@@ -1197,6 +1233,7 @@ def turno(
     inicio: float,
     dispositivo: str,
     janela_desbloqueio_dias: int,
+    calibracao: qual_transacao.Calibracao | None = None,
 ) -> ResultadoDoTurno:
     """Processa uma mensagem já lida do cliente da sessão na conversa dele e grava o turno e o
     evento. O interpretador só leu a mensagem; o que fazer é sempre a política que decide.
@@ -1219,6 +1256,7 @@ def turno(
         dispositivo,
         janela_desbloqueio_dias,
         inicio,
+        calibracao,
     )
     saida = atual.executar()
     resultado = ResultadoDoTurno(

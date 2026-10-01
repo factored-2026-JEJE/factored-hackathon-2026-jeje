@@ -748,6 +748,47 @@ def test_aceite_comum_encaminha_tambem_nas_ofertas_que_guardam_a_etapa(cenario, 
     assert pre_casos(cenario) == []
 
 
+# ---- Qual transação pelo ranking (DEV-037) ------------------------------------------------------
+
+
+def test_pista_aproximada_acha_a_transacao_pelo_ranking(cenario):
+    """O valor dito de cabeça: o filtro exato não achava nada e pedia dados; o ranking acha a
+    Streaming Plus de 45,90 e propõe, com a confirmação de sempre antes do pré-caso."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        proposta = dizer(http, auth, conversa, "No reconozco el cobro de unos 46 en Streaming Plus")
+    assert (proposta["acao"], proposta["transaction_id"]) == ("propor_pre_caso", "TRX-A1")
+    assert pre_casos(cenario) == []
+
+
+def test_muitas_possiveis_viram_pergunta_pelo_campo_que_o_cliente_nao_disse(cenario):
+    """Nenhuma transação em 13/03, e as sete da semana podem ser: em vez de pedir tudo de novo, a
+    pergunta pelo campo que mais as divide, fora a data, que o cliente já disse. A resposta soma
+    às pistas e acha a transação."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        pergunta = dizer(http, auth, conversa, "No reconozco el cobro del 13/03")
+        achada = dizer(http, auth, conversa, "fue en Uber")
+    assert (pergunta["acao"], pergunta["estado"], pergunta["opcoes"]) == (
+        "esclarecer", "esclarecendo", []
+    )  # fmt: skip
+    assert pergunta["resposta"] == "Encontré varias transacciones posibles. ¿En qué comercio fue?"
+    assert achada["transaction_id"] == "TRX-A3"
+
+
+def test_com_o_filtro_exato_a_pista_aproximada_pede_dados(cenario):
+    """RESOLVEDOR_DE_TRANSACAO=filtro: o comportamento de antes, para comparar e voltar."""
+    com_filtro = cenario.model_copy(update={"resolvedor_de_transacao": "filtro"})
+    with cliente(com_filtro) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        resposta = dizer(http, auth, conversa, "No reconozco el cobro de unos 46 en Streaming Plus")
+    assert (resposta["acao"], resposta["estado"]) == ("esclarecer", "esclarecendo")
+    assert resposta["resposta"].startswith("No encontré esa transacción en tu cuenta.")
+
+
 # ---- O que não pode acontecer -----------------------------------------------------------------
 
 

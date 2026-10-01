@@ -1,0 +1,96 @@
+{
+  "versao": "764ce683d347",
+  "alfa": 0.05,
+  "pesos": {
+    "valor_perto": 0.649762,
+    "valor_igual": 0.214843,
+    "data_dentro": 1.131512,
+    "data_distancia": 1.101184,
+    "comercio": 1.089046,
+    "recencia": 0.696719
+  },
+  "limiares": {
+    "es": 0.043951,
+    "pt": 0.043951
+  },
+  "casos": {
+    "treino": 4940,
+    "calibracao": 2502,
+    "teste": 4930
+  },
+  "clientes": 6000,
+  "teste": {
+    "es": {
+      "historico": {
+        "casos": 2251,
+        "com_ranking": {
+          "direto_certo": 0.9636,
+          "direto_errado": 0.0,
+          "botoes": 0.0271,
+          "pergunta": 0.0089,
+          "nenhuma": 0.0004
+        },
+        "filtro_exato": {
+          "direto_certo": 0.5797,
+          "direto_errado": 0.0,
+          "botoes": 0.0213,
+          "pergunta": 0.0,
+          "nenhuma": 0.3989
+        }
+      },
+      "denso": {
+        "casos": 214,
+        "com_ranking": {
+          "direto_certo": 0.8271,
+          "direto_errado": 0.0,
+          "botoes": 0.0841,
+          "pergunta": 0.0888,
+          "nenhuma": 0.0
+        },
+        "filtro_exato": {
+          "direto_certo": 0.528,
+          "direto_errado": 0.0,
+          "botoes": 0.0794,
+          "pergunta": 0.0,
+          "nenhuma": 0.3925
+        }
+      }
+    },
+    "pt": {
+      "historico": {
+        "casos": 2251,
+        "com_ranking": {
+          "direto_certo": 0.9636,
+          "direto_errado": 0.0,
+          "botoes": 0.0271,
+          "pergunta": 0.0089,
+          "nenhuma": 0.0004
+        },
+        "filtro_exato": {
+          "direto_certo": 0.5797,
+          "direto_errado": 0.0,
+          "botoes": 0.0213,
+          "pergunta": 0.0,
+          "nenhuma": 0.3989
+        }
+      },
+      "denso": {
+        "casos": 214,
+        "com_ranking": {
+          "direto_certo": 0.8224,
+          "direto_errado": 0.0,
+          "botoes": 0.0888,
+          "pergunta": 0.0888,
+          "nenhuma": 0.0
+        },
+        "filtro_exato": {
+          "direto_certo": 0.5234,
+          "direto_errado": 0.0,
+          "botoes": 0.0841,
+          "pergunta": 0.0,
+          "nenhuma": 0.3925
+        }
+      }
+    }
+  }
+}

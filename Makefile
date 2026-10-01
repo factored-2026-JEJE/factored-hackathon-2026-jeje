@@ -8,7 +8,7 @@ TESTE := docker compose -p $(PROJETO_TESTE) --profile test
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
-	metricas exportar-reviews avaliar-leitor contrato contrato-explorar testar-modelo check gate repro \
+	metricas exportar-reviews avaliar-leitor calibrar-transacao contrato contrato-explorar testar-modelo check gate repro \
 	e2e-pelo-portao publicar publicacao-down limpar demo-limpar
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
@@ -104,6 +104,11 @@ metricas: ## Métricas do atendimento recomputadas dos eventos da stack em execu
 avaliar-leitor: ## Leitura por mensagem no teste do BANKING77 es/pt: regras, e5 e TF-IDF (sem banco); fora do gate
 	docker compose build migrate
 	docker compose run --rm --no-deps api python -m jeje.avaliacao_leitor
+
+calibrar-transacao: ## "Qual transação" (DEV-037): recalibra o ranking com a base da stack no ar (make up) e grava backend/src/jeje/qual_transacao.json, só com agregados
+	docker compose build migrate
+	docker compose run --rm --no-deps --user "$$(id -u):$$(id -g)" -v "$$PWD/backend/src/jeje:/saida" \
+		api python -m jeje.calibrar_qual_transacao /saida/qual_transacao.json
 
 testar-modelo: build ## Integração real com o Ollama pela ponte (precisa de make up); fora do gate
 	@$(call rodar_teste,test pytest -q -p no:cacheprovider -m ollama tests/test_modelo_real.py)
