@@ -190,7 +190,11 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackearon", "hackearam", "invadiram", "asalt*", "assalt*", PERDA_DE_MEIO,
                 "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
                 "alguem usou meu cartao",
-                "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo")),
+                "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo",
+                # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
+                # a leitura continua a de hoje.
+                "es fraudulent*", "e fraudulent*", "son fraudulent*", "sao fraudulent*",
+                "fue fraudulent*", "foi fraudulent*")),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO,)),
     ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,

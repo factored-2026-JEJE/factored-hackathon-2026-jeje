@@ -541,3 +541,17 @@ def test_ler_uma_mensagem_custa_poucos_milissegundos():
             interpretar(frase, "es", REFERENCIA)
             tempos.append((time.perf_counter() - inicio) * 1000)
     assert statistics.median(tempos) <= 10
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "Essa transação é fraudulenta",
+        "A compra de 19,99 na Uber é fraudulenta",
+        "Esta transacción es fraudulenta",
+        "La compra de 30 dólares en Farmacia Salud es fraudulenta",
+    ],
+)
+def test_dizer_que_a_compra_e_fraudulenta_e_relato_de_fraude(texto):
+    """ACH-121 (DEV-020r): o adjetivo também relata fraude, que vai ao atendente (POL-HUM-01)."""
+    assert ler(texto).intencao == "fraude"

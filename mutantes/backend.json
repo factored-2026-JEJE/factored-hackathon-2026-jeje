@@ -8933,6 +8933,21 @@
       "testes": [
         "tests/test_limpeza.py::test_limpar_de_novo_nao_apaga_nada_e_as_referencias_nao_se_repetem"
       ]
+    },
+    {
+      "id": "M-ITP-58",
+      "requisito": "R02",
+      "descricao": "\"A compra é fraudulenta\" volta a ser consulta (ACH-121)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"es fraudulent*\", \"e fraudulent*\", \"son fraudulent*\", \"sao fraudulent*\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_dizer_que_a_compra_e_fraudulenta_e_relato_de_fraude"
+      ]
     }
   ]
 }
