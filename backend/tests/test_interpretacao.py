@@ -640,6 +640,61 @@ def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor
 
 
 @pytest.mark.parametrize(
+    ("texto", "valor"),
+    [
+        # REG-05 (ACH-129): o número com cara de dinheiro, não o primeiro número da frase.
+        ("En mi tarjeta terminada en 6604 hay un cargo de 45,90 dólares que no reconozco",
+         Decimal("45.90")),
+        ("A las 3 de la tarde me cobraron 50 dólares y no lo reconozco", Decimal("50.00")),
+        ("El día 15 me cobraron 45,90 USD y no lo reconozco", Decimal("45.90")),
+        ("No cartão final 6604 tem uma cobrança de 45,90 dólares que não reconheço",
+         Decimal("45.90")),
+        ("Às 3 da tarde me cobraram 50 reais e não reconheço", Decimal("50.00")),
+        ("No dia 15 me cobraram 45,90 USD e não reconheço", Decimal("45.90")),
+        ("a las 10:30 me cobraron 20 dólares", Decimal("20.00")),
+        ("às 15h me cobraram 20 reais", Decimal("20.00")),
+        # REG-04 (ACH-127): o tempo antes ou depois do valor não é valor.
+        ("Hace 3 días me cobraron 45 dólares que no reconozco", Decimal("45.00")),
+        ("No reconozco el cargo de 45 dólares de hace 2 días", Decimal("45.00")),
+        ("Faz 2 semanas que me cobraram 45 reais e não reconheço", Decimal("45.00")),
+        ("Não reconheço a cobrança de 45 reais de 2 dias atrás", Decimal("45.00")),
+        # Sem dinheiro na frase, nenhum desses números é valor.
+        ("tarjeta terminada en 6604", None),
+        ("Faz 4 dias que uma compra está pendente", None),
+        ("el día 15", None),
+        ("llamé al 018000", None),
+        ("lo pagué en 3 cuotas", None),
+        ("mi cuenta 123456 tiene un cobro de 45,90", Decimal("45.90")),
+        # Com dois números, vale o marcado como dinheiro.
+        ("me devolvieron 2 compras de 45,90 dólares", Decimal("45.90")),
+        ("fue a las 10:30", None),
+        ("lo vi a las 3", None),
+        # A conta citada sem número não leva o valor junto (visto no BANKING77).
+        ("un retiro de mi cuenta por 500 libras que no hice", Decimal("500.00")),
+        # "N mil" é N vezes mil.
+        ("me cobraron 30 mil pesos", Decimal("30000.00")),
+    ],
+)  # fmt: skip
+def test_valor_e_o_numero_com_cara_de_dinheiro(texto, valor):
+    assert ler(texto).valor == valor
+
+
+@pytest.mark.parametrize(
+    ("texto", "data"),
+    [
+        # O dia do mês sem o mês: o mais recente até a referência (01/03/2026).
+        ("El día 15 me cobraron 45,90 USD", date(2026, 2, 15)),
+        ("No dia 1 me cobraram 20 reais", date(2026, 3, 1)),
+        # O mês abreviado.
+        ("la compra del 15 de mar", date(2025, 3, 15)),
+        ("a compra de 3 de fev", date(2026, 2, 3)),
+    ],
+)
+def test_dia_do_mes_e_mes_abreviado_viram_data(texto, data):
+    assert ler(texto).data == data
+
+
+@pytest.mark.parametrize(
     "texto",
     [
         "sí, pásame", "sí, por favor, comunícame", "sí, adelante", "bueno", "por favor", "obvio",
