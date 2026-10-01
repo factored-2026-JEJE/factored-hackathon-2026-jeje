@@ -121,6 +121,10 @@ def test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto():
     Com o valor marcado, a data, o comércio ou "a última", segue direto."""
     solto = resolver_es([STREAMING, UBER], Pista(Decimal("46")))
     assert (solto.tipo, solto.transacoes) == ("varias", ("T1",))
+    # O conjunto garante a de 45,90, mas o número solto não basta: as duas possíveis viram opção.
+    perto = Candidata("T9", Decimal("48.00"), datetime(2025, 3, 12), "Loja 9")
+    duas = resolver_es([STREAMING, perto], Pista(Decimal("46")))
+    assert (duas.tipo, duas.transacoes) == ("varias", ("T1", "T9"))
     for pista in (
         Pista(Decimal("46"), valor_marcado=True),
         Pista(Decimal("46"), data=date(2025, 3, 10)),
