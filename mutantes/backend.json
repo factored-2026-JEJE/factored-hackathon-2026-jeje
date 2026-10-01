@@ -10649,6 +10649,321 @@
       "testes": [
         "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
       ]
+    },
+    {
+      "id": "M-ITP-106",
+      "requisito": "R02",
+      "descricao": "Quem disse ser do banco ou um parente (\"dijo ser\", \"se passou por\") não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
+          "para": "                DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-107",
+      "requisito": "R02",
+      "descricao": "\"Disse que era meu sobrinho\" não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-108",
+      "requisito": "R02",
+      "descricao": "O suposto atendente e a falsa central não são golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, SENHA_ENTREGUE, SITE_FALSO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-109",
+      "requisito": "R02",
+      "descricao": "A senha ou o código entregue não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SITE_FALSO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-110",
+      "requisito": "R02",
+      "descricao": "O site ou o link falso não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-111",
+      "requisito": "R02",
+      "descricao": "Pedir dinheiro aos contatos em nome do cliente não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,\n",
+          "para": "                TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-112",
+      "requisito": "R02",
+      "descricao": "A transferência que o cliente não fez não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,\n",
+          "para": "                PEDIDO_DE_DINHEIRO, AUTOR_DESCONHECIDO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-113",
+      "requisito": "R02",
+      "descricao": "\"Não sei quem fez\" não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,\n",
+          "para": "                PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-114",
+      "requisito": "R02",
+      "descricao": "Phishing, estafador, golpista, timo e trapaça não são golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"phishing\", \"estafador*\", \"golpista*\", \"timo\", \"trapaca\", \"hackead*\", \"hackeou\",\n",
+          "para": "                \"hackead*\", \"hackeou\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-115",
+      "requisito": "R02",
+      "descricao": "A conta hackeada, o WhatsApp clonado e a usurpação não são golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"trapaca\", \"hackead*\", \"hackeou\",\n                \"hackeo\", \"clonou\", \"usurpacion\", ",
+          "para": "\"trapaca\",\n                "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-116",
+      "requisito": "R02",
+      "descricao": "\"Fui enganado\" não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"enganado\", \"enganada\", \"enganaram\",\n                \"me enganaron\", ",
+          "para": "\n                "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-117",
+      "requisito": "R02",
+      "descricao": "Os dados roubados não são relato de fraude (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"robados\", \"robadas\", \"roubados\", \"roubadas\", ",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-118",
+      "requisito": "R02",
+      "descricao": "O site errado não é golpe (ACH-142)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"site errado\",\n                \"sitio equivocado\", \"pagina errada\", \"pagina equivocada\", \"link errado\")),",
+          "para": "\n                )),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_engenharia_social_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-119",
+      "requisito": "R02",
+      "descricao": "\"Disse que era\" com quem ele disse ser até 3 palavras depois (\"o vendedor disse que era problema do banco\" vira golpe)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    QUEM_ELE_DISSE_SER,\n    entre=1,",
+          "para": "    QUEM_ELE_DISSE_SER,\n    entre=3,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_perto_do_golpe_nao_viram_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-120",
+      "requisito": "R02",
+      "descricao": "\"Entregue\" (o PT de entregar) conta como a senha entregue (\"o PIN é entregue\" vira golpe)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(\"passei\", \"dei\", \"deu\", \"di\", \"le di\", \"les di\", \"pase\", \"forneci\", \"fornecendo\", \"contei\",",
+          "para": "(\"passei\", \"dei\", \"deu\", \"di\", \"le di\", \"les di\", \"pase\", \"entregue\", \"forneci\", \"contei\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_perto_do_golpe_nao_viram_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-121",
+      "requisito": "R02",
+      "descricao": "\"Errado\" perto do site vira site falso (\"algo de errado com o seu site\" vira golpe)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"fraudulenta\", \"sospechoso\", \"suspeito\", \"falsificad*\"),",
+          "para": "\"fraudulenta\", \"sospechoso\", \"suspeito\", \"errado\", \"falsificad*\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_perto_do_golpe_nao_viram_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-122",
+      "requisito": "R02",
+      "descricao": "\"Engano\" (o erro, em PT) vira golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"enganado\", \"enganada\",",
+          "para": "\"engano\", \"enganado\", \"enganada\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_perto_do_golpe_nao_viram_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-123",
+      "requisito": "R02",
+      "descricao": "O movimento estranho hipotético vira golpe (\"no quiero problemas con movimientos extraños\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"no le pedi\"),",
+          "para": "     \"no le pedi\", \"extranos\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_perto_do_golpe_nao_viram_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-124",
+      "requisito": "R02",
+      "descricao": "A compra não feita vira golpe, não contestação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"movimentacao\", \"pix\"),",
+          "para": "     \"movimentacao\", \"pix\", \"compra\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_perto_do_golpe_nao_viram_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-125",
+      "requisito": "R05",
+      "descricao": "Os pares voltam a ser testados um a um em toda mensagem (~6 ms por mensagem com os termos do golpe)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if not _algum_par(termo).search(limpo):\n        return None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_ler_uma_mensagem_custa_poucos_milissegundos"
+      ]
+    },
+    {
+      "id": "M-ITP-126",
+      "requisito": "R02",
+      "descricao": "A expressão de todos os pares só aceita a ordem dos grupos (\"mi tarjeta, necesito que la bloquee\" deixa de casar)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "return re.compile(f\"(?:{um}){entre}(?:{outro})|(?:{outro}){entre}(?:{um})\")",
+          "para": "return re.compile(f\"(?:{um}){entre}(?:{outro})\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
+      ]
     }
   ]
 }
