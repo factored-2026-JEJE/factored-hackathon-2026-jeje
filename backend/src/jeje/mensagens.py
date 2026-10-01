@@ -204,10 +204,10 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "com os 4 últimos dígitos.",
     },
     "POL-BLQ-06-FRAUDE": {
-        "es": "Por seguridad, voy a bloquear la tarjeta afectada. ¿Cuál es?\n{opcoes}\nResponde "
-        "con el número de la opción o con los 4 últimos dígitos.",
-        "pt": "Por segurança, vou bloquear o cartão afetado. Qual é?\n{opcoes}\nResponda com o "
-        "número da opção ou com os 4 últimos dígitos.",
+        "es": "Mientras tanto, puedo bloquear ahora la tarjeta afectada. ¿Cuál es?\n{opcoes}\n"
+        "Responde con el número de la opción o con los 4 últimos dígitos.",
+        "pt": "Enquanto isso, posso bloquear agora o cartão afetado. Qual é?\n{opcoes}\n"
+        "Responda com o número da opção ou com os 4 últimos dígitos.",
     },
     # Mensagens de fluxo da conversa (G10): não decidem nada, só conduzem o próximo passo.
     "SAUDACAO": {

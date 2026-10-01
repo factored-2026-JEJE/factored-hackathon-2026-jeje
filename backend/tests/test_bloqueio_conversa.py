@@ -2,6 +2,8 @@
 pelo dispositivo da sessão (nunca pelo chat), com vários cartões pergunta qual, a fraude sempre
 chega ao atendente e o desbloqueio fica com ele — sempre conferindo o banco, não só a resposta."""
 
+import json
+
 import pytest
 from conftest import (
     abrir_conversa,
@@ -218,42 +220,153 @@ def test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha(cenario, disposi
     ]
 
 
+CARTAO_DE_A = {
+    "CRT-A1": ("tarjeta de crédito terminada en 9241", "cartão de crédito final 9241"),
+    "CRT-A2": ("tarjeta de débito terminada en 5678", "cartão de débito final 5678"),
+}
+
+
 @pytest.mark.parametrize(
-    ("resposta", "bloqueado"),
-    [("1", "CRT-A1"), ("no sé cuál fue", None), ("¿por qué rechazaron mi compra?", None)],
+    ("resposta", "dispositivo", "bloqueado", "tipo"),
+    [
+        ("1", "cadastrado", "CRT-A1", "completo"),
+        ("la de débito", "novo", "CRT-A2", "preventivo"),
+        ("no sé cuál fue", "cadastrado", None, None),
+        ("¿por qué rechazaron mi compra?", "cadastrado", None, None),
+    ],
 )
-def test_fraude_com_varios_cartoes_pergunta_qual_e_sempre_encaminha(cenario, resposta, bloqueado):
-    """A fraude nunca fica parada: com o cartão identificado, bloqueia e encaminha; sem ele,
-    encaminha sem bloquear e diz isso."""
+def test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois(
+    cenario, resposta, dispositivo, bloqueado, tipo
+):
+    """PRD-009: o caso vai ao atendente no relato, antes de saber o cartão. A resposta, uma vez
+    só, bloqueia o escolhido e anota no mesmo caso; sem cartão identificado, nada é bloqueado. Nos
+    dois, a conversa fica com o atendente e nenhum outro caso é aberto."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", dispositivo)
+        conversa = abrir_conversa(http, auth, "es")
+        pergunta = dizer(http, auth, conversa, "me clonaron una tarjeta")
+        [caso] = handoffs(cenario)
+        antes = bloqueios(cenario)
+        seguinte = dizer(http, auth, conversa, resposta)
+        reaberta = http.get(f"/conversas/{conversa}", headers=auth).json()
+    atendimento = pergunta["atendimento"]
+    assert (pergunta["regra"], pergunta["acao"], pergunta["estado"]) == (
+        "POL-HUM-01", "humano", "escolhendo_cartao"
+    )  # fmt: skip
+    assert (caso["id"], caso["regra"], caso["pedido"]) == (
+        atendimento, "POL-HUM-01", "me clonaron una tarjeta"
+    )  # fmt: skip
+    assert antes == []
+    assert pergunta["resposta"] == (
+        "Por seguridad, un agente va a atender este caso. Ya le paso el resumen.\n"
+        f"Referencia de la atención: {atendimento}.\n"
+        "Mientras tanto, puedo bloquear ahora la tarjeta afectada. ¿Cuál es?\n"
+        "1. tarjeta de crédito terminada en 9241\n2. tarjeta de débito terminada en 5678\n"
+        "Responde con el número de la opción o con los 4 últimos dígitos."
+    )
+    assert (seguinte["regra"], seguinte["estado"], seguinte["atendimento"]) == (
+        "POL-HUM-01", "com_humano", atendimento
+    )  # fmt: skip
+    lembrete = (
+        f"Tu caso ya está con un agente (referencia {atendimento}); la conversación sigue con"
+        " esa persona."
+    )
+    [registro] = handoffs(cenario)
+    if bloqueado is None:
+        assert (seguinte["acao"], seguinte["bloqueio"]) == ("aguardar_humano", None)
+        assert seguinte["resposta"] == (
+            f"No identifiqué cuál tarjeta, así que no bloqueé ninguna.\n{lembrete}"
+        )
+        assert bloqueios(cenario) == []
+        feito = "cartão não identificado na resposta; nada bloqueado"
+    else:
+        [novo] = bloqueios(cenario)
+        assert (novo["product_id"], novo["tipo"], novo["motivo"]) == (
+            bloqueado,
+            tipo,
+            "roubo_perda",
+        )
+        assert (seguinte["acao"], seguinte["bloqueio"], seguinte["efeito"]) == (
+            "bloquear_cartao", novo["id"], novo["id"]
+        )  # fmt: skip
+        dito, resumo = CARTAO_DE_A[bloqueado]
+        assert seguinte["resposta"] == (
+            f"Bloqueé tu {dito} (bloqueo {tipo} simulado, referencia {novo['id']}).\n{lembrete}"
+        )
+        feito = f"{novo['id']}: bloqueio {tipo} do {resumo}"
+    # O caso guarda o que já tinha (a leitura do relato) e ganha o que a resposta fez.
+    assert [a["acao"] for a in registro["acoes"]] == ["interpretar", "bloquear_cartao"]
+    assert registro["acoes"][-1] == {"acao": "bloquear_cartao", "resultado": feito}
+    assert reaberta["atendimento"] == atendimento
+    assert acoes_de_bloqueio(cenario) == []  # o bloqueio é o efeito do próprio turno
+
+
+@pytest.mark.parametrize("mensagem", ["quiero hablar con un agente", "me robaron otra tarjeta"])
+def test_na_escolha_do_cartao_da_fraude_nada_abre_outro_caso(cenario, mensagem):
+    """Com o caso já no atendente, qualquer mensagem é a resposta à pergunta do cartão, inclusive
+    um novo relato ou um pedido de atendente."""
     with cliente(cenario) as http:
         auth = entrar(http, "CLI-A", "cadastrado")
         conversa = abrir_conversa(http, auth, "es")
-        pergunta = dizer(http, auth, conversa, "me clonaron una tarjeta")
-        antes = handoffs(cenario)
-        seguinte = dizer(http, auth, conversa, resposta)
-    assert (pergunta["regra"], pergunta["estado"]) == ("POL-BLQ-06", "escolhendo_cartao")
-    assert pergunta["resposta"].startswith("Por seguridad, voy a bloquear la tarjeta afectada.")
-    assert antes == []
-    assert (seguinte["regra"], seguinte["acao"], seguinte["estado"]) == (
-        "POL-HUM-01", "humano", "com_humano"
-    )  # fmt: skip
+        atendimento = dizer(http, auth, conversa, "me clonaron una tarjeta")["atendimento"]
+        seguinte = dizer(http, auth, conversa, mensagem)
+    assert (seguinte["estado"], seguinte["atendimento"]) == ("com_humano", atendimento)
+    assert [h["id"] for h in handoffs(cenario)] == [atendimento]
+    assert bloqueios(cenario) == []
+
+
+def test_conversa_que_esperava_o_cartao_da_fraude_sem_caso_aberto_encaminha_na_resposta(cenario):
+    """Conversa parada na pergunta de antes do PRD-009, que perguntava antes de encaminhar: a
+    resposta abre o caso, com o que já tinha sido feito, e bloqueia o escolhido."""
+    legado = {
+        "cartoes": ["CRT-A1", "CRT-A2"],
+        "motivo": "roubo_perda",
+        "pedido": "me clonaron una tarjeta",
+        "perguntas": 1,
+        "acoes": [{"acao": "interpretar", "resultado": "POL-HUM-01: fraude"}],
+    }
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        with conexao(cenario) as con:
+            con.execute(
+                text(
+                    "UPDATE app.conversas SET estado = 'escolhendo_cartao',"
+                    " contexto = CAST(:contexto AS jsonb) WHERE id = :id"
+                ),
+                {"contexto": json.dumps(legado), "id": conversa},
+            )
+        turno = dizer(http, auth, conversa, "1")
     [registro] = handoffs(cenario)
-    assert registro["pedido"] == "me clonaron una tarjeta"
-    assert [b["product_id"] for b in bloqueios(cenario)] == ([bloqueado] if bloqueado else [])
-    if bloqueado is None:
-        assert seguinte["resposta"].startswith(
-            "No identifiqué cuál tarjeta, así que no bloqueé ninguna.\nPor seguridad, un agente"
-        )
-        assert {"acao": "bloquear_cartao",
-                "resultado": "cartão não identificado na resposta; nada bloqueado"
-                } in registro["acoes"]  # fmt: skip
+    [novo] = bloqueios(cenario)
+    assert (turno["estado"], turno["atendimento"], turno["bloqueio"]) == (
+        "com_humano", registro["id"], novo["id"]
+    )  # fmt: skip
+    assert (registro["regra"], registro["pedido"]) == ("POL-HUM-01", "me clonaron una tarjeta")
+    assert [a["acao"] for a in registro["acoes"]] == ["interpretar", "bloquear_cartao"]
+    assert novo["product_id"] == "CRT-A1"
+
+
+def test_caso_que_sumiu_antes_da_resposta_desfaz_o_turno_sem_bloquear(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "me clonaron una tarjeta")
+        with conexao(cenario) as con:
+            con.execute(text("DELETE FROM app.handoffs"))
+        resposta = http.post(f"/conversas/{conversa}/turnos", json={"texto": "1"}, headers=auth)
+    assert resposta.status_code == 503
+    assert "nada foi criado" in resposta.json()["detail"]
+    assert bloqueios(cenario) == []
 
 
 def test_fraude_sem_cartao_ativo_so_encaminha(cenario):
     with cliente(cenario) as http:
         auth = entrar(http, "CLI-C", "cadastrado")
         turno = dizer(http, auth, abrir_conversa(http, auth, "pt"), "roubaram meu cartão")
-    assert (turno["regra"], turno["acao"], turno["bloqueio"]) == ("POL-HUM-01", "humano", None)
+    assert (turno["regra"], turno["acao"], turno["estado"], turno["bloqueio"]) == (
+        "POL-HUM-01", "humano", "com_humano", None
+    )  # fmt: skip
     assert turno["resposta"].startswith("Por segurança, um atendente vai cuidar deste caso.")
     assert bloqueios(cenario) == []
 
