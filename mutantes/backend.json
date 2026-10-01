@@ -7076,7 +7076,7 @@
     {
       "id": "M-LLM-24",
       "requisito": "R02",
-      "descricao": "O aceite largo da oferta vai para o leitor, que o lê como fora de escopo (ACH-124 da validação)",
+      "descricao": "O aceite largo da oferta vai para o leitor, que o lê como fora de escopo (ACH-125 da validação)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
@@ -9736,7 +9736,7 @@
     {
       "id": "M-CONV-95",
       "requisito": "R03",
-      "descricao": "O aceite largo de uma oferta que guarda a etapa volta à etapa em vez de encaminhar (ACH-124 da validação)",
+      "descricao": "O aceite largo de uma oferta que guarda a etapa volta à etapa em vez de encaminhar (ACH-125 da validação)",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
