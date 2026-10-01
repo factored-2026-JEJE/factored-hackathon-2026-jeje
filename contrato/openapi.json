@@ -1024,6 +1024,9 @@
           "400": {
             "description": "Corpo ilegível (não é JSON UTF-8)"
           },
+          "403": {
+            "description": "Avaliador não é do time de teste"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2544,8 +2547,9 @@
           },
           "transaction_date": {
             "type": "string",
-            "format": "date-time",
-            "title": "Transaction Date"
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$",
+            "title": "Transaction Date",
+            "description": "Data e hora locais da transação, sem fuso (a base não informa o fuso)"
           },
           "amount": {
             "type": "string",

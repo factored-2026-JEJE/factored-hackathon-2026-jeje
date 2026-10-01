@@ -7,16 +7,30 @@ consulta (nenhum dado, erro ou tempo diferente revela a existência).
 
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Annotated
 
-from pydantic import BaseModel
+from pydantic import BaseModel, WithJsonSchema
 from sqlalchemy import Connection, text
 
 from jeje.politica import Candidata, Fatos
 
+# A base não informa o fuso: a data e a hora são as locais da transação e saem sem deslocamento.
+# O contrato declara isso, e não `date-time`, que promete o deslocamento (RFC 3339, ACH-113).
+DataHoraLocal = Annotated[
+    datetime,
+    WithJsonSchema(
+        {
+            "type": "string",
+            "pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$",
+            "description": "Data e hora locais da transação, sem fuso (a base não informa o fuso)",
+        }
+    ),
+]
+
 
 class Transacao(BaseModel):
     transaction_id: str
-    transaction_date: datetime
+    transaction_date: DataHoraLocal
     amount: Decimal
     currency: str
     transaction_status: str
