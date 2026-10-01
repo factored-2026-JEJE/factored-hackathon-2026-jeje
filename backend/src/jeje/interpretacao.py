@@ -91,11 +91,15 @@ class Perto:
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
-    """O termo que casou na mensagem (no composto, o par, unido por `+`) ou None."""
+    """O termo que casou na mensagem (no composto, o primeiro par na ordem dos grupos, unido por
+    `+`) ou None. Só se testam os pares com os dois termos na mensagem: testar todos custava uma
+    busca por par, centenas no relato de golpe (ACH-142)."""
     if isinstance(termo, str):
         return termo if _casa(termo, limpo) else None
     entre = rf"(?: [a-z0-9]+){{0,{termo.entre}}} "
-    for a, b in product(termo.um, termo.outro):
+    um = [a for a in termo.um if _casa(a, limpo)]
+    outro = [b for b in termo.outro if _casa(b, limpo)]
+    for a, b in product(um, outro):
         x, y = _padrao(a), _padrao(b)
         if _regex(f"{x}{entre}{y}|{y}{entre}{x}").search(limpo):
             return f"{a}+{b}"
@@ -202,6 +206,66 @@ CARTAO_ACHADO = Perto(
 DINHEIRO_TIRADO = Perto(
     ("robando", "roubando", "tirando"), ("plata", "dinero", "dinheiro", "cuenta", "conta")
 )
+# Golpe de engenharia social (ACH-142): alguém se passou pelo banco, por um funcionário ou por um
+# parente; o cliente entregou a senha, o código ou os dados; o site ou o link era falso; a conta, o
+# número ou o WhatsApp foram tomados; o dinheiro foi para um golpista.
+QUEM_ELE_DISSE_SER = (
+    "banco", "bancaria", "agencia", "oficina", "funcionario*", "empleado*", "suporte", "soporte",
+    "central", "gerente", "primo", "prima", "tio", "tia", "sobrinho", "sobrinha", "sobrino",
+    "sobrina", "hermano", "hermana", "irmao", "irma", "cunhado", "cunhada", "cunado", "familiar",
+    "filho", "filha", "hijo", "hija", "mae", "madre", "amigo", "amiga",
+)  # fmt: skip
+SE_PASSOU_POR = Perto(
+    ("dijo ser", "dijeron ser", "dice ser", "diciendo ser", "decia ser", "se decia", "dizendo ser",
+     "dizia ser", "disse ser", "alegando ser", "alegando serem", "se hizo pasar por",
+     "se fez passar por", "se passou por", "fingiu ser", "fingindo ser", "fingiendo ser"),
+    QUEM_ELE_DISSE_SER,
+    entre=2,
+)  # fmt: skip
+# "Disse que era" é comum fora do golpe ("o vendedor disse que era problema do banco"): só com
+# quem ele disse ser logo depois.
+DISSE_QUE_ERA = Perto(
+    ("dijo que era", "dijo era", "dijeron que era", "diciendo que era", "diciendo que eran",
+     "disse que era", "disseram que era", "dizendo que era", "dizendo que e", "acreditei que era",
+     "crei que era", "crei yo era", "achei que era", "pense que era"),
+    QUEM_ELE_DISSE_SER,
+    entre=1,
+)  # fmt: skip
+FALSO_ATENDENTE = Perto(
+    ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
+    ("vendedor", "corretor", "funcionario", "operador", "empleado", "ligacao", "llamada",
+     "central", "atendente", "asesor", "gerente"),
+    entre=1,
+)  # fmt: skip
+SENHA_ENTREGUE = Perto(
+    ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
+     "diera"),
+    ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
+    entre=2,
+)  # fmt: skip
+SITE_FALSO = Perto(
+    ("sitio", "sitios", "site", "sites", "pagina", "paginas", "enlace", "enlaces", "link",
+     "links", "web", "correo", "email"),
+    ("falso", "falsos", "falsa", "falsas", "malicioso", "maliciosa", "fraudulento",
+     "fraudulenta", "sospechoso", "suspeito", "falsificad*"),
+)  # fmt: skip
+TRANSFERENCIA_NAO_FEITA = Perto(
+    ("transferencia", "transferencias", "movimientos", "movimiento", "movimentacoes",
+     "movimentacao", "pix"),
+    ("que no hice", "que nao fiz", "que no realice", "no autorice", "nao autorizei",
+     "sin autorizar", "sem autorizacao", "sem minha autorizacao", "sin mi autorizacion",
+     "no le pedi"),
+    entre=5,
+)  # fmt: skip
+# O cliente não sabe quem fez ("não faço ideia de quem poderia ter feito isso").
+AUTOR_DESCONHECIDO = Perto(
+    ("nao sei quem", "no se quien", "nao faco ideia de quem", "no tengo idea de quien",
+     "sem saber quem", "sin saber quien"),
+    ("fez", "hizo", "feito", "hecho", "realizo", "realizou"),
+)  # fmt: skip
+PEDIDO_DE_DINHEIRO = Perto(
+    ("pidiendo", "pedindo", "pidio", "pediu"), ("dinero", "dinheiro", "plata"), entre=1
+)
 # Não querer falar com o robô é pedir uma pessoa (ACH-140). "Robô" sem acento é "robo", que em
 # espanhol é roubo: o relato de fraude vem antes e só casa "un robo" e "robo de".
 SEM_ROBO = Perto(("no quiero", "nao quero"), ("robot", "robo", "bot", "maquina"))
@@ -213,6 +277,21 @@ LIBERAR_DE_NOVO = Perto(
     ("liberar", "libera", "libere", "liberem", "liberen"),
     ("de novo", "novamente", "de nuevo", "otra vez"),
 )
+# O pedido de volta do cartão bloqueado (ACH-141), em qualquer ponto da mensagem: o verbo de
+# desbloqueio com o cartão ou o bloqueio que o cliente fez ("bloqueé mi tarjeta por error, ¿me la
+# pueden desbloquear?"); reativar, liberar e usar de novo com o bloqueio ("meu cartão está
+# bloqueado, quero liberar"). "Desbloquear mi PIN", "mi PIN está bloqueado" e "o cartão se
+# encerrou, como reativo?" não citam o cartão e o bloqueio do cliente: não casam.
+NA_MENSAGEM = 60
+BLOQUEIO_DO_CLIENTE = ("bloquee", "bloqueei", "acabo de bloquear", "acabei de bloquear")
+DESBLOQUEIO_DE_LONGE = Perto(("desbloque*",), CARTAO + BLOQUEIO_DO_CLIENTE, entre=NA_MENSAGEM)
+VOLTA_DO_BLOQUEADO = Perto(
+    ("reactiv*", "reativ*", "liberar", "libera", "libere", "liberen", "liberem", "liberarla",
+     "liberarlo", "liberala", "liberalo", "libero", "de nuevo", "de novo", "nuevamente",
+     "novamente", "otra vez", "outra vez"),
+    ("bloqueada", "bloqueado", "bloqueo", "bloqueio", *BLOQUEIO_DO_CLIENTE),
+    entre=NA_MENSAGEM,
+)  # fmt: skip
 # Negação do pedido na mesma oração: "no quiero bloquear mi tarjeta", "não bloqueie meu cartão" e
 # "no la bloqueen" não pedem; em "no, bloquéenla" a vírgula separa o "no" do pedido.
 NEGACAO = (
@@ -220,9 +299,14 @@ NEGACAO = (
     r"|hace falta|es necesario|e necessario|vayan a|van a|va a|vao|vai|pueden|podem|puede|pode"
     r"|me|te|la|lo|a|o|mi|meu|minha|el|os|as|las|los))* "
 )
+# O bloqueio que o cliente já fez ("ya bloqueé mi tarjeta", "la bloquee por error") conta o que
+# aconteceu e não pede outro (ACH-141). Só o texto com acento separa o passado "bloqueé" do pedido
+# "bloquee mi tarjeta"; sem acento, a partícula antes diz que é passado, menos depois de "que" ("que
+# me la bloquee" pede).
+BLOQUEIO_CONTADO = re.compile(r"\bbloqueé\b|(?<!que )(?<!que me )\b(?:ya|yo|la|lo|me|le) bloquee\b")
 NEGACOES = {
     "bloquear": re.compile(NEGACAO + "(?:bloque|congel|trav)"),
-    "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ)"),
+    "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ|liber)"),
 }
 
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
@@ -238,9 +322,19 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "es fraudulent*", "e fraudulent*", "son fraudulent*", "sao fraudulent*",
                 "fue fraudulent*", "foi fraudulent*",
                 # Golpe e dinheiro tirado da conta (ACH-140).
-                "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO)),
+                "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
+                # Golpe de engenharia social (ACH-142).
+                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,
+                PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
+                "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
+                "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
+                "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
+                "sitio equivocado", "pagina errada", "pagina equivocada", "link errado")),
+    # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
+    # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
+    ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
+                     VOLTA_DO_BLOQUEADO)),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
-    ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO)),
     ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
                 "persona real",
                 "pessoa de verdade", "hablar con alguien", "falar com alguem",
@@ -597,6 +691,8 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         if intencao in NEGACOES and not any(r in limpo for r in RADICAIS_DE_BLOQUEIO):
             continue  # sem o verbo, os pares não casam: pular poupa ~20% da leitura (ACH-107)
         if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):
+            continue
+        if intencao == "bloquear" and BLOQUEIO_CONTADO.search(texto.casefold()):
             continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
         if casados:
