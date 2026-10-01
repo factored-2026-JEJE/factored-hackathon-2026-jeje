@@ -21,6 +21,7 @@ from jeje.sessao_api import (
 router = APIRouter(dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)
 
 LIMITE_COMENTARIO = 2000
+FORA_DO_TIME = "Avaliador não é do time de teste"
 
 
 class PedidoDeReview(BaseModel):
@@ -44,7 +45,12 @@ def listar_testadores(config: ConfigDep) -> list[str]:
 @router.post(
     "/conversas/{conversa_id}/reviews",
     status_code=201,
-    responses={**RESPOSTAS_SESSAO, **CORPO_ILEGIVEL, 404: {"description": NAO_ENCONTRADA}},
+    responses={
+        **RESPOSTAS_SESSAO,
+        **CORPO_ILEGIVEL,
+        403: {"description": FORA_DO_TIME},
+        404: {"description": NAO_ENCONTRADA},
+    },
 )
 def avaliar_conversa(
     conversa_id: ConversaId,
@@ -55,7 +61,11 @@ def avaliar_conversa(
 ) -> ReviewRegistrada:
     """Grava a review (só do dono) e abre a Issue com repositório, token e a fixture carregada."""
     if pedido.avaliador not in reviews.testadores(config.testadores):
-        raise HTTPException(status_code=422, detail="Avaliador não é do time de teste")
+        # Original (Enzo):
+        # raise HTTPException(status_code=422, detail="Avaliador não é do time de teste")
+        # O 422 do contrato é o do corpo inválido, com o `detail` em lista; o avaliador fora do time
+        # é uma recusa, declarada (ACH-113, achado pelo Schemathesis da validação).
+        raise HTTPException(status_code=403, detail=FORA_DO_TIME)
     review = reviews.Review(**pedido.model_dump())
     with engine.begin() as conexao:
         try:

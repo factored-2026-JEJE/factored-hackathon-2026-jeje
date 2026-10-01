@@ -1067,7 +1067,7 @@ export interface components {
             transaction_id: string;
             /**
              * Transaction Date
-             * Format: date-time
+             * @description Data e hora locais da transação, sem fuso (a base não informa o fuso)
              */
             transaction_date: string;
             /** Amount */
@@ -2081,6 +2081,13 @@ export interface operations {
             };
             /** @description Sessão ausente, inválida ou expirada */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Avaliador não é do time de teste */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
