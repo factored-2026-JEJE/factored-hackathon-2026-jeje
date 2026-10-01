@@ -37,6 +37,9 @@ class Interpretacao:
     idioma: Idioma
     intencao: Intencao
     resposta: Resposta | None = None  # a mensagem inteira é um sim ou um não
+    # A mensagem inteira aceita a oferta do atendente, com o aceite largo do dia a dia ("sí,
+    # pásame", "pode passar", "beleza"). Vale só para a oferta: confirmar ação pede `resposta`.
+    aceita_oferta: bool = False
     escolha: int | None = None  # posição (1..9) numa lista de opções apresentada antes
     valor: Decimal | None = None
     data: date | None = None
@@ -286,6 +289,22 @@ def _so_vocabulario(limpo: str, vocabulario: list[tuple[str, str]]) -> set[str] 
     return achados
 
 
+# Aceites do dia a dia que só valem para a oferta do atendente (sem efeito financeiro, ACH-123): a
+# confirmação de pré-caso ou de desbloqueio continua pedindo o sim estrito de AFIRMATIVAS.
+ACEITES_DA_OFERTA = ("pasame", "comunicame", "adelante", "pode passar", "pode ser", "com certeza",
+                     "isso mesmo", "beleza", "uhum", "por favor", "obvio", "afirmativo", "sip",
+                     "va", "bueno", "quero", "simm")  # fmt: skip
+
+
+def _aceita_oferta(limpo: str) -> bool:
+    """A mensagem inteira aceita (um sim, estrito ou largo, e cortesia), sem nenhuma negação."""
+    vocabulario = [(p, "sim") for p in (*AFIRMATIVAS, *ACEITES_DA_OFERTA)]
+    vocabulario += [(p, "nao") for p in NEGATIVAS]
+    vocabulario += [(p, "cortesia") for p in CORTESIA if p not in ACEITES_DA_OFERTA]
+    achados = _so_vocabulario(limpo, vocabulario)
+    return achados is not None and achados - {"cortesia"} == {"sim"}
+
+
 def _resposta(limpo: str) -> Resposta | None:
     """Sim/não só quando a mensagem inteira é isso (cortesia à parte): "sí, pero no esa" ou
     "¿y si me rechazaron?" não confirmam nada."""
@@ -462,6 +481,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
     pistas = {
         "idioma": _idioma(texto, limpo, idioma_anterior),
         "resposta": _resposta(limpo),
+        "aceita_oferta": _aceita_oferta(limpo),
         "escolha": escolha,
         # "A 1" é escolha, nunca valor: sem lista pendente, não vira busca de uma transação de 1,00.
         "valor": None if escolha is not None else _valor(texto),
