@@ -6074,8 +6074,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/avaliacao_leitor.py",
-          "de": "            if entendida(regras):\n",
-          "para": "            if False:\n"
+          "de": "                if entendida(regras):\n",
+          "para": "                if False:\n"
         }
       ],
       "testes": [
@@ -6089,8 +6089,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/avaliacao_leitor.py",
-          "de": "                lido, decidiu = em_cascata(regras, lida, limite)\n",
-          "para": "                lido, decidiu = em_cascata(regras, lida, 0.8)\n"
+          "de": "                    lido, decidiu = em_cascata(regras, lidas[i], limite)\n",
+          "para": "                    lido, decidiu = em_cascata(regras, lidas[i], 0.8)\n"
         }
       ],
       "testes": [
@@ -6125,6 +6125,36 @@
       ],
       "testes": [
         "tests/test_avaliacao_leitor.py::test_cli_com_argumentos_demais_mostra_o_uso"
+      ]
+    },
+    {
+      "id": "M-LEITOR-40",
+      "requisito": "R06",
+      "descricao": "Avaliação põe o leitor e5 na coluna do portão TF-IDF",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/avaliacao_leitor.py",
+          "de": "leitores[\"tfidf\"] = [Leitura(fluxo, confianca) for fluxo, confianca in tfidf.fluxos(textos)]",
+          "para": "leitores[\"tfidf\"] = leitores[\"leitor\"]"
+        }
+      ],
+      "testes": [
+        "tests/test_avaliacao_leitor.py::test_com_o_portao_tfidf_entram_a_cascata_dele_e_cada_leitor_sozinho"
+      ]
+    },
+    {
+      "id": "M-LEITOR-41",
+      "requisito": "R06",
+      "descricao": "Leitor sozinho volta para as regras quando elas entendem",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/avaliacao_leitor.py",
+          "de": "sistemas[f\"{nome} sozinho\"] = (LEITURA_DO_FLUXO[lidas[i].fluxo][0], True)",
+          "para": "sistemas[f\"{nome} sozinho\"] = (regras.intencao, True)"
+        }
+      ],
+      "testes": [
+        "tests/test_avaliacao_leitor.py::test_com_o_portao_tfidf_entram_a_cascata_dele_e_cada_leitor_sozinho"
       ]
     },
     {
@@ -8541,6 +8571,292 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_pedido_de_contestacao_com_substantivo_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-08",
+      "requisito": "R04",
+      "descricao": "Treino pareia textos com rótulos de outros exemplos (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "[e.fluxo for e in exemplos])",
+          "para": "[e.fluxo for e in reversed(exemplos)])"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_classifica_mensagens_obvias_do_corpus_pequeno"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-09",
+      "requisito": "R04",
+      "descricao": "Probabilidades saem na ordem das classes, não da mais provável (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "                for i in ordem\n",
+          "para": "                for i in range(len(classes))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_previsao_traz_todos_os_fluxos_em_ordem_decrescente_somando_um"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-10",
+      "requisito": "R04",
+      "descricao": "Confiança reportada é a do fluxo menos provável (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "confianca=round(float(probs[ordem[0]]), 4),",
+          "para": "confianca=round(float(probs[ordem[-1]]), 4),"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_qualquer_texto_tem_fluxo_igual_ao_mais_provavel"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-11",
+      "requisito": "R04",
+      "descricao": "Sinais são os n-gramas de menor contribuição, fora da mensagem (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "principais = [i for i in np.argsort(contribuicao)[::-1][:sinais] if contribuicao[i] > 0]",
+          "para": "principais = list(np.argsort(contribuicao)[:sinais])"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_sinais_sao_trechos_da_propria_mensagem_que_favorecem_o_fluxo"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-12",
+      "requisito": "R04",
+      "descricao": "Carregar perde a versão gravada no artefato (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "return cls(conteudo[\"pipeline\"], Metadados(**conteudo[\"metadados\"]))",
+          "para": "return cls(conteudo[\"pipeline\"], Metadados(**{**conteudo[\"metadados\"], \"versao\": \"?\"}))"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_salvar_e_carregar_preservam_previsoes_e_versao"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-13",
+      "requisito": "R04",
+      "descricao": "Carregar aceita artefato de outro formato (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "if not isinstance(conteudo, dict) or set(conteudo) != {\"pipeline\", \"metadados\"}:",
+          "para": "if not isinstance(conteudo, dict):"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_carregar_recusa_artefato_ausente_ou_de_outro_formato"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-14",
+      "requisito": "R04",
+      "descricao": "Versão do modelo ignora as fontes do corpus (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "\"fontes\": [f.sha256 for f in (fontes or arquivos())],",
+          "para": "\"fontes\": [],"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_versao_muda_quando_uma_fonte_muda"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-15",
+      "requisito": "R04",
+      "descricao": "Métricas por idioma misturam todos os idiomas (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "grupo = [e for e in exemplos if e.idioma == idioma]",
+          "para": "grupo = list(exemplos)"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_avaliar_separa_metricas_por_idioma"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-16",
+      "requisito": "R04",
+      "descricao": "CLI sai com sucesso quando o corpus é inválido (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/__main__.py",
+          "de": "        print(f\"[intencao] ERRO: {erro}\", file=sys.stderr)\n        return 1",
+          "para": "        print(f\"[intencao] ERRO: {erro}\", file=sys.stderr)\n        return 0"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_cli_sem_argumentos_mostra_uso_e_erro_de_corpus_sai_com_1"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-17",
+      "requisito": "R04",
+      "descricao": "Rota classifica um texto fixo em vez da mensagem recebida (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao_api.py",
+          "de": "return classificador.classificar(mensagem.texto)",
+          "para": "return classificador.classificar(\"saldo\")"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_rota_classifica_recusa_em_espanhol_e_fraude_em_portugues"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-18",
+      "requisito": "R04",
+      "descricao": "Rota aceita mensagens de qualquer tamanho (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao_api.py",
+          "de": "max_length=1000",
+          "para": "max_length=100000"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_rota_recusa_texto_vazio_so_espacos_ou_longo_demais"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-19",
+      "requisito": "R04",
+      "descricao": "Previsão não informa a versão do modelo que respondeu (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "modelo=self.metadados.versao,",
+          "para": "modelo=\"desconhecida\","
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_rota_do_modelo_publica_a_versao_que_responde_as_previsoes"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-20",
+      "requisito": "R04",
+      "descricao": "Artefato ausente não é reconhecido como ausente (a rota daria 500, não 503) (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "        if not caminho.is_file():\n            raise ModeloInvalido",
+          "para": "        if False:\n            raise ModeloInvalido"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_carregar_recusa_artefato_ausente_ou_de_outro_formato",
+        "tests/test_intencao.py::test_sem_o_modelo_as_rotas_respondem_503_e_a_api_segue"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-21",
+      "requisito": "R04",
+      "descricao": "Contrato da rota de classificação omite o 400 de corpo que não é UTF-8 (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao_api.py",
+          "de": "        400: {\"model\": CorpoInvalido, \"description\": \"Corpo não é UTF-8 decodificável\"},\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_rota_responde_400_documentado_para_corpo_que_nao_e_utf8"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-22",
+      "requisito": "R04",
+      "descricao": "Limite de tamanho medido depois de tirar os espaços (diverge do contrato publicado) (de Enzo, portado da tag arquivo/intencao-classificador)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao_api.py",
+          "de": "StringConstraints(min_length=1, max_length=1000)",
+          "para": "StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_rota_recusa_texto_vazio_so_espacos_ou_longo_demais"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-23",
+      "requisito": "R04",
+      "descricao": "Lote reporta a confiança do fluxo menos provável",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "return [(classes[int(np.argmax(p))], float(np.max(p))) for p in probs]",
+          "para": "return [(classes[int(np.argmax(p))], float(np.min(p))) for p in probs]"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_fluxos_em_lote_dao_o_mesmo_que_um_a_um"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-24",
+      "requisito": "R04",
+      "descricao": "Sem o artefato, a rota cai com 500 em vez de 503 e a API não segue igual",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao_api.py",
+          "de": "            except ModeloInvalido as erro:\n",
+          "para": "            except FileNotFoundError as erro:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_sem_o_modelo_as_rotas_respondem_503_e_a_api_segue"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-25",
+      "requisito": "R04",
+      "descricao": "Com dois fluxos, o código original de Enzo volta (uma linha de pesos só)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "        if pesos.shape[0] == 1:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_com_dois_fluxos_os_sinais_saem_do_fluxo_escolhido"
+      ]
+    },
+    {
+      "id": "M-INTENCAO-26",
+      "requisito": "R04",
+      "descricao": "Com dois fluxos, os sinais do primeiro saem dos pesos do segundo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/intencao/modelo.py",
+          "de": "pesos = np.vstack([-pesos[0], pesos[0]])",
+          "para": "pesos = np.vstack([pesos[0], pesos[0]])"
+        }
+      ],
+      "testes": [
+        "tests/test_intencao.py::test_com_dois_fluxos_os_sinais_saem_do_fluxo_escolhido"
       ]
     },
     {

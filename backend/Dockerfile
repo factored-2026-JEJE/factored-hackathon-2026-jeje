@@ -29,12 +29,24 @@ RUN PYTHONPATH=src python -m jeje.leitor treinar /tmp/corpus /opt/modelos/e5 \
         /opt/modelos/leitor.joblib \
     && rm -rf /tmp/corpus
 
+# Portão de intenção de Enzo (TF-IDF, PRD-009): o mesmo corpus do leitor, sem o e5 (segundos).
+# Estágio próprio: mudar o leitor não retreina este, e mudar este não retreina o leitor.
+FROM dependencias AS intencao
+RUN uv sync --frozen --no-dev --group leitor --group modelo --no-install-project --no-cache
+COPY src/jeje/__init__.py ./src/jeje/
+COPY src/jeje/dados/__init__.py src/jeje/dados/manifesto.py ./src/jeje/dados/
+COPY src/jeje/leitor ./src/jeje/leitor
+COPY src/jeje/intencao ./src/jeje/intencao
+RUN PYTHONPATH=src python -m jeje.intencao treinar /tmp/corpus /opt/modelos/intencao.joblib \
+    && rm -rf /tmp/corpus
+
 # Execução: dependências de produção e o leitor treinado, usuário sem privilégio. O leitor só lê
 # arquivos locais conferidos: nada é baixado do Hugging Face em execução.
 FROM dependencias AS runtime
 ENV HF_HUB_OFFLINE=1 \
     HF_HOME=/tmp/huggingface
 COPY --from=modelo /opt/modelos /opt/modelos
+COPY --from=intencao /opt/modelos/intencao.joblib /opt/modelos/intencao.joblib
 COPY src ./src
 COPY alembic.ini ./
 COPY migrations ./migrations

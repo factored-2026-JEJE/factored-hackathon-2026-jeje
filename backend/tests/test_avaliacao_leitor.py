@@ -70,3 +70,29 @@ def test_tabela_mostra_cada_sistema_e_idioma_em_porcentagem():
 def test_cli_com_argumentos_demais_mostra_o_uso(capsys):
     assert main(["jeje.avaliacao_leitor", "a", "b"]) == 2
     assert "avaliar-leitor" in capsys.readouterr().err
+
+
+class TfidfFixo:
+    """O portão TF-IDF de Enzo com leituras fixas (texto → fluxo e confiança)."""
+
+    def __init__(self, lidas: dict[str, tuple[str, float]]):
+        self.lidas = lidas
+
+    def fluxos(self, textos):
+        return [self.lidas.get(t, ("fora_de_escopo", 0.5)) for t in textos]
+
+
+def test_com_o_portao_tfidf_entram_a_cascata_dele_e_cada_leitor_sozinho():
+    """PRD-009 e DEV-007: o componente aprendido contra a linha de base, no mesmo teste."""
+    exemplos = [
+        Exemplo("roubaram meu cartão", "relato_de_fraude", "pt"),  # as regras entendem
+        Exemplo(VAGA, "abrir_disputa", "pt"),
+    ]
+    e5 = ModeloFixo({"roubaram meu cartão": ("abrir_disputa", 0.99), VAGA: ("abrir_disputa", 0.85)})
+    tfidf = TfidfFixo(
+        {"roubaram meu cartão": ("relato_de_fraude", 0.9), VAGA: ("fora_de_escopo", 0.95)}
+    )
+    c = avaliar(exemplos, e5, None, limites=(0.8,), tfidf=tfidf)
+    assert c["leitor sozinho|pt"] == {"n": 2, "decidiu": 2, "certo": 1, "errado": 1}
+    assert c["tfidf 0.8|pt"] == {"n": 2, "decidiu": 1, "certo": 1, "errado": 1}
+    assert c["tfidf sozinho|pt"] == {"n": 2, "decidiu": 2, "certo": 1, "errado": 1}
