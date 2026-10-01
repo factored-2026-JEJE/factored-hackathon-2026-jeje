@@ -459,6 +459,36 @@
       "testes": [
         "guia.spec.ts > o guia dos jurados abre pelo endereço e leva à aba do cliente"
       ]
+    },
+    {
+      "id": "M-E2E-29",
+      "requisito": "R08",
+      "descricao": "Pedido que chegou em http é atendido em http (a senha dos jurados trafega sem TLS)",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\tredir @http https://{host}{uri} 308\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "seguranca.spec.ts > pedido que chegou em http volta em https, no mesmo endereço"
+      ]
+    },
+    {
+      "id": "M-E2E-30",
+      "requisito": "R08",
+      "descricao": "Resposta em https sem HSTS (o navegador volta a tentar http)",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\theader @https Strict-Transport-Security \"max-age=31536000\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "seguranca.spec.ts > HSTS só para quem chegou em https"
+      ]
     }
   ]
 }
