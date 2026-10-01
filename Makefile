@@ -8,7 +8,7 @@ TESTE := docker compose -p $(PROJETO_TESTE) --profile test
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
-	metricas exportar-reviews avaliar-leitor contrato contrato-explorar testar-modelo check gate
+	metricas exportar-reviews avaliar-leitor contrato contrato-explorar testar-modelo check gate repro
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -92,3 +92,9 @@ check: segredos lint test mutantes ## Tudo que não precisa da stack no ar
 
 # `e2e` sobe a stack com --wait: só roda com todos os serviços saudáveis (host precisa só de Docker).
 gate: check e2e mutantes-e2e ## Portão de uma meta: checks, jornadas e mutantes E2E
+
+# Reprodução do zero (o CI do projeto roda aqui, no build, sem GitHub; PRD-009).
+COMMIT ?= HEAD
+MODO ?= completo
+repro: ## Do zero: clone limpo do COMMIT, stack isolada com a fixture, segredos e todos os gates
+	scripts/repro.sh $(COMMIT) $(MODO)

@@ -195,6 +195,9 @@ services:
     build:
       context: ./frontend
       target: runtime
+      # O teste dos tipos gerados roda no build (CI no build) e precisa do contrato versionado.
+      additional_contexts:
+        contrato: ./contrato
     image: jeje-web:${JEJE_TAG:-local}
     environment:
       API_UPSTREAM: api:8000
