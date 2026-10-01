@@ -133,6 +133,7 @@ def enviar_mensagem(
                 inicio,
                 ativa.dispositivo,
                 config.janela_desbloqueio_dias,
+                request.app.state.calibracao,
             )
     except conversa.ConversaNaoEncontrada:
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADA) from None

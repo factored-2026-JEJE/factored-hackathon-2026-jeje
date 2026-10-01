@@ -19,6 +19,7 @@ from jeje import (
     metricas_api,
     parametros,
     pre_caso_api,
+    qual_transacao,
     qualidade_api,
     recarga,
     reviews_api,
@@ -63,6 +64,11 @@ def create_app(settings: Settings) -> FastAPI:
     # Toda transação da API respeita a recarga dos dados: durante ela, 503 na hora (DEV-020i).
     recarga.proteger(app.state.engine)
     app.state.interpretador = interpretacao_modelo.configurado(settings)
+    app.state.calibracao = (
+        qual_transacao.Calibracao.carregar(settings.qual_transacao_calibracao)
+        if settings.resolvedor_de_transacao == "ranking"
+        else None
+    )
     app.include_router(health.router)
     app.include_router(qualidade_api.router)
     app.include_router(sessao_api.router)

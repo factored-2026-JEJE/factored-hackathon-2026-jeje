@@ -72,6 +72,10 @@ class Settings(BaseSettings):
     # chamada das rotas /intencao; sem ele, as rotas respondem 503.
     intencao_modelo: Path
     leitor_limite: float = Field(gt=0, le=1)
+    # "Qual transação" (DEV-037): ranking com conjunto conformal, calibrado no arquivo versionado
+    # do pacote, ou o filtro exato de antes.
+    resolvedor_de_transacao: Literal["ranking", "filtro"]
+    qual_transacao_calibracao: Path
     # Servidor Ollama, modelo e tempo máximo por chamada (usados só com INTERPRETADOR=ollama).
     ollama_url: str
     ollama_modelo: str
