@@ -13,8 +13,8 @@ services:
       ACESSO_SENHA: ${SENHA_DOS_JURADOS:?defina SENHA_DOS_JURADOS no .env}
       ACESSO_OBRIGATORIO: "true"
       ACESSO_COOKIE_SEGURO: "true"
-      # Vários jurados ao mesmo tempo (EXP-008, numa stack local): com 4 processos, o leitor a 8
-      # clientes ficou com p95 de 767 ms, contra 2.065 ms com 1, sem erro (~3 GB de RAM a mais).
+      # Folga para vários jurados ao mesmo tempo (EXP-008, numa stack local, com o ACH-107 corrigido):
+      # o leitor a 8 clientes fica com p95 de 129 ms com 4 processos e 430 ms com 1 (~3 GB a mais).
       WEB_CONCURRENCY: "4"
   web:
     ports: !reset []
