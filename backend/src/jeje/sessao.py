@@ -13,6 +13,7 @@ from typing import Literal
 
 from sqlalchemy import Connection, text
 
+from jeje.bloqueio import CARTOES
 from jeje.models import DISPOSITIVOS
 
 
@@ -54,6 +55,40 @@ def provisionar_personas(conexao: Connection, quantidade: int) -> list[str]:
     return list(
         conexao.execute(text("SELECT customer_id FROM app.personas ORDER BY ordem")).scalars()
     )
+
+
+def personas_com_dicas(conexao: Connection, dias: int) -> list[dict]:
+    """As personas na ordem provisionada, com o que ajuda a escolher o caminho da demonstração
+    (PRD-009): cartões ativos ainda sem bloqueio feito por aqui (fraude com vários cartões),
+    transações recusadas (caminho ambíguo) e pré-casos nos últimos `dias`, os da reincidência
+    (POL-HUM-06). Uma consulta por tabela, só para os clientes que são persona."""
+    return [
+        dict(linha)
+        for linha in conexao.execute(
+            text(
+                "WITH p AS (SELECT customer_id, nome, ordem FROM app.personas),"
+                " cartoes AS (SELECT pr.customer_id, count(*) AS n FROM curated.products pr"
+                "  WHERE pr.customer_id IN (SELECT customer_id FROM p)"
+                "  AND pr.product_type = ANY(:cartoes) AND pr.product_status = 'Active'"
+                "  AND NOT EXISTS (SELECT 1 FROM app.bloqueios b WHERE b.customer_id ="
+                "   pr.customer_id AND b.product_id = pr.product_id AND b.desfeito_em IS NULL)"
+                "  GROUP BY pr.customer_id),"
+                " recusadas AS (SELECT t.customer_id, count(*) AS n FROM curated.transactions t"
+                "  WHERE t.customer_id IN (SELECT customer_id FROM p)"
+                "  AND t.transaction_status = 'Declined' GROUP BY t.customer_id),"
+                " recentes AS (SELECT c.customer_id, count(*) AS n FROM app.pre_casos c"
+                "  WHERE c.customer_id IN (SELECT customer_id FROM p)"
+                "  AND c.criado_em >= now() - make_interval(days => :dias) GROUP BY c.customer_id)"
+                " SELECT p.customer_id, p.nome, coalesce(cartoes.n, 0) AS cartoes_bloqueaveis,"
+                " coalesce(recusadas.n, 0) AS transacoes_recusadas,"
+                " coalesce(recentes.n, 0) AS pre_casos_recentes"
+                " FROM p LEFT JOIN cartoes USING (customer_id)"
+                " LEFT JOIN recusadas USING (customer_id) LEFT JOIN recentes USING (customer_id)"
+                " ORDER BY p.ordem"
+            ),
+            {"cartoes": list(CARTOES), "dias": dias},
+        ).mappings()
+    ]
 
 
 def hash_token(token: str) -> str:

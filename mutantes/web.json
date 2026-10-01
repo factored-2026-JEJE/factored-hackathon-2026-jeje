@@ -1419,6 +1419,96 @@
       "testes": [
         "src/BloqueiosDoAtendimento.test.tsx > mostra cada bloqueio ativo com o cartão só pelo tipo e pelo final, na ordem da API"
       ]
+    },
+    {
+      "id": "M-WEB-100",
+      "requisito": "R08",
+      "descricao": "Acesso vencido no meio do uso não volta para a senha",
+      "trocas": [
+        {
+          "arquivo": "src/Acesso.tsx",
+          "de": "    window.addEventListener(ACESSO_RESTRITO, fechar);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Acesso.test.tsx > acesso que vence no meio do uso volta para a senha"
+      ]
+    },
+    {
+      "id": "M-WEB-101",
+      "requisito": "R08",
+      "descricao": "Depois da senha, a demonstração não começa pelo guia",
+      "trocas": [
+        {
+          "arquivo": "src/Acesso.tsx",
+          "de": "        window.location.hash = \"#how-to-test\";\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Acesso.test.tsx > com senha, só a certa abre a demonstração, que começa pelo guia dos jurados"
+      ]
+    },
+    {
+      "id": "M-WEB-102",
+      "requisito": "R08",
+      "descricao": "A recusa do portão vira sessão expirada (a tela não pede a senha)",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "    if (corpo?.detail === \"acesso_restrito\") {\n",
+          "para": "    if (corpo === undefined) {\n"
+        }
+      ],
+      "testes": [
+        "src/Acesso.test.tsx > acesso que vence no meio do uso volta para a senha"
+      ]
+    },
+    {
+      "id": "M-WEB-103",
+      "requisito": "R08",
+      "descricao": "O guia dos jurados perde o caminho humano",
+      "trocas": [
+        {
+          "arquivo": "src/ComoTestar.tsx",
+          "de": "          <h3>Human path</h3>\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/ComoTestar.test.tsx > o guia mostra os três caminhos em espanhol e português e leva a cada aba"
+      ]
+    },
+    {
+      "id": "M-WEB-104",
+      "requisito": "R08",
+      "descricao": "O guia dos jurados fica sem aba",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "  [\"how-to-test\", \"How to test\"],\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > o guia dos jurados tem aba e endereço próprios (#how-to-test)"
+      ]
+    },
+    {
+      "id": "M-WEB-105",
+      "requisito": "R08",
+      "descricao": "As personas não mostram as dicas de cada caminho",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "              cartões para bloquear: {persona.cartoes_bloqueaveis} · recusas: {persona.transacoes_recusadas} · pré-casos\n",
+          "para": "              cartões para bloquear: ? · recusas: {persona.transacoes_recusadas} · pré-casos\n"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > cada persona mostra as dicas para escolher o caminho da demonstração"
+      ]
     }
   ]
 }

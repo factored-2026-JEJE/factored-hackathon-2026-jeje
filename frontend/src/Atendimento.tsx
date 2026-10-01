@@ -7,6 +7,7 @@ import {
   meusPreCasos,
   minhasTransacoes,
   type Persona,
+  type PersonaDaDemo,
   type PreCaso,
   SessaoExpirada,
   sessaoAtual,
@@ -166,7 +167,7 @@ function MinhasTransacoes({
  * que a conversa criou algo (pré-caso, encaminhamento) para a fila e as métricas se atualizarem. */
 export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
   const [sessao, setSessao] = useState<Sessao | null>(null);
-  const [personas, setPersonas] = useState<Persona[] | null>(null);
+  const [personas, setPersonas] = useState<PersonaDaDemo[] | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [versaoPreCasos, setVersaoPreCasos] = useState(0);
   // Sem escolha, "novo": o lado conservador (bloqueio preventivo e atendente).
@@ -266,7 +267,13 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
           <li key={persona.customer_id}>
             <button type="button" onClick={() => void entrar(persona)}>
               Entrar como {persona.nome}
-            </button>
+            </button>{" "}
+            {/* Para escolher o caminho da demonstração (PRD-009): fraude com vários cartões, recusas e
+                reincidência. */}
+            <span className="nota">
+              cartões para bloquear: {persona.cartoes_bloqueaveis} · recusas: {persona.transacoes_recusadas} · pré-casos
+              recentes: {persona.pre_casos_recentes}
+            </span>
           </li>
         ))}
       </ul>
