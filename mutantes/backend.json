@@ -11607,7 +11607,7 @@
         }
       ],
       "testes": [
-        "tests/test_migrations.py::test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema"
+        "tests/test_migrations.py::test_cada_downgrade_desfaz_exatamente_o_seu_upgrade"
       ]
     }
   ]
