@@ -85,8 +85,9 @@ Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
   console; *novo* (o padrão) dá bloqueio preventivo e encaminha ao atendente. Com vários cartões,
   ele pergunta qual (número da opção ou os 4 últimos dígitos). O relato de roubo encaminha na hora
   e também bloqueia: com vários cartões, o caso já está na fila quando ele pergunta qual bloquear.
-  Dentro do prazo, "Quiero desbloquear mi tarjeta" desfaz com um sim, se o
-  bloqueio foi pedido pelo cliente; o resto o atendente desfaz no console ("Desbloquear BL-…").
+  Dentro do prazo de 7 dias, "Quiero desbloquear mi tarjeta" desfaz com um sim o bloqueio feito
+  por aqui, inclusive o do relato de roubo (urgência); depois, só o atendente, no console
+  ("Desbloquear BL-…"). O caso do atendente ligado ao bloqueio é anotado em todo desbloqueio.
 
 A conversa vai por etapas (pedido → transação → confirmação). O que não cabe na etapa recebe o que
 foi entendido e a oferta de um atendente ("Falar com um atendente" encaminha, "Continuar aqui" volta
@@ -275,14 +276,17 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
   `app.bloqueios` só com o tipo e os 4 últimos dígitos do cartão. O dispositivo vem do acesso de
   demonstração (cadastrado ou novo, rotulado), nunca do chat. Regras: POL-BLQ-01 (dispositivo novo:
   preventivo e atendente), POL-BLQ-02 (cadastrado: completo, com aviso pelo console), POL-BLQ-03
-  (nada a bloquear), POL-BLQ-04 (o cliente desfaz pela conversa, com um sim explícito, o bloqueio
-  que ele mesmo pediu, dentro do prazo), POL-BLQ-05 (o resto do desbloqueio fica com o atendente, a
-  qualquer momento: bloqueio por roubo ou perda, fora do prazo ou feito pelo banco) e POL-BLQ-06
+  (nada a bloquear), POL-BLQ-04 (o cliente desfaz pela conversa, com um sim explícito e dentro do
+  prazo, o bloqueio feito por aqui, pedido por ele ou vindo de relato de roubo ou perda, para casos
+  de urgência), POL-BLQ-05 (o resto do desbloqueio fica com o atendente, a qualquer momento: fora do
+  prazo ou bloqueio feito pelo banco) e POL-BLQ-06
   (vários cartões: pergunta qual). O relato de roubo ou perda (POL-HUM-01) encaminha na hora: com
   um cartão, bloqueia no mesmo turno; com vários, a conversa pergunta qual bloquear com o caso já no
   atendente, e a resposta só bloqueia e anota no mesmo caso, sem abrir outro (sem cartão
   identificado, nada é bloqueado). O prazo de reversão é de
-  7 dias (`JANELA_DESBLOQUEIO_DIAS`). Na fixture, a segunda persona tem um cartão de débito
+  7 dias (`JANELA_DESBLOQUEIO_DIAS`). O bloqueio fica ligado ao caso de bloqueio do cliente (relato
+  de roubo, bloqueio preventivo ou desbloqueio com o atendente), e o caso é anotado quando o cliente
+  ou o atendente o desfaz. Na fixture, a segunda persona tem um cartão de débito
   numerado, usado só pela jornada E2E de bloqueio e desbloqueio.
 - Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado. O status do caso
   só mostra os pré-casos do cliente da sessão; protocolo digitado indica o assunto, nunca é buscado.

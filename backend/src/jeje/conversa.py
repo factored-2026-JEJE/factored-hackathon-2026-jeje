@@ -76,6 +76,9 @@ PENDENCIAS = {
 }
 # Cláusula mostrada ao cliente quando a regra encaminha para humano.
 CLAUSULA_DO_HUMANO = {"POL-CON-04": "POL-HUM-02"}
+# Casos de bloqueio de cartão (relato de fraude, bloqueio preventivo e desbloqueio com o atendente):
+# os bloqueios ativos do cliente ficam ligados ao caso, que é anotado se um deles for desfeito.
+CASOS_DE_BLOQUEIO = frozenset({"POL-HUM-01", "POL-BLQ-01", "POL-BLQ-05"})
 
 
 class ConversaNaoEncontrada(Exception):
@@ -787,6 +790,7 @@ class _Turno:
             feito, bloqueio_id = self._bloquear(
                 escolhido, "roubo_perda", relato.regra, evento=False
             )
+            bloqueio.ligar(self.conexao, self.customer_id, atendimento)
         self._fonte("app.handoffs")
         handoff.anotar(self.conexao, atendimento, self.acoes[ja_no_caso:])
         lembrete = texto("COM-HUMANO", self.idioma, atendimento=atendimento)
@@ -916,20 +920,21 @@ class _Turno:
         if len(candidatos) > 1:
             return self._perguntar_cartao(candidatos, "desbloqueio")
         if not candidatos:
-            return self._encaminhar(politica.decidir_desbloqueio(None, None, _agora()), None)
+            return self._encaminhar(self._decisao_de_desbloqueio(None), None)
         return self._desbloqueio_do_cartao(candidatos[0])
 
+    def _decisao_de_desbloqueio(self, feito: bloqueio.Bloqueio | None) -> politica.Decisao:
+        """A política do desbloqueio sobre o bloqueio relido agora (sem ele, o atendente)."""
+        prazo = None if feito is None else feito.reversivel_ate
+        return politica.decidir_desbloqueio(prazo, _agora())
+
     def _desbloqueio_do_cartao(self, cartao: politica.Cartao) -> Saida:
-        """Dentro do prazo e pedido pelo próprio cliente: propõe desfazer e espera o sim
-        (POL-BLQ-04). Senão, vai ao atendente (POL-BLQ-05)."""
+        """Bloqueio feito por aqui, dentro do prazo: propõe desfazer e espera o sim (POL-BLQ-04).
+        Senão, vai ao atendente (POL-BLQ-05)."""
         feito = None
         if cartao.bloqueio is not None:
             feito = bloqueio.ativo_do_cliente(self.conexao, self.customer_id, cartao.bloqueio)
-        decisao = politica.decidir_desbloqueio(
-            None if feito is None else feito.motivo,
-            None if feito is None else feito.reversivel_ate,
-            _agora(),
-        )
+        decisao = self._decisao_de_desbloqueio(feito)
         self._anotar("avaliar_desbloqueio", f"{decisao.regra}: {decisao.detalhe or decisao.acao}")
         if feito is None or decisao.acao == "humano":
             return self._encaminhar(decisao, None)
@@ -945,11 +950,7 @@ class _Turno:
         feito = bloqueio.ativo_do_cliente(
             self.conexao, self.customer_id, self.contexto["bloqueio_id"]
         )
-        decisao = politica.decidir_desbloqueio(
-            None if feito is None else feito.motivo,
-            None if feito is None else feito.reversivel_ate,
-            _agora(),
-        )
+        decisao = self._decisao_de_desbloqueio(feito)
         if feito is None or decisao.regra != "POL-BLQ-04":
             self._anotar("desbloquear_cartao", f"{decisao.regra}: {decisao.detalhe}")
             return self._encaminhar(decisao, None)
@@ -957,7 +958,9 @@ class _Turno:
             desfeito = bloqueio.desfazer(self.conexao, feito.id, "cliente")
         except (bloqueio.JaDesfeito, bloqueio.NaoEncontrado):
             self._anotar("desbloquear_cartao", f"{feito.id}: já desfeito")
-            return self._encaminhar(politica.decidir_desbloqueio(None, None, _agora()), None)
+            return self._encaminhar(self._decisao_de_desbloqueio(None), None)
+        if desfeito.atendimento is not None:
+            self._fonte("app.handoffs")  # o caso ligado ao bloqueio foi anotado
         dito = descrever_cartao(desfeito.produto, desfeito.ultimos4, self.idioma)
         feito_agora = texto("DESBLOQUEIO-FEITO", self.idioma, cartao=dito, bloqueio=desfeito.id)
         return Saida(
@@ -982,7 +985,7 @@ class _Turno:
         pendencia = PENDENCIAS[decisao.regra]
         if decisao.detalhe:
             pendencia = f"{pendencia} ({decisao.detalhe})"
-        return handoff.registrar(
+        atendimento = handoff.registrar(
             self.conexao,
             handoff.Encaminhamento(
                 customer_id=self.customer_id,
@@ -994,6 +997,10 @@ class _Turno:
                 pendencias=(pendencia,),
             ),
         )
+        if decisao.regra in CASOS_DE_BLOQUEIO:
+            self._fonte("app.bloqueios")
+            bloqueio.ligar(self.conexao, self.customer_id, atendimento)
+        return atendimento
 
     def _encaminhar(
         self,

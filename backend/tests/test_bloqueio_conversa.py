@@ -42,8 +42,8 @@ def bloqueios(settings) -> list[dict]:
     with conexao(settings) as con:
         linhas = con.execute(
             text(
-                "SELECT id, customer_id, product_id, tipo, motivo, dispositivo, desfeito_em"
-                " FROM app.bloqueios ORDER BY id"
+                "SELECT id, customer_id, product_id, tipo, motivo, dispositivo, desfeito_em,"
+                " atendimento FROM app.bloqueios ORDER BY id"
             )
         ).mappings()
         return [dict(linha) for linha in linhas]
@@ -88,7 +88,7 @@ def test_pedido_com_dispositivo_cadastrado_bloqueia_por_completo_sem_encaminhar(
     assert (feito["customer_id"], feito["product_id"], feito["tipo"], feito["motivo"]) == (
         "CLI-B", "CRT-B1", "completo", "pedido"
     )  # fmt: skip
-    assert feito["dispositivo"] == "cadastrado"
+    assert (feito["dispositivo"], feito["atendimento"]) == ("cadastrado", None)
     # O aviso ao atendente é o bloqueio no console; ninguém é encaminhado.
     assert [b["id"] for b in console] == [feito["id"]]
     assert handoffs(cenario) == []
@@ -120,6 +120,7 @@ def test_pedido_com_dispositivo_novo_bloqueia_preventivo_e_encaminha(cenario):
     )
     [registro] = handoffs(cenario)
     assert (registro["id"], registro["regra"]) == (turno["atendimento"], "POL-BLQ-01")
+    assert feito["atendimento"] == registro["id"]  # o caso fica sabendo se o bloqueio for desfeito
     assert registro["pendencias"] == [
         "Confirmar ou desfazer o bloqueio preventivo do cartão (dispositivo novo)"
     ]
@@ -212,6 +213,7 @@ def test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha(cenario, disposi
     )
     [registro] = handoffs(cenario)
     assert (registro["regra"], registro["pedido"]) == ("POL-HUM-01", "me robaron la tarjeta")
+    assert feito["atendimento"] == registro["id"]
     assert {"acao": "bloquear_cartao",
             "resultado": f"{feito['id']}: bloqueio {tipo} do cartão de crédito final 1111"
             } in registro["acoes"]  # fmt: skip
@@ -286,6 +288,7 @@ def test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois(
             tipo,
             "roubo_perda",
         )
+        assert novo["atendimento"] == atendimento
         assert (seguinte["acao"], seguinte["bloqueio"], seguinte["efeito"]) == (
             "bloquear_cartao", novo["id"], novo["id"]
         )  # fmt: skip
@@ -347,14 +350,19 @@ def test_conversa_que_esperava_o_cartao_da_fraude_sem_caso_aberto_encaminha_na_r
     assert novo["product_id"] == "CRT-A1"
 
 
-def test_caso_que_sumiu_antes_da_resposta_desfaz_o_turno_sem_bloquear(cenario):
+@pytest.mark.parametrize("mensagem", ["1", "no sé cuál fue"])
+def test_caso_que_sumiu_antes_da_resposta_desfaz_o_turno_sem_bloquear(cenario, mensagem):
+    """Sem o caso, nada é anotado nem bloqueado: o turno inteiro é desfeito (503). Com o cartão
+    escolhido, a ligação do bloqueio ao caso também falha; sem ele, só a anotação confere."""
     with cliente(cenario) as http:
         auth = entrar(http, "CLI-A", "cadastrado")
         conversa = abrir_conversa(http, auth, "es")
         dizer(http, auth, conversa, "me clonaron una tarjeta")
         with conexao(cenario) as con:
             con.execute(text("DELETE FROM app.handoffs"))
-        resposta = http.post(f"/conversas/{conversa}/turnos", json={"texto": "1"}, headers=auth)
+        resposta = http.post(
+            f"/conversas/{conversa}/turnos", json={"texto": mensagem}, headers=auth
+        )
     assert resposta.status_code == 503
     assert "nada foi criado" in resposta.json()["detail"]
     assert bloqueios(cenario) == []
@@ -438,30 +446,77 @@ def test_nao_ao_desbloqueio_mantem_o_bloqueio(cenario):
     assert desfeitos(cenario) == []
 
 
-@pytest.mark.parametrize(
-    ("bloquear", "ajuste", "motivo"),
-    [
-        ("me robaron la tarjeta", None, "bloqueio por relato de roubo ou perda"),
-        ("quiero bloquear mi tarjeta", "now() - interval '1 second'", "fora do prazo de reversão"),
-    ],
-)
-def test_bloqueio_por_roubo_ou_fora_do_prazo_so_o_atendente_desfaz(
-    cenario, bloquear, ajuste, motivo
-):
+@pytest.mark.parametrize("bloquear", ["quiero bloquear mi tarjeta", "me robaron la tarjeta"])
+def test_bloqueio_fora_do_prazo_so_o_atendente_desfaz(cenario, bloquear):
     with cliente(cenario) as http:
         auth = entrar(http, "CLI-B", "cadastrado")
         dizer(http, auth, abrir_conversa(http, auth, "es"), bloquear)
-        if ajuste:
-            with conexao(cenario) as con:
-                con.execute(text(f"UPDATE app.bloqueios SET reversivel_ate = {ajuste}"))
+        with conexao(cenario) as con:
+            con.execute(
+                text("UPDATE app.bloqueios SET reversivel_ate = now() - interval '1 second'")
+            )
         turno = dizer(http, auth, abrir_conversa(http, auth, "es"), "quiero desbloquear mi tarjeta")
     assert (turno["regra"], turno["acao"], turno["estado"]) == (
         "POL-BLQ-05", "humano", "com_humano"
     )  # fmt: skip
     assert handoffs(cenario)[-1]["pendencias"] == [
-        f"Revisar pedido de desbloqueio de cartão ({motivo})"
+        "Revisar pedido de desbloqueio de cartão (fora do prazo de reversão)"
     ]
     assert desfeitos(cenario) == []
+
+
+def test_cliente_desfaz_em_ate_7_dias_o_bloqueio_do_relato_de_roubo_e_o_caso_fica_sabendo(cenario):
+    """PRD-009: em caso de urgência, o cliente desfaz pela conversa, com um sim e dentro do prazo, o
+    bloqueio que veio do relato de roubo; o caso do atendente ganha a ação."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        relato = dizer(http, auth, abrir_conversa(http, auth, "es"), "me robaron la tarjeta")
+        console = http.get("/atendimento/bloqueios").json()
+        conversa = abrir_conversa(http, auth, "es")
+        proposta = dizer(http, auth, conversa, "quiero desbloquear mi tarjeta")
+        desfeito = dizer(http, auth, conversa, "sí")
+    feito, atendimento = relato["bloqueio"], relato["atendimento"]
+    assert [(b["id"], b["atendimento"]) for b in console] == [(feito, atendimento)]
+    assert (proposta["regra"], proposta["estado"]) == ("POL-BLQ-04", "confirmando_desbloqueio")
+    assert (desfeito["regra"], desfeito["acao"], desfeito["bloqueio"]) == (
+        "POL-BLQ-04", "desbloquear_cartao", feito
+    )  # fmt: skip
+    assert desfeitos(cenario) == [(feito, "cliente")]
+    [registro] = handoffs(cenario)
+    assert registro["id"] == atendimento
+    assert registro["acoes"][-1] == {
+        "acao": "desbloquear_cartao", "resultado": f"{feito}: desfeito pelo cliente"
+    }  # fmt: skip
+
+
+def test_atendente_desfaz_no_console_e_o_caso_ligado_ao_bloqueio_fica_sabendo(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        relato = dizer(http, auth, abrir_conversa(http, auth, "es"), "me robaron la tarjeta")
+        resposta = http.post(f"/atendimento/bloqueios/{relato['bloqueio']}/desbloqueio")
+    assert (resposta.status_code, resposta.json()["atendimento"]) == (200, relato["atendimento"])
+    [registro] = handoffs(cenario)
+    assert registro["acoes"][-1] == {
+        "acao": "desbloquear_cartao", "resultado": f"{relato['bloqueio']}: desfeito pelo atendente"
+    }  # fmt: skip
+
+
+def test_relato_com_cartao_ja_bloqueado_por_aqui_liga_o_bloqueio_ao_caso(cenario):
+    """O cartão já estava bloqueado a pedido do cliente: o relato liga esse bloqueio ao caso, que
+    fica sabendo se o cliente o desfizer depois."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        feito = dizer(http, auth, conversa, "quiero bloquear mi tarjeta")["bloqueio"]
+        relato = dizer(http, auth, conversa, "me robaron la tarjeta")
+        outra = abrir_conversa(http, auth, "es")
+        dizer(http, auth, outra, "quiero desbloquear mi tarjeta")
+        dizer(http, auth, outra, "sí")
+    [registro] = handoffs(cenario)
+    assert registro["id"] == relato["atendimento"]
+    assert registro["acoes"][-1] == {
+        "acao": "desbloquear_cartao", "resultado": f"{feito}: desfeito pelo cliente"
+    }  # fmt: skip
 
 
 def test_prazo_que_vence_antes_do_sim_leva_ao_atendente(cenario):
@@ -618,3 +673,13 @@ def test_desbloqueio_que_cita_cartao_sem_bloqueio_nao_propoe_desfazer_outro(cena
         turno = dizer(http, auth, conversa, "quiero desbloquear la tarjeta terminada en 5678")
     assert (turno["regra"], turno["acao"]) == ("POL-BLQ-05", "humano")
     assert desfeitos(cenario) == []
+
+
+def test_caso_de_um_cliente_nao_liga_bloqueio_de_outro(cenario):
+    with cliente(cenario) as http:
+        a = entrar(http, "CLI-A", "cadastrado")
+        dizer(http, a, abrir_conversa(http, a, "es"), "bloqueen la tarjeta terminada en 5678")
+        b = entrar(http, "CLI-B", "cadastrado")
+        relato = dizer(http, b, abrir_conversa(http, b, "es"), "me robaron la tarjeta")
+    por_cliente = {x["customer_id"]: x["atendimento"] for x in bloqueios(cenario)}
+    assert por_cliente == {"CLI-A": None, "CLI-B": relato["atendimento"]}

@@ -19,6 +19,7 @@ const COMPLETO: BloqueioDeCartao = {
   reversivel_ate: "2026-10-07T10:00:00Z",
   desfeito_em: null,
   desfeito_por: null,
+  atendimento: null,
 };
 
 const PREVENTIVO: BloqueioDeCartao = {
@@ -30,6 +31,7 @@ const PREVENTIVO: BloqueioDeCartao = {
   tipo: "preventivo",
   motivo: "roubo_perda",
   dispositivo: "novo",
+  atendimento: "AT-00000007",
 };
 
 type Desbloqueio = { status: number; corpo: unknown } | "pendente";
@@ -72,6 +74,9 @@ test("mostra cada bloqueio ativo com o cartão só pelo tipo e pelo final, na or
   expect(primeiro.getByText(/Motivo: pedido do cliente · dispositivo cadastrado/)).toBeInTheDocument();
   expect(segundo.getByText(/Tarjeta Crédito · bloqueio preventivo · cliente CLI-B/)).toBeInTheDocument();
   expect(segundo.getByText(/Motivo: relato de roubo ou perda · dispositivo novo/)).toBeInTheDocument();
+  // O bloqueio ligado a um caso mostra qual: o caso fica sabendo se ele for desfeito.
+  expect(segundo.getByText(/caso AT-00000007/)).toBeInTheDocument();
+  expect(primeiro.queryByText(/caso AT-/)).not.toBeInTheDocument();
 });
 
 test("sem bloqueio ativo diz isso e busca de novo quando a versão muda", async () => {

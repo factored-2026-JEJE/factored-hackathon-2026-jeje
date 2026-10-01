@@ -142,6 +142,7 @@ def test_console_mostra_os_bloqueios_ativos_mais_recentes_primeiro(cartoes):
         "completo", "pedido", "novo"
     )  # fmt: skip
     assert (recente["desfeito_em"], recente["desfeito_por"]) == (None, None)
+    assert recente["atendimento"] is None  # bloqueio sem caso do atendente
     assert "4111111111111111" not in lista.text
 
 
