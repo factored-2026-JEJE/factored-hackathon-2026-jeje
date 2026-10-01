@@ -15,7 +15,8 @@ Falha ao gravar propaga: quem chama desfaz o turno inteiro, sem resposta de suce
 
 Bloqueio de cartão (PRD-007): o pedido e o relato de fraude bloqueiam o cartão citado ou o único
 bloqueável, pelo dispositivo da sessão (nunca pelo chat); com vários, pergunta qual. O relato
-sempre encaminha: sem cartão identificado na resposta, encaminha sem bloquear.
+encaminha na hora: com vários cartões, a pergunta vem com o caso já no atendente, e a resposta só
+bloqueia e anota no mesmo caso (PRD-009: encaminha já e bloqueia depois).
 """
 
 import json
@@ -214,6 +215,10 @@ class _Turno:
                 self.contexto,
                 atendimento=atendimento,
             )
+        if self.estado == "escolhendo_cartao" and self.contexto["motivo"] == "roubo_perda":
+            # O relato de fraude já foi encaminhado: qualquer mensagem é a resposta de qual cartão
+            # bloquear, inclusive um novo relato ou um pedido de atendente.
+            return self._cartao_da_fraude()
         decisao = politica.decidir_pedido(self.lida.intencao, self.lida.id_digitado)
         if decisao is not None and decisao.acao == "humano":
             # Segurança e pedido de atendente valem em qualquer etapa.
@@ -720,9 +725,10 @@ class _Turno:
         )
 
     def _relato_de_fraude(self, decisao: politica.Decisao) -> Saida:
-        """Relato de fraude (POL-HUM-01): bloqueia o cartão citado ou o único bloqueável e
-        encaminha; com vários, pergunta qual antes, uma vez só (a fraude nunca fica parada: na
-        escolha, sem cartão identificado, encaminha sem bloquear); sem cartão, só encaminha."""
+        """Relato de fraude (POL-HUM-01): encaminha sempre, na hora. Bloqueia no mesmo turno o
+        cartão citado ou o único bloqueável; com vários, o caso já vai ao atendente e a conversa
+        pergunta qual bloquear (PRD-009: encaminha já e bloqueia depois); sem cartão a bloquear,
+        só encaminha."""
         cartoes = self._cartoes()
         bloqueaveis = politica.bloqueaveis(cartoes)
         candidatos = self._alvos(bloqueaveis)
@@ -731,17 +737,13 @@ class _Turno:
             if (razao := self._por_que_nao(cartoes)) is not None:
                 self._anotar("bloquear_cartao", "cartão citado não bloqueável; nada bloqueado")
                 return self._encaminhar(decisao, self._em_foco(), antes=(razao,))
-            if bloqueaveis and self.estado != "escolhendo_cartao":
-                return self._perguntar_cartao(bloqueaveis, "roubo_perda")
             if bloqueaveis:
-                return self._encaminhar_sem_bloqueio(decisao)
+                return self._encaminhar_e_perguntar(bloqueaveis, decisao)
             candidatos = []
         if len(candidatos) == 1:
             return self._bloquear_e_encaminhar(candidatos[0], decisao)
-        if candidatos and self.estado != "escolhendo_cartao":
-            return self._perguntar_cartao(candidatos, "roubo_perda")
         if candidatos:
-            return self._encaminhar_sem_bloqueio(decisao)
+            return self._encaminhar_e_perguntar(candidatos, decisao)
         self._anotar("bloquear_cartao", "nenhum cartão ativo para bloquear")
         return self._encaminhar(decisao, self._em_foco(), antes=self._ja_bloqueados(cartoes))
 
@@ -749,13 +751,64 @@ class _Turno:
         feito, novo = self._bloquear(cartao, "roubo_perda", decisao.regra, evento=True)
         return self._encaminhar(decisao, self._em_foco(), antes=(feito,), bloqueio_id=novo)
 
-    def _encaminhar_sem_bloqueio(self, decisao: politica.Decisao) -> Saida:
-        self._anotar("bloquear_cartao", "cartão não identificado na resposta; nada bloqueado")
-        nao_identificado = (texto("BLOQUEIO-NAO-IDENTIFICADO", self.idioma),)
-        return self._encaminhar(decisao, None, antes=nao_identificado)
+    def _encaminhar_e_perguntar(
+        self, candidatos: list[politica.Cartao], decisao: politica.Decisao
+    ) -> Saida:
+        """Vários cartões no relato de fraude: o caso vai ao atendente agora, e a conversa pergunta
+        qual bloquear. A resposta (`_cartao_da_fraude`) só bloqueia e anota no mesmo caso."""
+        caso = self._encaminhar(decisao, self._em_foco())
+        pergunta = texto("POL-BLQ-06-FRAUDE", self.idioma, opcoes=self._opcoes(candidatos))
+        contexto = {
+            "atendimento": caso.atendimento,
+            "cartoes": [c.product_id for c in candidatos],
+            "motivo": "roubo_perda",
+        }
+        return replace(
+            caso, textos=(*caso.textos, pergunta), estado="escolhendo_cartao", contexto=contexto
+        )
+
+    def _cartao_da_fraude(self) -> Saida:
+        """A resposta à pergunta de qual cartão bloquear no relato de fraude. O caso já está com o
+        atendente, então qualquer mensagem é a resposta, uma vez só: o cartão identificado é
+        bloqueado e anotado no caso; sem ele, nada é bloqueado. A conversa fica com o atendente, e
+        nenhum outro caso é aberto."""
+        relato = politica.decidir_pedido("fraude", id_digitado=False)
+        atendimento = self.contexto.get("atendimento")
+        if atendimento is None:
+            # Conversa parada na pergunta de antes do PRD-009, que perguntava antes de encaminhar.
+            atendimento = self._registrar_caso(relato, None)
+        ja_no_caso = len(self.acoes)
+        _, escolhido = self._escolhido()
+        bloqueio_id = None
+        if escolhido is None:
+            self._anotar("bloquear_cartao", "cartão não identificado na resposta; nada bloqueado")
+            feito = texto("BLOQUEIO-NAO-IDENTIFICADO", self.idioma)
+        else:
+            feito, bloqueio_id = self._bloquear(
+                escolhido, "roubo_perda", relato.regra, evento=False
+            )
+        self._fonte("app.handoffs")
+        handoff.anotar(self.conexao, atendimento, self.acoes[ja_no_caso:])
+        lembrete = texto("COM-HUMANO", self.idioma, atendimento=atendimento)
+        return Saida(
+            relato.regra,
+            "aguardar_humano" if bloqueio_id is None else "bloquear_cartao",
+            (feito, lembrete),
+            "com_humano",
+            {"atendimento": atendimento},
+            atendimento=atendimento,
+            bloqueio=bloqueio_id,
+        )
+
+    def _opcoes(self, candidatos: list[politica.Cartao]) -> str:
+        """As opções numeradas da pergunta de qual cartão (tipo e final)."""
+        return "\n".join(
+            f"{n}. {descrever_cartao(c.produto, c.ultimos4, self.idioma)}"
+            for n, c in enumerate(candidatos, start=1)
+        )
 
     def _perguntar_cartao(self, candidatos: list[politica.Cartao], motivo: str) -> Saida:
-        """Pergunta qual cartão, com as opções numeradas (tipo e final). No pedido, a pergunta é
+        """Pergunta qual cartão bloquear ou desbloquear, com as opções numeradas. A pergunta é
         repetida até o limite de esclarecimentos; depois, oferece o atendente."""
         perguntas = self.contexto.get("perguntas", 0) if self.estado == "escolhendo_cartao" else 0
         pedido = self.contexto.get("pedido", self.mensagem[:280])
@@ -764,14 +817,7 @@ class _Turno:
             self._anotar("esclarecer", f"{perguntas} perguntas sem identificar o cartão")
             resumo = (texto("RESUMO-CARTAO", self.idioma),)
             return self._oferecer(resumo, decisao.regra, "livre", {"pedido": pedido})
-        opcoes = "\n".join(
-            f"{n}. {descrever_cartao(c.produto, c.ultimos4, self.idioma)}"
-            for n, c in enumerate(candidatos, start=1)
-        )
-        clausula = {
-            "roubo_perda": "POL-BLQ-06-FRAUDE",
-            "desbloqueio": "POL-BLQ-06-DESBLOQUEIO",
-        }.get(motivo, "POL-BLQ-06")
+        clausula = "POL-BLQ-06-DESBLOQUEIO" if motivo == "desbloqueio" else "POL-BLQ-06"
         contexto = {
             "cartoes": [c.product_id for c in candidatos],
             "motivo": motivo,
@@ -779,14 +825,13 @@ class _Turno:
             "perguntas": perguntas + 1,
             "acoes": self._acoes_json(),
         }
-        pergunta = texto(clausula, self.idioma, opcoes=opcoes)
+        pergunta = texto(clausula, self.idioma, opcoes=self._opcoes(candidatos))
         return Saida("POL-BLQ-06", "esclarecer", (pergunta,), "escolhendo_cartao", contexto)
 
-    def _escolhendo_cartao(self) -> Saida | None:
-        """Resposta à pergunta de qual cartão: o número da opção, o final de 4 dígitos (lido só
-        nesta etapa, para "9241" não virar valor) ou o tipo. No relato de fraude, sem cartão
-        identificado, encaminha sem bloquear. No pedido, "no" cancela, outro pedido sai da etapa
-        (None) e o resto pergunta de novo."""
+    def _escolhido(self) -> tuple[list[politica.Cartao], politica.Cartao | None]:
+        """Os cartões mostrados na pergunta que ainda existem e o escolhido na resposta: o número
+        da opção, o final de 4 dígitos (lido só nesta etapa, para "9241" não virar valor) ou o
+        tipo."""
         atuais = {c.product_id: c for c in self._cartoes()}
         mostrados = [atuais[p] for p in self.contexto["cartoes"] if p in atuais]
         escolha = self.lida.escolha
@@ -794,6 +839,12 @@ class _Turno:
             escolhido = mostrados[escolha - 1]
         else:
             escolhido = self._citado(mostrados)
+        return mostrados, escolhido
+
+    def _escolhendo_cartao(self) -> Saida | None:
+        """Resposta à pergunta de qual cartão, no pedido de bloqueio ou de desbloqueio: "no"
+        cancela, outro pedido sai da etapa (None) e o resto pergunta de novo."""
+        mostrados, escolhido = self._escolhido()
         if self.contexto["motivo"] == "desbloqueio":
             if escolhido is not None:
                 return self._desbloqueio_do_cartao(escolhido)
@@ -803,11 +854,6 @@ class _Turno:
             if self.lida.intencao not in ("desbloquear", "desconhecida") or self.lida.caso:
                 return None
             return self._perguntar_cartao(mostrados, "desbloqueio")
-        if self.contexto["motivo"] == "roubo_perda":
-            relato = politica.decidir_pedido("fraude", id_digitado=False)
-            if escolhido is None:
-                return self._encaminhar_sem_bloqueio(relato)
-            return self._bloquear_e_encaminhar(escolhido, relato)
         if escolhido is not None:
             return self._bloquear_no_pedido(
                 escolhido, politica.decidir_bloqueio(1, self.dispositivo)
@@ -929,18 +975,14 @@ class _Turno:
 
     # ---- encaminhamento ----------------------------------------------------------------------
 
-    def _encaminhar(
-        self,
-        decisao: politica.Decisao,
-        t: TransacaoVerificada | None,
-        antes: tuple[str, ...] = (),
-        bloqueio_id: str | None = None,
-    ) -> Saida:
+    def _registrar_caso(self, decisao: politica.Decisao, t: TransacaoVerificada | None) -> str:
+        """Grava o encaminhamento, com o que a conversa já fez e o que fica pendente, e devolve o
+        identificador do atendimento."""
         self._fonte("app.handoffs")
         pendencia = PENDENCIAS[decisao.regra]
         if decisao.detalhe:
             pendencia = f"{pendencia} ({decisao.detalhe})"
-        atendimento = handoff.registrar(
+        return handoff.registrar(
             self.conexao,
             handoff.Encaminhamento(
                 customer_id=self.customer_id,
@@ -952,6 +994,15 @@ class _Turno:
                 pendencias=(pendencia,),
             ),
         )
+
+    def _encaminhar(
+        self,
+        decisao: politica.Decisao,
+        t: TransacaoVerificada | None,
+        antes: tuple[str, ...] = (),
+        bloqueio_id: str | None = None,
+    ) -> Saida:
+        atendimento = self._registrar_caso(decisao, t)
         clausula = CLAUSULA_DO_HUMANO.get(decisao.regra, decisao.regra)
         referencia = texto("ATENDIMENTO", self.idioma, atendimento=atendimento)
         return Saida(
@@ -1158,7 +1209,9 @@ def turno(
 
 def historico(conexao: Connection, customer_id: str, conversa_id: str) -> tuple[dict, list[dict]]:
     """Conversa e turnos, só para o dono (para reabrir a conversa depois de recarregar a página)."""
-    conversa = _do_dono(conexao, customer_id, conversa_id, "id, idioma, estado")
+    # O caso que está com o atendente, se houver, para a tela mostrar depois de recarregar.
+    colunas = "id, idioma, estado, contexto->>'atendimento' AS atendimento"
+    conversa = _do_dono(conexao, customer_id, conversa_id, colunas)
     turnos = conexao.execute(
         text(
             "SELECT numero, mensagem, resposta, regra, acao, estado, criado_em FROM app.turnos"

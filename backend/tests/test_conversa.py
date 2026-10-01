@@ -800,7 +800,7 @@ def test_estado_persiste_entre_turnos_e_o_historico_reabre_a_conversa(cenario):
         falas = ["Não reconheço uma cobrança de 45,90", "a segunda", "Sim"]
         respostas = [dizer(http, auth, conversa, fala) for fala in falas]
         historico = http.get(f"/conversas/{conversa}", headers=auth).json()
-    assert historico["estado"] == "livre"
+    assert (historico["estado"], historico["atendimento"]) == ("livre", None)
     registrados = [
         (t["numero"], t["mensagem"], t["resposta"], t["regra"]) for t in historico["turnos"]
     ]

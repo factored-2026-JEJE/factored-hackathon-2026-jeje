@@ -170,7 +170,7 @@ export function Conversa({
             { id: proximo.current++, autor: "assistente" as const, texto: t.resposta, motivo: { regra: t.regra, acao: t.acao } },
           ]),
         );
-        setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: null });
+        setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: historico.atendimento });
       })
       .catch((e: unknown) => {
         if (ativo && e instanceof SessaoExpirada) aoExpirar();
@@ -181,7 +181,10 @@ export function Conversa({
     };
   }, [token, aoExpirar]);
 
-  const aberta = conversaId && situacao && !["encerrada", "com_humano"].includes(situacao.estado);
+  // O caso está com o atendente: encaminhado, ou o relato de fraude que ainda pergunta o cartão a
+  // bloquear (PRD-009). A tela mostra isso e não oferece atalhos nem "Perguntar sobre esta".
+  const comAtendente = situacao !== null && (situacao.estado === "com_humano" || situacao.atendimento !== null);
+  const aberta = conversaId && situacao && situacao.estado !== "encerrada" && !comAtendente;
   const idiomaAberto = aberta ? situacao.idioma : null;
   useEffect(() => {
     aoIdioma(idiomaAberto);
@@ -244,7 +247,7 @@ export function Conversa({
       const mostrados = falas.filter((f) => f.autor === "cliente").length;
       if (!historico || !ultimo || historico.turnos.length <= mostrados || ultimo.mensagem !== limpa) return false;
       setFalas((atuais) => [...atuais, fala("cliente", ultimo.mensagem), fala("assistente", ultimo.resposta, { regra: ultimo.regra, acao: ultimo.acao })]);
-      setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: null });
+      setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: historico.atendimento });
       setTexto("");
       setFalha(null);
       aoMudar();
@@ -318,7 +321,7 @@ export function Conversa({
           Pré-caso recebido: protocolo {situacao.protocolo}
         </p>
       )}
-      {situacao.estado === "com_humano" && (
+      {comAtendente && (
         <p role="status" className="aviso">
           Com atendimento humano{situacao.atendimento ? ` (${situacao.atendimento})` : ""}.
         </p>
@@ -358,7 +361,7 @@ export function Conversa({
           </button>
         </div>
       )}
-      {!encerrada && situacao.estado !== "com_humano" && (
+      {!encerrada && !comAtendente && (
         <div role="group" aria-label="Atalhos" className="acoes atalhos">
           {ATALHOS[situacao.idioma].map(([rotulo, frase]) => (
             <button key={rotulo} type="button" className="secundario" disabled={enviando} onClick={() => void enviar(frase)}>

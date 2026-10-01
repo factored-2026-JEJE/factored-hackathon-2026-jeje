@@ -1344,6 +1344,66 @@
         "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em espanhol as pistas da linha, nunca o identificador",
         "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em português as pistas da linha"
       ]
+    },
+    {
+      "id": "M-WEB-95",
+      "requisito": "R07",
+      "descricao": "Com o caso no atendente enquanto a conversa pergunta o cartão, a tela não mostra o atendimento",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  const comAtendente = situacao !== null && (situacao.estado === \"com_humano\" || situacao.atendimento !== null);",
+          "para": "  const comAtendente = situacao !== null && situacao.estado === \"com_humano\";"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > relato de fraude com vários cartões: o caso já está com o atendente enquanto a conversa pergunta o cartão"
+      ]
+    },
+    {
+      "id": "M-WEB-96",
+      "requisito": "R07",
+      "descricao": "Reabrir a conversa perde o caso que está com o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "        setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: historico.atendimento });\n      })\n",
+          "para": "        setSituacao({ idioma: historico.idioma, estado: historico.estado, opcoes: [], protocolo: null, atendimento: null });\n      })\n"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > reabrir a conversa mostra o caso que está com o atendente"
+      ]
+    },
+    {
+      "id": "M-WEB-97",
+      "requisito": "R07",
+      "descricao": "Os atalhos continuam com o caso no atendente",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      {!encerrada && !comAtendente && (",
+          "para": "      {!encerrada && situacao.estado !== \"com_humano\" && ("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > relato de fraude com vários cartões: o caso já está com o atendente enquanto a conversa pergunta o cartão"
+      ]
+    },
+    {
+      "id": "M-WEB-98",
+      "requisito": "R07",
+      "descricao": "\"Perguntar sobre esta\" continua com o caso no atendente",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  const aberta = conversaId && situacao && situacao.estado !== \"encerrada\" && !comAtendente;",
+          "para": "  const aberta = conversaId && situacao && situacao.estado !== \"encerrada\";"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > relato de fraude com vários cartões: o caso já está com o atendente enquanto a conversa pergunta o cartão"
+      ]
     }
   ]
 }

@@ -83,6 +83,9 @@ class Historico(BaseModel):
     conversa_id: str
     idioma: Literal["es", "pt"]
     estado: str
+    atendimento: str | None = Field(
+        description="Caso que está com o atendente (AT-…), se a conversa já foi encaminhada"
+    )
     turnos: list[TurnoRegistrado]
 
 
@@ -209,5 +212,6 @@ def historico(conversa_id: ConversaId, ativa: SessaoDep, engine: EngineDep) -> H
         conversa_id=dados["id"],
         idioma=dados["idioma"],
         estado=dados["estado"],
+        atendimento=dados["atendimento"],
         turnos=[TurnoRegistrado(**t) for t in turnos],
     )

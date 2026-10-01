@@ -317,8 +317,9 @@ DESCRICOES: dict[str, str] = {
     "POL-DISP-02": "Transação não aprovada não se contesta automaticamente: vai para o atendente.",
     "POL-DISP-03": "Já existe pré-caso para esta transação: a resposta devolve o protocolo, sem "
     "duplicar.",
-    "POL-HUM-01": "Relato de fraude, roubo ou perda: vai para o atendente, e o cartão é bloqueado "
-    "(simulação).",
+    "POL-HUM-01": "Relato de fraude, roubo ou perda: vai para o atendente na hora, e o cartão é "
+    "bloqueado (simulação); com vários cartões, o assistente pergunta qual bloquear com o caso já "
+    "no atendente.",
     "POL-HUM-02": "Contestação acima do limite simulado: vai para o atendente.",
     "POL-HUM-03": "Pedido de atendente, ou esclarecimentos sem sucesso: a conversa vai para um "
     "atendente.",
