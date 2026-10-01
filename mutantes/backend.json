@@ -8768,6 +8768,156 @@
       "testes": [
         "tests/test_sessao_api.py::test_personas_trazem_dicas_para_escolher_o_caminho_da_demo"
       ]
+    },
+    {
+      "id": "M-LMP-01",
+      "requisito": "R06",
+      "descricao": "A limpeza deixa app.sessoes para trás",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "    \"app.sessoes\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-02",
+      "requisito": "R06",
+      "descricao": "A limpeza deixa app.propostas_pre_caso para trás",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "    \"app.propostas_pre_caso\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-03",
+      "requisito": "R06",
+      "descricao": "A limpeza deixa app.pre_casos para trás",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "    \"app.pre_casos\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-04",
+      "requisito": "R06",
+      "descricao": "A limpeza deixa app.bloqueios para trás",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "    \"app.bloqueios\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-05",
+      "requisito": "R06",
+      "descricao": "A limpeza deixa app.handoffs para trás",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "    \"app.handoffs\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-06",
+      "requisito": "R06",
+      "descricao": "A limpeza deixa app.eventos para trás",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "    \"app.eventos\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-07",
+      "requisito": "R06",
+      "descricao": "A limpeza apaga também os turnos das conversas avaliadas pelo time",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "        text(f\"DELETE FROM app.turnos WHERE conversa_id NOT IN ({AVALIADAS})\")\n",
+          "para": "        text(f\"DELETE FROM app.turnos\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-08",
+      "requisito": "R06",
+      "descricao": "A limpeza deixa as conversas não avaliadas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "        text(f\"DELETE FROM app.conversas WHERE id NOT IN ({AVALIADAS})\")\n",
+          "para": "        text(f\"SELECT 1\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-09",
+      "requisito": "R06",
+      "descricao": "A conversa avaliada fica com o estado e o contexto de antes da limpeza",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "            \" WHERE estado <> 'encerrada'\"\n",
+          "para": "            \" WHERE false\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews"
+      ]
+    },
+    {
+      "id": "M-LMP-10",
+      "requisito": "R06",
+      "descricao": "Tabela do canal sem destino na limpeza passa despercebida",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/limpeza.py",
+          "de": "MANTIDAS = (\"app.personas\", \"app.reviews\")\n",
+          "para": "MANTIDAS = (\"app.personas\", \"app.reviews\", \"app.nova\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_limpeza.py::test_toda_tabela_do_canal_tem_destino_na_limpeza"
+      ]
     }
   ]
 }
