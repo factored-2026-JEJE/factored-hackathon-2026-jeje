@@ -598,6 +598,63 @@ def test_bloqueio_contado_nao_pede_outro_bloqueio():
     assert ler("Le pido que me la bloquee: es mi tarjeta").intencao == "bloquear"
 
 
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # ACH-142: o golpe de engenharia social contado como história é relato de fraude.
+        "Un hombre que dijo ser funcionario del banco me pidió una transferencia",
+        "Um homem se passou por funcionário do banco e eu acreditei",
+        "Me escribió alguien que me dijo que era mi primo y le mandé plata",
+        "Recebi mensagem de alguém que disse que era meu sobrinho",
+        "Hablé con un supuesto asesor por teléfono y ahora tengo cargos",
+        "Uma falsa central me ligou ontem",
+        "Passei a senha do cartão para um desconhecido no telefone",
+        "Le di la clave a una persona que me llamó",
+        "Entré a una página falsa del banco y puse mis datos",
+        "Cliquei num link falso que chegou por SMS",
+        "Están pidiendo dinero a mis contactos con mi nombre",
+        "Alguém está pedindo dinheiro aos meus contatos no meu nome",
+        "Aparecieron transferencias que no hice en mi cuenta",
+        "Saíram transferências da minha conta sem minha autorização",
+        "Hay compras en mi cuenta y no sé quién las hizo",
+        "Creo que fue phishing",
+        "Le transferí a un estafador",
+        "Fiz um pix para um golpista",
+        "Creo que fue un timo",
+        "Acho que foi trapaça",
+        "Mi WhatsApp fue hackeado",
+        "Alguém hackeou minha conta",
+        "Sufrí un hackeo",
+        "Alguém clonou meu WhatsApp",
+        "Hubo una usurpación de mi identidad",
+        "Fui enganado numa venda pela internet",
+        "Me engañaron con un premio",
+        "Mis datos fueron robados",
+        "Meus dados foram roubados",
+        "Entrei no site errado e digitei tudo",
+    ],
+)
+def test_golpe_de_engenharia_social_e_relato_de_fraude(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # "Disse que era" sem quem ele disse ser logo depois; "entregue" é o PT de entregar.
+        ("O vendedor disse que era problema do banco", "desconhecida"),
+        ("O PIN é entregue separadamente?", "desconhecida"),
+        ("Há algo de errado com o seu site?", "desconhecida"),
+        ("Bloqueei meu cartão por engano", "desconhecida"),  # engano é erro, não golpe
+        # O estranho hipotético e a compra não feita continuam o que eram.
+        ("No quiero problemas con movimientos extraños, quiero bloquear mi tarjeta", "bloquear"),
+        ("Me cobraron una compra que no hice", "contestar"),
+    ],
+)
+def test_palavras_perto_do_golpe_nao_viram_relato_de_fraude(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
 def test_queixa_de_tarifa_com_robando_nao_e_relato_de_fraude():
     """Sem o dinheiro ou a conta perto, "robando" é queixa, não relato (visto no BANKING77)."""
     assert ler("Más comisiones otra vez. ¿Por qué me estás robando así?").intencao != "fraude"
