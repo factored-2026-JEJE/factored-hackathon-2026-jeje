@@ -7315,12 +7315,12 @@
       "trocas": [
         {
           "arquivo": "src/jeje/politica.py",
-          "de": "    if motivo is None or reversivel_ate is None:\n        return Decisao(\"POL-BLQ-05\", \"humano\", \"sem bloqueio feito por aqui\")\n",
-          "para": "    if motivo is None or reversivel_ate is None:\n        return Decisao(\"POL-BLQ-04\", \"propor_desbloqueio\")\n"
+          "de": "    if reversivel_ate is None:\n        return Decisao(\"POL-BLQ-05\", \"humano\", \"sem bloqueio feito por aqui\")\n",
+          "para": "    if reversivel_ate is None:\n        return Decisao(\"POL-BLQ-04\", \"propor_desbloqueio\")\n"
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo",
+        "tests/test_politica.py::test_cliente_desfaz_o_bloqueio_feito_por_aqui_dentro_do_prazo",
         "tests/test_bloqueio_conversa.py::test_desbloqueio_sem_bloqueio_feito_por_aqui_vai_para_o_atendente"
       ]
     },
@@ -7342,17 +7342,16 @@
     {
       "id": "M-POL-49",
       "requisito": "R03",
-      "descricao": "Bloqueio por roubo ou perda o cliente desfaz pela conversa",
+      "descricao": "O bloqueio do relato de roubo ou perda o cliente não desfaz pela conversa (a regra de antes da PRD-009)",
       "trocas": [
         {
-          "arquivo": "src/jeje/politica.py",
-          "de": "    if motivo == \"roubo_perda\":\n        return Decisao(\"POL-BLQ-05\", \"humano\", \"bloqueio por relato de roubo ou perda\")\n",
-          "para": ""
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        prazo = None if feito is None else feito.reversivel_ate\n",
+          "para": "        prazo = None if feito is None or feito.motivo == \"roubo_perda\" else feito.reversivel_ate\n"
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo",
-        "tests/test_bloqueio_conversa.py::test_bloqueio_por_roubo_ou_fora_do_prazo_so_o_atendente_desfaz"
+        "tests/test_bloqueio_conversa.py::test_cliente_desfaz_em_ate_7_dias_o_bloqueio_do_relato_de_roubo_e_o_caso_fica_sabendo"
       ]
     },
     {
@@ -7367,7 +7366,7 @@
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo"
+        "tests/test_politica.py::test_cliente_desfaz_o_bloqueio_feito_por_aqui_dentro_do_prazo"
       ]
     },
     {
@@ -7382,8 +7381,8 @@
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo",
-        "tests/test_bloqueio_conversa.py::test_bloqueio_por_roubo_ou_fora_do_prazo_so_o_atendente_desfaz"
+        "tests/test_politica.py::test_cliente_desfaz_o_bloqueio_feito_por_aqui_dentro_do_prazo",
+        "tests/test_bloqueio_conversa.py::test_bloqueio_fora_do_prazo_so_o_atendente_desfaz"
       ]
     },
     {
@@ -8388,6 +8387,100 @@
       ],
       "testes": [
         "tests/test_bloqueio_conversa.py::test_caso_que_sumiu_antes_da_resposta_desfaz_o_turno_sem_bloquear"
+      ]
+    },
+    {
+      "id": "M-CONV-85",
+      "requisito": "R07",
+      "descricao": "O caso de bloqueio não fica ligado aos bloqueios do cliente (não fica sabendo do desbloqueio)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if decisao.regra in CASOS_DE_BLOQUEIO:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha",
+        "tests/test_bloqueio_conversa.py::test_pedido_com_dispositivo_novo_bloqueia_preventivo_e_encaminha",
+        "tests/test_bloqueio_conversa.py::test_relato_com_cartao_ja_bloqueado_por_aqui_liga_o_bloqueio_ao_caso"
+      ]
+    },
+    {
+      "id": "M-CONV-86",
+      "requisito": "R07",
+      "descricao": "O bloqueio feito depois do encaminhamento não fica ligado ao caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                escolhido, \"roubo_perda\", relato.regra, evento=False\n            )\n            bloqueio.ligar(self.conexao, self.customer_id, atendimento)\n",
+          "para": "                escolhido, \"roubo_perda\", relato.regra, evento=False\n            )\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
+      ]
+    },
+    {
+      "id": "M-BLQ-14",
+      "requisito": "R08",
+      "descricao": "O caso de um cliente liga os bloqueios de todos os clientes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "            \" WHERE customer_id = :cliente AND desfeito_em IS NULL\"\n        ),\n        {\"caso\": atendimento, \"cliente\": customer_id},\n",
+          "para": "            \" WHERE desfeito_em IS NULL\"\n        ),\n        {\"caso\": atendimento},\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_caso_de_um_cliente_nao_liga_bloqueio_de_outro"
+      ]
+    },
+    {
+      "id": "M-BLQ-15",
+      "requisito": "R07",
+      "descricao": "Desfazer o bloqueio não anota no caso ligado a ele",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/bloqueio.py",
+          "de": "        if desfeito.atendimento is not None:\n            acao = handoff.Acao(\"desbloquear_cartao\", f\"{desfeito.id}: desfeito pelo {por}\")\n            handoff.anotar(conexao, desfeito.atendimento, (acao,))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_cliente_desfaz_em_ate_7_dias_o_bloqueio_do_relato_de_roubo_e_o_caso_fica_sabendo",
+        "tests/test_bloqueio_conversa.py::test_atendente_desfaz_no_console_e_o_caso_ligado_ao_bloqueio_fica_sabendo"
+      ]
+    },
+    {
+      "id": "M-MIG-15",
+      "requisito": "R03",
+      "descricao": "O bloqueio se liga a um caso que não existe (sem a chave estrangeira)",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0021_bloqueio_do_caso.py",
+          "de": "    op.create_foreign_key(\n        op.f(\"fk_bloqueios_atendimento_handoffs\"),\n        \"bloqueios\",\n        \"handoffs\",\n        [\"atendimento\"],\n        [\"id\"],\n        source_schema=\"app\",\n        referent_schema=\"app\",\n    )\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_bloqueio_so_se_liga_a_caso_que_existe"
+      ]
+    },
+    {
+      "id": "M-FILA-18",
+      "requisito": "R07",
+      "descricao": "O console não diz a que caso o bloqueio pertence",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "    atendimento: str | None = Field(\n        description=\"Caso do atendente ligado ao bloqueio (AT-…): todo desbloqueio é anotado nele\"\n    )\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_console_mostra_os_bloqueios_ativos_mais_recentes_primeiro",
+        "tests/test_bloqueio_conversa.py::test_cliente_desfaz_em_ate_7_dias_o_bloqueio_do_relato_de_roubo_e_o_caso_fica_sabendo"
       ]
     }
   ]

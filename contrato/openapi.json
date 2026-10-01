@@ -1154,6 +1154,18 @@
               }
             ],
             "title": "Desfeito Por"
+          },
+          "atendimento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Atendimento",
+            "description": "Caso do atendente ligado ao bloqueio (AT-…): todo desbloqueio é anotado nele"
           }
         },
         "type": "object",
@@ -1169,7 +1181,8 @@
           "criado_em",
           "reversivel_ate",
           "desfeito_em",
-          "desfeito_por"
+          "desfeito_por",
+          "atendimento"
         ],
         "title": "BloqueioDeCartao",
         "description": "Bloqueio simulado: o cartão aparece só pelo tipo e pelos 4 últimos dígitos."

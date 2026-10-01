@@ -301,3 +301,7 @@ class Bloqueio(Base):
     reversivel_ate: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     desfeito_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     desfeito_por: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # O caso do atendente a que o bloqueio pertence (PRD-009): todo desbloqueio é anotado nele.
+    atendimento: Mapped[str | None] = mapped_column(
+        Text, ForeignKey("app.handoffs.id"), nullable=True
+    )
