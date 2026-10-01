@@ -10951,6 +10951,51 @@
       ]
     },
     {
+      "id": "M-SES-16",
+      "requisito": "R08",
+      "descricao": "Toda aprovada na janela conta como contestável, mesmo a que vai ao atendente (acima do limite)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "        if decisao.regra == \"POL-DISP-01\":\n            contestaveis[cliente].append(",
+          "para": "        if decisao:\n            contestaveis[cliente].append("
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_personas_trazem_as_contestaveis_e_um_exemplo_que_acha_so_ela"
+      ]
+    },
+    {
+      "id": "M-SES-17",
+      "requisito": "R08",
+      "descricao": "O exemplo pode repetir valor e dia de outra transação (a frase do guia acha duas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "            if (d[\"customer_id\"], valor, quando.date()) not in repetidos\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_personas_trazem_as_contestaveis_e_um_exemplo_que_acha_so_ela"
+      ]
+    },
+    {
+      "id": "M-SES-18",
+      "requisito": "R08",
+      "descricao": "A janela de contestação não limita as contestáveis",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/sessao.py",
+          "de": "    desde = hoje - timedelta(days=limites.janela_contestacao_dias)\n",
+          "para": "    desde = hoje - timedelta(days=100 * 365)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_personas_trazem_as_contestaveis_e_um_exemplo_que_acha_so_ela"
+      ]
+    },
+    {
       "id": "M-ITP-127",
       "requisito": "R02",
       "descricao": "O valor nunca vem marcado como dinheiro (ACH-143)",
