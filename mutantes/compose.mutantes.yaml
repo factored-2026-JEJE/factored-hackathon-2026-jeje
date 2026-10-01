@@ -1,5 +1,6 @@
 # Override para stacks de mutantes E2E: nada de portas publicadas (convive com o ambiente de
-# desenvolvimento) e imagens com tag própria (nunca sobrescreve jeje-*:local).
+# desenvolvimento), imagens com tag própria (nunca sobrescreve jeje-*:local) e o web sem os testes
+# no build (os testes do web rodam à parte, no `make test`).
 services:
   db:
     ports: !reset []
@@ -12,6 +13,10 @@ services:
     ports: !reset []
   web:
     image: jeje-mut-web:${MUTANTE_TAG:?defina MUTANTE_TAG}
+    # Sem os testes do web no build: o mutante precisa subir para a jornada no navegador o pegar.
+    build:
+      args:
+        TESTAR_NO_BUILD: "0"
     ports: !reset []
   e2e:
     image: jeje-mut-e2e:${MUTANTE_TAG:?defina MUTANTE_TAG}

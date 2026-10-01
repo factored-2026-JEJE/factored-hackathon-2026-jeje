@@ -39,6 +39,9 @@ git checkout -q --detach "$commit"
 test -z "$(git status --porcelain --ignored)" || { echo "repro: clone não está limpo" >&2; exit 1; }
 test ! -e .env || { echo "repro: .env não pode existir no clone" >&2; exit 1; }
 
+echo "repro: segredos no histórico do clone"
+make segredos
+
 echo "repro: stack com a fixture (projeto $id)"
 "${stack[@]}" up -d --build --wait web
 "${stack[@]}" --profile e2e run --rm --build e2e

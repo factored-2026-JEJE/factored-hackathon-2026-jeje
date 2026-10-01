@@ -247,8 +247,13 @@ make gate           # check + e2e + mutantes de ponta a ponta
 make metricas       # métricas recomputadas dos eventos de cada turno
 make avaliar-leitor # leitor por mensagem no teste do BANKING77 es/pt: regras vs cascata (sem banco)
 make testar-modelo  # integração real com o Ollama pela ponte (fora do gate)
-scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos os gates
+make repro          # do zero: clone limpo, stack isolada com a fixture, segredos e todos os gates
 ```
+
+O CI roda aqui, no build, sem GitHub (decisão do time): a imagem do web só sai com typecheck,
+lint e testes do web verdes (`npm run ci` no estágio de build), e `make check`, `make gate` e
+`make repro` rodam o resto na própria máquina. As stacks de mutantes E2E constroem o web sem os
+testes, porque ali o defeito plantado precisa subir para a jornada no navegador o pegar.
 
 ## Onde fica cada coisa
 
