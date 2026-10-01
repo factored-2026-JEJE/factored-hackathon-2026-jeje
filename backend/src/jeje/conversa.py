@@ -26,7 +26,7 @@ começou.
 import json
 import secrets
 from collections.abc import Callable
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from functools import cached_property
@@ -57,7 +57,7 @@ from jeje.mensagens import (
     descrever_cartao,
     marcadores,
 )
-from jeje.models import ESTADOS_DA_CONVERSA
+from jeje.models import ESTADOS_DA_CONVERSA, RESOLVEDORES
 
 Estado = Literal[ESTADOS_DA_CONVERSA]
 # Estados em que a automação não age mais: com humano (só lembra quem está com o caso) ou
@@ -117,6 +117,18 @@ class Saida:
 
 
 @dataclass(frozen=True)
+class RastroDaResolucao:
+    """Como a transação do turno foi achada (DEV-071): pelo filtro exato; pelo ranking, com a
+    versão da calibração, a probabilidade da primeira e quantas podiam ser; pela escolha do
+    cliente numa lista; ou a que já estava em curso na conversa (foco)."""
+
+    resolvedor: Literal[RESOLVEDORES]
+    calibracao: str | None = None
+    probabilidade: float | None = None
+    possiveis: int | None = None
+
+
+@dataclass(frozen=True)
 class ResultadoDoTurno:
     conversa_id: str
     numero: int
@@ -124,6 +136,7 @@ class ResultadoDoTurno:
     intencao: str
     saida: Saida
     fontes: tuple[str, ...] = ()  # de onde vieram os fatos e onde houve escrita (trace)
+    resolucao: RastroDaResolucao | None = None
 
     @property
     def resposta(self) -> str:
@@ -212,6 +225,7 @@ class _Turno:
         self.calibracao = calibracao
         self.acoes: list[handoff.Acao] = [handoff.Acao(**a) for a in contexto.get("acoes", [])]
         self.fontes: dict[str, None] = {}  # de onde vieram os fatos e onde houve escrita (trace)
+        self.resolucao: RastroDaResolucao | None = None  # como a transação foi achada (DEV-071)
 
     # ---- entrada -----------------------------------------------------------------------------
 
@@ -284,6 +298,7 @@ class _Turno:
             return Saida(decisao.regra, "recusar", (recusa,), self.estado, self.contexto)
         fora_de_escopo = decisao is not None
         if self.estado == "esclarecendo" and (escolhida := self._escolhida()) is not None:
+            self.resolucao = RastroDaResolucao("escolha")
             return self._agir(self.contexto["intencao"], escolhida)
         if self._pista_da_etapa():
             # Pista enquanto se procura a transação é do pedido em andamento, qualquer que seja a
@@ -451,8 +466,11 @@ class _Turno:
         if resolucao.tipo == "nenhuma" and not novo_assunto and pista != (atual := self._pista()):
             # A soma não casa nada (uma pista de antes estava errada): vale a mensagem de agora.
             pista, resolucao = atual, self._resolucao(status, atual)
+        resolvedor = "filtro"
         if resolucao.tipo == "nenhuma":
-            resolucao = self._pelo_ranking(status, pista)
+            resolucao, resolvedor = self._pelo_ranking(status, pista), "ranking"
+        if resolucao.tipo != "nenhuma":
+            self.resolucao = self._rastro(resolvedor, resolucao)
         if resolucao.tipo == "unica":
             return self._agir(intencao, resolucao.transacoes[0])
         return self._perguntar(intencao, resolucao.transacoes, pista, resolucao.campo)
@@ -462,6 +480,12 @@ class _Turno:
         return politica.Pista(
             lida.valor, lida.data, self._comercio, lida.ultima, lida.valor_marcado
         )
+
+    def _rastro(self, resolvedor: str, resolucao: politica.Resolucao) -> RastroDaResolucao:
+        if resolvedor == "filtro":
+            return RastroDaResolucao("filtro")
+        versao = self.calibracao.versao  # o ranking só decide com a calibração
+        return RastroDaResolucao("ranking", versao, resolucao.probabilidade, resolucao.possiveis)
 
     def _resolucao(self, status: str | None, pista: politica.Pista) -> politica.Resolucao:
         return self._com_ou_sem_status(status, pista, politica.resolver_transacao)
@@ -1294,8 +1318,10 @@ def turno(
         calibracao,
     )
     saida = atual.executar()
+    # A transação do turno sem resolução neste turno é a que já estava em curso (DEV-071).
+    rastro = atual.resolucao or (RastroDaResolucao("foco") if saida.transaction_id else None)
     resultado = ResultadoDoTurno(
-        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes)
+        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes), rastro
     )
     conexao.execute(
         text(
@@ -1344,6 +1370,7 @@ def turno(
             efeito=_efeito(saida),
             fontes=tuple(atual.fontes),
             **rastro_da_leitura(leitura),
+            **({} if rastro is None else asdict(rastro)),
         ),
     )
     return resultado

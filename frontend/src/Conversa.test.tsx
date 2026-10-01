@@ -31,6 +31,7 @@ function turno(parcial: Partial<ResultadoDoTurno>): ResultadoDoTurno {
     interpretacao: "regras",
     efeito: null,
     fontes: [],
+    resolucao: null,
     ...parcial,
   };
 }
@@ -296,6 +297,31 @@ test("por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem
   expect(motivo.getByText("P1")).toBeVisible();
   expect(motivo.getByText("curated.transactions, app.propostas_pre_caso")).toBeVisible();
   expect(motivo.getByText("leitor:e5@429a8eaca51b")).toBeVisible();
+});
+
+const pelo = (resolucao: ResultadoDoTurno["resolucao"], transaction_id: string | null = "TRX-1") =>
+  turno({ resolucao, transaction_id });
+
+test.each<[string, ResultadoDoTurno, string]>([
+  [
+    "o ranking escolheu",
+    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.987, possiveis: 2 }),
+    "escolhida pelo ranking com garantia (probabilidade 0,99; 2 possíveis; calibração 764ce683d347)",
+  ],
+  [
+    "o ranking só ordenou as opções",
+    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.6, possiveis: 3 }, null),
+    "possíveis ordenadas pelo ranking (probabilidade 0,60; 3 possíveis; calibração 764ce683d347)",
+  ],
+  ["o filtro exato achou", pelo({ resolvedor: "filtro", calibracao: null, probabilidade: null, possiveis: null }), "pelo filtro exato"],
+])("por que esta resposta diz como a transação foi achada (DEV-071): %s", async (_caso, corpo, esperado) => {
+  servidor([{ status: 200, corpo }]);
+  montar();
+  await abrirEPedir();
+  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
+  if (!resposta) throw new Error("resposta fora da lista");
+  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
+  expect(within(resposta).getByText(esperado)).toBeVisible();
 });
 
 test("turno reaberto pelo histórico mostra só a regra e a ação", async () => {

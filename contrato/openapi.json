@@ -2253,6 +2253,66 @@
         ],
         "title": "Readiness"
       },
+      "ResolucaoDoTurno": {
+        "properties": {
+          "resolvedor": {
+            "type": "string",
+            "enum": [
+              "filtro",
+              "ranking",
+              "escolha",
+              "foco"
+            ],
+            "title": "Resolvedor",
+            "description": "Filtro exato, ranking com garantia (DEV-037), escolha do cliente numa lista ou a transação já em curso na conversa"
+          },
+          "calibracao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calibracao",
+            "description": "Versão da calibração do ranking"
+          },
+          "probabilidade": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probabilidade",
+            "description": "Probabilidade da primeira, pelo ranking"
+          },
+          "possiveis": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Possiveis",
+            "description": "Quantas transações podiam ser a descrita"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resolvedor",
+          "calibracao",
+          "probabilidade",
+          "possiveis"
+        ],
+        "title": "ResolucaoDoTurno",
+        "description": "Como a transação do turno foi achada (DEV-071)."
+      },
       "Resultado": {
         "properties": {
           "id": {
@@ -2436,6 +2496,16 @@
             },
             "type": "array",
             "title": "Fontes"
+          },
+          "resolucao": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResolucaoDoTurno"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -2457,7 +2527,8 @@
           "descricao",
           "interpretacao",
           "efeito",
-          "fontes"
+          "fontes",
+          "resolucao"
         ],
         "title": "ResultadoDoTurno",
         "description": "O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."

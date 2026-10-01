@@ -22,7 +22,7 @@ const RESPOSTAS: Record<Idioma, { sim: string; nao: string; confirmar: string }>
 // "Por que esta resposta?" (DEV-031): o que a API disse do turno. No turno reaberto pelo
 // histórico, só a regra e a ação.
 type Motivo = Pick<ResultadoDoTurno, "regra" | "acao"> &
-  Partial<Pick<ResultadoDoTurno, "descricao" | "efeito" | "fontes" | "interpretacao">>;
+  Partial<Pick<ResultadoDoTurno, "descricao" | "efeito" | "fontes" | "interpretacao" | "resolucao" | "transaction_id">>;
 
 type Fala = { id: number; autor: "cliente" | "assistente"; texto: string; motivo?: Motivo };
 
@@ -52,7 +52,21 @@ const motivoDo = (t: ResultadoDoTurno): Motivo => ({
   efeito: t.efeito,
   fontes: t.fontes,
   interpretacao: t.interpretacao,
+  resolucao: t.resolucao,
+  transaction_id: t.transaction_id,
 });
+
+// Como a transação do turno foi achada (DEV-071): pelo ranking, a probabilidade da escolhida, quantas
+// podiam ser e a versão da calibração; com as opções na tela, o ranking só as ordenou.
+function comoAchou(r: NonNullable<ResultadoDoTurno["resolucao"]>, escolhida: boolean): string {
+  if (r.resolvedor === "ranking") {
+    const p = r.probabilidade === null ? "" : `probabilidade ${r.probabilidade.toFixed(2).replace(".", ",")}; `;
+    const detalhe = `${p}${r.possiveis ?? "?"} possíveis; calibração ${r.calibracao ?? "?"}`;
+    return escolhida ? `escolhida pelo ranking com garantia (${detalhe})` : `possíveis ordenadas pelo ranking (${detalhe})`;
+  }
+  const como = { filtro: "pelo filtro exato", escolha: "escolhida pelo cliente na lista", foco: "a que já estava em curso" };
+  return como[r.resolvedor];
+}
 
 /** A regra que decidiu a resposta, o que ela quer dizer, o efeito criado e de onde vieram os fatos. */
 function PorQue({ motivo }: { motivo: Motivo }) {
@@ -80,6 +94,12 @@ function PorQue({ motivo }: { motivo: Motivo }) {
           <>
             <dt>Leitura</dt>
             <dd>{motivo.interpretacao}</dd>
+          </>
+        )}
+        {motivo.resolucao && (
+          <>
+            <dt>Transação</dt>
+            <dd>{comoAchou(motivo.resolucao, Boolean(motivo.transaction_id))}</dd>
           </>
         )}
       </dl>

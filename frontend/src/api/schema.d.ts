@@ -965,6 +965,33 @@ export interface components {
             database: "ok" | "unreachable" | "not_migrated" | "reloading";
             dataset: components["schemas"]["DatasetInfo"] | null;
         };
+        /**
+         * ResolucaoDoTurno
+         * @description Como a transação do turno foi achada (DEV-071).
+         */
+        ResolucaoDoTurno: {
+            /**
+             * Resolvedor
+             * @description Filtro exato, ranking com garantia (DEV-037), escolha do cliente numa lista ou a transação já em curso na conversa
+             * @enum {string}
+             */
+            resolvedor: "filtro" | "ranking" | "escolha" | "foco";
+            /**
+             * Calibracao
+             * @description Versão da calibração do ranking
+             */
+            calibracao: string | null;
+            /**
+             * Probabilidade
+             * @description Probabilidade da primeira, pelo ranking
+             */
+            probabilidade: number | null;
+            /**
+             * Possiveis
+             * @description Quantas transações podiam ser a descrita
+             */
+            possiveis: number | null;
+        };
         /** Resultado */
         Resultado: {
             /** Id */
@@ -1026,6 +1053,7 @@ export interface components {
             efeito: string | null;
             /** Fontes */
             fontes: string[];
+            resolucao: components["schemas"]["ResolucaoDoTurno"] | null;
         };
         /** ReviewRegistrada */
         ReviewRegistrada: {
