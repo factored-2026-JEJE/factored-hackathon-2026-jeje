@@ -8,11 +8,12 @@ guarda o sha256 dele e a validade.
 import hashlib
 import secrets
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Literal
 
 from sqlalchemy import Connection, text
 
+from jeje import consultas, politica
 from jeje.bloqueio import CARTOES
 from jeje.models import DISPOSITIVOS
 
@@ -57,12 +58,13 @@ def provisionar_personas(conexao: Connection, quantidade: int) -> list[str]:
     )
 
 
-def personas_com_dicas(conexao: Connection, dias: int) -> list[dict]:
+def personas_com_dicas(conexao: Connection, limites: politica.Limites) -> list[dict]:
     """As personas na ordem provisionada, com o que ajuda a escolher o caminho da demonstração
     (PRD-009): cartões ativos ainda sem bloqueio feito por aqui (fraude com vários cartões),
-    transações recusadas (caminho ambíguo) e pré-casos nos últimos `dias`, os da reincidência
-    (POL-HUM-06). Uma consulta por tabela, só para os clientes que são persona."""
-    return [
+    transações recusadas (caminho ambíguo), pré-casos dentro da janela da reincidência
+    (POL-HUM-06) e as contestáveis com um exemplo (DEV-073). Uma consulta por tabela, só para os
+    clientes que são persona."""
+    dicas = [
         dict(linha)
         for linha in conexao.execute(
             text(
@@ -86,9 +88,36 @@ def personas_com_dicas(conexao: Connection, dias: int) -> list[dict]:
                 " LEFT JOIN recusadas USING (customer_id) LEFT JOIN recentes USING (customer_id)"
                 " ORDER BY p.ordem"
             ),
-            {"cartoes": list(CARTOES), "dias": dias},
+            {"cartoes": list(CARTOES), "dias": limites.reincidencia_dias},
         ).mappings()
     ]
+    return _com_exemplo(conexao, dicas, limites)
+
+
+def _com_exemplo(conexao: Connection, dicas: list[dict], limites: politica.Limites) -> list[dict]:
+    """As compras que a conversa propõe contestar sem atendente (POL-DISP-01, pela própria
+    política), dentro da janela, e um exemplo para o guia (ACH-151 da validação): a mais recente
+    com valor e dia que nenhuma outra transação do cliente repete, para a frase com o valor e a
+    data achar só ela."""
+    clientes = [d["customer_id"] for d in dicas]
+    hoje = consultas.hoje_dos_dados(conexao)
+    desde = hoje - timedelta(days=limites.janela_contestacao_dias)
+    repetidos = consultas.valor_e_dia_repetidos(conexao, clientes)
+    contestaveis: dict[str, list[tuple]] = {c: [] for c in clientes}
+    for cliente, valor, moeda, fatos in consultas.aprovadas_desde(conexao, clientes, desde):
+        decisao = politica.decidir_contestacao(fatos, limites, None, hoje=hoje)
+        if decisao.regra == "POL-DISP-01":
+            contestaveis[cliente].append((valor, moeda, fatos.transaction_date))
+    for d in dicas:
+        lista = contestaveis[d["customer_id"]]
+        unicas = [
+            {"valor": valor, "moeda": moeda, "data": quando.date()}
+            for valor, moeda, quando in lista
+            if (d["customer_id"], valor, quando.date()) not in repetidos
+        ]
+        d["contestaveis"] = len(lista)
+        d["exemplo"] = unicas[0] if unicas else None
+    return dicas
 
 
 def hash_token(token: str) -> str:

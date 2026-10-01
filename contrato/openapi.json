@@ -1490,6 +1490,32 @@
         ],
         "title": "Encaminhamento"
       },
+      "ExemploDeContestacao": {
+        "properties": {
+          "valor": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Valor"
+          },
+          "moeda": {
+            "type": "string",
+            "title": "Moeda"
+          },
+          "data": {
+            "type": "string",
+            "format": "date",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valor",
+          "moeda",
+          "data"
+        ],
+        "title": "ExemploDeContestacao",
+        "description": "Uma transação da persona para o guia dos jurados, como o cliente a vê."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1972,6 +1998,22 @@
             "type": "integer",
             "title": "Pre Casos Recentes",
             "description": "Pré-casos dentro da janela da reincidência (POL-HUM-06)"
+          },
+          "contestaveis": {
+            "type": "integer",
+            "title": "Contestaveis",
+            "description": "Compras dentro da janela de contestação que a conversa propõe contestar sem atendente (POL-DISP-01)"
+          },
+          "exemplo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExemploDeContestacao"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Uma delas, com valor e dia que nenhuma outra transação do cliente repete: a frase do guia com esse valor e essa data acha só ela"
           }
         },
         "type": "object",
@@ -1980,7 +2022,9 @@
           "nome",
           "cartoes_bloqueaveis",
           "transacoes_recusadas",
-          "pre_casos_recentes"
+          "pre_casos_recentes",
+          "contestaveis",
+          "exemplo"
         ],
         "title": "PersonaDaDemo",
         "description": "Persona da lista de acesso, com as dicas para escolher o caminho da demonstração (PRD-009):\ncontagens da base e do canal."
