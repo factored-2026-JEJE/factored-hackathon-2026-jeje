@@ -7806,8 +7806,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes)\n",
-          "para": "        conversa_id, numero, lida.idioma, lida.intencao, saida\n"
+          "de": "        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes), rastro\n",
+          "para": "        conversa_id, numero, lida.idioma, lida.intencao, saida, (), rastro\n"
         }
       ],
       "testes": [
@@ -9935,7 +9935,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            resolucao = self._pelo_ranking(status, pista)\n",
+          "de": "            resolucao, resolvedor = self._pelo_ranking(status, pista), \"ranking\"\n",
           "para": "            pass\n"
         }
       ],
