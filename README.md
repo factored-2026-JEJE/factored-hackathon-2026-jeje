@@ -378,11 +378,12 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
   validação e do portunhol, com a máquina carregada; eram ~100 ms antes de cada expressão ser
   compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
-- Vários clientes ao mesmo tempo (medição da validação, EXP-008): um processo do uvicorn usa um
-  núcleo, e com o leitor o p95 passa de 1 s a partir de 4 clientes. `WEB_CONCURRENCY` no
-  `compose.yaml` define quantos processos sobem: 1 na máquina de quem desenvolve, 2 nas stacks de
-  teste com a fixture (as jornadas provam que nada depende da memória de um processo) e 4 na
-  publicação. Com 4, numa stack local, o leitor a 8 clientes ficou com p95 de 767 ms, contra
-  2.065 ms com um, ao custo de ~3 GB de RAM (cada processo carrega o próprio leitor).
+- Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor):
+  um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez (ACH-107), aguenta 8
+  clientes com p95 de 430 ms; com 4 processos, 129 ms (antes da correção eram 2.065 e 767 ms).
+  `WEB_CONCURRENCY` no `compose.yaml` define quantos processos sobem: 1 na máquina de quem
+  desenvolve, 2 nas stacks de teste com a fixture (as jornadas provam que nada depende da memória
+  de um processo) e 4 na publicação, como folga, ao custo de ~3 GB de RAM (cada processo carrega o
+  próprio leitor).
 - Falta: um conjunto de teste ES/PT escrito pelo time (com
   gíria) para medir o leitor, e a validação independente em andamento.
