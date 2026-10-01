@@ -6219,6 +6219,36 @@
       ]
     },
     {
+      "id": "M-LEITOR-42",
+      "requisito": "R04",
+      "descricao": "O vocabulário do corretor conta também o teste do BANKING77 (DEV-060)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/palavras.py",
+          "de": "t.idioma in (\"es\", \"pt\") and t.particao == \"treino\"",
+          "para": "t.idioma in (\"es\", \"pt\")"
+        }
+      ],
+      "testes": [
+        "tests/test_palavras_conhecidas.py::test_vocabulario_conta_as_palavras_das_traducoes_de_treino"
+      ]
+    },
+    {
+      "id": "M-LEITOR-43",
+      "requisito": "R04",
+      "descricao": "O vocabulário do corretor conta também o inglês (DEV-060)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/palavras.py",
+          "de": "t.idioma in (\"es\", \"pt\") and t.particao == \"treino\"",
+          "para": "t.particao == \"treino\""
+        }
+      ],
+      "testes": [
+        "tests/test_palavras_conhecidas.py::test_vocabulario_conta_as_palavras_das_traducoes_de_treino"
+      ]
+    },
+    {
       "id": "M-ITP-28",
       "requisito": "R07",
       "descricao": "Cobrança repetida volta a ser consulta (\"me cobraron dos veces\" responde só o status)",
