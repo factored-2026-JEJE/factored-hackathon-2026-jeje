@@ -359,8 +359,8 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     """O contrato não tem onde pôr cliente ou transação: quem identifica é a sessão, e a transação
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
-        "idioma", "intencao", "resposta", "aceita_oferta", "escolha", "valor", "data", "status",
-        "id_digitado", "caso", "ultima", "cortesia", "sinais",
+        "idioma", "intencao", "resposta", "aceita_oferta", "escolha", "valor", "valor_marcado",
+        "data", "status", "id_digitado", "caso", "ultima", "cortesia", "sinais",
     }  # fmt: skip
 
 
@@ -805,6 +805,24 @@ def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor
 )  # fmt: skip
 def test_valor_e_o_numero_com_cara_de_dinheiro(texto, valor):
     assert ler(texto).valor == valor
+
+
+@pytest.mark.parametrize(
+    ("texto", "marcado"),
+    [
+        # ACH-143: o número solto pode ser o dia ou o final do cartão; moeda, símbolo ou centavos
+        # dizem que é dinheiro.
+        ("me cobraron 46", False),
+        ("me cobraron unos 46", False),
+        ("me cobraron 46 dólares", True),
+        ("me cobraron USD 46", True),
+        ("me cobraram R$ 46", True),
+        ("me cobraron 45,90", True),
+        ("me cobraron 45.90", True),
+    ],
+)
+def test_valor_marcado_tem_moeda_simbolo_ou_centavos(texto, marcado):
+    assert ler(texto).valor_marcado is marcado
 
 
 @pytest.mark.parametrize(

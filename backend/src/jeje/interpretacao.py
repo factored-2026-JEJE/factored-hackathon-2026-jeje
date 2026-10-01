@@ -42,6 +42,9 @@ class Interpretacao:
     aceita_oferta: bool = False
     escolha: int | None = None  # posição (1..9) numa lista de opções apresentada antes
     valor: Decimal | None = None
+    # O valor veio com moeda, símbolo ou centavos ("45,90", "46 dólares"): o número solto pode ser
+    # o dia ou o final do cartão, e não basta para a proposta direta pelo ranking (ACH-143).
+    valor_marcado: bool = False
     data: date | None = None
     status: Status | None = None  # status citado (ex.: "rechazaron" → Declined)
     id_digitado: bool = False  # parece identificador de sistema (POL-ID-02)
@@ -625,11 +628,12 @@ def _dia_mais_recente(dia: int, referencia: date) -> date | None:
     return None
 
 
-def _valor(texto: str) -> Decimal | None:
+def _valor(texto: str) -> tuple[Decimal | None, bool]:
     """O número com cara de dinheiro: fora data, contagem, identificador, tempo, final de cartão,
     dia, conta e parcelas (ACH-129), o marcado com moeda ou, sem marca, o primeiro; milhar com
     ponto, espaço ou vírgula e decimal com vírgula ou ponto ("COP 189.900,55", "6,050.00",
-    "45.90", "USD13,45"); "30 mil" vale 30.000."""
+    "45.90", "USD13,45"); "30 mil" vale 30.000. Junto, se ele veio marcado: com moeda, símbolo ou
+    centavos (ACH-143)."""
     sem_datas = DATA_NUMERICA.sub(" ", MOEDA_COLADA.sub(r"\1 ", MIL.sub(r"\g<1>000", texto)))
     sem_datas = DATA_POR_EXTENSO.sub(
         lambda m: " " if normalizar(m.group(2)) in MESES else m.group(0), sem_datas
@@ -637,7 +641,7 @@ def _valor(texto: str) -> Decimal | None:
     limpo = NAO_E_DINHEIRO.sub(" ", IDENTIFICADOR.sub(" ", CONTAGEM.sub(" ", sem_datas)))
     achados = list(VALOR.finditer(limpo))
     if not achados:
-        return None
+        return None, False
     marcados = [
         a
         for a in achados
@@ -646,7 +650,7 @@ def _valor(texto: str) -> Decimal | None:
     ]
     inteiro, fracao = (marcados or achados)[0].groups()
     digitos = re.sub(r"[.,\s]", "", inteiro)
-    return Decimal(f"{digitos}.{(fracao or '0').ljust(2, '0')}")
+    return Decimal(f"{digitos}.{(fracao or '0').ljust(2, '0')}"), bool(marcados) or bool(fracao)
 
 
 def _caso(limpo: str) -> bool:
@@ -670,13 +674,15 @@ def _status(limpo: str) -> str | None:
 def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interpretacao:
     limpo = normalizar(texto)
     escolha = _escolha(limpo)
+    # "A 1" é escolha, nunca valor: sem lista pendente, não vira busca de uma transação de 1,00.
+    valor, valor_marcado = (None, False) if escolha is not None else _valor(texto)
     pistas = {
         "idioma": _idioma(texto, limpo, idioma_anterior),
         "resposta": _resposta(limpo),
         "aceita_oferta": _aceita_oferta(limpo),
         "escolha": escolha,
-        # "A 1" é escolha, nunca valor: sem lista pendente, não vira busca de uma transação de 1,00.
-        "valor": None if escolha is not None else _valor(texto),
+        "valor": valor,
+        "valor_marcado": valor_marcado,
         "data": _data(texto, referencia),
         "status": _status(limpo),
         "id_digitado": IDENTIFICADOR.search(texto) is not None,
