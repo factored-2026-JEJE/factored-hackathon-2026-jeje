@@ -8948,6 +8948,51 @@
       "testes": [
         "tests/test_interpretacao.py::test_dizer_que_a_compra_e_fraudulenta_e_relato_de_fraude"
       ]
+    },
+    {
+      "id": "M-ITP-59",
+      "requisito": "R02",
+      "descricao": "Vírgula de milhar volta a ser decimal (\"6,050\" vira 6; DEV-043)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "VALOR = re.compile(r\"(?<![\\w.,-])(\\d{1,3}(?:[.,\\s]\\d{3})+|\\d+)(?:[.,](\\d{1,2}))?(?![\\w-])\")\n",
+          "para": "VALOR = re.compile(r\"(?<![\\w.,-])(\\d{1,3}(?:[.\\s]\\d{3})+|\\d+)(?:[.,](\\d{1,2}))?(?![\\w-])\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado"
+      ]
+    },
+    {
+      "id": "M-ITP-60",
+      "requisito": "R02",
+      "descricao": "O milhar com vírgula não sai dos dígitos (o valor quebra)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    digitos = re.sub(r\"[.,\\s]\", \"\", inteiro)\n",
+          "para": "    digitos = re.sub(r\"[.\\s]\", \"\", inteiro)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado"
+      ]
+    },
+    {
+      "id": "M-ITP-61",
+      "requisito": "R02",
+      "descricao": "O código da moeda colado ao número esconde o valor (\"USD13,45\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    sem_datas = DATA_NUMERICA.sub(\" \", MOEDA_COLADA.sub(r\"\\1 \", texto))\n",
+          "para": "    sem_datas = DATA_NUMERICA.sub(\" \", texto)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado"
+      ]
     }
   ]
 }

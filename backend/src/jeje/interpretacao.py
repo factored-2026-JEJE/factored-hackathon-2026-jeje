@@ -368,7 +368,11 @@ DATA_POR_EXTENSO = re.compile(r"(?<!\d)(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))
 CONTAGEM = re.compile(
     r"(?<![\w.,])[1-9]\s*(?:veces|vezes|cobros?|cobran[çc]as?|cargos?)(?!\w)", re.IGNORECASE
 )
-VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
+# Milhar com ponto, espaço ou vírgula seguida de exatamente 3 dígitos ("189.900,55", "6,050.00",
+# o formato do México e dos EUA); decimal com vírgula ou ponto e 1 ou 2 dígitos ("13,45", "1,5").
+VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.,\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
+# Código da moeda colado ao número ("USD13,45"): separado antes de procurar o valor (DEV-043).
+MOEDA_COLADA = re.compile(r"(?<![a-z])(usd|mxn|cop|ars|brl|eur)(?=\d)", re.IGNORECASE)
 # Identificadores do sistema (prefixos da base e dos protocolos) ou código longo com dígitos.
 IDENTIFICADOR = re.compile(
     r"\b(?:trx|cli|prd|suc|pc|at)-[a-z0-9]+\b"
@@ -419,9 +423,10 @@ def _data(texto: str, referencia: date) -> date | None:
 
 
 def _valor(texto: str) -> Decimal | None:
-    """Primeiro número que não é data, contagem nem parte de identificador; milhar com ponto ou
-    espaço e decimal com vírgula ou ponto ("COP 189.900,55", "45.90", "USD 12")."""
-    sem_datas = DATA_NUMERICA.sub(" ", texto)
+    """Primeiro número que não é data, contagem nem parte de identificador; milhar com ponto,
+    espaço ou vírgula e decimal com vírgula ou ponto ("COP 189.900,55", "6,050.00", "45.90",
+    "USD13,45")."""
+    sem_datas = DATA_NUMERICA.sub(" ", MOEDA_COLADA.sub(r"\1 ", texto))
     sem_datas = DATA_POR_EXTENSO.sub(
         lambda m: " " if normalizar(m.group(2)) in MESES else m.group(0), sem_datas
     )
@@ -429,7 +434,7 @@ def _valor(texto: str) -> Decimal | None:
     if achado is None:
         return None
     inteiro, fracao = achado.groups()
-    digitos = re.sub(r"[.\s]", "", inteiro)
+    digitos = re.sub(r"[.,\s]", "", inteiro)
     return Decimal(f"{digitos}.{(fracao or '0').ljust(2, '0')}")
 
 
