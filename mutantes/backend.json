@@ -1177,6 +1177,21 @@
       ]
     },
     {
+      "id": "M-CONT-06",
+      "requisito": "R06",
+      "descricao": "A data da transação volta a ser declarada date-time, que promete um fuso que a resposta não tem (ACH-113)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "    transaction_date: DataHoraLocal\n",
+          "para": "    transaction_date: datetime\n"
+        }
+      ],
+      "testes": [
+        "tests/test_sessao_api.py::test_data_da_transacao_sai_como_o_contrato_declara"
+      ]
+    },
+    {
       "id": "M-CUR-01",
       "requisito": "R08",
       "descricao": "FK de transação→produto sem o dono: banco aceita produto de outro cliente",
@@ -1759,6 +1774,37 @@
       ],
       "testes": [
         "tests/test_revisoes.py::test_tabela_sem_process_date_nao_tem_revisao_so_conflito"
+      ]
+    },
+    {
+      "id": "M-REV-08",
+      "requisito": "R08",
+      "descricao": "Avaliador fora do time volta a receber 422, com o detail fora do contrato (ACH-113)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "        raise HTTPException(status_code=403, detail=FORA_DO_TIME)\n",
+          "para": "        raise HTTPException(status_code=422, detail=FORA_DO_TIME)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_so_o_dono_avalia_e_so_quem_e_do_time",
+        "tests/test_reviews.py::test_avaliador_fora_do_time_recebe_o_403_declarado"
+      ]
+    },
+    {
+      "id": "M-REV-09",
+      "requisito": "R08",
+      "descricao": "O 403 do avaliador fora do time não é declarado no contrato",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/reviews_api.py",
+          "de": "        403: {\"description\": FORA_DO_TIME},\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_reviews.py::test_avaliador_fora_do_time_recebe_o_403_declarado"
       ]
     },
     {
