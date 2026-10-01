@@ -10,6 +10,9 @@ confiança. A decisão da cascata é a mesma da API (`interpretacao_leitor.em_ca
 - atendente: pedido de atendente lido pelas regras;
 - fora → ação: pedido fora de escopo lido como contestação ou fraude (o erro que o limite evita).
 
+Com o artefato do portão TF-IDF de Enzo (INTENCAO_MODELO, PRD-009), entram também a cascata com ele
+e cada leitor sozinho, sem as regras: o componente aprendido contra a linha de base (DEV-007).
+
     python -m jeje.avaliacao_leitor [dir_corpus]    # baixa o teste fixado (~4 MB) se faltar
 """
 
@@ -22,6 +25,7 @@ from datetime import date
 from pathlib import Path
 
 from jeje.config import Settings
+from jeje.intencao.modelo import Classificador, ModeloInvalido
 from jeje.interpretacao import interpretar
 from jeje.interpretacao_leitor import em_cascata
 from jeje.interpretacao_modelo import entendida
@@ -29,7 +33,7 @@ from jeje.leitor import corpus, fontes
 from jeje.leitor.codificador import E5, Codificador
 from jeje.leitor.corpus import Exemplo
 from jeje.leitor.fluxos import LEITURA_DO_FLUXO
-from jeje.leitor.modelo import ModeloLeitor
+from jeje.leitor.modelo import Leitura, ModeloLeitor
 
 LIMITES = (0.7, 0.8, 0.9)
 HOJE = date(2026, 6, 30)
@@ -53,21 +57,28 @@ def avaliar(
     modelo: ModeloLeitor,
     codificar: Codificador,
     limites: Sequence[float] = LIMITES,
+    tfidf: Classificador | None = None,
 ) -> dict[str, Counter]:
-    """Contagens por sistema ("regras", "leitor 0.8", ...) e idioma: {f"{sistema}|{idioma}": ...}.
-    "decidiu" conta as mensagens em que o leitor decidiu no lugar das regras."""
-    lidas = modelo.ler([e.texto for e in exemplos], codificar)
+    """Contagens por sistema ("regras", "leitor 0.8", "leitor sozinho", "tfidf 0.8", ...) e idioma:
+    {f"{sistema}|{idioma}": ...}. "decidiu" conta as mensagens em que o leitor decidiu no lugar das
+    regras; sozinho, ele decide todas."""
+    textos = [e.texto for e in exemplos]
+    leitores = {"leitor": modelo.ler(textos, codificar)}
+    if tfidf is not None:
+        leitores["tfidf"] = [Leitura(fluxo, confianca) for fluxo, confianca in tfidf.fluxos(textos)]
     contagens: dict[str, Counter] = {}
-    for e, lida in zip(exemplos, lidas, strict=True):
+    for i, e in enumerate(exemplos):
         esperada = LEITURA_DO_FLUXO[e.fluxo][0]
         regras = interpretar(e.texto, e.idioma, HOJE)
         sistemas = {"regras": (regras.intencao, False)}
-        for limite in limites:
-            if entendida(regras):
-                sistemas[f"leitor {limite}"] = (regras.intencao, False)
-            else:
-                lido, decidiu = em_cascata(regras, lida, limite)
-                sistemas[f"leitor {limite}"] = (lido.intencao, decidiu)
+        for nome, lidas in leitores.items():
+            for limite in limites:
+                if entendida(regras):
+                    sistemas[f"{nome} {limite}"] = (regras.intencao, False)
+                else:
+                    lido, decidiu = em_cascata(regras, lidas[i], limite)
+                    sistemas[f"{nome} {limite}"] = (lido.intencao, decidiu)
+            sistemas[f"{nome} sozinho"] = (LEITURA_DO_FLUXO[lidas[i].fluxo][0], True)
         for sistema, (intencao, decidiu) in sistemas.items():
             c = contagens.setdefault(f"{sistema}|{e.idioma}", Counter())
             c["n"] += 1
@@ -77,12 +88,12 @@ def avaliar(
 
 
 def tabela(contagens: dict[str, Counter]) -> str:
-    linhas = [f"{'sistema':12} {'idioma':6} {'n':>5} "
+    linhas = [f"{'sistema':14} {'idioma':6} {'n':>5} "
               + " ".join(f"{c:>12}" for c in (*CATEGORIAS, "leitor decidiu"))]  # fmt: skip
     for chave, c in contagens.items():
         sistema, idioma = chave.split("|")
         valores = [c[k] / c["n"] for k in (*CATEGORIAS, "decidiu")]
-        linhas.append(f"{sistema:12} {idioma:6} {c['n']:5d} "
+        linhas.append(f"{sistema:14} {idioma:6} {c['n']:5d} "
                       + " ".join(f"{v:12.1%}" for v in valores))  # fmt: skip
     return "\n".join(linhas)
 
@@ -103,13 +114,20 @@ def main(argv: list[str]) -> int:
     except fontes.FonteInvalida as erro:
         print(f"[avaliacao] ERRO: {erro}", file=sys.stderr)
         return 1
+    try:
+        tfidf = Classificador.carregar(config.intencao_modelo)
+    except ModeloInvalido as erro:
+        print(f"[avaliacao] sem o portão TF-IDF: {erro}", file=sys.stderr)
+        tfidf = None
     inicio = time.perf_counter()
-    contagens = avaliar(teste, modelo, codificar)
+    contagens = avaliar(teste, modelo, codificar, tfidf=tfidf)
     ms = (time.perf_counter() - inicio) * 1000 / len(teste)
     print(f"# Leitor {modelo.versao[:12]} no teste do BANKING77 (es+pt, {len(teste)} mensagens, "
           f"nunca vistas no treino); limite da API: {config.leitor_limite}")  # fmt: skip
     print(tabela(contagens))
-    print(f"\n~{ms:.1f} ms por mensagem (regras + leitor em lote, CPU)")
+    print(f"\n~{ms:.1f} ms por mensagem (regras + leitores em lote, CPU)")
+    if tfidf is not None:
+        print(f"Portão TF-IDF de Enzo {tfidf.metadados.versao[:12]}, no mesmo teste")
     return 0
 
 

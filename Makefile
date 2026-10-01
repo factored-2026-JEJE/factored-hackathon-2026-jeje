@@ -101,7 +101,7 @@ exportar-reviews: ## Publica como Issue as reviews de teste que ficaram só no b
 metricas: ## Métricas do atendimento recomputadas dos eventos da stack em execução
 	docker compose exec -T api python -m jeje.metricas
 
-avaliar-leitor: ## Leitor por mensagem no teste do BANKING77 es/pt: regras vs cascata (sem banco); fora do gate
+avaliar-leitor: ## Leitura por mensagem no teste do BANKING77 es/pt: regras, e5 e TF-IDF (sem banco); fora do gate
 	docker compose build migrate
 	docker compose run --rm --no-deps api python -m jeje.avaliacao_leitor
 
