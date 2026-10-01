@@ -10938,31 +10938,16 @@
     {
       "id": "M-ITP-125",
       "requisito": "R05",
-      "descricao": "Os pares voltam a ser testados um a um em toda mensagem (~6 ms por mensagem com os termos do golpe)",
+      "descricao": "Todos os pares de cada composto voltam a ser testados, com os dois termos na mensagem ou não (~8 ms por mensagem com os termos do golpe)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    if not _algum_par(termo).search(limpo):\n        return None\n",
-          "para": ""
+          "de": "    um = [a for a in termo.um if _casa(a, limpo)]\n    outro = [b for b in termo.outro if _casa(b, limpo)]\n    for a, b in product(um, outro):\n",
+          "para": "    for a, b in product(termo.um, termo.outro):\n"
         }
       ],
       "testes": [
         "tests/test_interpretacao.py::test_ler_uma_mensagem_custa_poucos_milissegundos"
-      ]
-    },
-    {
-      "id": "M-ITP-126",
-      "requisito": "R02",
-      "descricao": "A expressão de todos os pares só aceita a ordem dos grupos (\"mi tarjeta, necesito que la bloquee\" deixa de casar)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "return re.compile(f\"(?:{um}){entre}(?:{outro})|(?:{outro}){entre}(?:{um})\")",
-          "para": "return re.compile(f\"(?:{um}){entre}(?:{outro})\")"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
       ]
     }
   ]
