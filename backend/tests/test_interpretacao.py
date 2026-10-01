@@ -341,8 +341,8 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     """O contrato não tem onde pôr cliente ou transação: quem identifica é a sessão, e a transação
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
-        "idioma", "intencao", "resposta", "escolha", "valor", "data", "status", "id_digitado",
-        "caso", "ultima", "cortesia", "sinais",
+        "idioma", "intencao", "resposta", "aceita_oferta", "escolha", "valor", "data", "status",
+        "id_digitado", "caso", "ultima", "cortesia", "sinais",
     }  # fmt: skip
 
 
@@ -575,3 +575,25 @@ def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor
     o código da moeda colado ao número não impede a leitura, e o decimal com vírgula ou ponto
     continua ("13,45", "1,5", "45.90")."""
     assert ler(texto).valor == valor
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "sí, pásame", "sí, por favor, comunícame", "sí, adelante", "bueno", "por favor", "obvio",
+        "afirmativo", "sip", "va", "pode passar", "sim, pode passar", "pode ser", "com certeza",
+        "isso mesmo", "beleza", "uhum", "quero", "simm",
+    ],
+)  # fmt: skip
+def test_aceites_comuns_aceitam_a_oferta_mas_nao_confirmam_acao(texto):
+    """ACH-123 (DEV-020t): depois da oferta do atendente (sem efeito financeiro), o aceite é mais
+    largo; o sim que confirma pré-caso ou desbloqueio continua estrito."""
+    lida = ler(texto)
+    assert (lida.aceita_oferta, lida.resposta) == (True, None)
+
+
+@pytest.mark.parametrize(
+    "texto", ["no", "não quero", "sí, pero no esa", "¿y si me rechazaron?", "por favor, no"]
+)
+def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
+    assert ler(texto).aceita_oferta is False

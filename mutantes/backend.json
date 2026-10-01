@@ -8993,6 +8993,51 @@
       "testes": [
         "tests/test_interpretacao.py::test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado"
       ]
+    },
+    {
+      "id": "M-ITP-62",
+      "requisito": "R02",
+      "descricao": "Os aceites comuns não aceitam a oferta do atendente (ACH-123)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return achados is not None and achados - {\"cortesia\"} == {\"sim\"}\n",
+          "para": "    return False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_aceites_comuns_aceitam_a_oferta_mas_nao_confirmam_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-63",
+      "requisito": "R02",
+      "descricao": "Negar com palavra de aceite (\"por favor, no\") aceita a oferta",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    vocabulario += [(p, \"nao\") for p in NEGATIVAS]\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_negar_ou_perguntar_nao_aceita_a_oferta"
+      ]
+    },
+    {
+      "id": "M-CONV-87",
+      "requisito": "R02",
+      "descricao": "A conversa ignora o aceite comum da oferta do atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"oferecendo_humano\" and (self.lida.resposta or self.lida.aceita_oferta):\n",
+          "para": "        if self.estado == \"oferecendo_humano\" and (self.lida.resposta):\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_aceite_comum_da_oferta_do_atendente_encaminha"
+      ]
     }
   ]
 }
