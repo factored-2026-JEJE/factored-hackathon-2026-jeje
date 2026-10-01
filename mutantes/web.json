@@ -1509,6 +1509,21 @@
       "testes": [
         "src/Atendimento.test.tsx > cada persona mostra as dicas para escolher o caminho da demonstração"
       ]
+    },
+    {
+      "id": "M-WEB-106",
+      "requisito": "R08",
+      "descricao": "A tela pede a senha mesmo com a demonstração liberada (ou sem senha configurada)",
+      "trocas": [
+        {
+          "arquivo": "src/Acesso.tsx",
+          "de": "      .then((s) => ativo && setSituacao(s.liberado ? \"aberto\" : \"fechado\"))\n",
+          "para": "      .then((s) => ativo && setSituacao(\"fechado\"))\n"
+        }
+      ],
+      "testes": [
+        "src/Acesso.test.tsx > sem senha configurada, a demonstração abre direto"
+      ]
     }
   ]
 }
