@@ -4547,8 +4547,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"no fui yo\", \"nao fui eu\")),",
-          "para": "                )),"
+          "de": "                \"no fui yo\", \"nao fui eu\", \"no la hice yo\", \"no lo hice yo\")),",
+          "para": "                \"no la hice yo\", \"no lo hice yo\")),"
         }
       ],
       "testes": [
@@ -4729,8 +4729,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"revisem\", \"reclamar\")),",
-          "para": "\"revisem\", \"reclamar\",\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
+          "de": "\"revisem\", \"reclamar\", PEDIDO_DE_CONTESTACAO)),",
+          "para": "\"revisem\", \"reclamar\", PEDIDO_DE_CONTESTACAO,\n                   \"reembolso\", \"devolucion\", \"devolucao\")),"
         }
       ],
       "testes": [
@@ -8496,6 +8496,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_ler_uma_mensagem_custa_poucos_milissegundos"
+      ]
+    },
+    {
+      "id": "M-ITP-55",
+      "requisito": "R02",
+      "descricao": "Pedido de contestação com substantivo perto da transação volta a ser consulta (ACH-120)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"reclamar\", PEDIDO_DE_CONTESTACAO)),",
+          "para": "\"reclamar\")),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_contestacao_com_substantivo_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-56",
+      "requisito": "R02",
+      "descricao": "\"No la hice yo\" deixa de ser relato de fraude, ao contrário de \"não fui eu\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"nao fui eu\", \"no la hice yo\", \"no lo hice yo\")),",
+          "para": "\"nao fui eu\")),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_contestacao_com_substantivo_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-57",
+      "requisito": "R02",
+      "descricao": "O substantivo de contestação perto da compra não decide (só cobro e cobrança)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"compra\", \"cobro\", \"cobranca\", \"cargo\", \"transaccion\", \"transacao\"),\n",
+          "para": "    (\"cobro\", \"cobranca\", \"cargo\", \"transaccion\", \"transacao\"),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_contestacao_com_substantivo_e_contestacao"
       ]
     }
   ]

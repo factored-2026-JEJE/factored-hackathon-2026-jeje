@@ -122,6 +122,38 @@ def test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao(texto, intencao):
 @pytest.mark.parametrize(
     ("texto", "intencao"),
     [
+        # ACH-120 (EV-140): pedido de contestação feito com substantivo, com valor, era consulta.
+        (
+            "Quiero registrar una contestación a esta compra por $30 en Farmacia Salud el 9 de"
+            " marzo de 2025.",
+            "contestar",
+        ),
+        ("Quiero abrir un reclamo por la compra de 30 dólares en Farmacia Salud", "contestar"),
+        ("Necesito una objeción a la compra de 30 USD en Farmacia Salud", "contestar"),
+        ("Quero registrar uma contestação da compra de 64,50 USD no Cine Premium", "contestar"),
+        ("Quero abrir uma disputa da compra de 64,50 no Cine Premium", "contestar"),
+        ("Quero fazer uma reclamação da cobrança de 64,50 no Cine Premium", "contestar"),
+        # "Não fui eu" é relato de fraude nas duas línguas.
+        ("Esa compra de 30 dólares en Farmacia Salud no la hice yo", "fraude"),
+        ("Essa compra de 64,50 no Cine Premium não fui eu que fiz", "fraude"),
+        # As do EV-140 que já estavam certas continuam.
+        ("Quiero contestar la compra de 30 dólares en Farmacia Salud", "contestar"),
+        ("Quiero disputar el cargo de 30 dólares en Farmacia Salud", "contestar"),
+        ("Quiero impugnar el cobro de 30 dólares de Farmacia Salud", "contestar"),
+        ("No reconozco el cargo de 30 dólares en Farmacia Salud", "contestar"),
+        ("Quero contestar a compra de 64,50 dólares no Cine Premium", "contestar"),
+        ("Não reconheço a compra de 64,50 dólares no Cine Premium", "contestar"),
+        # Pedir estorno é consulta, por decisão (ACH-102).
+        ("Quero pedir estorno da compra de 64,50 no Cine Premium", "consultar"),
+    ],
+)
+def test_pedido_de_contestacao_com_substantivo_e_contestacao(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
         # Cargo de quem atende citado de passagem não é pedido de humano (ACH-104).
         ("El gerente de la tienda dice que el pago no pasó, ¿por qué?", "consultar"),
         ("O gerente da loja disse que meu cartão foi recusado, por quê?", "consultar"),
