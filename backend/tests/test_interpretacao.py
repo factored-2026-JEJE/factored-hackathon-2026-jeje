@@ -360,8 +360,8 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     """O contrato não tem onde pôr cliente ou transação: quem identifica é a sessão, e a transação
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
-        "idioma", "intencao", "resposta", "aceita_oferta", "escolha", "valor", "valor_marcado",
-        "data", "status", "id_digitado", "caso", "ultima", "cortesia", "sinais",
+        "idioma", "intencao", "resposta", "aceita_oferta", "outra", "escolha", "valor",
+        "valor_marcado", "data", "status", "id_digitado", "caso", "ultima", "cortesia", "sinais",
     }  # fmt: skip
 
 
@@ -877,6 +877,28 @@ def test_aceites_comuns_aceitam_a_oferta_mas_nao_confirmam_acao(texto):
     largo; o sim que confirma pré-caso ou desbloqueio continua estrito."""
     lida = ler(texto)
     assert (lida.aceita_oferta, lida.resposta) == (True, None)
+
+
+@pytest.mark.parametrize(
+    ("texto", "outra"),
+    [
+        # ACH-145: a recusa da transação apontada, não do pedido.
+        ("No, esa no", True),
+        ("Não, essa não", True),
+        ("no es esa", True),
+        ("não é essa", True),
+        ("esa no es", True),
+        ("Não, outra", True),
+        ("la otra", True),
+        # O "não" sozinho e a correção com pista seguem como antes.
+        ("no", False),
+        ("sí", False),
+        ("No, era el de 64,50 USD", False),
+        ("e a outra transação?", False),
+    ],
+)
+def test_recusa_da_transacao_apontada(texto, outra):
+    assert ler(texto).outra is outra
 
 
 @pytest.mark.parametrize(
