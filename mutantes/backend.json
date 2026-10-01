@@ -10071,8 +10071,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/qual_transacao.py",
-          "de": "/ float(pista.valor))) <= 0.10",
-          "para": "/ float(pista.valor))) <= 1.0"
+          "de": "pista.valor > 0 and compativel(pista.valor, candidata.amount)",
+          "para": "pista.valor > 0"
         }
       ],
       "testes": [
@@ -11278,6 +11278,66 @@
       ],
       "testes": [
         "tests/test_qual_transacao.py::test_palavra_solta_nao_vence_o_valor_exato_de_outro_comercio"
+      ]
+    },
+    {
+      "id": "M-QT-31",
+      "requisito": "R07",
+      "descricao": "Valor com centavos casa com folga de 10 centavos (\"105,20\" propõe a de 105,30, de outro cliente; ACH-152)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "        return abs(valor - dito) <= Decimal(\"0.01\")\n    numero",
+          "para": "        return abs(valor - dito) <= Decimal(\"0.10\")\n    numero"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_valor_de_cabeca_so_casa_pelo_arredondamento_da_transacao"
+      ]
+    },
+    {
+      "id": "M-QT-32",
+      "requisito": "R07",
+      "descricao": "Valor de cabeça volta a casar a até 10% (\"67\" propõe a de 72,40; ACH-152)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "pista.valor > 0 and compativel(pista.valor, candidata.amount)",
+          "para": "pista.valor > 0 and abs(candidata.amount / pista.valor - 1) <= Decimal(\"0.10\")"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_valor_de_cabeca_so_casa_pelo_arredondamento_da_transacao"
+      ]
+    },
+    {
+      "id": "M-QT-33",
+      "requisito": "R07",
+      "descricao": "A única do conjunto segue direto mesmo sem casar com todas as pistas (a transação ausente vira proposta de uma parecida; ACH-152)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "        if pista.ultima or consistente(candidatas[conjunto[0]], pista):",
+          "para": "        if True:"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_proposta_direta_so_quando_a_transacao_casa_com_todas_as_pistas"
+      ]
+    },
+    {
+      "id": "M-QT-34",
+      "requisito": "R07",
+      "descricao": "Consistência aceita a data a até 7 dias (a de 3 dias depois segue direto; ACH-152)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "if pista.data is not None and abs((candidata.transaction_date.date() - pista.data).days) > 1:",
+          "para": "if pista.data is not None and abs((candidata.transaction_date.date() - pista.data).days) > 7:"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_proposta_direta_so_quando_a_transacao_casa_com_todas_as_pistas"
       ]
     },
     {

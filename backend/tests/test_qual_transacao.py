@@ -83,7 +83,7 @@ def test_conjunto_guarda_as_provaveis_da_mais_para_a_menos_provavel():
 def test_comercio_citado_decide_quem_pode_ser_valor_e_data_se_dizem_de_cabeca():
     assert concorda(STREAMING, Pista(Decimal("50"), comercio="Streaming Plus"))
     assert not concorda(FARMACIA, Pista(Decimal("46.10"), comercio="Streaming Plus"))
-    assert concorda(FARMACIA, Pista(Decimal("42.00")))  # a até 10%
+    assert concorda(FARMACIA, Pista(Decimal("46")))  # o arredondamento de 46,10
     assert not concorda(UBER, Pista(Decimal("42.00")))
     assert concorda(UBER, Pista(data=date(2025, 3, 21)))  # a até 7 dias
     assert not concorda(UBER, Pista(data=date(2025, 3, 22)))
@@ -117,15 +117,47 @@ def test_uma_so_possivel_com_garantia_segue_e_sem_garantia_mostra_as_possiveis()
     assert (ultima.tipo, ultima.transacoes) == ("unica", ("T3",))
 
 
+def test_valor_de_cabeca_so_casa_pelo_arredondamento_da_transacao():
+    """ACH-152, regra R do QT-04: o valor dito sem centavos casa quando é o arredondamento da
+    transação na precisão dos zeros do número; com centavos, só o exato. Nada de 10% de folga."""
+
+    def em(valor: str) -> Candidata:
+        return Candidata("T", Decimal(valor), datetime(2025, 3, 10), None)
+
+    assert concorda(em("45.90"), Pista(Decimal("46")))
+    assert concorda(em("45.90"), Pista(Decimal("50")))  # "uns 50": a dezena
+    assert concorda(em("467.08"), Pista(Decimal("470"))) and concorda(
+        em("472.50"), Pista(Decimal("470"))
+    )
+    assert not concorda(em("72.40"), Pista(Decimal("67")))  # o cenário que regrediu no teste final
+    assert not concorda(em("105.30"), Pista(Decimal("105.20")))  # com centavos, só o exato
+    assert not concorda(em("46.10"), Pista(Decimal("42")))  # a até 10%, mas não é o arredondamento
+
+
+def test_proposta_direta_so_quando_a_transacao_casa_com_todas_as_pistas():
+    """ACH-152, regra R2 do QT-04: a garantia do conjunto supõe que a descrita está entre as
+    candidatas; quando o cliente descreve uma que não existe, a única possível só segue direto se
+    casar com todas as pistas ditas (data a até 1 dia). Senão, vira opção ("¿Es esta?")."""
+    longe = resolver_es(
+        [STREAMING, UBER], Pista(Decimal("46"), date(2025, 3, 13), valor_marcado=True)
+    )
+    assert (longe.tipo, longe.transacoes) == ("varias", ("T1",))
+    perto = resolver_es(
+        [STREAMING, UBER], Pista(Decimal("46"), date(2025, 3, 11), valor_marcado=True)
+    )
+    assert (perto.tipo, perto.transacoes) == ("unica", ("T1",))
+
+
 def test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto():
     """ACH-143: o número solto pode ser o dia ou o final do cartão: a única possível vira opção.
     Com o valor marcado, a data, o comércio ou "a última", segue direto."""
     solto = resolver_es([STREAMING, UBER], Pista(Decimal("46")))
     assert (solto.tipo, solto.transacoes) == ("varias", ("T1",))
-    # O conjunto garante a de 45,90, mas o número solto não basta: as duas possíveis viram opção.
+    # O conjunto garante a de 48,00 ("50" é o arredondamento das duas), mas o número solto não
+    # basta: as duas possíveis viram opção, da mais para a menos provável.
     perto = Candidata("T9", Decimal("48.00"), datetime(2025, 3, 12), "Loja 9")
-    duas = resolver_es([STREAMING, perto], Pista(Decimal("46")))
-    assert (duas.tipo, duas.transacoes) == ("varias", ("T1", "T9"))
+    duas = resolver_es([STREAMING, perto], Pista(Decimal("50")))
+    assert (duas.tipo, duas.transacoes) == ("varias", ("T9", "T1"))
     for pista in (
         Pista(Decimal("46"), valor_marcado=True),
         Pista(Decimal("46"), data=date(2025, 3, 10)),

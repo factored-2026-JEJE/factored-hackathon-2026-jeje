@@ -22,7 +22,7 @@ import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 import numpy as np
@@ -57,21 +57,52 @@ def tem_pista(pista: Pista) -> bool:
     return any(p is not None for p in (pista.valor, pista.data, pista.comercio))
 
 
+def compativel(dito: Decimal, valor: Decimal) -> bool:
+    """O valor dito é o da transação (ACH-152, regra R do QT-04): com centavos, o exato (até 1
+    centavo); sem centavos, o arredondamento dela na precisão que os zeros do número indicam ("70"
+    serve para 72,40; "67", não)."""
+    if dito != dito.to_integral_value():
+        return abs(valor - dito) <= Decimal("0.01")
+    numero = int(dito)
+    if numero <= 0:
+        return False
+    zeros = len(str(numero)) - len(str(numero).rstrip("0"))
+    return any(
+        (valor / 10**casas).quantize(Decimal(1), rounding=ROUND_HALF_UP) * 10**casas == dito
+        for casas in range(zeros + 1)
+    )
+
+
 def concorda(candidata: Candidata, pista: Pista) -> bool:
     """A candidata pode ser a descrita: do comércio citado, quando o cliente cita um (ele disse o
-    nome; valor e data é que se dizem de cabeça); sem comércio, com o valor a até 10% ou a data a
-    até 7 dias. Só essas entram no ranking: sem nenhuma, a resposta é pedir dados."""
+    nome; valor e data é que se dizem de cabeça); sem comércio, com o valor compatível (o exato ou
+    o arredondamento dela) ou a data a até 7 dias. Só essas entram no ranking: sem nenhuma, a
+    resposta é pedir dados."""
     if pista.comercio is not None:
         return candidata.merchant_name == pista.comercio
     valor = (
-        pista.valor is not None
-        and pista.valor > 0
-        and abs(math.log(max(float(candidata.amount), 1e-6) / float(pista.valor))) <= 0.10
+        pista.valor is not None and pista.valor > 0 and compativel(pista.valor, candidata.amount)
     )
     dias = (
         None if pista.data is None else abs((candidata.transaction_date.date() - pista.data).days)
     )
     return valor or (dias is not None and dias <= 7)
+
+
+def consistente(candidata: Candidata, pista: Pista) -> bool:
+    """A candidata casa com todas as pistas ditas: o valor compatível, a data a até 1 dia e o mesmo
+    comércio (ACH-152, regra R2 do QT-04). O conjunto conformal supõe que a descrita está entre as
+    candidatas; quando o cliente descreve uma que não existe, só a consistência de todas as pistas
+    separa a certa de uma parecida."""
+    if (
+        pista.valor is not None
+        and pista.valor > 0
+        and not compativel(pista.valor, candidata.amount)
+    ):
+        return False
+    if pista.data is not None and abs((candidata.transaction_date.date() - pista.data).days) > 1:
+        return False
+    return pista.comercio is None or candidata.merchant_name == pista.comercio
 
 
 def elegiveis(candidatas: Sequence[Candidata], pista: Pista) -> list[int]:
@@ -209,7 +240,10 @@ def resolver(
         conjunto = [i for i, _ in ordem]  # sem garantia de uma só: as possíveis
     ids = tuple(candidatas[i].transaction_id for i in conjunto)
     if len(conjunto) == 1 and direta:
-        return Resolucao("unica", ids)
+        # Só segue direto a que casa com todas as pistas; senão, ela vira opção ("¿Es esta?").
+        if pista.ultima or consistente(candidatas[conjunto[0]], pista):
+            return Resolucao("unica", ids)
+        return Resolucao("varias", ids)
     if len(conjunto) <= OPCOES_NA_TELA:
         return Resolucao("varias", ids)
     pesos = np.zeros(len(candidatas))
