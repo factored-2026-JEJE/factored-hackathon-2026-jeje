@@ -200,6 +200,9 @@ class Turno(Base):
 # turno da conversa, erro de turno desfeito, ação fora de um turno (rota direta, atendente) e
 # recarga dos dados.
 TIPOS_DE_EVENTO = ("turno", "erro", "acao", "recarga")
+# Como a transação do turno foi achada (DEV-071): o filtro exato, o ranking (DEV-037), a escolha do
+# cliente numa lista ou a transação já em curso na conversa.
+RESOLVEDORES = ("filtro", "ranking", "escolha", "foco")
 
 
 class Evento(Base):
@@ -210,6 +213,7 @@ class Evento(Base):
     __table_args__ = (
         CheckConstraint(_um_de("tipo", TIPOS_DE_EVENTO), name="tipo"),
         CheckConstraint("latencia_ms >= 0", name="latencia"),
+        CheckConstraint(_um_de("resolvedor", RESOLVEDORES), name="resolvedor"),
         {"schema": "app"},
     )
 
@@ -232,6 +236,12 @@ class Evento(Base):
     latencia_ms: Mapped[Decimal] = mapped_column(Numeric(12, 3))
     # X-Request-ID da requisição que gerou o evento: liga a resposta, o log e este trace.
     requisicao: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Como a transação do turno foi achada (DEV-071): pelo ranking, também a versão da calibração,
+    # a probabilidade da primeira e quantas podiam ser.
+    resolvedor: Mapped[str | None] = mapped_column(Text, nullable=True)
+    calibracao: Mapped[str | None] = mapped_column(Text, nullable=True)
+    probabilidade: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
+    possiveis: Mapped[int | None] = mapped_column(Integer, nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

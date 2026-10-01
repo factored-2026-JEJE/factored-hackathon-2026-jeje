@@ -1526,6 +1526,51 @@
       ]
     },
     {
+      "id": "M-WEB-110",
+      "requisito": "R09",
+      "descricao": "O Por que esta resposta? não mostra como a transação foi achada (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "            <dd>{comoAchou(motivo.resolucao, Boolean(motivo.transaction_id))}</dd>\n",
+          "para": "            <dd>{motivo.resolucao.resolvedor}</dd>\n"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta diz como a transação foi achada (DEV-071): o ranking escolheu"
+      ]
+    },
+    {
+      "id": "M-WEB-111",
+      "requisito": "R09",
+      "descricao": "As opções ordenadas pelo ranking aparecem como escolhidas com garantia",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "Boolean(motivo.transaction_id))}",
+          "para": "true)}"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta diz como a transação foi achada (DEV-071): o ranking só ordenou as opções"
+      ]
+    },
+    {
+      "id": "M-WEB-112",
+      "requisito": "R09",
+      "descricao": "A probabilidade sai com ponto decimal",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "r.probabilidade.toFixed(2).replace(\".\", \",\")",
+          "para": "r.probabilidade.toFixed(2)"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta diz como a transação foi achada (DEV-071): o ranking escolheu"
+      ]
+    },
+    {
       "id": "M-WEB-107",
       "requisito": "R08",
       "descricao": "A lista das personas não diz quantas contestáveis cada uma tem",

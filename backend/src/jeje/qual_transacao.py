@@ -239,17 +239,19 @@ def resolver(
     if len(conjunto) != 1 or not direta:
         conjunto = [i for i, _ in ordem]  # sem garantia de uma só: as possíveis
     ids = tuple(candidatas[i].transaction_id for i in conjunto)
+    # O rastro da decisão (DEV-071): a probabilidade da primeira e quantas podiam ser.
+    rastro = {"probabilidade": round(dict(ordem)[conjunto[0]], 4), "possiveis": len(aceitas)}
     if len(conjunto) == 1 and direta:
         # Só segue direto a que casa com todas as pistas; senão, ela vira opção ("¿Es esta?").
         if pista.ultima or consistente(candidatas[conjunto[0]], pista):
-            return Resolucao("unica", ids)
-        return Resolucao("varias", ids)
+            return Resolucao("unica", ids, **rastro)
+        return Resolucao("varias", ids, **rastro)
     if len(conjunto) <= OPCOES_NA_TELA:
-        return Resolucao("varias", ids)
+        return Resolucao("varias", ids, **rastro)
     pesos = np.zeros(len(candidatas))
     for i, p in ordem:
         pesos[i] = p
     ditos = {"valor": pista.valor, "data": pista.data, "comercio": pista.comercio}
     ja_ditos = frozenset(nome for nome, dito in ditos.items() if dito is not None)
     campo = campo_que_mais_divide(candidatas, pesos, conjunto, ja_ditos)
-    return Resolucao("varias", ids[:maximo_opcoes], campo=campo)
+    return Resolucao("varias", ids[:maximo_opcoes], campo=campo, **rastro)
