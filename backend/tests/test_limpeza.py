@@ -62,18 +62,22 @@ def test_limpeza_tira_o_estado_do_canal_e_deixa_a_base_as_personas_e_as_reviews(
     with conexao(settings) as con:
         apagadas = limpeza.limpar(con)
     depois = contagens(settings)
-    for tabela in limpeza.APAGADAS:
-        assert antes[tabela] > 0 and depois[tabela] == 0, tabela
-    # A conversa avaliada fica, com os turnos, encerrada; as outras saem.
-    assert (antes["app.conversas"], depois["app.conversas"]) == (2, 1)
-    assert apagadas["app.conversas"] == 1 and depois["app.turnos"] == 1
+    # Oráculo escrito aqui, e não tirado das listas do módulo: depois da limpeza, o canal fica só
+    # com as personas, a review e a conversa avaliada, com o turno dela.
+    canal = {t: n for t, n in depois.items() if t.startswith("app.")}
+    assert canal == {
+        "app.sessoes": 0, "app.propostas_pre_caso": 0, "app.pre_casos": 0, "app.bloqueios": 0,
+        "app.handoffs": 0, "app.eventos": 0, "app.conversas": 1, "app.turnos": 1,
+        "app.personas": antes["app.personas"], "app.reviews": 1,
+    }  # fmt: skip
+    assert all(antes[t] > 0 for t in canal), antes  # a rodada de testes usou cada tabela
+    assert (antes["app.conversas"], apagadas["app.conversas"]) == (2, 1)
     with conexao(settings) as con:
         assert con.execute(text("SELECT id, estado, contexto FROM app.conversas")).one() == (
             avaliada, "encerrada", {}
         )  # fmt: skip
-    mantidas = {t: n for t, n in antes.items() if not t.startswith("app.")}
-    mantidas |= {t: antes[t] for t in limpeza.MANTIDAS}
-    assert {t: depois[t] for t in mantidas} == mantidas
+    base = {t: n for t, n in antes.items() if not t.startswith("app.")}
+    assert {t: depois[t] for t in base} == base
 
 
 def test_toda_tabela_do_canal_tem_destino_na_limpeza(usada):
