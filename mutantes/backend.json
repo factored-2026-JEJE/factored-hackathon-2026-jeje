@@ -7489,22 +7489,22 @@
         }
       ],
       "testes": [
-        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_pergunta_qual_e_sempre_encaminha"
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
       ]
     },
     {
       "id": "M-CONV-53",
       "requisito": "R03",
-      "descricao": "Fraude sem cartão identificado na escolha pergunta de novo (a fraude fica parada)",
+      "descricao": "Na fraude já encaminhada, a resposta sem cartão pergunta de novo (a conversa fica parada na escolha)",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if escolhido is None:\n                return self._encaminhar_sem_bloqueio(relato)\n",
-          "para": "            if escolhido is None:\n                return self._perguntar_cartao(mostrados, \"roubo_perda\")\n"
+          "de": "        if escolhido is None:\n            self._anotar(\"bloquear_cartao\", \"cartão não identificado na resposta; nada bloqueado\")\n",
+          "para": "        if escolhido is None:\n            return self._perguntar_cartao(self._escolhido()[0], \"roubo_perda\")\n"
         }
       ],
       "testes": [
-        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_pergunta_qual_e_sempre_encaminha"
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
       ]
     },
     {
@@ -7681,12 +7681,12 @@
     {
       "id": "M-CONV-65",
       "requisito": "R03",
-      "descricao": "Fraude sem cartão ativo fica esperando a escolha de um cartão que não existe (não encaminha)",
+      "descricao": "Fraude sem cartão ativo pergunta qual bloquear entre nenhum (o caso espera uma escolha impossível)",
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        if candidatos and self.estado != \"escolhendo_cartao\":\n",
-          "para": "        if self.estado != \"escolhendo_cartao\":\n"
+          "de": "        if candidatos:\n            return self._encaminhar_e_perguntar(candidatos, decisao)\n",
+          "para": "        if True:\n            return self._encaminhar_e_perguntar(candidatos, decisao)\n"
         }
       ],
       "testes": [
@@ -8268,6 +8268,126 @@
       ],
       "testes": [
         "tests/test_bloqueio.py::test_bloqueio_de_outro_cliente_e_igual_a_inexistente"
+      ]
+    },
+    {
+      "id": "M-CONV-79",
+      "requisito": "R03",
+      "descricao": "Fraude com vários cartões pergunta antes de encaminhar (o caso espera a resposta)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        caso = self._encaminhar(decisao, self._em_foco())\n",
+          "para": "        return self._perguntar_cartao(candidatos, \"roubo_perda\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
+      ]
+    },
+    {
+      "id": "M-CONV-80",
+      "requisito": "R03",
+      "descricao": "Na escolha do cartão da fraude, novo relato ou pedido de atendente abre outro caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"escolhendo_cartao\" and self.contexto[\"motivo\"] == \"roubo_perda\":\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_na_escolha_do_cartao_da_fraude_nada_abre_outro_caso"
+      ]
+    },
+    {
+      "id": "M-CONV-81",
+      "requisito": "R07",
+      "descricao": "O que a resposta fez depois do encaminhamento não entra no caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        handoff.anotar(self.conexao, atendimento, self.acoes[ja_no_caso:])\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
+      ]
+    },
+    {
+      "id": "M-CONV-82",
+      "requisito": "R03",
+      "descricao": "Conversa parada na pergunta antiga bloqueia sem abrir o caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            atendimento = self._registrar_caso(relato, None)\n",
+          "para": "            atendimento = \"AT-00000000\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_conversa_que_esperava_o_cartao_da_fraude_sem_caso_aberto_encaminha_na_resposta"
+      ]
+    },
+    {
+      "id": "M-CONV-83",
+      "requisito": "R03",
+      "descricao": "O histórico não devolve o caso que está com o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    colunas = \"id, idioma, estado, contexto->>'atendimento' AS atendimento\"\n",
+          "para": "    colunas = \"id, idioma, estado, NULL AS atendimento\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
+      ]
+    },
+    {
+      "id": "M-CONV-84",
+      "requisito": "R06",
+      "descricao": "O bloqueio feito depois do encaminhamento conta duas vezes nos eventos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                escolhido, \"roubo_perda\", relato.regra, evento=False\n",
+          "para": "                escolhido, \"roubo_perda\", relato.regra, evento=True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
+      ]
+    },
+    {
+      "id": "M-HO-06",
+      "requisito": "R07",
+      "descricao": "Anotar no caso apaga o que ele já tinha",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "\"UPDATE app.handoffs SET acoes = acoes || CAST(:acoes AS jsonb) WHERE id = :id\"",
+          "para": "\"UPDATE app.handoffs SET acoes = CAST(:acoes AS jsonb) WHERE id = :id\""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_fraude_com_varios_cartoes_encaminha_ja_e_bloqueia_depois"
+      ]
+    },
+    {
+      "id": "M-HO-07",
+      "requisito": "R07",
+      "descricao": "Anotar num caso que não existe segue como se tivesse anotado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    if anotado != 1:\n        raise RuntimeError(\"encaminhamento não encontrado; nada foi anotado\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_caso_que_sumiu_antes_da_resposta_desfaz_o_turno_sem_bloquear"
       ]
     }
   ]
