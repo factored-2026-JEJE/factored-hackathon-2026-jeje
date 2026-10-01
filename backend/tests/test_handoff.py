@@ -50,3 +50,59 @@ def test_fila_atende_os_mais_antigos_primeiro(banco_migrado):
         segundo = handoff.registrar(con, Encaminhamento("CLI-B", "POL-HUM-01", "pt", "2"))
         assert [r["id"] for r in handoff.fila(con, 10)] == [primeiro, segundo]
         assert [r["id"] for r in handoff.fila(con, 1)] == [primeiro]
+
+
+# ---- texto do pedido escolhido por campos (DEV-036, NOV-11) ----
+
+CAMPOS = {
+    "No reconozco un cobro": {"pedido:contestar"},
+    "Esto es un abuso, siempre pasa lo mismo.": set(),
+    "Fue en Streaming Plus, de 45,90": {"comercio", "valor"},
+    "Fue de 45,90": {"valor"},
+    "Quiero hablar con una persona.": {"pedido:humano"},
+}
+
+
+def campos(fala: str) -> frozenset[str]:
+    return frozenset(CAMPOS[fala])
+
+
+def test_texto_do_pedido_junta_as_falas_com_campos_na_ordem_em_que_foram_ditas():
+    falas = [
+        "No reconozco un cobro",
+        "Esto es un abuso, siempre pasa lo mismo.",
+        "Fue en Streaming Plus, de 45,90",
+        "Quiero hablar con una persona.",
+    ]
+    assert handoff.texto_por_campos(falas, campos) == (
+        "No reconozco un cobro Fue en Streaming Plus, de 45,90 Quiero hablar con una persona."
+    )
+
+
+def test_no_limite_entra_primeiro_a_fala_com_mais_campos_novos():
+    falas = ["No reconozco un cobro", "Fue en Streaming Plus, de 45,90", "Fue de 45,90"]
+    # Cabem 33 caracteres: a fala com dois campos novos ganha da que tem um.
+    assert handoff.texto_por_campos(falas, campos, limite=33) == "Fue en Streaming Plus, de 45,90"
+
+
+def test_no_empate_de_campos_novos_entra_a_fala_mais_curta():
+    falas = ["Fue en Streaming Plus, de 45,90", "Fue de 45,90"]
+    so_valor = {"Fue en Streaming Plus, de 45,90": {"valor"}, "Fue de 45,90": {"valor"}}
+    assert handoff.texto_por_campos(falas, lambda f: frozenset(so_valor[f])) == "Fue de 45,90"
+
+
+def test_fala_sem_campo_novo_fica_de_fora_mesmo_cabendo():
+    falas = ["Fue de 45,90", "No reconozco un cobro", "Fue de 45,90"]
+    assert handoff.texto_por_campos(falas, campos) == "Fue de 45,90 No reconozco un cobro"
+
+
+def test_sem_campo_em_nenhuma_fala_vai_a_primeira_como_hoje():
+    falas = ["Esto es un abuso, siempre pasa lo mismo.", "no", "sí"]
+    sem_campos = {f: set() for f in falas}
+    assert handoff.texto_por_campos(falas, lambda f: frozenset(sem_campos[f])) == falas[0]
+
+
+def test_texto_do_pedido_junta_as_falas_numa_linha_so():
+    assert handoff.texto_por_campos(["  Fue de\n45,90 "], lambda f: frozenset({"valor"})) == (
+        "Fue de 45,90"
+    )
