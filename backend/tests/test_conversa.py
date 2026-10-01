@@ -778,6 +778,34 @@ def test_muitas_possiveis_viram_pergunta_pelo_campo_que_o_cliente_nao_disse(cena
     assert achada["transaction_id"] == "TRX-A3"
 
 
+def test_numero_solto_vira_opcao_e_o_sim_a_escolhe(cenario):
+    """ACH-143: "unos 13" sem moeda, data nem comércio pode ser o dia ou o final do cartão: a única
+    possível (os 12,00 do Café Central) vira opção, e o sim a escolhe. Com "dólares", segue
+    direto."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        opcao = dizer(http, auth, conversa, "No reconozco el cobro de unos 13")
+        escolhida = dizer(http, auth, conversa, "sí")
+        outra = abrir_conversa(http, auth, "es")
+        direta = dizer(http, auth, outra, "No reconozco el cobro de unos 13 dólares")
+    assert (opcao["acao"], opcao["estado"]) == ("esclarecer", "esclarecendo")
+    assert [o["transaction_id"] for o in opcao["opcoes"]] == ["TRX-A5"]
+    assert opcao["resposta"].startswith("Encontré una transacción que puede ser. ¿Es esta?\n1. ")
+    assert escolhida["transaction_id"] == "TRX-A5"
+    assert direta["transaction_id"] == "TRX-A5"
+
+
+def test_palavra_solta_nao_vence_o_valor_exato_de_outra_transacao(cenario):
+    """DEV-072: "20 dólares del cine" não casa nenhuma do Cine Premium; a palavra solta perde para o
+    valor exato, que é da de Uber (20,00), e a conversa segue com ela."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        resposta = dizer(http, auth, conversa, "No reconozco el cobro de 20,00 USD del cine")
+    assert resposta["transaction_id"] == "TRX-A3"
+
+
 def test_com_o_filtro_exato_a_pista_aproximada_pede_dados(cenario):
     """RESOLVEDOR_DE_TRANSACAO=filtro: o comportamento de antes, para comparar e voltar."""
     com_filtro = cenario.model_copy(update={"resolvedor_de_transacao": "filtro"})

@@ -40,6 +40,7 @@ from jeje.interpretacao import (
     cartao_citado,
     cita_cartao,
     comercio_citado,
+    comercio_citado_e_como,
     interpretar,
 )
 from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
@@ -422,8 +423,12 @@ class _Turno:
 
     @cached_property
     def _comercio(self) -> str | None:
-        """Comércio citado, entre os das transações do próprio cliente."""
-        return comercio_citado(self.mensagem, self._comercios)
+        """Comércio citado, entre os das transações do próprio cliente; o de uma palavra solta não
+        vence o valor exato dito (DEV-072)."""
+        comercio, como = comercio_citado_e_como(self.mensagem, self._comercios)
+        return qual_transacao.comercio_que_vale(
+            comercio, como, self.lida.valor, self._candidatas(None)
+        )
 
     def _resolver(self, intencao: str, novo_assunto: bool) -> Saida:
         if novo_assunto:
@@ -448,7 +453,10 @@ class _Turno:
         return self._perguntar(intencao, resolucao.transacoes, pista, resolucao.campo)
 
     def _pista(self) -> politica.Pista:
-        return politica.Pista(self.lida.valor, self.lida.data, self._comercio, self.lida.ultima)
+        lida = self.lida
+        return politica.Pista(
+            lida.valor, lida.data, self._comercio, lida.ultima, lida.valor_marcado
+        )
 
     def _resolucao(self, status: str | None, pista: politica.Pista) -> politica.Resolucao:
         return self._com_ou_sem_status(status, pista, politica.resolver_transacao)
@@ -525,16 +533,20 @@ class _Turno:
             pedido_de_dados = texto("CON-NENHUMA", self.idioma)
             return Saida("POL-CON-02", "esclarecer", (pedido_de_dados,), "esclarecendo", contexto)
         lista = "\n".join(f"{o.numero}. {o.descricao}" for o in opcoes)
-        pergunta = texto("POL-CON-02", self.idioma, opcoes=lista)
+        chave = "CON-UMA-POSSIVEL" if len(opcoes) == 1 else "POL-CON-02"
+        pergunta = texto(chave, self.idioma, opcoes=lista)
         return Saida(
             "POL-CON-02", "esclarecer", (pergunta,), "esclarecendo", contexto, opcoes=opcoes
         )
 
     def _escolhida(self) -> str | None:
+        """A opção escolhida pelo número, ou pelo sim quando a pergunta era "¿es esta?"."""
         opcoes = self.contexto.get("opcoes", [])
         escolha = self.lida.escolha
         if escolha is not None and 1 <= escolha <= len(opcoes):
             return opcoes[escolha - 1]
+        if len(opcoes) == 1 and self.lida.resposta == "sim":
+            return opcoes[0]
         return None
 
     def _do_cliente(self, transaction_id: str) -> TransacaoVerificada | None:
@@ -1158,6 +1170,7 @@ def _pista_json(pista: politica.Pista) -> dict:
         "data": None if pista.data is None else pista.data.isoformat(),
         "comercio": pista.comercio,
         "ultima": pista.ultima,
+        "valor_marcado": pista.valor_marcado,
     }
 
 
@@ -1170,6 +1183,7 @@ def _pista_do_contexto(guardada: dict | None) -> politica.Pista:
         None if data is None else date.fromisoformat(data),
         guardada.get("comercio"),
         guardada.get("ultima", False),
+        guardada.get("valor_marcado", False),
     )
 
 
@@ -1180,6 +1194,7 @@ def _somar(antes: politica.Pista, agora: politica.Pista) -> politica.Pista:
         agora.data if agora.data is not None else antes.data,
         agora.comercio if agora.comercio is not None else antes.comercio,
         agora.ultima or antes.ultima,
+        agora.valor_marcado if agora.valor is not None else antes.valor_marcado,
     )
 
 

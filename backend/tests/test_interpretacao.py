@@ -14,6 +14,7 @@ from jeje.interpretacao import (
     cartao_citado,
     cita_cartao,
     comercio_citado,
+    comercio_citado_e_como,
     interpretar,
 )
 
@@ -359,8 +360,8 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     """O contrato não tem onde pôr cliente ou transação: quem identifica é a sessão, e a transação
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
-        "idioma", "intencao", "resposta", "aceita_oferta", "escolha", "valor", "data", "status",
-        "id_digitado", "caso", "ultima", "cortesia", "sinais",
+        "idioma", "intencao", "resposta", "aceita_oferta", "escolha", "valor", "valor_marcado",
+        "data", "status", "id_digitado", "caso", "ultima", "cortesia", "sinais",
     }  # fmt: skip
 
 
@@ -468,6 +469,21 @@ FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Ub
         (FX, "o cafezinho de 12", "Café Central"),
         (FX, "la película", "Cine Premium"),
         (["Mercado Central", "Super Ahorro"], "fue en el supermercado", None),  # dois ramos iguais
+        # ACH-150 (a regra medida no QT-03): as palavras comuns do nome não citam o comércio
+        # sozinhas, e o telefone deixa de ser o ramo da Empresa Telefónica; o nome inteiro cita.
+        (["Internet Plus"], "lo compré por internet", None),
+        (["Internet Plus"], "paguei pela internet", None),
+        (["Empresa Telefónica"], "me llamaron por teléfono", None),
+        (["Empresa Telefónica"], "recibí una llamada telefónica", None),
+        (["Empresa Telefónica"], "falei pelo telefone", None),
+        (["Restaurante El Buen Sabor"], "Buen día, no reconozco un cobro", None),
+        (["Tienda Don José"], "Hola, soy José", None),
+        (["Super Ahorro"], "salió de mi cuenta de ahorro", None),
+        (["Farmacia Salud"], "lo necesito por mi salud", None),
+        (["Internet Plus"], "el cobro de Internet Plus", "Internet Plus"),
+        (["Tienda Don José"], "compré en la Tienda Don José", "Tienda Don José"),
+        (["Super Ahorro"], "foi na Super Ahorro", "Super Ahorro"),
+        (["Restaurante El Buen Sabor"], "la cena en El Buen Sabor", "Restaurante El Buen Sabor"),
         # Mensagens sem comércio continuam sem.
         (FX, "no sé, fue en una tienda, creo que fue caro", None),
         (FX, "e agora o que eu faço", None),
@@ -476,6 +492,14 @@ FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Ub
 )
 def test_comercio_citado_entre_os_do_cliente(comercios, texto, citado):
     assert comercio_citado(texto, comercios) == citado
+
+
+def test_comercio_citado_diz_se_veio_do_nome_inteiro_ou_de_uma_palavra():
+    """O DEV-072 trata diferente a palavra solta (que perde para o valor exato) e o nome inteiro."""
+    assert comercio_citado_e_como("lo de Streaming Plus", FX) == ("Streaming Plus", "nome")
+    assert comercio_citado_e_como("lo de streaming", FX) == ("Streaming Plus", "palavra")
+    assert comercio_citado_e_como("la película", FX) == ("Cine Premium", "palavra")
+    assert comercio_citado_e_como("nada", FX) == (None, None)
 
 
 # ---- Bloqueio de cartão (PRD-007) ---------------------------------------------------------------
@@ -805,6 +829,24 @@ def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor
 )  # fmt: skip
 def test_valor_e_o_numero_com_cara_de_dinheiro(texto, valor):
     assert ler(texto).valor == valor
+
+
+@pytest.mark.parametrize(
+    ("texto", "marcado"),
+    [
+        # ACH-143: o número solto pode ser o dia ou o final do cartão; moeda, símbolo ou centavos
+        # dizem que é dinheiro.
+        ("me cobraron 46", False),
+        ("me cobraron unos 46", False),
+        ("me cobraron 46 dólares", True),
+        ("me cobraron USD 46", True),
+        ("me cobraram R$ 46", True),
+        ("me cobraron 45,90", True),
+        ("me cobraron 45.90", True),
+    ],
+)
+def test_valor_marcado_tem_moeda_simbolo_ou_centavos(texto, marcado):
+    assert ler(texto).valor_marcado is marcado
 
 
 @pytest.mark.parametrize(
