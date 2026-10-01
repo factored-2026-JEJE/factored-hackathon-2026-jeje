@@ -262,6 +262,8 @@ class _Turno:
             # Respondeu ao resumo com outra coisa: volta à etapa e a mensagem é lida nela. O aceite
             # largo ("sí, pásame") é resposta à oferta e encaminha (ACH-125 da validação).
             self.estado, self.contexto = self._etapa_resumida()
+        if self.estado == "confirmando" and self.lida.outra:
+            return self._outra_transacao()
         if self.estado == "confirmando" and self.lida.resposta is not None:
             return self._confirmar() if self.lida.resposta == "sim" else self._cancelar()
         if self.estado == "oferecendo_humano" and (self.lida.resposta or self.lida.aceita_oferta):
@@ -413,8 +415,11 @@ class _Turno:
         return self._resolver(intencao, novo_assunto=True)
 
     def _candidatas(self, status: str | None) -> list[politica.Candidata]:
+        """As do cliente, fora as que ele já recusou neste pedido (ACH-145)."""
         self._fonte("curated.transactions")
-        return consultas.candidatas_do_cliente(self.conexao, self.customer_id, status)
+        recusadas = set(self.contexto.get("recusadas", ()))
+        todas = consultas.candidatas_do_cliente(self.conexao, self.customer_id, status)
+        return [c for c in todas if c.transaction_id not in recusadas]
 
     @cached_property
     def _comercios(self) -> list[str]:
@@ -639,6 +644,21 @@ class _Turno:
             transaction_id=t.transaction_id,
             protocolo=protocolo,
         )
+
+    def _outra_transacao(self) -> Saida:
+        """ "No, esa no" na confirmação: a proposta cai, o pedido continua, e a conversa pergunta
+        qual é; a recusada não volta a ser proposta neste pedido (ACH-145)."""
+        recusada = self.contexto["transaction_id"]
+        self._anotar("recusar_transacao", recusada)
+        contexto = {
+            **self._em_curso(),
+            "recusadas": [*self.contexto.get("recusadas", []), recusada],
+            "intencao": "contestar",
+            "esclarecimentos": 1,
+            "acoes": self._acoes_json(),
+        }
+        pergunta = texto("CON-OUTRA", self.idioma)
+        return Saida("POL-CON-02", "esclarecer", (pergunta,), "esclarecendo", contexto)
 
     def _confirmar(self) -> Saida:
         """Confirmação explícita da proposta guardada no estado (nunca de outra)."""
@@ -1068,12 +1088,12 @@ class _Turno:
 
     def _em_curso(self, contexto: dict | None = None) -> dict:
         """O pedido em curso, levado de etapa em etapa no contexto: a primeira mensagem dele (para
-        os resumos) e o turno em que começou (o texto do caso junta as falas desde ele). Sem pedido
-        no contexto, ele começa agora."""
+        os resumos), o turno em que começou (o texto do caso junta as falas desde ele) e as
+        transações que o cliente recusou nele (ACH-145). Sem pedido no contexto, começa agora."""
         contexto = self.contexto if contexto is None else contexto
         if "pedido" not in contexto:
             return {"pedido": self.mensagem[:280], "desde": self.numero}
-        return {k: contexto[k] for k in ("pedido", "desde") if k in contexto}
+        return {k: contexto[k] for k in ("pedido", "desde", "recusadas") if k in contexto}
 
     def _falas_do_pedido(self) -> list[str]:
         """O que o cliente disse no pedido em curso, na ordem: as mensagens desde o turno em que ele

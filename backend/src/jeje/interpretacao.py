@@ -40,6 +40,8 @@ class Interpretacao:
     # A mensagem inteira aceita a oferta do atendente, com o aceite largo do dia a dia ("sí,
     # pásame", "pode passar", "beleza"). Vale só para a oferta: confirmar ação pede `resposta`.
     aceita_oferta: bool = False
+    # A resposta recusa a transação proposta, não o pedido ("no, esa no", "não é essa", ACH-145).
+    outra: bool = False
     escolha: int | None = None  # posição (1..9) numa lista de opções apresentada antes
     valor: Decimal | None = None
     # O valor veio com moeda, símbolo ou centavos ("45,90", "46 dólares"): o número solto pode ser
@@ -406,6 +408,10 @@ AFIRMATIVAS = ("si", "sim", "claro", "claro que si", "claro que sim", "si quiero
 NEGATIVAS = ("no", "nao", "no quiero", "nao quero", "cancelar", "cancela", "cancele", "mejor no",
              "melhor nao", "deja", "dejalo", "deixa", "deixa pra la", "nunca",
              "negativo")  # fmt: skip
+# "Esa no", "não é essa", "la otra": a transação apontada não é a certa (ACH-145).
+OUTRA = ("esa no", "essa nao", "no es esa", "nao e essa", "esa no es", "essa nao e", "no era esa",
+         "nao era essa", "no esa", "nao essa", "otra", "outra", "la otra", "a outra", "es otra",
+         "e outra")  # fmt: skip
 CORTESIA = ("por favor", "gracias", "muchas gracias", "obrigado", "obrigada", "muito obrigado",
             "pues", "entonces", "entao", "bueno", "bom", "ya", "ja", "senor", "senhor")  # fmt: skip
 
@@ -442,6 +448,14 @@ def _aceita_oferta(limpo: str) -> bool:
     vocabulario += [(p, "cortesia") for p in CORTESIA if p not in ACEITES_DA_OFERTA]
     achados = _so_vocabulario(limpo, vocabulario)
     return achados is not None and set(achados) - {"cortesia"} == {"sim"}
+
+
+def _outra(limpo: str) -> bool:
+    """A mensagem inteira recusa a transação apontada, com ou sem o "não" e a cortesia."""
+    vocabulario = [(p, "outra") for p in OUTRA] + [(p, "nao") for p in NEGATIVAS]
+    vocabulario += [(p, "cortesia") for p in CORTESIA]
+    achados = _so_vocabulario(limpo, vocabulario)
+    return achados is not None and "outra" in achados
 
 
 def _resposta(limpo: str) -> Resposta | None:
@@ -680,6 +694,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "idioma": _idioma(texto, limpo, idioma_anterior),
         "resposta": _resposta(limpo),
         "aceita_oferta": _aceita_oferta(limpo),
+        "outra": _outra(limpo),
         "escolha": escolha,
         "valor": valor,
         "valor_marcado": valor_marcado,
