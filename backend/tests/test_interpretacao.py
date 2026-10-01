@@ -708,7 +708,8 @@ def test_ler_uma_mensagem_custa_poucos_milissegundos():
     expressões recompiladas a cada chamada, a leitura levava ~100 ms. Compiladas uma vez, ficava
     perto de 2 ms; com os termos do golpe (ACH-142), testar os pares um a um levou a ~6 ms. Com
     todos os pares de cada composto numa expressão só, fica perto de 1 ms; o limite de 3 ms deixa
-    folga para a máquina carregada."""
+    folga para a máquina carregada. Vale para cada frase, inclusive a que casa o último par de um
+    composto grande, que compila centenas de pares na primeira vez."""
     frases = [
         "¿Por qué me rechazaron la compra de 45,90 del 10/03?",
         "No reconozco el cobro de Uber",
@@ -716,16 +717,17 @@ def test_ler_uma_mensagem_custa_poucos_milissegundos():
         "hola, buenas tardes",
         "me robaron la tarjeta",
         "não quero desbloquear meu cartão",
+        "Una mujer fingiendo ser mi amiga me pidió plata",
     ]
     for frase in frases:  # a primeira leitura compila; o que importa é o regime
         interpretar(frase, "es", REFERENCIA)
-    tempos = []
+    tempos: dict[str, list[float]] = {frase: [] for frase in frases}
     for _ in range(10):
         for frase in frases:
             inicio = time.perf_counter()
             interpretar(frase, "es", REFERENCIA)
-            tempos.append((time.perf_counter() - inicio) * 1000)
-    assert statistics.median(tempos) <= 3
+            tempos[frase].append((time.perf_counter() - inicio) * 1000)
+    assert max(statistics.median(t) for t in tempos.values()) <= 3
 
 
 @pytest.mark.parametrize(
