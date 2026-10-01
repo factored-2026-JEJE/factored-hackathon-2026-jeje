@@ -2,6 +2,7 @@
 
 import pytest
 from alembic import command
+from alembic.script import ScriptDirectory
 from conftest import alembic_config, conexao
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
@@ -42,6 +43,33 @@ def test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema(banco_limpo):
 
     command.upgrade(config, "head")
     assert tabelas_do_produto(banco_limpo) == depois_do_upgrade
+
+
+def colunas_do_produto(settings) -> set[tuple[str, str, str]]:
+    with conexao(settings) as con:
+        linhas = con.execute(
+            text(
+                "select table_schema, table_name, column_name from information_schema.columns "
+                "where table_schema = any(:schemas)"
+            ),
+            {"schemas": list(SCHEMAS_DO_PRODUTO)},
+        )
+        return {tuple(linha) for linha in linhas}
+
+
+def test_cada_downgrade_desfaz_exatamente_o_seu_upgrade(banco_limpo):
+    """Subir uma migration e descer um passo volta às mesmas colunas: o downgrade até a base
+    apaga as tabelas inteiras e não vê a coluna que uma migration nova esquece de tirar."""
+    config = alembic_config(banco_limpo)
+    revisoes = [
+        r.revision for r in reversed(list(ScriptDirectory.from_config(config).walk_revisions()))
+    ]
+    for revisao in revisoes:
+        antes = colunas_do_produto(banco_limpo)
+        command.upgrade(config, revisao)
+        command.downgrade(config, "-1")
+        assert colunas_do_produto(banco_limpo) == antes, revisao
+        command.upgrade(config, revisao)
 
 
 def test_dataset_version_aceita_uma_unica_linha(banco_migrado):
