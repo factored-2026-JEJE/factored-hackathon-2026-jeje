@@ -11,7 +11,8 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ci": "npm run typecheck && npm run lint && npm test"
   },
   "dependencies": {
     "react": "19.3.0",

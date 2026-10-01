@@ -5,15 +5,19 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Testes: typecheck, lint e vitest; python3 só para o harness de mutantes (biblioteca padrão).
+# Testes: typecheck, lint e vitest (`npm run ci`); python3 só para o harness de mutantes.
 FROM deps AS test
 RUN apk add --no-cache python3
 COPY . .
-CMD ["sh", "-c", "npm run typecheck && npm run lint && npm test"]
+CMD ["npm", "run", "ci"]
 
+# CI no build (PRD-009): a imagem do web só sai com typecheck, lint e testes verdes. As stacks de
+# mutantes E2E desligam (TESTAR_NO_BUILD=0): ali o mutante precisa subir para a jornada o pegar.
 FROM deps AS build
+ARG TESTAR_NO_BUILD=1
 COPY . .
-RUN npm run build
+COPY --from=contrato openapi.json /contrato/openapi.json
+RUN if [ "$TESTAR_NO_BUILD" = 1 ]; then npm run ci; fi && npm run build
 
 # Execução: Caddy serve os estáticos e encaminha /api para o backend (mesma origem).
 FROM caddy:2-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b AS runtime
