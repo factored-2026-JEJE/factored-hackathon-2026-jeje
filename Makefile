@@ -9,7 +9,7 @@ rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	metricas exportar-reviews avaliar-leitor calibrar-transacao contrato contrato-explorar testar-modelo check gate repro \
-	e2e-pelo-portao publicar publicacao-down limpar demo-limpar
+	e2e-pelo-portao publicar publicacao-down voltar limpar demo-limpar
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -55,6 +55,11 @@ publicar: ## Publica o main para os jurados: gate, jornadas pelo portão, stack 
 	$(MAKE) segredos lint test
 	$(MAKE) e2e-pelo-portao
 	JEJE_TAG=$$(git rev-parse --short=12 HEAD) $(PUB) up -d --build --wait
+	scripts/conferir-publicacao.sh
+
+voltar: ## Volta a publicação ao COMMIT, já publicado antes: desce as migrations novas e sobe as imagens dele (ACH-116)
+	@test -n "$(COMMIT)" || { echo "uso: make voltar COMMIT=<sha>"; exit 1; }
+	PUB="$(PUB)" scripts/voltar.sh $(COMMIT)
 	scripts/conferir-publicacao.sh
 
 publicacao-down: ## Tira a publicação do ar (mantém o banco)
