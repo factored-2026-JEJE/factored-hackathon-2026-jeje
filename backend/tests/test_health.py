@@ -2,7 +2,8 @@
 
 import time
 
-from conftest import cliente, registrar_dataset
+from conftest import cliente, conexao, registrar_dataset
+from sqlalchemy import text
 
 from jeje.config import Settings
 
@@ -28,6 +29,32 @@ def test_ready_com_dataset_carregado_devolve_versao_e_origem(banco_migrado):
     assert corpo["status"] == "ready"
     assert corpo["database"] == "ok"
     assert (corpo["dataset"]["version"], corpo["dataset"]["source"]) == ("abc123", "fixture")
+
+
+def test_ready_mostra_a_versao_recusada_e_segue_pronto_com_a_anterior(banco_migrado):
+    """ACH-112: a versão nova recusada pela carga aparece na prontidão, que segue pronta com a
+    anterior; sem recusa, o campo vem vazio."""
+    registrar_dataset(banco_migrado, version="abc123", source="fixture")
+    with cliente(banco_migrado) as http:
+        antes = http.get("/health/ready").json()["dataset"]["recusada"]
+    with conexao(banco_migrado) as con:
+        con.execute(
+            text(
+                "update meta.dataset_version set recusada_versao = 'def456', "
+                "recusada_motivo = 'coluna nova em branches', recusada_em = now()"
+            )
+        )
+    with cliente(banco_migrado) as http:
+        resposta = http.get("/health/ready")
+    corpo = resposta.json()
+    assert (resposta.status_code, corpo["status"], corpo["dataset"]["version"]) == (
+        200, "ready", "abc123"
+    )  # fmt: skip
+    recusada = corpo["dataset"]["recusada"]
+    assert (antes, recusada["version"], recusada["motivo"]) == (
+        None, "def456", "coluna nova em branches"
+    )  # fmt: skip
+    assert recusada["em"]
 
 
 def test_ready_sem_dataset_carregado_nao_esta_pronto(banco_migrado):

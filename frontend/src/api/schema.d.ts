@@ -628,6 +628,7 @@ export interface components {
              * Format: date-time
              */
             loaded_at: string;
+            recusada: components["schemas"]["VersaoRecusada"] | null;
         };
         /** DecisaoDaPolitica */
         DecisaoDaPolitica: {
@@ -1198,6 +1199,21 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * VersaoRecusada
+         * @description A versão nova que a carga recusou com esta valendo (ACH-112).
+         */
+        VersaoRecusada: {
+            /** Version */
+            version: string;
+            /** Motivo */
+            motivo: string;
+            /**
+             * Em
+             * Format: date-time
+             */
+            em: string;
         };
         /** Mensagem */
         jeje__conversa_api__Mensagem: {
