@@ -313,17 +313,17 @@ CORTESIA = ("por favor", "gracias", "muchas gracias", "obrigado", "obrigada", "m
             "pues", "entonces", "entao", "bueno", "bom", "ya", "ja", "senor", "senhor")  # fmt: skip
 
 
-def _so_vocabulario(limpo: str, vocabulario: list[tuple[str, str]]) -> set[str] | None:
-    """Tipos das frases do vocabulário que compõem a mensagem inteira (a frase mais longa primeiro);
-    None se sobrar alguma palavra fora dele."""
+def _so_vocabulario(limpo: str, vocabulario: list[tuple[str, str]]) -> list[str] | None:
+    """Tipos das frases do vocabulário que compõem a mensagem inteira, na ordem em que aparecem (a
+    frase mais longa primeiro); None se sobrar alguma palavra fora dele."""
     vocabulario = sorted(vocabulario, key=lambda par: -len(par[0].split()))
-    palavras, achados = limpo.split(), set()
+    palavras, achados = limpo.split(), []
     i = 0
     while i < len(palavras):
         for frase, tipo in vocabulario:
             partes = frase.split()
             if palavras[i : i + len(partes)] == partes:
-                achados.add(tipo)
+                achados.append(tipo)
                 i += len(partes)
                 break
         else:
@@ -344,7 +344,7 @@ def _aceita_oferta(limpo: str) -> bool:
     vocabulario = [(p, "sim") for p in (*AFIRMATIVAS, *ACEITES_DA_OFERTA)]
     vocabulario += [(p, "cortesia") for p in CORTESIA if p not in ACEITES_DA_OFERTA]
     achados = _so_vocabulario(limpo, vocabulario)
-    return achados is not None and achados - {"cortesia"} == {"sim"}
+    return achados is not None and set(achados) - {"cortesia"} == {"sim"}
 
 
 def _resposta(limpo: str) -> Resposta | None:
@@ -355,8 +355,8 @@ def _resposta(limpo: str) -> Resposta | None:
     achados = _so_vocabulario(limpo, vocabulario)
     if achados is None:
         return None  # palavra fora do vocabulário: não é resposta curta
-    achados.discard("cortesia")
-    return achados.pop() if len(achados) == 1 else None
+    tipos = set(achados) - {"cortesia"}
+    return tipos.pop() if len(tipos) == 1 else None
 
 
 # Cumprimento e agradecimento só quando a mensagem inteira é isso: "obrigado, e a outra?" continua
@@ -367,28 +367,36 @@ AGRADECIMENTOS = ("gracias", "muchas gracias", "mil gracias", "te agradezco", "l
                   "brigado", "brigada", "brigadao", "valeu", "vlw", "obg", "agradeco", "muy amable",
                   "muito gentil", "muito amavel", "que amable", "adios", "chau", "chao", "tchau",
                   "hasta luego", "hasta pronto", "nos vemos", "ate logo", "ate mais", "ate breve",
-                  "era eso", "eso era todo", "eso es todo", "nada mas", "era isso", "e isso",
-                  "e so isso", "so isso", "listo", "resolvio", "resolveu", "ya esta", "perfecto",
-                  "perfeito", "genial", "otimo", "excelente", "ok", "okay", "okey", "vale",
-                  "entendi", "entendido", "beleza", "blz", "show", "joia", "pela ajuda",
-                  "por la ayuda", "por tu ayuda", "por su ayuda", "por sua ajuda",
-                  "pela informacao", "por la informacion")  # fmt: skip
+                  "beleza", "blz", "show", "joia", "pela ajuda", "por la ayuda", "por tu ayuda",
+                  "por su ayuda", "por sua ajuda", "pela informacao",
+                  "por la informacion")  # fmt: skip
+# Palavras de fechamento: encerram como o agradecimento, mas com uma negação antes ("no resolvió",
+# "não era isso", ACH-128) dizem o contrário e não são cortesia.
+FECHAMENTO = ("era eso", "eso era todo", "eso es todo", "nada mas", "era isso", "e isso",
+              "e so isso", "so isso", "listo", "resolvio", "resolveu", "ya esta", "perfecto",
+              "perfeito", "genial", "otimo", "excelente", "ok", "okay", "okey", "vale", "entendi",
+              "entendido")  # fmt: skip
+NEGACOES_DA_CORTESIA = ("no", "nao", "nunca", "todavia no", "ainda nao")
 SAUDACOES = ("hola", "oi", "ola", "opa", "buenas", "buen dia", "buenos dias", "buenas tardes",
              "buenas noches", "bom dia", "boa tarde", "boa noite", "que tal", "e ai", "eai", "hey",
              "alo")  # fmt: skip
 ENCHIMENTO_DA_CORTESIA = ("por favor", "pues", "entonces", "entao", "bueno", "bom", "ya", "ja",
                           "senor", "senora", "senhor", "senhora", "muy", "muito", "mucho",
                           "tudo bem", "tudo bom", "todo bien", "como estas", "como vai",
-                          "como esta", "si", "sim", "no", "nao", "y", "e", "amigo", "amiga",
+                          "como esta", "si", "sim", "y", "e", "amigo", "amiga",
                           "cara")  # fmt: skip
 
 
 def _cortesia(limpo: str) -> Cortesia | None:
     vocabulario = [(p, "agradecimento") for p in AGRADECIMENTOS]
+    vocabulario += [(p, "fechamento") for p in FECHAMENTO]
+    vocabulario += [(p, "negacao") for p in NEGACOES_DA_CORTESIA]
     vocabulario += [(p, "saudacao") for p in SAUDACOES]
     vocabulario += [(p, "enchimento") for p in ENCHIMENTO_DA_CORTESIA]
-    achados = _so_vocabulario(limpo, vocabulario) or set()
-    if "agradecimento" in achados:
+    achados = _so_vocabulario(limpo, vocabulario) or []
+    if any(t == "fechamento" and "negacao" in achados[:i] for i, t in enumerate(achados)):
+        return None  # "no resolvió", "não era isso": insatisfação, não agradecimento
+    if "agradecimento" in achados or "fechamento" in achados:
         return "agradecimento"
     return "saudacao" if "saudacao" in achados else None
 
