@@ -134,6 +134,20 @@ def test_valor_de_cabeca_so_casa_pelo_arredondamento_da_transacao():
     assert not concorda(em("46.10"), Pista(Decimal("42")))  # a até 10%, mas não é o arredondamento
 
 
+def test_proposta_direta_so_quando_a_transacao_casa_com_todas_as_pistas():
+    """ACH-152, regra R2 do QT-04: a garantia do conjunto supõe que a descrita está entre as
+    candidatas; quando o cliente descreve uma que não existe, a única possível só segue direto se
+    casar com todas as pistas ditas (data a até 1 dia). Senão, vira opção ("¿Es esta?")."""
+    longe = resolver_es(
+        [STREAMING, UBER], Pista(Decimal("46"), date(2025, 3, 13), valor_marcado=True)
+    )
+    assert (longe.tipo, longe.transacoes) == ("varias", ("T1",))
+    perto = resolver_es(
+        [STREAMING, UBER], Pista(Decimal("46"), date(2025, 3, 11), valor_marcado=True)
+    )
+    assert (perto.tipo, perto.transacoes) == ("unica", ("T1",))
+
+
 def test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto():
     """ACH-143: o número solto pode ser o dia ou o final do cartão: a única possível vira opção.
     Com o valor marcado, a data, o comércio ou "a última", segue direto."""
