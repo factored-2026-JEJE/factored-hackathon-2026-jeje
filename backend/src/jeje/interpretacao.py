@@ -422,6 +422,9 @@ MESES = {
     "mayo": 5, "maio": 5, "junio": 6, "junho": 6, "julio": 7, "julho": 7, "agosto": 8,
     "septiembre": 9, "setiembre": 9, "setembro": 9, "octubre": 10, "outubro": 10,
     "noviembre": 11, "novembro": 11, "diciembre": 12, "dezembro": 12,
+    # Abreviados ("15 de mar", "3 de fev"), só depois do dia: "mar" sozinho é outra coisa.
+    "ene": 1, "jan": 1, "feb": 2, "fev": 2, "mar": 3, "abr": 4, "may": 5, "mai": 5, "jun": 6,
+    "jul": 7, "ago": 8, "sep": 9, "set": 9, "oct": 10, "out": 10, "nov": 11, "dic": 12, "dez": 12,
 }  # fmt: skip
 DATA_NUMERICA = re.compile(r"(?<![\d.,])(\d{1,2})[/-](\d{1,2})(?:[/-](\d{4}|\d{2}))?(?![\d/-])")
 DATA_POR_EXTENSO = re.compile(r"(?<!\d)(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?(?!\d)")
@@ -429,6 +432,29 @@ DATA_POR_EXTENSO = re.compile(r"(?<!\d)(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))
 CONTAGEM = re.compile(
     r"(?<![\w.,])[1-9]\s*(?:veces|vezes|cobros?|cobran[çc]as?|cargos?)(?!\w)", re.IGNORECASE
 )
+# Números que não são dinheiro (ACH-129 e ACH-127): tempo ("hace 3 días", "faz 2 semanas",
+# "10:30", "15h", "a las 3", "3 de la tarde"), final do cartão, dia do mês, conta ou telefone,
+# número com zero à esquerda e parcelas. Saem antes de procurar o valor, como a contagem.
+NAO_E_DINHEIRO = re.compile(
+    r"(?<![\w.,])\d+\s*(?:d[ií]as?|semanas?|mes(?:es)?|m[eê]s|horas?|minutos?|a[nñ]os?"
+    r"|cuotas?|parcelas?)(?!\w)"
+    r"|(?<![\w.,])\d{1,2}(?::\d{2}|\s*h(?:s|rs)?)(?!\w)"
+    r"|(?:a\s+las|a\s+la|às)\s+\d{1,2}(?::\d{2})?(?![\d.,])"
+    r"|(?<![\w.,])\d{1,2}\s+(?:de\s+la|da|de)\s+(?:tarde|ma[ñn]ana|noche|manh[ãa]|noite|madrugada)"
+    r"(?!\w)"
+    r"|(?:terminad[ao]|termina|final|finalizad[ao])\s+(?:en\s+|em\s+)?\d{4}(?!\d)"
+    r"|d[ií]a\s+\d{1,2}(?![\d.,/-])"
+    r"|(?:cuenta|conta|tel[eé]fono|telefone|celular)\s*(?:n[uú]mero|n[ºo°]\.?|#)?\s*\d{3,}"
+    r"|(?<![\w.,])0\d{2,}",
+    re.IGNORECASE,
+)
+# Marca de dinheiro junto do número: com várias, vale o valor marcado ("45 dólares", "USD 12").
+MOEDA = r"(?:us\$|r\$|\$|usd|mxn|cop|ars|brl|eur|d[oó]lar(?:es)?|pesos?|reais|real)"
+MARCADO = re.compile(rf"{MOEDA}\s*$|^\s*{MOEDA}(?![a-z])", re.IGNORECASE)
+# "30 mil pesos" é 30.000.
+MIL = re.compile(r"(?<![\w.,])(\d{1,3})\s+mil(?!\w)", re.IGNORECASE)
+# O dia do mês sem o mês ("el día 15", "no dia 1"): o mais recente até a referência.
+DIA_DO_MES = re.compile(r"(?<!\w)d[ií]a\s+(\d{1,2})(?![\d.,/-])", re.IGNORECASE)
 # Milhar com ponto, espaço ou vírgula seguida de exatamente 3 dígitos ("189.900,55", "6,050.00",
 # o formato do México e dos EUA); decimal com vírgula ou ponto e 1 ou 2 dígitos ("13,45", "1,5").
 VALOR = re.compile(r"(?<![\w.,-])(\d{1,3}(?:[.,\s]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\w-])")
@@ -465,14 +491,17 @@ def _por_extenso(texto: str) -> re.Match | None:
 
 
 def _data(texto: str, referencia: date) -> date | None:
-    """dd/mm[/aaaa] ou "10 de marzo [de 2025]". Sem ano: a ocorrência mais recente até a data de
-    referência (ninguém contesta compra do futuro)."""
+    """dd/mm[/aaaa], "10 de marzo [de 2025]" ou "15 de mar". Sem ano: a ocorrência mais recente até
+    a data de referência (ninguém contesta compra do futuro). Só o dia ("el día 15"): o dia mais
+    recente com esse número até a referência."""
     if achado := DATA_NUMERICA.search(texto):
         dia, mes, ano = achado.groups()
         numero_do_mes = int(mes)
     elif achado := _por_extenso(texto):
         dia, mes, ano = achado.groups()
         numero_do_mes = MESES[normalizar(mes)]
+    elif achado := DIA_DO_MES.search(texto):
+        return _dia_mais_recente(int(achado.group(1)), referencia)
     else:
         return None
     if ano is not None:
@@ -483,18 +512,37 @@ def _data(texto: str, referencia: date) -> date | None:
     return _data_valida(referencia.year - 1, numero_do_mes, int(dia))
 
 
+def _dia_mais_recente(dia: int, referencia: date) -> date | None:
+    """O dia `dia` mais recente até a referência (no mês dela ou num dos anteriores)."""
+    ano, mes = referencia.year, referencia.month
+    for _ in range(12):
+        candidata = _data_valida(ano, mes, dia)
+        if candidata is not None and candidata <= referencia:
+            return candidata
+        ano, mes = (ano, mes - 1) if mes > 1 else (ano - 1, 12)
+    return None
+
+
 def _valor(texto: str) -> Decimal | None:
-    """Primeiro número que não é data, contagem nem parte de identificador; milhar com ponto,
-    espaço ou vírgula e decimal com vírgula ou ponto ("COP 189.900,55", "6,050.00", "45.90",
-    "USD13,45")."""
-    sem_datas = DATA_NUMERICA.sub(" ", MOEDA_COLADA.sub(r"\1 ", texto))
+    """O número com cara de dinheiro: fora data, contagem, identificador, tempo, final de cartão,
+    dia, conta e parcelas (ACH-129), o marcado com moeda ou, sem marca, o primeiro; milhar com
+    ponto, espaço ou vírgula e decimal com vírgula ou ponto ("COP 189.900,55", "6,050.00",
+    "45.90", "USD13,45"); "30 mil" vale 30.000."""
+    sem_datas = DATA_NUMERICA.sub(" ", MOEDA_COLADA.sub(r"\1 ", MIL.sub(r"\g<1>000", texto)))
     sem_datas = DATA_POR_EXTENSO.sub(
         lambda m: " " if normalizar(m.group(2)) in MESES else m.group(0), sem_datas
     )
-    achado = VALOR.search(IDENTIFICADOR.sub(" ", CONTAGEM.sub(" ", sem_datas)))
-    if achado is None:
+    limpo = NAO_E_DINHEIRO.sub(" ", IDENTIFICADOR.sub(" ", CONTAGEM.sub(" ", sem_datas)))
+    achados = list(VALOR.finditer(limpo))
+    if not achados:
         return None
-    inteiro, fracao = achado.groups()
+    marcados = [
+        a
+        for a in achados
+        if MARCADO.search(limpo[max(0, a.start() - 12) : a.start()])
+        or MARCADO.search(limpo[a.end() : a.end() + 12])
+    ]
+    inteiro, fracao = (marcados or achados)[0].groups()
     digitos = re.sub(r"[.,\s]", "", inteiro)
     return Decimal(f"{digitos}.{(fracao or '0').ljust(2, '0')}")
 
