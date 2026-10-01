@@ -11371,6 +11371,21 @@
       ]
     },
     {
+      "id": "M-CONV-110",
+      "requisito": "R07",
+      "descricao": "Quem pergunta como evitar fraude tem o cartão bloqueado (ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if decisao.regra == \"POL-HUM-01\" and prevencao(self.mensagem):",
+          "para": "            if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_quem_pergunta_como_evitar_fraude_vai_ao_atendente_sem_bloquear"
+      ]
+    },
+    {
       "id": "M-ITP-135",
       "requisito": "R02",
       "descricao": "A recusa da transação apontada nunca é lida (ACH-145)",

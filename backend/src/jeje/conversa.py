@@ -42,6 +42,7 @@ from jeje.interpretacao import (
     comercio_citado,
     comercio_citado_e_como,
     interpretar,
+    prevencao,
 )
 from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
 from jeje.mensagens import (
@@ -253,6 +254,10 @@ class _Turno:
         if decisao is not None and decisao.acao == "humano":
             # Segurança e pedido de atendente valem em qualquer etapa.
             self._anotar("interpretar", f"{decisao.regra}: {', '.join(self.lida.sinais)}")
+            if decisao.regra == "POL-HUM-01" and prevencao(self.mensagem):
+                # Prevenção ou suspeita sem perda (ACH-144): vai ao atendente, sem bloquear.
+                self._anotar("bloquear_cartao", "prevenção ou suspeita sem perda; nada bloqueado")
+                return self._encaminhar(decisao, self._em_foco())
             if decisao.regra == "POL-HUM-01":
                 # O relato de fraude também bloqueia o cartão, pelo dispositivo da sessão.
                 return self._relato_de_fraude(decisao)
