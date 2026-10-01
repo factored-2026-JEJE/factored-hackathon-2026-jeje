@@ -1,0 +1,10 @@
+# Portão de acesso ligado com uma senha de teste, que não é segredo (make e2e-pelo-portao): antes de
+# publicar, as jornadas no navegador passam inteiras pelo portão dos jurados (PRD-009).
+x-senha-de-teste: &senha senha-de-teste-do-portao-2026
+services:
+  api:
+    environment:
+      ACESSO_SENHA: *senha
+  e2e:
+    environment:
+      ACESSO_SENHA: *senha
