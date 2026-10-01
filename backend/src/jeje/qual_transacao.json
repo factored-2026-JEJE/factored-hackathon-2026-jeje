@@ -24,10 +24,10 @@
       "historico": {
         "casos": 2251,
         "com_ranking": {
-          "direto_certo": 0.9636,
+          "direto_certo": 0.7996,
           "direto_errado": 0.0,
-          "botoes": 0.0271,
-          "pergunta": 0.0089,
+          "botoes": 0.1475,
+          "pergunta": 0.0524,
           "nenhuma": 0.0004
         },
         "filtro_exato": {
@@ -41,10 +41,10 @@
       "denso": {
         "casos": 214,
         "com_ranking": {
-          "direto_certo": 0.8271,
+          "direto_certo": 0.7196,
           "direto_errado": 0.0,
-          "botoes": 0.0841,
-          "pergunta": 0.0888,
+          "botoes": 0.1075,
+          "pergunta": 0.1729,
           "nenhuma": 0.0
         },
         "filtro_exato": {
@@ -60,10 +60,10 @@
       "historico": {
         "casos": 2251,
         "com_ranking": {
-          "direto_certo": 0.9636,
+          "direto_certo": 0.7948,
           "direto_errado": 0.0,
-          "botoes": 0.0271,
-          "pergunta": 0.0089,
+          "botoes": 0.1524,
+          "pergunta": 0.0524,
           "nenhuma": 0.0004
         },
         "filtro_exato": {
@@ -77,10 +77,10 @@
       "denso": {
         "casos": 214,
         "com_ranking": {
-          "direto_certo": 0.8224,
+          "direto_certo": 0.715,
           "direto_errado": 0.0,
-          "botoes": 0.0888,
-          "pergunta": 0.0888,
+          "botoes": 0.1121,
+          "pergunta": 0.1729,
           "nenhuma": 0.0
         },
         "filtro_exato": {

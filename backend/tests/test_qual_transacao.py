@@ -18,6 +18,7 @@ from jeje.qual_transacao import (
     Calibracao,
     atributos,
     campo_que_mais_divide,
+    comercio_que_vale,
     concorda,
     limiar,
     probabilidades,
@@ -116,6 +117,41 @@ def test_uma_so_possivel_com_garantia_segue_e_sem_garantia_mostra_as_possiveis()
     assert (ultima.tipo, ultima.transacoes) == ("unica", ("T3",))
 
 
+def test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto():
+    """ACH-143: o número solto pode ser o dia ou o final do cartão: a única possível vira opção.
+    Com o valor marcado, a data, o comércio ou "a última", segue direto."""
+    solto = resolver_es([STREAMING, UBER], Pista(Decimal("46")))
+    assert (solto.tipo, solto.transacoes) == ("varias", ("T1",))
+    # O conjunto garante a de 45,90, mas o número solto não basta: as duas possíveis viram opção.
+    perto = Candidata("T9", Decimal("48.00"), datetime(2025, 3, 12), "Loja 9")
+    duas = resolver_es([STREAMING, perto], Pista(Decimal("46")))
+    assert (duas.tipo, duas.transacoes) == ("varias", ("T1", "T9"))
+    for pista in (
+        Pista(Decimal("46"), valor_marcado=True),
+        Pista(Decimal("46"), data=date(2025, 3, 10)),
+        Pista(Decimal("46"), comercio="Streaming Plus"),
+        Pista(Decimal("46"), ultima=True),
+    ):
+        direta = resolver_es([STREAMING, UBER], pista)
+        assert (direta.tipo, direta.transacoes) == ("unica", ("T1",))
+
+
+def test_palavra_solta_nao_vence_o_valor_exato_de_outro_comercio():
+    """DEV-072 (a regra medida no QT-03): o comércio lido de uma palavra perde quando o valor dito
+    casa com uma transação de outro comércio; o nome inteiro sempre vale."""
+    internet = Candidata("T8", Decimal("30.00"), datetime(2025, 3, 12), "Internet Plus")
+    candidatas = [STREAMING, internet]
+    assert comercio_que_vale("Internet Plus", "palavra", Decimal("45.90"), candidatas) is None
+    assert (
+        comercio_que_vale("Internet Plus", "nome", Decimal("45.90"), candidatas) == "Internet Plus"
+    )
+    # O valor que é do próprio comércio, ou nenhum valor, não tira a palavra.
+    assert (
+        comercio_que_vale("Internet Plus", "palavra", Decimal("30"), candidatas) == "Internet Plus"
+    )
+    assert comercio_que_vale("Internet Plus", "palavra", None, candidatas) == "Internet Plus"
+
+
 def test_com_mais_de_tres_possiveis_pergunta_pelo_campo_que_mais_divide():
     # Todas de 45,90: duas datas e cinco comércios. O comércio divide mais que a data.
     cinco_lojas = [
@@ -160,6 +196,19 @@ def test_descricao_sai_nos_formatos_que_a_conversa_le(idioma):
     ]
     assert {lida.valor for lida in lidas} - {None} == {Decimal("1234.56"), 1235, 1230}
     assert {lida.data for lida in lidas} - {None} == {date(2025, 3, 10)}
+
+
+def test_caso_da_calibracao_le_o_valor_marcado_como_a_conversa():
+    """ACH-143: a calibração mede com a regra da conversa: o valor exato (com os centavos) é
+    marcado e pode seguir direto; o de cabeça, não."""
+    alvo = Candidata("T7", Decimal("1234.56"), datetime(2025, 3, 10, 9), None)
+    casos = [
+        calibracao_cli._caso(f"k{n}", "es", alvo, [alvo], HOJE, "historico") for n in range(40)
+    ]
+    lidas = {(c["pista"].valor, c["pista"].valor_marcado) for c in casos if c is not None}
+    assert lidas - {(None, False)} == {
+        (Decimal("1234.56"), True), (Decimal("1235"), False), (Decimal("1230"), False)
+    }  # fmt: skip
 
 
 @pytest.fixture
