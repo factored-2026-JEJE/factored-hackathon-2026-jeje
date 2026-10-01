@@ -9882,6 +9882,338 @@
       "testes": [
         "tests/test_conversa.py::test_aceite_comum_encaminha_tambem_nas_ofertas_que_guardam_a_etapa"
       ]
+    },
+    {
+      "id": "M-CONV-96",
+      "requisito": "R03",
+      "descricao": "Sem o ranking quando o filtro exato não acha nada (o valor de cabeça volta a pedir dados)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            resolucao = self._pelo_ranking(status, pista)\n",
+          "para": "            pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_pista_aproximada_acha_a_transacao_pelo_ranking",
+        "tests/test_conversa.py::test_muitas_possiveis_viram_pergunta_pelo_campo_que_o_cliente_nao_disse"
+      ]
+    },
+    {
+      "id": "M-CONV-97",
+      "requisito": "R03",
+      "descricao": "RESOLVEDOR_DE_TRANSACAO=filtro ignorado (o ranking roda sem a calibração)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.calibracao is None or not qual_transacao.tem_pista(pista):\n",
+          "para": "        if not qual_transacao.tem_pista(pista):\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_com_o_filtro_exato_a_pista_aproximada_pede_dados"
+      ]
+    },
+    {
+      "id": "M-QT-01",
+      "requisito": "R03",
+      "descricao": "Valor igual com folga de 1 unidade, não de 1 centavo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "valor_igual = float(abs(c.amount - pista.valor) <= 0.01)",
+          "para": "valor_igual = float(abs(c.amount - pista.valor) <= 1)"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_atributos_medem_a_concordancia_com_cada_pista"
+      ]
+    },
+    {
+      "id": "M-QT-02",
+      "requisito": "R03",
+      "descricao": "Distância da data em escala errada (um dia vale um décimo do que devia)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "data_distancia = -min(dias, 60) / 7",
+          "para": "data_distancia = -min(dias, 60) / 70"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_atributos_medem_a_concordancia_com_cada_pista"
+      ]
+    },
+    {
+      "id": "M-QT-03",
+      "requisito": "R03",
+      "descricao": "Recência invertida: a mais antiga vale mais",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "recencia = -min(max((hoje - dia).days, 0), 365) / 30",
+          "para": "recencia = min(max((hoje - dia).days, 0), 365) / 30"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_sem_pista_so_a_recencia_conta"
+      ]
+    },
+    {
+      "id": "M-QT-04",
+      "requisito": "R03",
+      "descricao": "O gradiente do treino com o sinal trocado (os pesos não aprendem)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "gradiente += p @ x - x[certa]",
+          "para": "gradiente += x[certa] - p @ x"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_treino_aprende_a_preferir_a_candidata_que_concorda_com_as_pistas"
+      ]
+    },
+    {
+      "id": "M-QT-05",
+      "requisito": "R03",
+      "descricao": "Limiar sem a correção de amostra finita (cobertura abaixo de 1 - alfa)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "k = math.ceil((len(ordenados) + 1) * (1 - alfa))",
+          "para": "k = math.ceil(len(ordenados) * (1 - alfa))"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_limiar_conformal_com_a_correcao_de_amostra_finita"
+      ]
+    },
+    {
+      "id": "M-QT-06",
+      "requisito": "R03",
+      "descricao": "O conjunto compara p com o limiar, não 1 - p",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "return [i for i, p in self.ordem(x, aceitas) if 1 - p <= self.limiares[idioma]]",
+          "para": "return [i for i, p in self.ordem(x, aceitas) if p <= self.limiares[idioma]]"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_conjunto_guarda_as_provaveis_da_mais_para_a_menos_provavel"
+      ]
+    },
+    {
+      "id": "M-QT-07",
+      "requisito": "R03",
+      "descricao": "A probabilidade entre todas as candidatas, não entre as possíveis",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "p = probabilidades(x[list(aceitas)], np.array(self.pesos))",
+          "para": "p = probabilidades(x, np.array(self.pesos))[list(aceitas)]"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_conjunto_guarda_as_provaveis_da_mais_para_a_menos_provavel"
+      ]
+    },
+    {
+      "id": "M-QT-08",
+      "requisito": "R03",
+      "descricao": "O comércio citado deixa de decidir quem pode ser (outro comércio com o valor entra)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "        return candidata.merchant_name == pista.comercio\n",
+          "para": "        if candidata.merchant_name == pista.comercio:\n            return True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_comercio_citado_decide_quem_pode_ser_valor_e_data_se_dizem_de_cabeca"
+      ]
+    },
+    {
+      "id": "M-QT-09",
+      "requisito": "R03",
+      "descricao": "Valor de cabeça aceito a qualquer distância",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "/ float(pista.valor))) <= 0.10",
+          "para": "/ float(pista.valor))) <= 1.0"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_comercio_citado_decide_quem_pode_ser_valor_e_data_se_dizem_de_cabeca"
+      ]
+    },
+    {
+      "id": "M-QT-10",
+      "requisito": "R03",
+      "descricao": "Data aceita a mais de 7 dias",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "(dias is not None and dias <= 7)",
+          "para": "(dias is not None and dias <= 8)"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_comercio_citado_decide_quem_pode_ser_valor_e_data_se_dizem_de_cabeca"
+      ]
+    },
+    {
+      "id": "M-QT-11",
+      "requisito": "R03",
+      "descricao": "Sem garantia de uma, a conversa não mostra as possíveis",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "        conjunto = [i for i, _ in ordem]  # sem garantia de uma só: as possíveis\n",
+          "para": "        pass\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_uma_so_possivel_com_garantia_segue_e_sem_garantia_mostra_as_possiveis"
+      ]
+    },
+    {
+      "id": "M-QT-12",
+      "requisito": "R03",
+      "descricao": "\"A última\" escolhe a mais antiga das possíveis",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "        conjunto = [min(aceitas)]  # as candidatas vêm das mais recentes para as mais antigas\n",
+          "para": "        conjunto = [max(aceitas)]\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_uma_so_possivel_com_garantia_segue_e_sem_garantia_mostra_as_possiveis"
+      ]
+    },
+    {
+      "id": "M-QT-13",
+      "requisito": "R03",
+      "descricao": "A pergunta pelo campo que menos divide",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "melhor = max(livres, key=lambda campo: entropias[campo], default=None)",
+          "para": "melhor = min(livres, key=lambda campo: entropias[campo], default=None)"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_com_mais_de_tres_possiveis_pergunta_pelo_campo_que_mais_divide"
+      ]
+    },
+    {
+      "id": "M-QT-14",
+      "requisito": "R03",
+      "descricao": "A pergunta repete o campo que o cliente já disse",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "livres = [campo for campo in CAMPOS if campo not in ja_ditos]",
+          "para": "livres = list(CAMPOS)"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_com_mais_de_tres_possiveis_pergunta_pelo_campo_que_mais_divide",
+        "tests/test_conversa.py::test_muitas_possiveis_viram_pergunta_pelo_campo_que_o_cliente_nao_disse"
+      ]
+    },
+    {
+      "id": "M-QT-15",
+      "requisito": "R03",
+      "descricao": "A descrição do valor sem o formato que a conversa lê",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/calibrar_qual_transacao.py",
+          "de": "return f\"{int(inteiro):,}\".replace(\",\", \".\") + \",\" + centavos",
+          "para": "return inteiro + centavos"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_descricao_sai_nos_formatos_que_a_conversa_le"
+      ]
+    },
+    {
+      "id": "M-QT-16",
+      "requisito": "R03",
+      "descricao": "O valor de cabeça na dezena sai em notação científica (\"1.23E+3\"), lido errado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/calibrar_qual_transacao.py",
+          "de": "str(int(round(alvo.amount, -1)))",
+          "para": "str(round(alvo.amount, -1))"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_descricao_sai_nos_formatos_que_a_conversa_le"
+      ]
+    },
+    {
+      "id": "M-QT-17",
+      "requisito": "R03",
+      "descricao": "A calibração grava os clientes sorteados (registro de cliente no repositório)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/calibrar_qual_transacao.py",
+          "de": "\"clientes\": len(alvos),",
+          "para": "\"clientes\": sorted(alvos),"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_calibracao_grava_so_agregados_e_mede_contra_o_filtro_de_hoje"
+      ]
+    },
+    {
+      "id": "M-QT-18",
+      "requisito": "R03",
+      "descricao": "A versão da calibração muda sem a entrada mudar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/calibrar_qual_transacao.py",
+          "de": "\"parametros\": [SEMENTE, ALFA, JANELA_DIAS, clientes, DENSO, ATRIBUTOS],",
+          "para": "\"parametros\": [random.random(), SEMENTE, ALFA, JANELA_DIAS, clientes, DENSO, ATRIBUTOS],"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_calibracao_grava_so_agregados_e_mede_contra_o_filtro_de_hoje"
+      ]
+    },
+    {
+      "id": "M-QT-19",
+      "requisito": "R03",
+      "descricao": "A CLI da calibração sem o arquivo de saída tenta rodar em vez de mostrar o uso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/calibrar_qual_transacao.py",
+          "de": "if len(argv) not in (2, 3):",
+          "para": "if len(argv) not in (1, 2, 3):"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_cli_sem_arquivo_de_saida_mostra_o_uso"
+      ]
+    },
+    {
+      "id": "M-QT-20",
+      "requisito": "R03",
+      "descricao": "Sem campo que divida, a conversa pergunta mesmo assim (um campo que não ajuda)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    return melhor if melhor is not None and entropias[melhor] > 0 else None\n",
+          "para": "    return melhor\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_pergunta_pelo_campo_que_mais_divide_as_candidatas"
+      ]
     }
   ]
 }

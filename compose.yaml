@@ -54,6 +54,10 @@ x-app-env: &app-env
   # com o leitor no make avaliar-leitor (PRD-009).
   INTENCAO_MODELO: /opt/modelos/intencao.joblib
   LEITOR_LIMITE: "0.8"
+  # "Qual transação" (DEV-037): "ranking" (as transações do cliente ordenadas pelas pistas, com
+  # conjunto conformal calibrado em backend/src/jeje/qual_transacao.json) ou "filtro" (o exato).
+  RESOLVEDOR_DE_TRANSACAO: "ranking"
+  QUAL_TRANSACAO_CALIBRACAO: /app/src/jeje/qual_transacao.json
   OLLAMA_URL: http://host.docker.internal:11434
   OLLAMA_MODELO: qwen2.5:7b
   OLLAMA_TIMEOUT_S: "10"
