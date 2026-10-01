@@ -94,9 +94,17 @@ def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitu
 
 
 def entendida(lida: Interpretacao) -> bool:
-    """As regras já sabem o que fazer (ou há sinal que só as regras podem tratar)."""
+    """As regras já sabem o que fazer (ou há sinal que só as regras podem tratar). O aceite largo da
+    oferta do atendente ("sí, pásame") é um desses: o leitor o lia como fora de escopo (ACH-124 da
+    validação)."""
     pistas = (lida.valor, lida.data, lida.status, lida.escolha, lida.resposta)
-    sinais = (lida.id_digitado, lida.caso, lida.ultima, lida.cortesia is not None)
+    sinais = (
+        lida.id_digitado,
+        lida.caso,
+        lida.ultima,
+        lida.cortesia is not None,
+        lida.aceita_oferta,
+    )
     return lida.intencao != "desconhecida" or any(sinais) or any(p is not None for p in pistas)
 
 

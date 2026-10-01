@@ -724,6 +724,30 @@ def test_aceite_comum_da_oferta_do_atendente_encaminha(cenario, aceite):
     )  # fmt: skip
 
 
+# As três ofertas que guardam a etapa (o "não" volta a ela): fora do escopo, as mensagens não
+# entendidas (POL-HUM-03) e o resumo no meio da confirmação. Antes, o aceite largo voltava à etapa
+# em vez de encaminhar (ACH-124 da validação, EV-155).
+OFERTAS_COM_ETAPA = {
+    "fora do escopo": (["¿Me dan un préstamo?"], "POL-ESC-01"),
+    "não entendidas": (["asdf", "zzzz", "???"], "POL-HUM-03"),
+    "resumo": ([NORMAL["es"]["pedido"], "¿y me dan un préstamo?"], "RESUMO"),
+}
+
+
+@pytest.mark.parametrize("oferta", OFERTAS_COM_ETAPA)
+@pytest.mark.parametrize("aceite", ["sí, pásame", "pode passar"])
+def test_aceite_comum_encaminha_tambem_nas_ofertas_que_guardam_a_etapa(cenario, oferta, aceite):
+    falas, regra = OFERTAS_COM_ETAPA[oferta]
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        ofertada = [dizer(http, auth, conversa, f) for f in falas][-1]
+        aceita = dizer(http, auth, conversa, aceite)
+    assert (ofertada["regra"], ofertada["estado"]) == (regra, "oferecendo_humano")
+    assert (aceita["acao"], aceita["estado"]) == ("humano", "com_humano")
+    assert pre_casos(cenario) == []
+
+
 # ---- O que não pode acontecer -----------------------------------------------------------------
 
 
