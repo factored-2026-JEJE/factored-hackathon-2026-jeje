@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 
 COOKIE = "jeje_acesso"
 # O que abre sem o cookie: a saúde (healthcheck e monitoração) e o próprio acesso.
-LIVRES = frozenset({"/health", "/health/ready", "/acesso"})
+LIVRES = frozenset({"/health", "/health/ready", "/acesso", "/acesso/entrada"})
 
 
 def _chave(senha: str) -> bytes:

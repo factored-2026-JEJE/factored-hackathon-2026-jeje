@@ -5,7 +5,7 @@ import { ESTADO_DO_ACESSO } from "./acesso";
 
 export default async function entrarComSenha() {
   const contexto = await request.newContext({ baseURL: process.env.BASE_URL });
-  const resposta = await contexto.post("/api/acesso", { data: { senha: process.env.ACESSO_SENHA } });
+  const resposta = await contexto.post("/api/acesso/entrada", { data: { senha: process.env.ACESSO_SENHA } });
   if (resposta.status() !== 204) throw new Error(`portão recusou a senha de teste: HTTP ${resposta.status()}`);
   await contexto.storageState({ path: ESTADO_DO_ACESSO });
   await contexto.dispose();

@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from jeje import acesso
+from jeje.sessao_api import CORPO_ILEGIVEL
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -27,7 +28,11 @@ def situacao(request: Request) -> SituacaoDoAcesso:
     return SituacaoDoAcesso(restrito=restrito, liberado=acesso.liberado(request))
 
 
-@router.post("/acesso", status_code=204, responses={401: {"description": "Senha incorreta"}})
+@router.post(
+    "/acesso/entrada",
+    status_code=204,
+    responses={**CORPO_ILEGIVEL, 401: {"description": "Senha incorreta"}},
+)
 def entrar(pedido: PedidoDeAcesso, request: Request, response: Response) -> None:
     """Senha certa: cookie HttpOnly com a validade do compose. Sem senha configurada, nada a
     fazer. A senha nunca vai para o log."""

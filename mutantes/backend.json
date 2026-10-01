@@ -8565,7 +8565,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/acesso.py",
-          "de": "LIVRES = frozenset({\"/health\", \"/health/ready\", \"/acesso\"})\n",
+          "de": "LIVRES = frozenset({\"/health\", \"/health/ready\", \"/acesso\", \"/acesso/entrada\"})\n",
           "para": "LIVRES = frozenset({\"/health\", \"/health/ready\"})\n"
         }
       ],
@@ -8581,8 +8581,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/acesso.py",
-          "de": "LIVRES = frozenset({\"/health\", \"/health/ready\", \"/acesso\"})\n",
-          "para": "LIVRES = frozenset({\"/acesso\"})\n"
+          "de": "LIVRES = frozenset({\"/health\", \"/health/ready\", \"/acesso\", \"/acesso/entrada\"})\n",
+          "para": "LIVRES = frozenset({\"/acesso\", \"/acesso/entrada\"})\n"
         }
       ],
       "testes": [

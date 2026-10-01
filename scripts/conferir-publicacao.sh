@@ -26,9 +26,9 @@ conferir "saúde aberta" 200 "$(status "$url/api/health")"
 conferir "personas sem acesso" 401 "$(status "$url/api/personas")"
 conferir "documentação sem acesso" 401 "$(status "$url/api/docs")"
 conferir "contrato sem acesso" 401 "$(status "$url/api/openapi.json")"
-conferir "senha errada" 401 "$(status -X POST -H 'Content-Type: application/json' -d '{"senha":"chute-errado"}' "$url/api/acesso")"
+conferir "senha errada" 401 "$(status -X POST -H 'Content-Type: application/json' -d '{"senha":"chute-errado"}' "$url/api/acesso/entrada")"
 corpo=$(python3 -c 'import json,sys; print(json.dumps({"senha": sys.argv[1]}))' "$senha")
-conferir "senha certa" 204 "$(status -c "$area/cookies" -D "$area/cabecalhos" -X POST -H 'Content-Type: application/json' -d "$corpo" "$url/api/acesso")"
+conferir "senha certa" 204 "$(status -c "$area/cookies" -D "$area/cabecalhos" -X POST -H 'Content-Type: application/json' -d "$corpo" "$url/api/acesso/entrada")"
 conferir "cookie seguro e HttpOnly" "sim" "$(grep -qi '^set-cookie:.*secure.*httponly\|^set-cookie:.*httponly.*secure' "$area/cabecalhos" && echo sim || echo não)"
 conferir "personas com acesso" 200 "$(status -b "$area/cookies" "$url/api/personas")"
 

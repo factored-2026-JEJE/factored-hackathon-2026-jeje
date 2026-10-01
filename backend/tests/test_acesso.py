@@ -43,9 +43,9 @@ def test_saude_e_o_proprio_acesso_respondem_sem_o_cookie(com_senha):
 
 def test_senha_certa_libera_com_cookie_httponly_e_a_errada_nao(com_senha):
     with cliente(com_senha) as http:
-        errada = http.post("/acesso", json={"senha": "chute"})
+        errada = http.post("/acesso/entrada", json={"senha": "chute"})
         fechado = http.get("/personas").status_code
-        certa = http.post("/acesso", json={"senha": SENHA})
+        certa = http.post("/acesso/entrada", json={"senha": SENHA})
         aberto = http.get("/personas").status_code
         situacao = http.get("/acesso").json()
     assert (errada.status_code, errada.json()) == (401, {"detail": "senha_incorreta"})
@@ -79,7 +79,7 @@ def test_cookie_vencido_adulterado_ou_de_outra_senha_nao_libera(com_senha):
 def test_na_publicacao_o_cookie_e_seguro(com_senha):
     seguro = com_senha.model_copy(update={"acesso_cookie_seguro": True})
     with cliente(seguro) as http:
-        assert "Secure" in http.post("/acesso", json={"senha": SENHA}).headers["set-cookie"]
+        assert "Secure" in http.post("/acesso/entrada", json={"senha": SENHA}).headers["set-cookie"]
 
 
 @pytest.mark.parametrize(

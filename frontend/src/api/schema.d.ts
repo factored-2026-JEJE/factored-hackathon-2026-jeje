@@ -473,12 +473,28 @@ export interface paths {
         /** Situacao */
         get: operations["situacao_acesso_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/acesso/entrada": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /**
          * Entrar
          * @description Senha certa: cookie HttpOnly com a validade do compose. Sem senha configurada, nada a
          *     fazer. A senha nunca vai para o log.
          */
-        post: operations["entrar_acesso_post"];
+        post: operations["entrar_acesso_entrada_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2008,7 +2024,7 @@ export interface operations {
             };
         };
     };
-    entrar_acesso_post: {
+    entrar_acesso_entrada_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2023,6 +2039,13 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Corpo ilegível (não é JSON UTF-8) */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
