@@ -39,6 +39,20 @@ CAMPOS: dict[str, Callable[[Candidata], object]] = {
 OPCOES_NA_TELA = 3
 
 
+def comercio_que_vale(
+    comercio: str | None, como: str | None, valor: Decimal | None, candidatas: Sequence[Candidata]
+) -> str | None:
+    """O comércio lido de uma palavra solta não vence o valor exato dito (DEV-072, a regra medida
+    pela validação no QT-03): se o valor casa com uma transação do cliente de outro comércio, a
+    palavra não conta. O nome inteiro sempre conta."""
+    if como != "palavra" or valor is None:
+        return comercio
+    outro = any(
+        abs(c.amount - valor) <= Decimal("0.01") and c.merchant_name != comercio for c in candidatas
+    )
+    return None if outro else comercio
+
+
 def tem_pista(pista: Pista) -> bool:
     return any(p is not None for p in (pista.valor, pista.data, pista.comercio))
 
@@ -179,17 +193,6 @@ def resolver(
     a pergunta pelo campo que mais as divide. Nenhuma possível pede dados. "A última" escolhe a
     mais recente, como no filtro."""
     aceitas = elegiveis(candidatas, pista)
-    # O valor exato dito não perde para o comércio lido (DEV-072): a transação de outro comércio
-    # com esse valor também pode ser a descrita, e nada segue direto.
-    exatas = [
-        i
-        for i, c in enumerate(candidatas)
-        if pista.comercio is not None
-        and pista.valor is not None
-        and abs(c.amount - pista.valor) <= Decimal("0.01")
-        and c.merchant_name != pista.comercio
-    ]
-    aceitas = sorted({*aceitas, *exatas})
     if not aceitas:
         return Resolucao("nenhuma", ())
     x = atributos(candidatas, pista, hoje)
@@ -199,7 +202,7 @@ def resolver(
         conjunto = [min(aceitas)]  # as candidatas vêm das mais recentes para as mais antigas
     # Seguir direto pede uma pista que não engana: o número solto pode ser o dia ou o final do
     # cartão (ACH-143), e a transação perto dele vira opção.
-    direta = not exatas and (
+    direta = (
         pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None
     )
     if len(conjunto) != 1 or not direta:

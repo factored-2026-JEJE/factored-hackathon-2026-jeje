@@ -40,6 +40,7 @@ from jeje.interpretacao import (
     cartao_citado,
     cita_cartao,
     comercio_citado,
+    comercio_citado_e_como,
     interpretar,
 )
 from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
@@ -422,8 +423,12 @@ class _Turno:
 
     @cached_property
     def _comercio(self) -> str | None:
-        """Comércio citado, entre os das transações do próprio cliente."""
-        return comercio_citado(self.mensagem, self._comercios)
+        """Comércio citado, entre os das transações do próprio cliente; o de uma palavra solta não
+        vence o valor exato dito (DEV-072)."""
+        comercio, como = comercio_citado_e_como(self.mensagem, self._comercios)
+        return qual_transacao.comercio_que_vale(
+            comercio, como, self.lida.valor, self._candidatas(None)
+        )
 
     def _resolver(self, intencao: str, novo_assunto: bool) -> Saida:
         if novo_assunto:
