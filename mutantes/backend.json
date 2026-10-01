@@ -11371,6 +11371,21 @@
       ]
     },
     {
+      "id": "M-CONV-110",
+      "requisito": "R07",
+      "descricao": "Quem pergunta como evitar fraude tem o cartão bloqueado (ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if decisao.regra == \"POL-HUM-01\" and prevencao(self.mensagem):",
+          "para": "            if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_quem_pergunta_como_evitar_fraude_vai_ao_atendente_sem_bloquear"
+      ]
+    },
+    {
       "id": "M-ITP-135",
       "requisito": "R02",
       "descricao": "A recusa da transação apontada nunca é lida (ACH-145)",
@@ -11413,6 +11428,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_valor_com_milhar_separado_por_espaco"
+      ]
+    },
+    {
+      "id": "M-ITP-138",
+      "requisito": "R07",
+      "descricao": "Termo de vítima não desfaz a prevenção (\"fui vítima de golpe, como me protejo\" não bloqueia; ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return sinal and not _vitima(limpo)",
+          "para": "    return sinal"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-139",
+      "requisito": "R07",
+      "descricao": "A negação não desfaz o termo de vítima (\"no di mis datos\" vira relato e bloqueia; ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if not (antes and antes[-1] in NEGA_A_VITIMA):",
+          "para": "            if True:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-140",
+      "requisito": "R07",
+      "descricao": "O pronome entre a negação e o termo esconde a negação (\"no le di mis datos\" vira relato; ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if antes and antes[-1] in PRONOMES_DA_VITIMA:\n                antes = antes[:-1]\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
       ]
     },
     {
