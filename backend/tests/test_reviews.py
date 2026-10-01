@@ -147,8 +147,22 @@ def test_so_o_dono_avalia_e_so_quem_e_do_time(cenario):
         nota_fora = http.post(
             f"/conversas/{conversa}/reviews", json={**REVIEW, "nota": 6}, headers=auth_a
         )
-    assert (alheia.status_code, estranho.status_code, nota_fora.status_code) == (404, 422, 422)
+    assert (alheia.status_code, estranho.status_code, nota_fora.status_code) == (404, 403, 422)
     assert reviews(cenario) == []
+
+
+def test_avaliador_fora_do_time_recebe_o_403_declarado(cenario):
+    """ACH-113: o avaliador fora do time é recusado (403, com o motivo em texto), e o contrato
+    declara essa resposta; o 422 fica para o corpo inválido, com o `detail` em lista."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = conversar(http, auth)
+        estranho = http.post(
+            f"/conversas/{conversa}/reviews", json={**REVIEW, "avaliador": "x"}, headers=auth
+        )
+        respostas = http.get("/openapi.json").json()["paths"]["/conversas/{conversa_id}/reviews"]
+    assert estranho.json() == {"detail": "Avaliador não é do time de teste"}
+    assert "403" in respostas["post"]["responses"]
 
 
 def test_sem_modo_demo_nao_ha_reviews(cenario):
