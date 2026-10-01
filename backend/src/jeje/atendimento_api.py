@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from jeje import bloqueio, eventos, handoff
 from jeje.db import EngineDep
@@ -107,6 +107,9 @@ class BloqueioDeCartao(BaseModel):
     reversivel_ate: datetime
     desfeito_em: datetime | None
     desfeito_por: str | None
+    atendimento: str | None = Field(
+        description="Caso do atendente ligado ao bloqueio (AT-…): todo desbloqueio é anotado nele"
+    )
 
 
 @router.get(
@@ -142,7 +145,7 @@ def desbloquear(
                 "desbloquear_cartao",
                 desfeito.id,
                 "POL-BLQ-05",
-                ("app.bloqueios",),
+                ("app.bloqueios", "app.handoffs") if desfeito.atendimento else ("app.bloqueios",),
             )
     except bloqueio.NaoEncontrado:
         raise HTTPException(status_code=404, detail="Bloqueio não encontrado") from None

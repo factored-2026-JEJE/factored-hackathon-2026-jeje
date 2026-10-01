@@ -383,21 +383,21 @@ AGORA = datetime(2026, 9, 30, 12, 0)
 
 
 @pytest.mark.parametrize(
-    ("motivo", "prazo", "esperado"),
+    ("prazo", "esperado"),
     [
-        ("pedido", AGORA + timedelta(seconds=1), Decisao("POL-BLQ-04", "propor_desbloqueio")),
-        ("pedido", AGORA, Decisao("POL-BLQ-05", "humano", "fora do prazo de reversão")),
-        ("pedido", AGORA - timedelta(days=1),
-         Decisao("POL-BLQ-05", "humano", "fora do prazo de reversão")),
-        ("roubo_perda", AGORA + timedelta(days=6),
-         Decisao("POL-BLQ-05", "humano", "bloqueio por relato de roubo ou perda")),
-        (None, None, Decisao("POL-BLQ-05", "humano", "sem bloqueio feito por aqui")),
+        (AGORA + timedelta(seconds=1), Decisao("POL-BLQ-04", "propor_desbloqueio")),
+        (AGORA + timedelta(days=6), Decisao("POL-BLQ-04", "propor_desbloqueio")),
+        (AGORA, Decisao("POL-BLQ-05", "humano", "fora do prazo de reversão")),
+        (AGORA - timedelta(days=1), Decisao("POL-BLQ-05", "humano", "fora do prazo de reversão")),
+        (None, Decisao("POL-BLQ-05", "humano", "sem bloqueio feito por aqui")),
     ],
 )  # fmt: skip
-def test_cliente_desfaz_so_o_bloqueio_que_pediu_dentro_do_prazo(motivo, prazo, esperado):
-    """Dentro do prazo, o bloqueio pedido pelo cliente ele mesmo desfaz, com um sim (POL-BLQ-04);
-    o resto (fora do prazo, roubo ou perda, bloqueio do banco) fica com o atendente (POL-BLQ-05)."""
-    assert decidir_desbloqueio(motivo, prazo, AGORA) == esperado
+def test_cliente_desfaz_o_bloqueio_feito_por_aqui_dentro_do_prazo(prazo, esperado):
+    """Dentro do prazo, o cliente desfaz pela conversa, com um sim, o bloqueio feito por aqui,
+    pedido por ele ou vindo de relato de roubo ou perda (PRD-009: urgência) (POL-BLQ-04). Fora do
+    prazo ou sem bloqueio feito por aqui (o do banco inclusive), fica com o atendente
+    (POL-BLQ-05)."""
+    assert decidir_desbloqueio(prazo, AGORA) == esperado
 
 
 # Toda regra que a conversa pode devolver (matriz de autonomia e mensagens de fluxo), escrita aqui

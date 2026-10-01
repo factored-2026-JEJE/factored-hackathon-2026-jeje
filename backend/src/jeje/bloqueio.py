@@ -8,14 +8,14 @@ from datetime import datetime
 
 from sqlalchemy import Connection, text
 
-from jeje import politica
+from jeje import handoff, politica
 
 # Tipos de produto que são cartão na base do desafio.
 CARTOES = ("Tarjeta Crédito", "Tarjeta Débito")
 FONTES = ("curated.products", "app.bloqueios")
 COLUNAS = (
     "id, customer_id, product_id, produto, ultimos4, tipo, motivo, dispositivo, criado_em,"
-    " reversivel_ate, desfeito_em, desfeito_por"
+    " reversivel_ate, desfeito_em, desfeito_por, atendimento"
 )
 
 
@@ -45,6 +45,7 @@ class Bloqueio:
     reversivel_ate: datetime
     desfeito_em: datetime | None = None
     desfeito_por: str | None = None
+    atendimento: str | None = None
 
 
 def cartoes_do_cliente(conexao: Connection, customer_id: str) -> list[politica.Cartao]:
@@ -148,9 +149,22 @@ def ativos(conexao: Connection, limite: int) -> list[Bloqueio]:
     return [Bloqueio(**linha._mapping) for linha in linhas]
 
 
+def ligar(conexao: Connection, customer_id: str, atendimento: str) -> None:
+    """Liga ao caso do atendente os bloqueios ativos do cliente feitos por aqui, para que o caso
+    fique sabendo se um deles for desfeito (PRD-009). Um caso novo de bloqueio fica com eles."""
+    conexao.execute(
+        text(
+            "UPDATE app.bloqueios SET atendimento = :caso"
+            " WHERE customer_id = :cliente AND desfeito_em IS NULL"
+        ),
+        {"caso": atendimento, "cliente": customer_id},
+    )
+
+
 def desfazer(conexao: Connection, bloqueio_id: str, por: str) -> Bloqueio:
-    """Desfaz o bloqueio ativo e devolve o registro como ficou; ninguém desfaz duas vezes.
-    Inexistente: NaoEncontrado; já desfeito: JaDesfeito."""
+    """Desfaz o bloqueio ativo e devolve o registro como ficou; ninguém desfaz duas vezes. O caso
+    ligado ao bloqueio, se houver, é anotado. Inexistente: NaoEncontrado; já desfeito:
+    JaDesfeito."""
     linha = conexao.execute(
         text(
             "UPDATE app.bloqueios SET desfeito_em = now(), desfeito_por = :por"
@@ -159,7 +173,11 @@ def desfazer(conexao: Connection, bloqueio_id: str, por: str) -> Bloqueio:
         {"id": bloqueio_id, "por": por},
     ).first()
     if linha is not None:
-        return Bloqueio(**linha._mapping)
+        desfeito = Bloqueio(**linha._mapping)
+        if desfeito.atendimento is not None:
+            acao = handoff.Acao("desbloquear_cartao", f"{desfeito.id}: desfeito pelo {por}")
+            handoff.anotar(conexao, desfeito.atendimento, (acao,))
+        return desfeito
     existe = conexao.execute(
         text("SELECT 1 FROM app.bloqueios WHERE id = :id"), {"id": bloqueio_id}
     ).first()
