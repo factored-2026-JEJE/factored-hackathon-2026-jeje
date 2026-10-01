@@ -129,6 +129,12 @@ as avaliações ficam no banco da demonstração para o erro ser discutido e cor
 Quem pode avaliar é `TESTADORES` no `compose.yaml`. `make demo-down` para a demonstração; os dados e
 as reviews continuam no volume do banco para a próxima vez.
 
+Para começar de novo sem recarregar a base, `make demo-limpar` (ou `make limpar`, na stack do
+`make up`) apaga conversas, pré-casos, encaminhamentos, bloqueios, sessões e eventos (as métricas
+zeram). Ficam a base, as personas e as reviews, com as conversas avaliadas; os protocolos não se
+repetem. Enquanto limpa, a API responde 503. Útil porque, com 3 pré-casos em 30 dias, a contestação
+de uma persona vai para o atendente (reincidência, POL-HUM-06).
+
 ## Publicação para os jurados
 
 A demonstração com os dados do desafio fica num endereço fixo, atrás de uma senha que só os jurados
