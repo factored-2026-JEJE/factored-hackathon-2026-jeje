@@ -10439,6 +10439,216 @@
       "testes": [
         "tests/test_interpretacao.py::test_valor_e_o_numero_com_cara_de_dinheiro"
       ]
+    },
+    {
+      "id": "M-ITP-92",
+      "requisito": "R02",
+      "descricao": "O bloqueio volta a vir antes do desbloqueio: o bloqueio contado vence o pedido de volta (ACH-141)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
+          "para": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-93",
+      "requisito": "R02",
+      "descricao": "O verbo de desbloqueio longe do cartão não pede desbloqueio (ACH-141)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n",
+          "para": "LIBERAR_DE_NOVO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-94",
+      "requisito": "R02",
+      "descricao": "Liberar, reativar e usar de novo com o bloqueio na frase não pedem desbloqueio (ACH-141)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                     VOLTA_DO_BLOQUEADO)),",
+          "para": "                     )),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-95",
+      "requisito": "R02",
+      "descricao": "O pedido de volta só vale perto, como os outros pares (ACH-141)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "NA_MENSAGEM = 60",
+          "para": "NA_MENSAGEM = 3"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-96",
+      "requisito": "R02",
+      "descricao": "O desbloqueio com o bloqueio do cliente sem o cartão citado (\"la bloqueé\") não pede nada (ACH-141)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "CARTAO + BLOQUEIO_DO_CLIENTE, entre=NA_MENSAGEM)",
+          "para": "CARTAO, entre=NA_MENSAGEM)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-97",
+      "requisito": "R02",
+      "descricao": "\"Acabei de bloquear\" deixa de ser o bloqueio do cliente (ACH-141)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "BLOQUEIO_DO_CLIENTE = (\"bloquee\", \"bloqueei\", \"acabo de bloquear\", \"acabei de bloquear\")",
+          "para": "BLOQUEIO_DO_CLIENTE = (\"bloquee\", \"bloqueei\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-98",
+      "requisito": "R02",
+      "descricao": "Reativar longe do cartão pede desbloqueio sem o bloqueio na frase (o cartão encerrado vira desbloqueio)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "DESBLOQUEIO_DE_LONGE = Perto((\"desbloque*\",), CARTAO",
+          "para": "DESBLOQUEIO_DE_LONGE = Perto((\"desbloque*\", \"reativ*\"), CARTAO"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-99",
+      "requisito": "R02",
+      "descricao": "O estado bloqueado basta para o verbo de desbloqueio (o PIN bloqueado vira desbloqueio)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "CARTAO + BLOQUEIO_DO_CLIENTE, entre=NA_MENSAGEM)",
+          "para": "CARTAO + BLOQUEIO_DO_CLIENTE + (\"bloqueado\",), entre=NA_MENSAGEM)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-100",
+      "requisito": "R02",
+      "descricao": "Liberar negado (\"no quiero liberarla\") continua pedindo desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"(?:desbloque|reactiv|reativ|liber)\"",
+          "para": "\"(?:desbloque|reactiv|reativ)\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-101",
+      "requisito": "R02",
+      "descricao": "O bloqueio já feito (\"ya bloqueé mi tarjeta\") volta a pedir outro bloqueio (ACH-141)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if intencao == \"bloquear\" and BLOQUEIO_CONTADO.search(texto.casefold()):\n            continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-102",
+      "requisito": "R02",
+      "descricao": "\"Que la bloquee\" (o pedido no subjuntivo) vira bloqueio contado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?<!que )(?<!que me )",
+          "para": "(?<!que me )"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-103",
+      "requisito": "R02",
+      "descricao": "\"Que me la bloquee\" (o pedido no subjuntivo) vira bloqueio contado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?<!que )(?<!que me )\\b",
+          "para": "(?<!que )\\b"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-104",
+      "requisito": "R02",
+      "descricao": "Só a partícula antes marca o passado: \"bloqueé\" com acento volta a pedir bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "r\"\\bbloqueé\\b|(?<!que )",
+          "para": "r\"(?<!que )"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-105",
+      "requisito": "R02",
+      "descricao": "Só o acento marca o passado: \"ya bloquee\" sem acento volta a pedir bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "|(?<!que )(?<!que me )\\b(?:ya|yo|la|lo|me|le) bloquee\\b\"",
+          "para": "\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_bloqueio_contado_nao_pede_outro_bloqueio"
+      ]
     }
   ]
 }
