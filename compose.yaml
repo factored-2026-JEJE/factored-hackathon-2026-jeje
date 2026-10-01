@@ -177,6 +177,10 @@ services:
       # Leitor e5 ligado na demonstração (lê o que as regras não entendem, ~15 ms por mensagem, na
       # CPU da própria API); o compose.ci.yaml volta para "regras". "ollama" continua possível.
       INTERPRETADOR: "leitor"
+      # Processos do uvicorn (DEV-045): cada um usa um núcleo e carrega o próprio leitor (~1 GB).
+      # Nada do atendimento fica na memória do processo (sessões, travas e contadores estão no
+      # banco). Um na máquina de quem desenvolve; a publicação e o CI sobem mais.
+      WEB_CONCURRENCY: "1"
     # Ollama do host, quando INTERPRETADOR=ollama (no Linux o nome precisa ser declarado).
     extra_hosts:
       - host.docker.internal:host-gateway
