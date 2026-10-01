@@ -135,6 +135,15 @@ def test_numero_solto_vira_opcao_e_a_pista_que_nao_engana_segue_direto():
         assert (direta.tipo, direta.transacoes) == ("unica", ("T1",))
 
 
+def test_valor_exato_de_outro_comercio_nao_deixa_seguir_direto():
+    """DEV-072: o comércio lido não vence o valor exato dito: a de outro comércio com esse valor
+    também é possível, e as duas viram opção."""
+    internet = Candidata("T8", Decimal("30.00"), datetime(2025, 3, 12), "Internet Plus")
+    pista = Pista(Decimal("45.90"), comercio="Internet Plus", valor_marcado=True)
+    resolucao = resolver_es([STREAMING, internet], pista)
+    assert (resolucao.tipo, set(resolucao.transacoes)) == ("varias", {"T1", "T8"})
+
+
 def test_com_mais_de_tres_possiveis_pergunta_pelo_campo_que_mais_divide():
     # Todas de 45,90: duas datas e cinco comércios. O comércio divide mais que a data.
     cinco_lojas = [

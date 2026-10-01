@@ -22,6 +22,7 @@ import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import numpy as np
@@ -178,6 +179,17 @@ def resolver(
     a pergunta pelo campo que mais as divide. Nenhuma possível pede dados. "A última" escolhe a
     mais recente, como no filtro."""
     aceitas = elegiveis(candidatas, pista)
+    # O valor exato dito não perde para o comércio lido (DEV-072): a transação de outro comércio
+    # com esse valor também pode ser a descrita, e nada segue direto.
+    exatas = [
+        i
+        for i, c in enumerate(candidatas)
+        if pista.comercio is not None
+        and pista.valor is not None
+        and abs(c.amount - pista.valor) <= Decimal("0.01")
+        and c.merchant_name != pista.comercio
+    ]
+    aceitas = sorted({*aceitas, *exatas})
     if not aceitas:
         return Resolucao("nenhuma", ())
     x = atributos(candidatas, pista, hoje)
@@ -187,7 +199,7 @@ def resolver(
         conjunto = [min(aceitas)]  # as candidatas vêm das mais recentes para as mais antigas
     # Seguir direto pede uma pista que não engana: o número solto pode ser o dia ou o final do
     # cartão (ACH-143), e a transação perto dele vira opção.
-    direta = (
+    direta = not exatas and (
         pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None
     )
     if len(conjunto) != 1 or not direta:
