@@ -1,6 +1,8 @@
 """Interpretação baseline (G10): cada caso tem o par que deveria dar errado — frase parecida que
 não pode virar a mesma intenção, confirmação ou pista."""
 
+import statistics
+import time
 from dataclasses import fields
 from datetime import date
 from decimal import Decimal
@@ -114,6 +116,38 @@ def test_reembolso_e_consulta_e_contestacao_e_nao_reconhecer(texto, intencao):
     ],
 )
 def test_cobranca_repetida_e_pedido_de_revisao_sao_contestacao(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # ACH-120 (EV-140): pedido de contestação feito com substantivo, com valor, era consulta.
+        (
+            "Quiero registrar una contestación a esta compra por $30 en Farmacia Salud el 9 de"
+            " marzo de 2025.",
+            "contestar",
+        ),
+        ("Quiero abrir un reclamo por la compra de 30 dólares en Farmacia Salud", "contestar"),
+        ("Necesito una objeción a la compra de 30 USD en Farmacia Salud", "contestar"),
+        ("Quero registrar uma contestação da compra de 64,50 USD no Cine Premium", "contestar"),
+        ("Quero abrir uma disputa da compra de 64,50 no Cine Premium", "contestar"),
+        ("Quero fazer uma reclamação da cobrança de 64,50 no Cine Premium", "contestar"),
+        # "Não fui eu" é relato de fraude nas duas línguas.
+        ("Esa compra de 30 dólares en Farmacia Salud no la hice yo", "fraude"),
+        ("Essa compra de 64,50 no Cine Premium não fui eu que fiz", "fraude"),
+        # As do EV-140 que já estavam certas continuam.
+        ("Quiero contestar la compra de 30 dólares en Farmacia Salud", "contestar"),
+        ("Quiero disputar el cargo de 30 dólares en Farmacia Salud", "contestar"),
+        ("Quiero impugnar el cobro de 30 dólares de Farmacia Salud", "contestar"),
+        ("No reconozco el cargo de 30 dólares en Farmacia Salud", "contestar"),
+        ("Quero contestar a compra de 64,50 dólares no Cine Premium", "contestar"),
+        ("Não reconheço a compra de 64,50 dólares no Cine Premium", "contestar"),
+        # Pedir estorno é consulta, por decisão (ACH-102).
+        ("Quero pedir estorno da compra de 64,50 no Cine Premium", "consultar"),
+    ],
+)
+def test_pedido_de_contestacao_com_substantivo_e_contestacao(texto, intencao):
     assert ler(texto).intencao == intencao
 
 
@@ -484,3 +518,26 @@ def test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente(cartoes, text
 )
 def test_cita_cartao_quando_diz_final_ou_tipo(texto, cita):
     assert cita_cartao(texto) is cita
+
+
+def test_ler_uma_mensagem_custa_poucos_milissegundos():
+    """ACH-107: cada mensagem passa por mais termos do que o cache do `re` guarda (512); com as
+    expressões recompiladas a cada chamada, a leitura levava ~100 ms. Compiladas uma vez, fica
+    perto de 2 ms; o limite de 10 ms deixa folga para a máquina carregada."""
+    frases = [
+        "¿Por qué me rechazaron la compra de 45,90 del 10/03?",
+        "No reconozco el cobro de Uber",
+        "Quiero bloquear mi tarjeta",
+        "hola, buenas tardes",
+        "me robaron la tarjeta",
+        "não quero desbloquear meu cartão",
+    ]
+    for frase in frases:  # a primeira leitura compila; o que importa é o regime
+        interpretar(frase, "es", REFERENCIA)
+    tempos = []
+    for _ in range(10):
+        for frase in frases:
+            inicio = time.perf_counter()
+            interpretar(frase, "es", REFERENCIA)
+            tempos.append((time.perf_counter() - inicio) * 1000)
+    assert statistics.median(tempos) <= 10

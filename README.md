@@ -301,9 +301,10 @@ scripts/repro.sh    # do zero: clone limpo, stack isolada com a fixture, todos o
 - Minimização: o leitor (e o modelo local) recebe só a mensagem, nunca cliente, transação ou sessão; os logs não
   guardam mensagem, token nem cliente; o encaminhamento leva o pedido cortado em 280 caracteres e só
   fatos verificados da transação.
-- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~100 ms de CPU por
-  mensagem (p50 de 104,5 ms em 30/09; eram ~10 ms antes dos termos compostos, correção pendente no
-  ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
+- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~3 ms de CPU por
+  mensagem (p50 de 2,8 ms e p95 de 4,9 ms nas 6.568 mensagens do teste do BANKING77 es/pt, da
+  validação e do portunhol, com a máquina carregada; eram ~100 ms antes de cada expressão ser
+  compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
   Não medido: muitos clientes ao mesmo tempo e o servidor de publicação.
 - Falta: publicação estável (a demonstração usa um túnel temporário), um conjunto de teste ES/PT escrito pelo time (com
