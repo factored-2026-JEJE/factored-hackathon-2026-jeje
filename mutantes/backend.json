@@ -11474,6 +11474,141 @@
       "testes": [
         "tests/test_conversa.py::test_as_recusadas_nao_voltam_depois_da_segunda_proposta"
       ]
+    },
+    {
+      "id": "M-QT-35",
+      "requisito": "R09",
+      "descricao": "O ranking não diz a probabilidade da escolhida (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    rastro = {\"probabilidade\": round(dict(ordem)[conjunto[0]], 4), \"possiveis\": len(aceitas)}\n",
+          "para": "    rastro = {\"probabilidade\": None, \"possiveis\": len(aceitas)}\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-QT-36",
+      "requisito": "R09",
+      "descricao": "O ranking não diz quantas podiam ser (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    rastro = {\"probabilidade\": round(dict(ordem)[conjunto[0]], 4), \"possiveis\": len(aceitas)}\n",
+          "para": "    rastro = {\"probabilidade\": round(dict(ordem)[conjunto[0]], 4), \"possiveis\": None}\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-CONV-104",
+      "requisito": "R09",
+      "descricao": "A escolha numa lista sai como a transação em foco (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            self.resolucao = RastroDaResolucao(\"escolha\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-CONV-105",
+      "requisito": "R09",
+      "descricao": "O turno que resolve pelo filtro ou pelo ranking não registra como (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if resolucao.tipo != \"nenhuma\":\n            self.resolucao = self._rastro(resolvedor, resolucao)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-CONV-106",
+      "requisito": "R09",
+      "descricao": "O ranking sai como filtro exato (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            resolucao, resolvedor = self._pelo_ranking(status, pista), \"ranking\"\n",
+          "para": "            resolucao = self._pelo_ranking(status, pista)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-CONV-107",
+      "requisito": "R09",
+      "descricao": "A transação em curso sai sem resolvedor (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "    rastro = atual.resolucao or (RastroDaResolucao(\"foco\") if saida.transaction_id else None)\n",
+          "para": "    rastro = atual.resolucao\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-CONV-108",
+      "requisito": "R09",
+      "descricao": "O ranking sai sem a versão da calibração (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        return RastroDaResolucao(\"ranking\", versao, resolucao.probabilidade, resolucao.possiveis)\n",
+          "para": "        return RastroDaResolucao(\"ranking\", None, resolucao.probabilidade, resolucao.possiveis)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-EVT-09",
+      "requisito": "R09",
+      "descricao": "O evento do turno não grava o resolvedor (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "            \"resolvedor\": e.resolvedor,\n",
+          "para": "            \"resolvedor\": None,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_turno_diz_como_a_transacao_foi_achada"
+      ]
+    },
+    {
+      "id": "M-MIG-17",
+      "requisito": "R06",
+      "descricao": "A 0023 não desfaz as colunas do resolvedor (o downgrade deixa o schema diferente)",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0023_eventos_resolucao.py",
+          "de": "    op.drop_column(\"eventos\", \"resolvedor\", schema=\"app\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_upgrade_downgrade_upgrade_volta_ao_mesmo_schema"
+      ]
     }
   ]
 }
