@@ -653,6 +653,9 @@ def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor
         ("No dia 15 me cobraram 45,90 USD e não reconheço", Decimal("45.90")),
         ("a las 10:30 me cobraron 20 dólares", Decimal("20.00")),
         ("às 15h me cobraram 20 reais", Decimal("20.00")),
+        # A hora sem "a las" ou "às", e sem dinheiro marcado: o valor é o outro número.
+        ("el cargo de las 10:30 fue de 45,90", Decimal("45.90")),
+        ("el cobro de las 15 hs fue de 45,90", Decimal("45.90")),
         # REG-04 (ACH-127): o tempo antes ou depois do valor não é valor.
         ("Hace 3 días me cobraron 45 dólares que no reconozco", Decimal("45.00")),
         ("No reconozco el cargo de 45 dólares de hace 2 días", Decimal("45.00")),
