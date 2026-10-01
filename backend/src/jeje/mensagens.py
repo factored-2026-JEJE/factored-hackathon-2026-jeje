@@ -87,6 +87,11 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Encontré una transacción que puede ser. ¿Es esta?\n{opcoes}",
         "pt": "Encontrei uma transação que pode ser. É esta?\n{opcoes}",
     },
+    # A transação proposta não é a certa (ACH-145): o pedido continua.
+    "CON-OUTRA": {
+        "es": "Entendido, no es esa. ¿Cuál es? ¿Me indicas el valor, la fecha o el comercio?",
+        "pt": "Entendi, não é essa. Qual é? Pode me dizer o valor, a data ou o estabelecimento?",
+    },
     "CON-NENHUMA": {
         "es": "No encontré esa transacción en tu cuenta. ¿Me indicas el valor, la fecha o el "
         "comercio?",
