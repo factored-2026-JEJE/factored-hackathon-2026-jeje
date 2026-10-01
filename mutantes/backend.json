@@ -4458,8 +4458,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    achados.discard(\"cortesia\")\n    return achados.pop() if len(achados) == 1 else None",
-          "para": "    achados.discard(\"cortesia\")\n    return achados.pop() if achados else None"
+          "de": "    tipos = set(achados) - {\"cortesia\"}\n    return tipos.pop() if len(tipos) == 1 else None",
+          "para": "    tipos = set(achados) - {\"cortesia\"}\n    return tipos.pop() if tipos else None"
         }
       ],
       "testes": [
@@ -9620,7 +9620,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    return achados is not None and achados - {\"cortesia\"} == {\"sim\"}\n",
+          "de": "    return achados is not None and set(achados) - {\"cortesia\"} == {\"sim\"}\n",
           "para": "    return False\n"
         }
       ],
@@ -9635,8 +9635,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    return achados is not None and achados - {\"cortesia\"} == {\"sim\"}\n",
-          "para": "    return achados is None or achados - {\"cortesia\"} == {\"sim\"}\n"
+          "de": "    return achados is not None and set(achados) - {\"cortesia\"} == {\"sim\"}\n",
+          "para": "    return achados is None or set(achados) - {\"cortesia\"} == {\"sim\"}\n"
         }
       ],
       "testes": [
@@ -9836,6 +9836,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-90",
+      "requisito": "R02",
+      "descricao": "A negação antes do fechamento vira agradecimento (\"no resolvió\" é cortesia, ACH-128)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if any(t == \"fechamento\" and \"negacao\" in achados[:i] for i, t in enumerate(achados)):\n        return None  # \"no resolvió\", \"não era isso\": insatisfação, não agradecimento\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_negacao_antes_do_fechamento_nao_e_cortesia"
+      ]
+    },
+    {
+      "id": "M-ITP-91",
+      "requisito": "R02",
+      "descricao": "Qualquer negação na mensagem tira a cortesia (\"no, gracias\" deixa de ser agradecimento)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "if any(t == \"fechamento\" and \"negacao\" in achados[:i] for i, t in enumerate(achados)):",
+          "para": "if \"negacao\" in achados:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_agradecimento_com_ou_sem_negacao_continua_cortesia"
       ]
     },
     {
