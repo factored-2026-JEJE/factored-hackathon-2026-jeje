@@ -213,6 +213,9 @@ class Resolucao:
     regra: str = "POL-CON-02"
     # Com muitas possíveis (ranking do DEV-037), o campo a perguntar no lugar da lista.
     campo: str | None = None
+    # Pelo ranking (DEV-071): a probabilidade da primeira e quantas podiam ser a descrita.
+    probabilidade: float | None = None
+    possiveis: int | None = None
 
 
 def _sem_acento(texto: str) -> str:

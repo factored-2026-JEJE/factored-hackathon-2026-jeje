@@ -3,7 +3,9 @@
 dado de outro cliente. O esperado de cada resposta está escrito aqui (texto aprovado + fatos da
 fixture), e o efeito é conferido no banco, não só na resposta."""
 
+import json
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import httpx2 as httpx
 import pytest
@@ -19,7 +21,10 @@ from conftest import (
 )
 from sqlalchemy import text
 
+import jeje
 from jeje.politica import DESCRICOES
+
+ARTEFATO = Path(jeje.__file__).parent / "qual_transacao.json"
 
 
 @pytest.fixture
@@ -760,6 +765,41 @@ def test_pista_aproximada_acha_a_transacao_pelo_ranking(cenario):
         proposta = dizer(http, auth, conversa, "No reconozco el cobro de unos 46 en Streaming Plus")
     assert (proposta["acao"], proposta["transaction_id"]) == ("propor_pre_caso", "TRX-A1")
     assert pre_casos(cenario) == []
+
+
+def resolvedores(settings) -> list[tuple]:
+    with conexao(settings) as con:
+        consulta = (
+            "SELECT numero, resolvedor, calibracao, probabilidade, possiveis FROM app.eventos"
+            " WHERE tipo = 'turno' ORDER BY id"
+        )
+        return [tuple(linha) for linha in con.execute(text(consulta))]
+
+
+def test_o_turno_diz_como_a_transacao_foi_achada(cenario):
+    """DEV-071 (ACH-118 da validação): na resposta e no evento, o resolvedor de cada turno com
+    transação. Pelo ranking, a versão da calibração do commit, a probabilidade da escolhida e
+    quantas podiam ser; pelo filtro exato, pela escolha numa lista ou a que já estava em curso."""
+    versao = json.loads(ARTEFATO.read_text(encoding="utf-8"))["versao"]
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        ranking = dizer(http, auth, conversa, "No reconozco el cobro de unos 46 en Streaming Plus")
+        confirmado = dizer(http, auth, conversa, "sí")
+        outra = abrir_conversa(http, auth, "es")
+        filtro = dizer(http, auth, outra, "No reconozco el cobro de 45,90")
+        escolha = dizer(http, auth, outra, "1")
+    assert ranking["resolucao"]["resolvedor"] == "ranking"
+    assert ranking["resolucao"]["calibracao"] == versao
+    assert ranking["resolucao"]["probabilidade"] > 0.9 and ranking["resolucao"]["possiveis"] == 1
+    assert confirmado["resolucao"] == {
+        "resolvedor": "foco", "calibracao": None, "probabilidade": None, "possiveis": None
+    }  # fmt: skip
+    assert filtro["resolucao"]["resolvedor"] == "filtro"
+    assert escolha["resolucao"]["resolvedor"] == "escolha"
+    eventos = resolvedores(cenario)
+    assert [e[1] for e in eventos] == ["ranking", "foco", "filtro", "escolha"]
+    assert eventos[0][2] == versao and eventos[0][3] > 0.9 and eventos[0][4] == 1
 
 
 def test_muitas_possiveis_viram_pergunta_pelo_campo_que_o_cliente_nao_disse(cenario):
