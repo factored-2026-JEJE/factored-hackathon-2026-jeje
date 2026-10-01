@@ -489,6 +489,22 @@
       "testes": [
         "seguranca.spec.ts > HSTS só para quem chegou em https"
       ]
+    },
+    {
+      "id": "M-E2E-31",
+      "requisito": "R08",
+      "descricao": "No celular a tabela volta a alargar a página (rola para o lado e o campo cobre o Enviar; ACH-156)",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/estilo.css",
+          "de": "@media (max-width: 860px) { table { display: block; overflow-x: auto; max-width: 100%; } }\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "celular.spec.ts > Pixel 7 > a página cabe na tela e o Enviar recebe o toque",
+        "celular.spec.ts > iPhone 13 > a página cabe na tela e o Enviar recebe o toque"
+      ]
     }
   ]
 }
