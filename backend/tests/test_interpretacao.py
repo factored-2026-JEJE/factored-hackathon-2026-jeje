@@ -555,3 +555,23 @@ def test_ler_uma_mensagem_custa_poucos_milissegundos():
 def test_dizer_que_a_compra_e_fraudulenta_e_relato_de_fraude(texto):
     """ACH-121 (DEV-020r): o adjetivo também relata fraude, que vai ao atendente (POL-HUM-01)."""
     assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "valor"),
+    [
+        ("No reconozco el cobro de 6,050", Decimal("6050.00")),
+        ("No reconozco el cobro de 6,050.00", Decimal("6050.00")),
+        ("No reconozco el cobro de USD13,45", Decimal("13.45")),
+        ("Não reconheço a cobrança de usd13.45", Decimal("13.45")),
+        ("No reconozco el cobro de 13,45", Decimal("13.45")),
+        ("No reconozco el cobro de 1,5", Decimal("1.50")),
+        ("No reconozco el cobro de COP 189.900,55", Decimal("189900.55")),
+        ("No reconozco el cobro de 45.90", Decimal("45.90")),
+    ],
+)
+def test_valor_no_formato_do_mexico_e_dos_eua_e_com_o_codigo_colado(texto, valor):
+    """DEV-043 (EXP-007): vírgula seguida de exatamente 3 dígitos é milhar ("6,050" e "6,050.00"),
+    o código da moeda colado ao número não impede a leitura, e o decimal com vírgula ou ponto
+    continua ("13,45", "1,5", "45.90")."""
+    assert ler(texto).valor == valor
