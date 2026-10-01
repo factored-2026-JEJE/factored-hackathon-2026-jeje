@@ -15,6 +15,13 @@
 		Content-Security-Policy "frame-ancestors 'none'"
 		Referrer-Policy no-referrer
 	}
+	# Publicação (ACH-115): o Cloudflare diz em X-Forwarded-Proto o esquema em que o visitante
+	# chegou. Em http, volta em https (308) antes de qualquer resposta; em https, o HSTS faz o
+	# navegador nunca mais mandar a senha dos jurados em http. Sem o cabeçalho (stack local), nada.
+	@http header X-Forwarded-Proto http
+	redir @http https://{host}{uri} 308
+	@https header X-Forwarded-Proto https
+	header @https Strict-Transport-Security "max-age=31536000"
 	handle_path /api/* {
 		reverse_proxy {$API_UPSTREAM}
 	}
