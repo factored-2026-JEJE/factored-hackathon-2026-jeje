@@ -495,6 +495,50 @@ def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto)
     assert ler(texto).intencao not in ("bloquear", "desbloquear")
 
 
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # REG-06 (ACH-140): as palavras comuns de cada pedido, com a intenção do controle.
+        ("Congela mi tarjeta, por favor", "bloquear"),
+        ("Quiero congelar mi tarjeta", "bloquear"),
+        ("Quero travar o cartão", "bloquear"),
+        ("Trava meu cartão, por favor", "bloquear"),
+        ("Reactiva mi tarjeta", "desbloquear"),
+        ("Ya apareció mi tarjeta, quiero usarla", "desbloquear"),
+        ("Quero reativar o cartão", "desbloquear"),
+        ("Pode liberar meu cartão de novo", "desbloquear"),
+        ("No quiero hablar con un robot", "humano"),
+        ("Não quero falar com robô", "humano"),
+        ("Me están robando plata de la cuenta", "fraude"),
+        ("Caí num golpe e fizeram um pix", "fraude"),
+        ("Estão tirando dinheiro da minha conta", "fraude"),
+    ],
+)
+def test_palavras_comuns_do_cartao_do_atendente_e_da_fraude(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "¿Por qué está congelada mi tarjeta?",  # estado, não pedido
+        "Meu cartão travou na maquininha",
+        "no quiero congelar mi tarjeta",  # negação
+        "não quero travar o cartão",
+        "Quiero activar mi tarjeta nueva",  # ativar o cartão novo não é desbloqueio
+        "Apareció un cobro en mi tarjeta que no reconozco",
+        "Encontré un pago con tarjeta no autorizado",  # o cartão não é o achado
+    ],
+)
+def test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio(texto):
+    assert ler(texto).intencao not in ("bloquear", "desbloquear")
+
+
+def test_queixa_de_tarifa_com_robando_nao_e_relato_de_fraude():
+    """Sem o dinheiro ou a conta perto, "robando" é queixa, não relato (visto no BANKING77)."""
+    assert ler("Más comisiones otra vez. ¿Por qué me estás robando así?").intencao != "fraude"
+
+
 def test_roubo_e_perda_com_pedido_de_bloqueio_continuam_relato_de_fraude():
     """Segurança primeiro: o relato encaminha (e, na conversa, também bloqueia)."""
     assert ler("me robaron la tarjeta, bloquéenla").intencao == "fraude"
