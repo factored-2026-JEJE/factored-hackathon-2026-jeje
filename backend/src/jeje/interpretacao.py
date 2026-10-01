@@ -8,12 +8,13 @@ carrega identidade de cliente nem ID de transação: identificador digitado no c
 
 import re
 import unicodedata
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 from functools import lru_cache
 from itertools import product
+from pathlib import Path
 from typing import Literal
 
 from jeje.mensagens import Idioma, Status
@@ -686,7 +687,84 @@ def _status(limpo: str) -> str | None:
     return citados.pop() if len(citados) == 1 else None
 
 
+# ---- Erro de digitação nas palavras de intenção (DEV-060) ---------------------------------------
+# O corretor do NOV-24 da validação: a palavra desconhecida com 6 letras ou mais que está a uma
+# edição (Damerau-Levenshtein) de uma única palavra dos termos de contestar, fraude, bloquear,
+# desbloquear ou humano conta como essa palavra. Palavra com 2 ou mais ocorrências no vocabulário
+# (o BANKING77 de treino ES/PT, `python -m jeje.leitor.palavras`) nunca é trocada, e a que aparece
+# nele ao menos uma vez não vira termo de fraude ("probado" não vira "robado").
+VOCABULARIO_DO_ARQUIVO = Path(__file__).with_name("palavras_conhecidas.txt")
+VOCABULARIO: dict[str, int] = {
+    palavra: int(n)
+    for palavra, n in (
+        linha.split("\t")
+        for linha in VOCABULARIO_DO_ARQUIVO.read_text(encoding="utf-8").split("\n")
+        if linha
+    )
+}
+INTENCOES_CORRIGIDAS = frozenset({"contestar", "fraude", "bloquear", "desbloquear", "humano"})
+MINIMO_PARA_CORRIGIR = 6
+
+
+def _palavras_do_termo(termo: str | Perto) -> Iterator[str]:
+    if isinstance(termo, Perto):
+        for parte in (*termo.um, *termo.outro):
+            yield from _palavras_do_termo(parte)
+    elif not termo.endswith("*"):
+        yield from normalizar(termo).split()
+
+
+def _lexico() -> dict[str, frozenset[str]]:
+    """Cada palavra (4 letras ou mais) dos termos das intenções corrigidas, e as intenções dela."""
+    intencoes: dict[str, set[str]] = {}
+    for intencao, termos in TERMOS:
+        if intencao in INTENCOES_CORRIGIDAS:
+            for termo in termos:
+                for palavra in _palavras_do_termo(termo):
+                    if len(palavra) >= 4:
+                        intencoes.setdefault(palavra, set()).add(intencao)
+    return {palavra: frozenset(i) for palavra, i in intencoes.items()}
+
+
+LEXICO_DE_INTENCAO = _lexico()
+
+
+def _uma_edicao(a: str, b: str) -> bool:
+    """A uma edição: uma letra trocada, uma a mais ou a menos, ou duas vizinhas invertidas."""
+    if a == b or abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        dif = [i for i, (x, y) in enumerate(zip(a, b, strict=True)) if x != y]
+        vizinhas = len(dif) == 2 and dif[1] == dif[0] + 1
+        return len(dif) == 1 or (vizinhas and a[dif[0]] == b[dif[1]] and a[dif[1]] == b[dif[0]])
+    curta, longa = (a, b) if len(a) < len(b) else (b, a)
+    i = next((k for k, (x, y) in enumerate(zip(curta, longa, strict=False)) if x != y), len(curta))
+    return curta[i:] == longa[i + 1 :]
+
+
+def corrigir(texto: str) -> tuple[str, tuple[str, ...]]:
+    """O texto com as palavras de intenção corrigidas, e as trocas feitas ("robron→robaron")."""
+    trocas, pedacos = [], re.split(r"(\w+)", texto)
+    for k, pedaco in enumerate(pedacos):
+        palavra = normalizar(pedaco) if pedaco.isalpha() else ""
+        if (
+            len(palavra) < MINIMO_PARA_CORRIGIR
+            or palavra in LEXICO_DE_INTENCAO
+            or VOCABULARIO.get(palavra, 0) >= 2
+        ):
+            continue
+        candidatas = [termo for termo in LEXICO_DE_INTENCAO if _uma_edicao(palavra, termo)]
+        if len(candidatas) != 1:
+            continue
+        if "fraude" in LEXICO_DE_INTENCAO[candidatas[0]] and palavra in VOCABULARIO:
+            continue
+        pedacos[k] = candidatas[0]
+        trocas.append(f"{palavra}→{candidatas[0]}")
+    return "".join(pedacos), tuple(trocas)
+
+
 def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interpretacao:
+    texto, corrigidas = corrigir(texto)
     limpo = normalizar(texto)
     escolha = _escolha(limpo)
     # "A 1" é escolha, nunca valor: sem lista pendente, não vira busca de uma transação de 1,00.
@@ -718,7 +796,8 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
             continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
         if casados:
-            return Interpretacao(intencao=intencao, sinais=casados, **pistas)
+            sinais = (*casados, *(f"digitacao:{t}" for t in corrigidas))
+            return Interpretacao(intencao=intencao, sinais=sinais, **pistas)
     return Interpretacao(intencao="desconhecida", **pistas)
 
 
