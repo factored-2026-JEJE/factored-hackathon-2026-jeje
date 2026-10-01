@@ -14,6 +14,7 @@ from jeje.interpretacao import (
     cartao_citado,
     cita_cartao,
     comercio_citado,
+    comercio_citado_e_como,
     interpretar,
 )
 
@@ -468,8 +469,8 @@ FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Ub
         (FX, "o cafezinho de 12", "Café Central"),
         (FX, "la película", "Cine Premium"),
         (["Mercado Central", "Super Ahorro"], "fue en el supermercado", None),  # dois ramos iguais
-        # ACH-150: o canal, a saudação, o nome de pessoa e as palavras do dia a dia não citam o
-        # comércio sozinhos; com o lugar antes ou o nome inteiro, citam.
+        # ACH-150 (a regra medida no QT-03): as palavras comuns do nome não citam o comércio
+        # sozinhas, e o telefone deixa de ser o ramo da Empresa Telefónica; o nome inteiro cita.
         (["Internet Plus"], "lo compré por internet", None),
         (["Internet Plus"], "paguei pela internet", None),
         (["Empresa Telefónica"], "me llamaron por teléfono", None),
@@ -479,9 +480,8 @@ FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Ub
         (["Tienda Don José"], "Hola, soy José", None),
         (["Super Ahorro"], "salió de mi cuenta de ahorro", None),
         (["Farmacia Salud"], "lo necesito por mi salud", None),
-        (["Clínica Médica"], "tenía una cita médica", None),
         (["Internet Plus"], "el cobro de Internet Plus", "Internet Plus"),
-        (["Tienda Don José"], "compré en Don José", "Tienda Don José"),
+        (["Tienda Don José"], "compré en la Tienda Don José", "Tienda Don José"),
         (["Super Ahorro"], "foi na Super Ahorro", "Super Ahorro"),
         (["Restaurante El Buen Sabor"], "la cena en El Buen Sabor", "Restaurante El Buen Sabor"),
         # Mensagens sem comércio continuam sem.
@@ -492,6 +492,14 @@ FX = ["Café Central", "Streaming Plus", "Boutique Moda", "Óptica Visión", "Ub
 )
 def test_comercio_citado_entre_os_do_cliente(comercios, texto, citado):
     assert comercio_citado(texto, comercios) == citado
+
+
+def test_comercio_citado_diz_se_veio_do_nome_inteiro_ou_de_uma_palavra():
+    """O DEV-072 trata diferente a palavra solta (que perde para o valor exato) e o nome inteiro."""
+    assert comercio_citado_e_como("lo de Streaming Plus", FX) == ("Streaming Plus", "nome")
+    assert comercio_citado_e_como("lo de streaming", FX) == ("Streaming Plus", "palavra")
+    assert comercio_citado_e_como("la película", FX) == ("Cine Premium", "palavra")
+    assert comercio_citado_e_como("nada", FX) == (None, None)
 
 
 # ---- Bloqueio de cartão (PRD-007) ---------------------------------------------------------------

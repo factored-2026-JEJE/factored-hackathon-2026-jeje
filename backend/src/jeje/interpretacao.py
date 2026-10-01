@@ -737,36 +737,38 @@ RAMO: dict[str, tuple[str, ...]] = {
 }
 
 
-# Palavras de nome de comércio que são também palavras comuns (ACH-150). O canal ("por internet",
-# "pelo telefone", "llamada telefónica") nunca cita o comércio sozinho. A saudação, o nome de
-# pessoa e as palavras do dia a dia ("buen día", "soy José", "cuenta de ahorro", "por mi salud",
-# "cita médica") só citam com o lugar antes ("en Don José", "na Super Ahorro"). O nome inteiro
-# sempre cita.
-CANAIS = frozenset({"internet", "telefonica", "telefono", "telefone", "online"})
-DO_DIA_A_DIA = frozenset({"buen", "jose", "ahorro", "salud", "medica"})
-LUGAR = r"(?<![a-z0-9])(?:en|na|no|em|al|ao)(?: [a-z0-9]+){0,2} "
+# Palavras de nome de comércio que são também palavras comuns (ACH-150, a regra medida pela
+# validação no QT-03): sozinhas, não citam o comércio ("por internet", "Buen día", "soy José",
+# "cuenta de ahorro", "llamada telefónica", "por mi salud"). O nome inteiro sempre cita.
+PALAVRAS_COMUNS_DO_NOME = frozenset({"internet", "buen", "jose", "ahorro", "telefonica", "salud"})
 
 
-def _cita(palavra: str, limpo: str) -> bool:
-    if palavra in DO_DIA_A_DIA:
-        return _regex(LUGAR + _padrao(palavra)).search(limpo) is not None
-    return _casa(palavra, limpo)
+def comercio_citado_e_como(
+    texto: str, comercios: Iterable[str]
+) -> tuple[str | None, Literal["nome", "palavra"] | None]:
+    """Comércio (dentre os das transações do próprio cliente) citado na mensagem, e como: pelo
+    nome inteiro, ou por uma palavra distintiva dele ou pelo ramo que o nome diz (RAMO). Mais de um
+    citado → nenhum (quem escolhe é o cliente)."""
+    limpo = normalizar(texto)
+    citados: dict[str, Literal["nome", "palavra"]] = {}
+    for nome in comercios:
+        nome_limpo = normalizar(nome)
+        if _casa(nome_limpo, limpo):
+            citados[nome] = "nome"
+            continue
+        palavras = nome_limpo.split()
+        comuns = COMUNS | PALAVRAS_COMUNS_DO_NOME
+        distintivas = [p for p in palavras if len(p) >= 4 and p not in comuns]
+        ramo = [t for p in palavras for t in RAMO.get(p, ())]
+        if any(_casa(p, limpo) for p in (*distintivas, *ramo)):
+            citados[nome] = "palavra"
+    if len(citados) != 1:
+        return None, None
+    return next(iter(citados.items()))
 
 
 def comercio_citado(texto: str, comercios: Iterable[str]) -> str | None:
-    """Comércio (dentre os das transações do próprio cliente) citado na mensagem: nome inteiro,
-    palavra distintiva dele ou o ramo que o nome diz (RAMO). Mais de um citado → nenhum (quem
-    escolhe é o cliente)."""
-    limpo = normalizar(texto)
-    citados = set()
-    for nome in comercios:
-        nome_limpo = normalizar(nome)
-        palavras = nome_limpo.split()
-        distintivas = [p for p in palavras if len(p) >= 4 and p not in COMUNS | CANAIS]
-        ramo = [t for p in palavras for t in RAMO.get(p, ())]
-        if _casa(nome_limpo, limpo) or any(_cita(p, limpo) for p in (*distintivas, *ramo)):
-            citados.add(nome)
-    return citados.pop() if len(citados) == 1 else None
+    return comercio_citado_e_como(texto, comercios)[0]
 
 
 # Cartão citado pelo final ("la terminada en 9241", "o de final 5678") ou pelo tipo ("la de
