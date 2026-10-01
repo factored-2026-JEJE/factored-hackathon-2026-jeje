@@ -564,7 +564,8 @@ NAO_E_DINHEIRO = re.compile(
     r"|(?:terminad[ao]|termina|final|finalizad[ao])\s+(?:en\s+|em\s+)?\d{4}(?!\d)"
     r"|d[ií]a\s+\d{1,2}(?![\d.,/-])"
     r"|(?:cuenta|conta|tel[eé]fono|telefone|celular)\s*(?:n[uú]mero|n[ºo°]\.?|#)?\s*\d{3,}"
-    r"|(?<![\w.,])0\d{2,}",
+    # O grupo de milhar depois do espaço ("1 000") não é código com zero à esquerda (ACH-155).
+    r"|(?<![\w.,])(?<!\d\s)0\d{2,}",
     re.IGNORECASE,
 )
 # Marca de dinheiro junto do número: com várias, vale o valor marcado ("45 dólares", "USD 12").
