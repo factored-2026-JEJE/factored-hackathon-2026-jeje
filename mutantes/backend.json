@@ -11416,6 +11416,51 @@
       ]
     },
     {
+      "id": "M-ITP-138",
+      "requisito": "R07",
+      "descricao": "Termo de vítima não desfaz a prevenção (\"fui vítima de golpe, como me protejo\" não bloqueia; ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return sinal and not _vitima(limpo)",
+          "para": "    return sinal"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-139",
+      "requisito": "R07",
+      "descricao": "A negação não desfaz o termo de vítima (\"no di mis datos\" vira relato e bloqueia; ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if not (antes and antes[-1] in NEGA_A_VITIMA):",
+          "para": "            if True:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-140",
+      "requisito": "R07",
+      "descricao": "O pronome entre a negação e o termo esconde a negação (\"no le di mis datos\" vira relato; ACH-144)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if antes and antes[-1] in PRONOMES_DA_VITIMA:\n                antes = antes[:-1]\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
       "id": "M-LLM-25",
       "requisito": "R02",
       "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",
