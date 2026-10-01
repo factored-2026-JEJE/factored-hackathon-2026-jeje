@@ -172,10 +172,11 @@ def resolver(
     maximo_opcoes: int,
 ) -> Resolucao:
     """A mesma resposta do filtro exato, entre as candidatas que podem ser a descrita: com uma só
-    no conjunto conformal, segue com ela; sem garantia de uma (o conjunto vazio ou com várias),
-    mostra as possíveis, da mais para a menos provável: até três viram botões, mais viram a
-    pergunta pelo campo que mais as divide. Nenhuma possível pede dados. "A última" escolhe a mais
-    recente, como no filtro."""
+    no conjunto conformal e uma pista que não engana (o valor marcado, a data, o comércio ou "a
+    última"), segue com ela; sem essa garantia (o conjunto vazio ou com várias, ou só o número
+    solto), mostra as possíveis, da mais para a menos provável: até três viram botões, mais viram
+    a pergunta pelo campo que mais as divide. Nenhuma possível pede dados. "A última" escolhe a
+    mais recente, como no filtro."""
     aceitas = elegiveis(candidatas, pista)
     if not aceitas:
         return Resolucao("nenhuma", ())
@@ -184,10 +185,15 @@ def resolver(
     conjunto = calibracao.conjunto(x, idioma, aceitas)
     if pista.ultima:
         conjunto = [min(aceitas)]  # as candidatas vêm das mais recentes para as mais antigas
-    if len(conjunto) != 1:
+    # Seguir direto pede uma pista que não engana: o número solto pode ser o dia ou o final do
+    # cartão (ACH-143), e a transação perto dele vira opção.
+    direta = (
+        pista.valor_marcado or pista.ultima or pista.data is not None or pista.comercio is not None
+    )
+    if len(conjunto) != 1 or not direta:
         conjunto = [i for i, _ in ordem]  # sem garantia de uma só: as possíveis
     ids = tuple(candidatas[i].transaction_id for i in conjunto)
-    if len(conjunto) == 1:
+    if len(conjunto) == 1 and direta:
         return Resolucao("unica", ids)
     if len(conjunto) <= OPCOES_NA_TELA:
         return Resolucao("varias", ids)

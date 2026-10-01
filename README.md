@@ -110,7 +110,10 @@ Quando o filtro exato não acha nenhuma transação (o valor dito de cabeça, a 
 dia), as do próprio cliente que podem ser a descrita (do comércio citado; sem comércio, com o valor
 a até 10% ou a data a até 7 dias) são ordenadas pelas pistas (DEV-037). Um conjunto conformal diz
 quando uma delas é a certa com garantia (α = 5%): aí a conversa segue com ela, sempre com a
-confirmação antes do pré-caso. Sem essa garantia, mostra as possíveis: até três viram botões, e
+confirmação antes do pré-caso. Seguir direto também pede uma pista que não engana: o valor com
+moeda, símbolo ou centavos, a data, o comércio ou "a última". O número solto ("unos 13") pode ser
+o dia ou o final do cartão (ACH-143): a transação perto dele vira opção ("¿Es esta?"), e o sim a
+escolhe. Sem essa garantia, mostra as possíveis: até três viram botões, e
 com mais a conversa pergunta pelo campo que mais as divide, fora o que o cliente já disse ("¿En qué
 comercio fue?"). Os pesos e o limiar vêm de `make calibrar-transacao` (`python -m
 jeje.calibrar_qual_transacao`), que sorteia 6.000 clientes da base, descreve uma transação de cada
