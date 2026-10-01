@@ -115,8 +115,10 @@ as avaliações ficam no banco da demonstração para o erro ser discutido e cor
    e5 em `127.0.0.1:8082` (`make demo DEMO_PORTA=…` muda a porta) e abre um quick tunnel do
    cloudflared: grátis, sem conta. O endereço `https://….trycloudflare.com` aparece no log do túnel
    e muda a cada vez que ele sobe.
-2. **Entrar:** mande o endereço para o time. Qualquer pessoa com o link entra (o acesso é o de
-   demonstração, sem senha); o túnel dura enquanto o `make demo` estiver rodando.
+2. **Entrar:** mande o endereço para o time. Sem `SENHA_DA_DEMO` no `.env`, qualquer pessoa com o
+   link entra (o acesso é o de demonstração); com ela, o túnel pede a senha, como na publicação
+   para os jurados. O túnel dura enquanto o `make demo` estiver rodando, e a demo sobe junto da
+   stack do `make up` (banco e API sem porta no host).
 3. **Conversar e avaliar:** escolha um cliente, converse, e no fim preencha *Avaliar esta conversa*:
    quem está testando, nota de 1 a 5, se o assistente resolveu e o que deu errado ou como deveria
    ter sido. A review fica em `app.reviews`, ligada à conversa.
@@ -126,6 +128,24 @@ as avaliações ficam no banco da demonstração para o erro ser discutido e cor
 
 Quem pode avaliar é `TESTADORES` no `compose.yaml`. `make demo-down` para a demonstração; os dados e
 as reviews continuam no volume do banco para a próxima vez.
+
+## Publicação para os jurados
+
+A demonstração com os dados do desafio fica num endereço fixo, atrás de uma senha que só os jurados
+recebem (PRD-009). O portão fica na API: sem o cookie de acesso, toda rota responde 401, inclusive
+a documentação e o contrato; só a saúde e o próprio acesso abrem. Quem entra com a senha cai no guia
+**How to test**, com os três caminhos em espanhol e português. O cookie é HttpOnly, `Secure` e vale
+7 dias; trocar a senha fecha todos.
+
+1. **Uma vez:** o túnel nomeado do Cloudflare (`cloudflared tunnel create jeje` e
+   `cloudflared tunnel route dns jeje <endereço>`). No `.env`, `CLOUDFLARE_TUNNEL_TOKEN`
+   (`cloudflared tunnel token jeje`) e `SENHA_DOS_JURADOS` (16 ou mais caracteres).
+2. **Publicar:** `make publicar`, no `main` limpo e igual ao `origin/main`. Roda o gate (segredos,
+   lint e testes), as jornadas no navegador numa stack isolada com o portão ligado
+   (`make e2e-pelo-portao`), sobe a stack `jeje-pub` (dados reais, sem portas no host, imagens com a
+   tag do commit, tudo volta sozinho depois de um reinício) e confere o endereço público
+   (`scripts/conferir-publicacao.sh`): sem acesso, 401; senha errada, 401; a certa, cookie seguro.
+3. **Tirar do ar:** `make publicacao-down` (o banco fica).
 
 ## Recarga dos dados
 
@@ -258,7 +278,9 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
 ## Onde fica cada coisa
 
 - `compose.yaml` — **toda** a configuração não secreta (flags, limites, portas, testes);
-  `compose.ci.yaml` (fixture, só regras) e `compose.demo.yaml` (demonstração pelo túnel) por cima.
+  `compose.ci.yaml` (fixture, só regras), `compose.demo.yaml` (demonstração pelo túnel),
+  `compose.publicacao.yaml` (jurados: senha, túnel nomeado) e `compose.acesso.yaml` (portão com a
+  senha de teste) por cima.
   `.env` guarda só segredos e nunca vai para o Git.
 - `backend/` — API (FastAPI) e migrations. Regras em `politica.py`, conversa em `conversa.py`,
   textos aprovados ES/PT em `mensagens.py`.
@@ -296,8 +318,9 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
 - Pré-caso é pedido de revisão: não move dinheiro nem promete prazo ou resultado. O status do caso
   só mostra os pré-casos do cliente da sessão; protocolo digitado indica o assunto, nunca é buscado.
 - Motivo de recusa usa o significado genérico dos códigos ISO 8583, rotulado como tal.
-- Acesso por cliente de demonstração (sem senha) e console do atendente existem só com
-  `MODO_DEMO` ligado; num banco real, os dois exigiriam autenticação.
+- Acesso por cliente de demonstração e console do atendente existem só com `MODO_DEMO` ligado;
+  num banco real, os dois exigiriam autenticação. Na publicação, tudo fica atrás da senha dos
+  jurados (portão na API, `ACESSO_*` no compose).
 - Versão dos dados: o hash dos manifestos e o do código do pipeline ficam em `meta.dataset_version`
   (mostrados na página de status); mudou qualquer um, o `make up` recarrega (ver Recarga dos dados).
 - Retenção: conversas, turnos, eventos, pré-casos e encaminhamentos ficam no banco sem expiração
@@ -312,5 +335,5 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
   compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
   Não medido: muitos clientes ao mesmo tempo e o servidor de publicação.
-- Falta: publicação estável (a demonstração usa um túnel temporário), um conjunto de teste ES/PT escrito pelo time (com
+- Falta: um conjunto de teste ES/PT escrito pelo time (com
   gíria) para medir o leitor, e a validação independente em andamento.

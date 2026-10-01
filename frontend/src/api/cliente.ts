@@ -31,17 +31,33 @@ export async function buscarEda(sinal?: AbortSignal): Promise<IndicadorEda[]> {
 }
 
 export type Persona = components["schemas"]["Persona"];
+/** Persona da lista de acesso, com as dicas de cada caminho da demonstração (PRD-009). */
+export type PersonaDaDemo = components["schemas"]["PersonaDaDemo"];
 export type SessaoAberta = components["schemas"]["SessaoAberta"];
 export type Transacao = components["schemas"]["Transacao"];
 
 /** Sessão recusada pela API (ausente, inválida ou expirada). */
 export class SessaoExpirada extends Error {}
 
+/** Acesso dos jurados ausente ou vencido (PRD-009): a tela volta para a senha. */
+export class AcessoRestrito extends Error {}
+
+/** Evento da janela que o portão (Acesso.tsx) escuta quando a API recusa por falta do acesso. */
+export const ACESSO_RESTRITO = "jeje:acesso-restrito";
+
 /** Pedido recusado por regra de negócio (ex.: proposta vencida), com a explicação da API. */
 export class Recusado extends Error {}
 
 async function json<T>(resposta: Response, ...esperados: number[]): Promise<T> {
-  if (resposta.status === 401) throw new SessaoExpirada("sessão expirada");
+  if (resposta.status === 401) {
+    // O portão dos jurados recusa antes da sessão: a tela pede a senha de novo, sem sair da sessão.
+    const corpo = (await resposta.json().catch(() => null)) as { detail?: unknown } | null;
+    if (corpo?.detail === "acesso_restrito") {
+      window.dispatchEvent(new Event(ACESSO_RESTRITO));
+      throw new AcessoRestrito("acesso dos jurados ausente ou vencido");
+    }
+    throw new SessaoExpirada("sessão expirada");
+  }
   if (resposta.status === 409) throw new Recusado(((await resposta.json()) as { detail: string }).detail);
   if (!esperados.includes(resposta.status)) throw new Error(`HTTP ${resposta.status}`);
   return (await resposta.json()) as T;
@@ -49,8 +65,8 @@ async function json<T>(resposta: Response, ...esperados: number[]): Promise<T> {
 
 const comToken = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-export async function listarPersonas(): Promise<Persona[]> {
-  return json<Persona[]>(await fetch("/api/personas"), 200);
+export async function listarPersonas(): Promise<PersonaDaDemo[]> {
+  return json<PersonaDaDemo[]>(await fetch("/api/personas"), 200);
 }
 
 /** Dispositivo simulado da sessão de teste (PRD-007): escolhido no acesso, nunca pelo chat. */
@@ -178,4 +194,25 @@ export async function avaliarConversa(
     body: JSON.stringify(review),
   });
   return json<ReviewRegistrada>(resposta, 201);
+}
+
+export type SituacaoDoAcesso = components["schemas"]["SituacaoDoAcesso"];
+
+/** Se a demonstração pede a senha dos jurados e se quem pergunta já entrou (PRD-009). */
+export async function situacaoDoAcesso(): Promise<SituacaoDoAcesso> {
+  const resposta = await fetch("/api/acesso");
+  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);
+  return (await resposta.json()) as SituacaoDoAcesso;
+}
+
+/** Entra com a senha dos jurados: a API devolve o cookie de acesso; senha errada, `false`. */
+export async function entrarComSenha(senha: string): Promise<boolean> {
+  const resposta = await fetch("/api/acesso/entrada", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ senha }),
+  });
+  if (resposta.status === 204) return true;
+  if (resposta.status === 401) return false;
+  throw new Error(`HTTP ${resposta.status}`);
 }
