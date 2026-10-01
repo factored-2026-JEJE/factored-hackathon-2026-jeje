@@ -555,6 +555,49 @@ def test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio(texto):
     assert ler(texto).intencao not in ("bloquear", "desbloquear")
 
 
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # ACH-141: o bloqueio que o cliente fez é contexto; o pedido é a volta.
+        "Ya bloqueé mi tarjeta, ahora quiero desbloquearla",
+        "Bloqueé mi tarjeta por error, ¿me la pueden desbloquear?",
+        "Mi tarjeta está bloqueada, quiero usarla de nuevo",
+        "Meu cartão está bloqueado, quero liberar",
+        # O pedido longe do cartão ou do bloqueio, depois de contar o que houve.
+        "Bloquee mi tarjeta ayer sin querer y ahora no puedo pagar el supermercado, ¿me la pueden "
+        "desbloquear?",
+        "La bloqueé por error, ¿me la pueden desbloquear?",
+        "Acabei de bloquear meu cartão sem querer e agora não pago a luz, dá para reativar?",
+        "Eu bloqueei o cartão e não consigo comprar nada, como faço para liberar?",
+    ],
+)
+def test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio(texto):
+    assert ler(texto).intencao == "desbloquear"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # O PIN não é o cartão, e o cartão encerrado não foi bloqueado pelo cliente.
+        "Dado que mi PIN está bloqueado, ¿me ayudarías a desbloquearlo?",
+        "Meu cartão de débito foi encerrado e perdi a senha, como faço para reativá-lo?",
+        "Mi tarjeta está bloqueada y no quiero liberarla todavía",  # negado
+    ],
+)
+def test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio(texto):
+    assert ler(texto).intencao != "desbloquear"
+
+
+def test_bloqueio_contado_nao_pede_outro_bloqueio():
+    """ACH-141: "bloqueé" (com acento) e "ya/la/lo/me bloquee" contam o que o cliente já fez; o
+    imperativo e o "que" antes continuam pedido."""
+    assert ler("Ya bloqueé mi tarjeta, ¿y ahora qué hago?").intencao != "bloquear"
+    assert ler("Ya bloquee mi tarjeta, ¿y ahora qué hago?").intencao != "bloquear"
+    assert ler("Bloquee mi tarjeta, por favor").intencao == "bloquear"
+    assert ler("Mi tarjeta, necesito que la bloquee ya").intencao == "bloquear"
+    assert ler("Le pido que me la bloquee: es mi tarjeta").intencao == "bloquear"
+
+
 def test_queixa_de_tarifa_com_robando_nao_e_relato_de_fraude():
     """Sem o dinheiro ou a conta perto, "robando" é queixa, não relato (visto no BANKING77)."""
     assert ler("Más comisiones otra vez. ¿Por qué me estás robando así?").intencao != "fraude"
