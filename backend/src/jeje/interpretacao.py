@@ -213,6 +213,21 @@ LIBERAR_DE_NOVO = Perto(
     ("liberar", "libera", "libere", "liberem", "liberen"),
     ("de novo", "novamente", "de nuevo", "otra vez"),
 )
+# O pedido de volta do cartão bloqueado (ACH-141), em qualquer ponto da mensagem: o verbo de
+# desbloqueio com o cartão ou o bloqueio que o cliente fez ("bloqueé mi tarjeta por error, ¿me la
+# pueden desbloquear?"); reativar, liberar e usar de novo com o bloqueio ("meu cartão está
+# bloqueado, quero liberar"). "Desbloquear mi PIN", "mi PIN está bloqueado" e "o cartão se
+# encerrou, como reativo?" não citam o cartão e o bloqueio do cliente: não casam.
+NA_MENSAGEM = 60
+BLOQUEIO_DO_CLIENTE = ("bloquee", "bloqueei", "acabo de bloquear", "acabei de bloquear")
+DESBLOQUEIO_DE_LONGE = Perto(("desbloque*",), CARTAO + BLOQUEIO_DO_CLIENTE, entre=NA_MENSAGEM)
+VOLTA_DO_BLOQUEADO = Perto(
+    ("reactiv*", "reativ*", "liberar", "libera", "libere", "liberen", "liberem", "liberarla",
+     "liberarlo", "liberala", "liberalo", "libero", "de nuevo", "de novo", "nuevamente",
+     "novamente", "otra vez", "outra vez"),
+    ("bloqueada", "bloqueado", "bloqueo", "bloqueio", *BLOQUEIO_DO_CLIENTE),
+    entre=NA_MENSAGEM,
+)  # fmt: skip
 # Negação do pedido na mesma oração: "no quiero bloquear mi tarjeta", "não bloqueie meu cartão" e
 # "no la bloqueen" não pedem; em "no, bloquéenla" a vírgula separa o "no" do pedido.
 NEGACAO = (
@@ -220,9 +235,14 @@ NEGACAO = (
     r"|hace falta|es necesario|e necessario|vayan a|van a|va a|vao|vai|pueden|podem|puede|pode"
     r"|me|te|la|lo|a|o|mi|meu|minha|el|os|as|las|los))* "
 )
+# O bloqueio que o cliente já fez ("ya bloqueé mi tarjeta", "la bloquee por error") conta o que
+# aconteceu e não pede outro (ACH-141). Só o texto com acento separa o passado "bloqueé" do pedido
+# "bloquee mi tarjeta"; sem acento, a partícula antes diz que é passado, menos depois de "que" ("que
+# me la bloquee" pede).
+BLOQUEIO_CONTADO = re.compile(r"\bbloqueé\b|(?<!que )(?<!que me )\b(?:ya|yo|la|lo|me|le) bloquee\b")
 NEGACOES = {
     "bloquear": re.compile(NEGACAO + "(?:bloque|congel|trav)"),
-    "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ)"),
+    "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ|liber)"),
 }
 
 # Ordem importa: vence a primeira intenção que casar (segurança antes de autosserviço).
@@ -239,8 +259,11 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "fue fraudulent*", "foi fraudulent*",
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO)),
+    # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
+    # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
+    ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
+                     VOLTA_DO_BLOQUEADO)),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
-    ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO)),
     ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
                 "persona real",
                 "pessoa de verdade", "hablar con alguien", "falar com alguem",
@@ -597,6 +620,8 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         if intencao in NEGACOES and not any(r in limpo for r in RADICAIS_DE_BLOQUEIO):
             continue  # sem o verbo, os pares não casam: pular poupa ~20% da leitura (ACH-107)
         if intencao in NEGACOES and any(NEGACOES[intencao].search(o) for o in oracoes):
+            continue
+        if intencao == "bloquear" and BLOQUEIO_CONTADO.search(texto.casefold()):
             continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
         if casados:
