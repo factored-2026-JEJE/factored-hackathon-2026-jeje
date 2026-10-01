@@ -9,6 +9,7 @@ from decimal import Decimal
 
 import pytest
 
+from jeje import interpretacao
 from jeje.interpretacao import (
     Interpretacao,
     cartao_citado,
@@ -920,3 +921,24 @@ def test_recusa_da_transacao_apontada(texto, outra):
 )
 def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
     assert ler(texto).aceita_oferta is False
+
+
+@pytest.mark.parametrize(
+    ("texto", "prevencao"),
+    [
+        ("¿Cómo puedo evitar caer en una estafa?", True),
+        ("Quero dicas para não cair em golpe", True),
+        ("Recibí un mensaje raro, no di mis datos, ¿es una estafa?", True),
+        ("Me ligaram dizendo ser do banco, não passei nada, era golpe?", True),
+        ("Me escribieron del banco y no le di mis datos, ¿era una estafa?", True),  # "no le di"
+        # Termo de vítima não negado: é relato, mesmo com a palavra de prevenção.
+        ("Fui vítima de golpe, como me protejo agora?", False),
+        ("Me estafaron, transferí 500 dólares", False),
+        ("Caí en una estafa y me sacaron dinero", False),
+        ("Me robaron la tarjeta", False),
+    ],
+)
+def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao):
+    """ACH-144 (NOV-35 da validação): a pergunta de prevenção ou a suspeita sem perda, sem termo
+    de vítima não negado, não é relato de quem perdeu o cartão ou o dinheiro."""
+    assert interpretacao.prevencao(texto) == prevencao
