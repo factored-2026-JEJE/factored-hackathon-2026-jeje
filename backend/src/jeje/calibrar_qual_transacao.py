@@ -25,11 +25,12 @@ from sqlalchemy import Connection, text
 
 from jeje import db, politica
 from jeje.config import Settings
-from jeje.interpretacao import comercio_citado, interpretar
+from jeje.interpretacao import comercio_citado_e_como, interpretar
 from jeje.qual_transacao import (
     ATRIBUTOS,
     Calibracao,
     atributos,
+    comercio_que_vale,
     elegiveis,
     limiar,
     resolver,
@@ -139,7 +140,7 @@ def _caso(chave: str, idioma: str, alvo, candidatas: list, hoje: date, grupo: st
     frase = descrever(alvo, idioma, hoje, random.Random(f"{SEMENTE}:{chave}:frase"))
     comercios = sorted({c.merchant_name for c in candidatas if c.merchant_name})
     lida = interpretar(frase, idioma, hoje)
-    comercio = comercio_citado(frase, comercios)
+    comercio = comercio_que_vale(*comercio_citado_e_como(frase, comercios), lida.valor, candidatas)
     pista = politica.Pista(lida.valor, lida.data, comercio, valor_marcado=lida.valor_marcado)
     if not tem_pista(pista):
         return None
