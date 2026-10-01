@@ -56,6 +56,16 @@ def test_o_que_as_regras_entendem_nem_chega_ao_leitor(texto):
     assert modelo.lidos == [] and cargas == []
 
 
+@pytest.mark.parametrize("texto", ["sí, pásame", "pode passar", "sí, por favor, comunícame"])
+def test_aceite_da_oferta_e_das_regras_e_nao_chega_ao_leitor(texto):
+    """ACH-124 da validação (EV-155): o aceite largo da oferta (DEV-020t) é das regras. Antes, o
+    leitor era chamado e o lia como fora de escopo (0,97 a 0,98), e a conversa não encaminhava."""
+    ler, modelo, cargas = leitor(fluxo="fora_de_escopo", confianca=0.98)
+    leitura = ler(texto, "es", REFERENCIA)
+    assert leitura.fonte == "regras" and leitura.lida.aceita_oferta
+    assert modelo.lidos == [] and cargas == []
+
+
 def test_leitor_confiante_preenche_intencao_e_status_pelo_fluxo():
     ler, modelo, _ = leitor(fluxo="explicar_estorno", confianca=0.93)
     leitura = ler(VAGA, "pt", REFERENCIA)
@@ -154,3 +164,16 @@ def test_na_conversa_o_leitor_so_le_e_o_turno_registra_quem_leu(cenario_conversa
             )
         ).all()
     assert tuple(evento) == ("leitor:e5@abcdef012345", True, 0)
+
+
+def test_no_modo_leitor_o_aceite_comum_da_oferta_encaminha(cenario_conversa):
+    """O modo padrão da demo: a oferta do fora de escopo aceita com "sí, pásame" encaminha."""
+    ler, _, _ = leitor(fluxo="fora_de_escopo", confianca=0.98)
+    with cliente(cenario_conversa) as http:
+        http.app.state.interpretador = ler
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        oferta = dizer(http, auth, conversa, "quiero ver mi saldo")
+        aceite = dizer(http, auth, conversa, "sí, pásame")
+    assert (oferta["acao"], oferta["estado"]) == ("oferecer_humano", "oferecendo_humano")
+    assert (aceite["acao"], aceite["estado"]) == ("humano", "com_humano")
