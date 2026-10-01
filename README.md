@@ -100,7 +100,10 @@ cordial sem perder a etapa. Data sem ano é lida a partir do último dia dos dad
 mais antiga que o relógio. Contestar é só pela conversa. O valor é lido com milhar em ponto, espaço
 ou vírgula seguida de 3 dígitos e decimal em vírgula ou ponto ("189.900,55", "6,050.00", "45.90",
 "13,45"), com ou sem o código da moeda, inclusive colado ("USD13,45"); a transação casa com o valor
-dito com tolerância de 1 centavo.
+dito com tolerância de 1 centavo. Com vários números na frase, o valor é o que tem cara de dinheiro:
+não são valor o tempo ("hace 3 días", "às 15h", "a las 3 de la tarde"), o final do cartão, o dia
+("el día 15", que vira data), a conta ou o telefone e as parcelas; com dois ou mais, vale o marcado
+com a moeda, e "30 mil pesos" vale 30.000.
 
 Quando o filtro exato não acha nenhuma transação (o valor dito de cabeça, a data errada por um
 dia), as do próprio cliente que podem ser a descrita (do comércio citado; sem comércio, com o valor
