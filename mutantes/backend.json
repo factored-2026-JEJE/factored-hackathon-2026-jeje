@@ -4713,8 +4713,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "        if re.search(f\"{x}{entre}{y}|{y}{entre}{x}\", limpo):",
-          "para": "        if re.search(f\"{x}{entre}{y}\", limpo):"
+          "de": "        if _regex(f\"{x}{entre}{y}|{y}{entre}{x}\").search(limpo):",
+          "para": "        if _regex(f\"{x}{entre}{y}\").search(limpo):"
         }
       ],
       "testes": [
@@ -8481,6 +8481,21 @@
       "testes": [
         "tests/test_atendimento_api.py::test_console_mostra_os_bloqueios_ativos_mais_recentes_primeiro",
         "tests/test_bloqueio_conversa.py::test_cliente_desfaz_em_ate_7_dias_o_bloqueio_do_relato_de_roubo_e_o_caso_fica_sabendo"
+      ]
+    },
+    {
+      "id": "M-ITP-54",
+      "requisito": "R05",
+      "descricao": "As expressões das regras voltam a ser compiladas a cada chamada (~100 ms por mensagem, ACH-107)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "@lru_cache(maxsize=4096)\ndef _regex(",
+          "para": "def _regex("
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_ler_uma_mensagem_custa_poucos_milissegundos"
       ]
     }
   ]

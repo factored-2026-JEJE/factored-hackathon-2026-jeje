@@ -1,6 +1,8 @@
 """Interpretação baseline (G10): cada caso tem o par que deveria dar errado — frase parecida que
 não pode virar a mesma intenção, confirmação ou pista."""
 
+import statistics
+import time
 from dataclasses import fields
 from datetime import date
 from decimal import Decimal
@@ -484,3 +486,26 @@ def test_cartao_citado_pelo_final_ou_pelo_tipo_entre_os_do_cliente(cartoes, text
 )
 def test_cita_cartao_quando_diz_final_ou_tipo(texto, cita):
     assert cita_cartao(texto) is cita
+
+
+def test_ler_uma_mensagem_custa_poucos_milissegundos():
+    """ACH-107: cada mensagem passa por mais termos do que o cache do `re` guarda (512); com as
+    expressões recompiladas a cada chamada, a leitura levava ~100 ms. Compiladas uma vez, fica
+    perto de 2 ms; o limite de 10 ms deixa folga para a máquina carregada."""
+    frases = [
+        "¿Por qué me rechazaron la compra de 45,90 del 10/03?",
+        "No reconozco el cobro de Uber",
+        "Quiero bloquear mi tarjeta",
+        "hola, buenas tardes",
+        "me robaron la tarjeta",
+        "não quero desbloquear meu cartão",
+    ]
+    for frase in frases:  # a primeira leitura compila; o que importa é o regime
+        interpretar(frase, "es", REFERENCIA)
+    tempos = []
+    for _ in range(10):
+        for frase in frases:
+            inicio = time.perf_counter()
+            interpretar(frase, "es", REFERENCIA)
+            tempos.append((time.perf_counter() - inicio) * 1000)
+    assert statistics.median(tempos) <= 10
