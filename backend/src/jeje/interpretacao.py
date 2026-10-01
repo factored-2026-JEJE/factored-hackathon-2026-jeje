@@ -738,9 +738,10 @@ RAMO: dict[str, tuple[str, ...]] = {
 
 
 # Palavras de nome de comércio que são também palavras comuns (ACH-150). O canal ("por internet",
-# "pelo telefone", "llamada telefónica") nunca cita o comércio sozinho. A saudação, o nome de pessoa
-# e as palavras do dia a dia ("buen día", "soy José", "cuenta de ahorro", "por mi salud", "cita
-# médica") só citam com o lugar antes ("en Don José", "na Super Ahorro"). O nome inteiro sempre cita.
+# "pelo telefone", "llamada telefónica") nunca cita o comércio sozinho. A saudação, o nome de
+# pessoa e as palavras do dia a dia ("buen día", "soy José", "cuenta de ahorro", "por mi salud",
+# "cita médica") só citam com o lugar antes ("en Don José", "na Super Ahorro"). O nome inteiro
+# sempre cita.
 CANAIS = frozenset({"internet", "telefonica", "telefono", "telefone", "online"})
 DO_DIA_A_DIA = frozenset({"buen", "jose", "ahorro", "salud", "medica"})
 LUGAR = r"(?<![a-z0-9])(?:en|na|no|em|al|ao)(?: [a-z0-9]+){0,2} "
