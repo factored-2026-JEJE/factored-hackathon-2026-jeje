@@ -6940,7 +6940,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO)),\n",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n",
           "para": ""
         }
       ],
@@ -9665,8 +9665,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    entre=5,\n)  # fmt: skip",
-          "para": ")  # fmt: skip"
+          "de": "     \"transaccion\", \"transacao\"),\n    entre=5,\n)  # fmt: skip",
+          "para": "     \"transaccion\", \"transacao\"),\n)  # fmt: skip"
         }
       ],
       "testes": [
@@ -9815,8 +9815,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"golpe\", \"estafa\", \"estafaron\", \"pix que nao fiz\", DINHEIRO_TIRADO)),",
-          "para": "\"estafa\", \"estafaron\", \"pix que nao fiz\", DINHEIRO_TIRADO)),"
+          "de": "\"golpe\", \"estafa\", \"estafaron\", \"pix que nao fiz\", DINHEIRO_TIRADO,",
+          "para": "\"estafa\", \"estafaron\", \"pix que nao fiz\", DINHEIRO_TIRADO,"
         }
       ],
       "testes": [
@@ -9830,8 +9830,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO)),",
-          "para": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO)),"
+          "de": "LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n",
+          "para": "DESBLOQUEIO_DE_LONGE,\n"
         }
       ],
       "testes": [
