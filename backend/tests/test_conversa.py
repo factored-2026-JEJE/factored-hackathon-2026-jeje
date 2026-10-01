@@ -951,3 +951,55 @@ def test_pergunta_montada_pela_tela_acha_a_transacao_da_linha(cenario, idioma, p
     assert (turno["transaction_id"], turno["acao"], turno["regra"]) == (
         "TRX-A1", "responder", "POL-CON-01"
     )  # fmt: skip
+
+
+# ---- texto do caso escolhido por campos (DEV-036, NOV-11) ----
+
+
+def test_caso_leva_as_falas_do_pedido_com_campos_e_o_pedido_de_atendente(cenario):
+    """O texto do caso junta, na ordem, as falas do cliente no pedido em curso que trazem campos
+    novos: o pedido, a pista e o pedido de atendente; a reclamação sem fato fica de fora. Antes ia
+    só a mensagem de agora, porque a proposta não guardava o pedido."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco un cobro")
+        dizer(http, auth, conversa, "Ya llamé dos veces y nadie me resolvió nada")
+        proposta = dizer(http, auth, conversa, "Fue en Streaming Plus")
+        encaminhado = dizer(http, auth, conversa, "Quiero hablar con una persona")
+    assert (proposta["acao"], encaminhado["acao"]) == ("propor_pre_caso", "humano")
+    [registro] = handoffs(cenario)
+    assert registro["pedido"] == (
+        "No reconozco un cobro Fue en Streaming Plus Quiero hablar con una persona"
+    )
+
+
+def test_caso_nao_leva_as_falas_de_um_pedido_anterior(cenario):
+    """O pedido já respondido fica de fora: o caso é do pedido em curso."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        respondida = dizer(http, auth, conversa, "O que houve com a compra de 20,00 no Uber?")
+        proposta = dizer(http, auth, conversa, NORMAL["pt"]["pedido"])
+        dizer(http, auth, conversa, "Quero falar com um atendente")
+    assert (respondida["acao"], proposta["acao"]) == ("responder", "propor_pre_caso")
+    [registro] = handoffs(cenario)
+    assert registro["pedido"] == (
+        "Não reconheço a cobrança de 45,90 na Streaming Plus Quero falar com um atendente"
+    )
+
+
+def test_conversa_de_antes_do_deploy_leva_a_primeira_mensagem_e_a_de_agora(cenario):
+    """Contexto gravado antes do DEV-036 (o pedido, sem o turno em que começou)."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        with conexao(cenario) as con:
+            con.execute(
+                text("UPDATE app.conversas SET contexto = CAST(:c AS jsonb) WHERE id = :id"),
+                {"c": '{"pedido": "No reconozco un cobro de 45,90", "esclarecimentos": 1}',
+                 "id": conversa},
+            )  # fmt: skip
+        dizer(http, auth, conversa, "Quiero hablar con una persona")
+    [registro] = handoffs(cenario)
+    assert registro["pedido"] == "No reconozco un cobro de 45,90 Quiero hablar con una persona"

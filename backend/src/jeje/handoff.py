@@ -1,12 +1,13 @@
 """Encaminhamento estruturado para humano (DEV-016).
 
-O atendente recebe o motivo (regra), a língua, o pedido do cliente (truncado: minimização), os
-fatos verificados da transação, o que o sistema tentou e o que ficou pendente — não a conversa
-inteira nem dados de outros clientes. A transação só entra se veio de consulta filtrada pelo dono.
+O atendente recebe o motivo (regra), a língua, o pedido do cliente (as falas do pedido em curso
+que trazem campos, em até 280 caracteres: minimização), os fatos verificados da transação, o que o
+sistema tentou e o que ficou pendente — não a conversa inteira nem dados de outros clientes. A
+transação só entra se veio de consulta filtrada pelo dono.
 """
 
 import json
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, field
 
 from sqlalchemy import Connection, text
@@ -46,6 +47,37 @@ def _transacao_json(t: TransacaoVerificada | None) -> str | None:
             "status": t.transaction_status,
         }
     )
+
+
+def texto_por_campos(
+    falas: Sequence[str],
+    campos_de: Callable[[str], frozenset[str]],
+    limite: int = LIMITE_PEDIDO,
+) -> str:
+    """O texto do pedido para o atendente (DEV-036, NOV-11): das falas do cliente no pedido, entra
+    primeiro a que cabe e acrescenta mais campos novos (no empate, a mais curta), até nenhuma
+    acrescentar; as escolhidas vão na ordem em que foram ditas. Sem campo em nenhuma, vai a
+    primeira, como antes. Só falas do próprio cliente: nada de fora da conversa."""
+    falas = [" ".join(f.split()) for f in falas]
+    campos = [campos_de(f) for f in falas]
+    escolhidas: list[int] = []
+    cobertos: set[str] = set()
+    usado = -1  # cada fala escolhida ocupa o tamanho dela e um espaço antes
+    while True:
+        candidatas = [
+            i
+            for i, fala in enumerate(falas)
+            if i not in escolhidas and usado + 1 + len(fala) <= limite and campos[i] - cobertos
+        ]
+        if not candidatas:
+            break
+        melhor = max(candidatas, key=lambda i: (len(campos[i] - cobertos), -len(falas[i])))
+        escolhidas.append(melhor)
+        cobertos |= campos[melhor]
+        usado += 1 + len(falas[melhor])
+    if not escolhidas:
+        return falas[0]
+    return " ".join(falas[i] for i in sorted(escolhidas))
 
 
 def registrar(conexao: Connection, e: Encaminhamento) -> str:
