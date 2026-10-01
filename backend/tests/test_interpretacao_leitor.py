@@ -58,7 +58,7 @@ def test_o_que_as_regras_entendem_nem_chega_ao_leitor(texto):
 
 @pytest.mark.parametrize("texto", ["sí, pásame", "pode passar", "sí, por favor, comunícame"])
 def test_aceite_da_oferta_e_das_regras_e_nao_chega_ao_leitor(texto):
-    """ACH-124 da validação (EV-155): o aceite largo da oferta (DEV-020t) é das regras. Antes, o
+    """ACH-125 da validação (EV-155): o aceite largo da oferta (DEV-020t) é das regras. Antes, o
     leitor era chamado e o lia como fora de escopo (0,97 a 0,98), e a conversa não encaminhava."""
     ler, modelo, cargas = leitor(fluxo="fora_de_escopo", confianca=0.98)
     leitura = ler(texto, "es", REFERENCIA)
