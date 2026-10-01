@@ -1,8 +1,12 @@
 # Demonstração para o time pelo túnel (make demo): projeto compose próprio (jeje-demo, banco
 # separado da stack do make up), fixture sintética, leitor e5 (serviço api do compose.yaml) e site
 # em 127.0.0.1:${DEMO_PORTA:-8082}, que o cloudflared publica. Reviews ficam só no banco; publicar
-# depois com COMPOSE_PROJECT_NAME=jeje-demo make exportar-reviews.
+# depois com COMPOSE_PROJECT_NAME=jeje-demo make exportar-reviews. Banco e API sem porta no host:
+# a demonstração sobe junto da stack do make up. Com SENHA_DA_DEMO no .env, o túnel pede a senha
+# (o mesmo portão dos jurados, PRD-009); sem ela, abre como antes.
 services:
+  db:
+    ports: !reset []
   seed:
     environment:
       DATASET_SOURCE: fixture
@@ -11,8 +15,10 @@ services:
     volumes: !override
       - ./data/fixture:/fixture:ro
   api:
+    ports: !reset []
     environment:
       GITHUB_TOKEN: ""
+      ACESSO_SENHA: ${SENHA_DA_DEMO:-}
   web:
     ports: !override
       - "127.0.0.1:${DEMO_PORTA:-8082}:8080"

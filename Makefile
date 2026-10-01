@@ -8,7 +8,8 @@ TESTE := docker compose -p $(PROJETO_TESTE) --profile test
 rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>&1; exit $$status
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
-	metricas exportar-reviews avaliar-leitor contrato contrato-explorar testar-modelo check gate repro
+	metricas exportar-reviews avaliar-leitor contrato contrato-explorar testar-modelo check gate repro \
+	e2e-pelo-portao publicar publicacao-down
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -27,6 +28,29 @@ demo: ## Sobe a demonstração e abre o túnel (precisa do cloudflared); o ender
 
 demo-down: ## Para a demonstração (mantém o banco e as reviews)
 	$(DEMO) down
+
+# Publicação para os jurados (PRD-009): o main limpo, com o gate (CI no build) e as jornadas pelo
+# portão verdes, sobe na stack jeje-pub (dados reais, senha obrigatória, sem portas no host) e sai
+# pelo túnel nomeado do Cloudflare. Senha e token do túnel só no .env.
+PUB := docker compose -p jeje-pub -f compose.yaml -f compose.publicacao.yaml
+PORTAO := docker compose -p jeje-portao -f compose.yaml -f compose.ci.yaml -f mutantes/compose.mutantes.yaml -f compose.acesso.yaml
+
+e2e-pelo-portao: ## Jornadas no navegador numa stack isolada (fixture) com o portão ligado (senha de teste)
+	@export MUTANTE_TAG=portao; $(PORTAO) up -d --build --wait web && \
+	$(PORTAO) --profile e2e run --rm --build e2e; status=$$?; \
+	$(PORTAO) --profile e2e down -v --remove-orphans >/dev/null 2>&1; exit $$status
+
+publicar: ## Publica o main para os jurados: gate, jornadas pelo portão, stack jeje-pub e conferência
+	@test -z "$$(git status --porcelain)" || { echo "publicar: a árvore tem mudanças"; exit 1; }
+	@git fetch -q origin && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
+		{ echo "publicar: o HEAD não é o origin/main"; exit 1; }
+	$(MAKE) segredos lint test
+	$(MAKE) e2e-pelo-portao
+	JEJE_TAG=$$(git rev-parse --short=12 HEAD) $(PUB) up -d --build --wait
+	scripts/conferir-publicacao.sh
+
+publicacao-down: ## Tira a publicação do ar (mantém o banco)
+	$(PUB) down
 
 down: ## Para a stack (mantém o banco)
 	docker compose --profile modelo down

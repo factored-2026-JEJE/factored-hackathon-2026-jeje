@@ -1,0 +1,27 @@
+# Publicação para os jurados (PRD-009, make publicar): dados reais do S3, senha obrigatória e nenhuma
+# porta no host. A única entrada é o túnel nomeado do Cloudflare (serviço `tunel`), que liga o
+# endereço público ao web dentro da rede. Senha e token só no .env; imagens com a tag do commit
+# (JEJE_TAG), para voltar à anterior; tudo volta sozinho depois de um reinício da máquina.
+services:
+  db:
+    ports: !reset []
+    restart: unless-stopped
+  api:
+    ports: !reset []
+    restart: unless-stopped
+    environment:
+      ACESSO_SENHA: ${SENHA_DOS_JURADOS:?defina SENHA_DOS_JURADOS no .env}
+      ACESSO_OBRIGATORIO: "true"
+      ACESSO_COOKIE_SEGURO: "true"
+  web:
+    ports: !reset []
+    restart: unless-stopped
+  tunel:
+    image: cloudflare/cloudflared:2026.9.3@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c
+    command: ["tunnel", "--no-autoupdate", "run", "--url", "http://web:8080"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?defina CLOUDFLARE_TUNNEL_TOKEN no .env}
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
