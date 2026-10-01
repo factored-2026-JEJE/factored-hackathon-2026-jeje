@@ -4412,8 +4412,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    for intencao, termos in TERMOS:",
-          "para": "    for intencao, termos in reversed(TERMOS):"
+          "de": "    for intencao, termos in TERMOS:\n        if intencao == \"humano\" and RECUSA_DE_HUMANO.search(limpo):",
+          "para": "    for intencao, termos in reversed(TERMOS):\n        if intencao == \"humano\" and RECUSA_DE_HUMANO.search(limpo):"
         }
       ],
       "testes": [
@@ -11503,6 +11503,81 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-141",
+      "requisito": "R03",
+      "descricao": "Sem a correção de digitação (\"No reconosco un cargo\" vira consulta; DEV-060)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    texto, corrigidas = corrigir(texto)\n",
+          "para": "    corrigidas = ()\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao"
+      ]
+    },
+    {
+      "id": "M-ITP-142",
+      "requisito": "R03",
+      "descricao": "Palavra comum do vocabulário é trocada (\"precisa\" vira \"preciso\" e pede atendente; DEV-060)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            or VOCABULARIO.get(palavra, 0) >= 2\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao"
+      ]
+    },
+    {
+      "id": "M-ITP-143",
+      "requisito": "R07",
+      "descricao": "Palavra do vocabulário vira termo de fraude (\"he probado\" vira \"robado\" e bloqueia o cartão; DEV-060)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if \"fraude\" in LEXICO_DE_INTENCAO[candidatas[0]] and palavra in VOCABULARIO:\n            continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao"
+      ]
+    },
+    {
+      "id": "M-ITP-144",
+      "requisito": "R07",
+      "descricao": "Palavra curta é corrigida (\"un robot\" vira \"un robo\", relato de fraude; DEV-060)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "MINIMO_PARA_CORRIGIR = 6",
+          "para": "MINIMO_PARA_CORRIGIR = 4"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavra_com_menos_de_6_letras_nao_e_corrigida"
+      ]
+    },
+    {
+      "id": "M-ITP-145",
+      "requisito": "R09",
+      "descricao": "A correção some do rastro (os sinais não dizem que a palavra foi corrigida; DEV-060)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            sinais = (*casados, *(f\"digitacao:{t}\" for t in corrigidas))\n",
+          "para": "            sinais = casados\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_correcao_de_digitacao_fica_nos_sinais"
       ]
     },
     {
