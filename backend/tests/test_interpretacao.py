@@ -555,6 +555,106 @@ def test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio(texto):
     assert ler(texto).intencao not in ("bloquear", "desbloquear")
 
 
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # ACH-141: o bloqueio que o cliente fez é contexto; o pedido é a volta.
+        "Ya bloqueé mi tarjeta, ahora quiero desbloquearla",
+        "Bloqueé mi tarjeta por error, ¿me la pueden desbloquear?",
+        "Mi tarjeta está bloqueada, quiero usarla de nuevo",
+        "Meu cartão está bloqueado, quero liberar",
+        # O pedido longe do cartão ou do bloqueio, depois de contar o que houve.
+        "Bloquee mi tarjeta ayer sin querer y ahora no puedo pagar el supermercado, ¿me la pueden "
+        "desbloquear?",
+        "La bloqueé por error, ¿me la pueden desbloquear?",
+        "Acabei de bloquear meu cartão sem querer e agora não pago a luz, dá para reativar?",
+        "Eu bloqueei o cartão e não consigo comprar nada, como faço para liberar?",
+    ],
+)
+def test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio(texto):
+    assert ler(texto).intencao == "desbloquear"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # O PIN não é o cartão, e o cartão encerrado não foi bloqueado pelo cliente.
+        "Dado que mi PIN está bloqueado, ¿me ayudarías a desbloquearlo?",
+        "Meu cartão de débito foi encerrado e perdi a senha, como faço para reativá-lo?",
+        "Mi tarjeta está bloqueada y no quiero liberarla todavía",  # negado
+    ],
+)
+def test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio(texto):
+    assert ler(texto).intencao != "desbloquear"
+
+
+def test_bloqueio_contado_nao_pede_outro_bloqueio():
+    """ACH-141: "bloqueé" (com acento) e "ya/la/lo/me bloquee" contam o que o cliente já fez; o
+    imperativo e o "que" antes continuam pedido."""
+    assert ler("Ya bloqueé mi tarjeta, ¿y ahora qué hago?").intencao != "bloquear"
+    assert ler("Ya bloquee mi tarjeta, ¿y ahora qué hago?").intencao != "bloquear"
+    assert ler("Bloquee mi tarjeta, por favor").intencao == "bloquear"
+    assert ler("Mi tarjeta, necesito que la bloquee ya").intencao == "bloquear"
+    assert ler("Le pido que me la bloquee: es mi tarjeta").intencao == "bloquear"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # ACH-142: o golpe de engenharia social contado como história é relato de fraude.
+        "Un hombre que dijo ser funcionario del banco me pidió una transferencia",
+        "Um homem se passou por funcionário do banco e eu acreditei",
+        "Me escribió alguien que me dijo que era mi primo y le mandé plata",
+        "Recebi mensagem de alguém que disse que era meu sobrinho",
+        "Hablé con un supuesto asesor por teléfono y ahora tengo cargos",
+        "Uma falsa central me ligou ontem",
+        "Passei a senha do cartão para um desconhecido no telefone",
+        "Le di la clave a una persona que me llamó",
+        "Entré a una página falsa del banco y puse mis datos",
+        "Cliquei num link falso que chegou por SMS",
+        "Están pidiendo dinero a mis contactos con mi nombre",
+        "Alguém está pedindo dinheiro aos meus contatos no meu nome",
+        "Aparecieron transferencias que no hice en mi cuenta",
+        "Saíram transferências da minha conta sem minha autorização",
+        "Hay compras en mi cuenta y no sé quién las hizo",
+        "Creo que fue phishing",
+        "Le transferí a un estafador",
+        "Fiz um pix para um golpista",
+        "Creo que fue un timo",
+        "Acho que foi trapaça",
+        "Mi WhatsApp fue hackeado",
+        "Alguém hackeou minha conta",
+        "Sufrí un hackeo",
+        "Alguém clonou meu WhatsApp",
+        "Hubo una usurpación de mi identidad",
+        "Fui enganado numa venda pela internet",
+        "Me engañaron con un premio",
+        "Mis datos fueron robados",
+        "Meus dados foram roubados",
+        "Entrei no site errado e digitei tudo",
+    ],
+)
+def test_golpe_de_engenharia_social_e_relato_de_fraude(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # "Disse que era" sem quem ele disse ser logo depois; "entregue" é o PT de entregar.
+        ("O vendedor disse que era problema do banco", "desconhecida"),
+        ("O PIN é entregue separadamente?", "desconhecida"),
+        ("Há algo de errado com o seu site?", "desconhecida"),
+        ("Bloqueei meu cartão por engano", "desconhecida"),  # engano é erro, não golpe
+        # O estranho hipotético e a compra não feita continuam o que eram.
+        ("No quiero problemas con movimientos extraños, quiero bloquear mi tarjeta", "bloquear"),
+        ("Me cobraron una compra que no hice", "contestar"),
+    ],
+)
+def test_palavras_perto_do_golpe_nao_viram_relato_de_fraude(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
 def test_queixa_de_tarifa_com_robando_nao_e_relato_de_fraude():
     """Sem o dinheiro ou a conta perto, "robando" é queixa, não relato (visto no BANKING77)."""
     assert ler("Más comisiones otra vez. ¿Por qué me estás robando así?").intencao != "fraude"
@@ -605,8 +705,11 @@ def test_cita_cartao_quando_diz_final_ou_tipo(texto, cita):
 
 def test_ler_uma_mensagem_custa_poucos_milissegundos():
     """ACH-107: cada mensagem passa por mais termos do que o cache do `re` guarda (512); com as
-    expressões recompiladas a cada chamada, a leitura levava ~100 ms. Compiladas uma vez, fica
-    perto de 2 ms; o limite de 10 ms deixa folga para a máquina carregada."""
+    expressões recompiladas a cada chamada, a leitura levava ~100 ms. Compiladas uma vez, ficava
+    perto de 2 ms; com os termos do golpe (ACH-142), testar todos os pares levou a ~8 ms. Testando
+    só os pares com os dois termos na mensagem, fica perto de 1 ms (2,5 ms com a máquina
+    carregada); o limite de 5 ms vale para cada frase, inclusive a que casa o último par de um
+    composto grande."""
     frases = [
         "¿Por qué me rechazaron la compra de 45,90 del 10/03?",
         "No reconozco el cobro de Uber",
@@ -614,16 +717,17 @@ def test_ler_uma_mensagem_custa_poucos_milissegundos():
         "hola, buenas tardes",
         "me robaron la tarjeta",
         "não quero desbloquear meu cartão",
+        "Una mujer fingiendo ser mi amiga me pidió plata",
     ]
     for frase in frases:  # a primeira leitura compila; o que importa é o regime
         interpretar(frase, "es", REFERENCIA)
-    tempos = []
+    tempos: dict[str, list[float]] = {frase: [] for frase in frases}
     for _ in range(10):
         for frase in frases:
             inicio = time.perf_counter()
             interpretar(frase, "es", REFERENCIA)
-            tempos.append((time.perf_counter() - inicio) * 1000)
-    assert statistics.median(tempos) <= 10
+            tempos[frase].append((time.perf_counter() - inicio) * 1000)
+    assert max(statistics.median(t) for t in tempos.values()) <= 5
 
 
 @pytest.mark.parametrize(
