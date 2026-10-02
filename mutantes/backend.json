@@ -12473,11 +12473,11 @@
     {
       "id": "M-ITP-193",
       "requisito": "R02",
-      "descricao": "Quem se apresentou como funcionário do banco ou como parente (\"se presentó como\", \"me aseguró ser\") não é golpe (ACH-171)",
+      "descricao": "Quem afirmou ser parente ou se fez passar por funcionário (\"me aseguró ser mi primo\", \"se passando por\") não é golpe (ACH-171)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"haciendose pasar por\",\n     # Apresentou-se como outro (\"se presentó como empleado del banco\", \"me aseguró ser mi primo\").\n     \"se presento como\", \"se presentaron como\",\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\", \"decia trabajar\",\n     \"dijo trabajar\", \"dizia trabalhar\", \"disse trabalhar\"),",
+          "de": "     \"haciendose pasar por\",\n     # Afirmou ser outro (\"me aseguró ser mi primo\"). Apresentar-se ou dizer onde trabalha, não: é\n     # também o atendente de verdade (\"se presentó como gerente y me ayudó mucho\", ACH-179).\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\"),",
           "para": "     \"haciendose pasar por\"),"
         }
       ],
@@ -12503,12 +12503,17 @@
     {
       "id": "M-ITP-195",
       "requisito": "R02",
-      "descricao": "O parente, o agente e \"vocês\" não contam como quem o golpista disse ser (ACH-171)",
+      "descricao": "O parente e o agente não contam como quem o golpista disse ser (ACH-171)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    \"atendente\", \"operador\", \"asesor\", \"parente\", \"pariente\", \"agente\", \"representante\", \"primos\",\n    \"sobrinos\", \"sobrinhos\", \"parentes\", \"parientes\", \"ustedes\", \"voces\",",
-          "para": "    \"atendente\", \"operador\", \"asesor\","
+          "de": "\"asesor\", \"agente\",\n    \"representante\",",
+          "para": "\"asesor\","
+        },
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"mae\", \"madre\", \"parente\", \"pariente\", \"parentes\",\n    \"parientes\",",
+          "para": "\"mae\", \"madre\","
         }
       ],
       "testes": [
@@ -12533,12 +12538,12 @@
     {
       "id": "M-ITP-197",
       "requisito": "R02",
-      "descricao": "O código facilitado (\"les facilité el código\") não é golpe (ACH-171)",
+      "descricao": "O segredo facilitado (\"les facilité el código\") não é golpe (ACH-171)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"diera\", \"facilite\", \"facilitei\"),",
-          "para": "     \"diera\"),"
+          "de": "                SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE,",
+          "para": "                SE_APRESENTOU_COMO_PARENTE,"
         }
       ],
       "testes": [
@@ -12567,8 +12572,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": " \"fraudulentamente\", \"de manera fraudulenta\",\n                \"de forma fraudulenta\",",
-          "para": ""
+          "de": " \"fraudulentamente\",\n",
+          "para": "\n"
         }
       ],
       "testes": [
@@ -12588,6 +12593,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-201",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como parente (\"se presentó como mi sobrino\") não é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,",
+          "para": "SEGREDO_FACILITADO, APRESENTOU_E_PEDIU,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-202",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como funcionário e pediu a clave não é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,",
+          "para": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-203",
+      "requisito": "R03",
+      "descricao": "O atendente de verdade que se apresenta e pede para esperar é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"me pidio la\", \"me pidio mi\",",
+          "para": "    (\"me pidio\", \"me pidio la\", \"me pidio mi\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
       ]
     },
     {
