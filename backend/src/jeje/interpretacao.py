@@ -129,13 +129,21 @@ PERDA_DE_MEIO = Perto(
     fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
           "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na"),
 )  # fmt: skip
-# Cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente de la tienda
-# dice que…" é consulta (ACH-104).
-PEDIDO_DE_CARGO = Perto(
-    ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "passa", "transfer*",
-     "quiero", "quero", "necesito", "preciso", "contactar", "contatar"),
-    ("gerente", "ejecutivo", "supervisor"),
+# A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
+# de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
+PEDIDO_DE_PESSOA = Perto(
+    ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "passa",
+     "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar", "chama",
+     "chame", "chamar", "coloca", "coloque", "colocar", "atienda", "atenda"),
+    ("agente", "asesor", "atendente", "humano", "operador", "persona", "pessoa", "alguien",
+     "alguem", "gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
+# A mensagem que é só a pessoa ("Agente", "un humano por favor") continua sendo pedido.
+SO_A_PESSOA = re.compile(
+    r"^(?:(?:un|una|um|uma|el|la|o|a|por favor|ya|ahora|agora|ja) )*"
+    r"(?:agente|asesor|atendente|humano|operador|persona|pessoa|gerente|supervisor)"
+    r"(?: (?:por favor|ya|ahora|agora|ja))*$"
+)
 # Cobrança repetida é contestação quando o verbo de cobrar (ou de aparecer no extrato) está perto:
 # "me cobraron dos veces", "a Streaming Plus me cobrou 2x"; "intenté dos veces y me rechazaron"
 # continua consulta.
@@ -144,6 +152,13 @@ COBRANCA_REPETIDA = Perto(
      "caiu", "cayo", "vino", "veio"),
     ("dos veces", "2 veces", "duas vezes", "2 vezes", "2x", "doble", "dobro", "duplicad*",
      "repetid*"),
+)  # fmt: skip
+# Cobrança a mais é contestação: "me cobraron de más", "a loja me cobrou a mais" (ACH-159). Só com
+# o verbo de cobrar: "a cobrança mais recente" e "el cobro más reciente" continuam consulta.
+COBRANCA_A_MAIS = Perto(
+    ("cobraron", "cobro", "cobran", "cobra", "cobrou", "cobraram", "cobram", "cobrado", "cobrada"),
+    ("de mas", "demas", "a mais", "de mais"),
+    entre=2,
 )  # fmt: skip
 # Pedido de contestação com substantivo perto da transação ("una contestación a esta compra", "abrir
 # un reclamo por la compra", "uma reclamação da cobrança"): sobrava só "compra", e a conversa
@@ -352,11 +367,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
                      VOLTA_DO_BLOQUEADO)),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
-    ("humano", ("agente", "asesor", "atendente", "humano", "operador", PEDIDO_DE_CARGO,
-                "persona real",
-                "pessoa de verdade", "hablar con alguien", "falar com alguem",
-                "hablar con una persona", "falar com uma pessoa", "una persona", "uma pessoa",
-                "alguien", "alguem", SEM_ROBO)),
+    ("humano", (PEDIDO_DE_PESSOA, "persona real", "pessoa de verdade", SEM_ROBO)),
     # "Tarjeta de crédito" é comum numa contestação: crédito sozinho não é fora de escopo.
     ("fora_de_escopo", ("prestamo", "emprestimo", "linea de credito", "limite de credito",
                         "inversion", "invertir", "investimento", "investir", "contrasena", "senha",
@@ -366,8 +377,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
                    "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
-                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar", PEDIDO_DE_CONTESTACAO,
-                   TRANSACAO_NEGADA)),
+                   COBRANCA_REPETIDA, COBRANCA_A_MAIS, "revisen", "revisem", "reclamar",
+                   PEDIDO_DE_CONTESTACAO, TRANSACAO_NEGADA)),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
                    "negaram", "pendiente*", "pendente*", "revertid*", "estornad*", "estado",
@@ -806,6 +817,8 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         if intencao == "bloquear" and BLOQUEIO_CONTADO.search(texto.casefold()):
             continue
         casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
+        if intencao == "humano" and SO_A_PESSOA.match(limpo):
+            casados = (*casados, "so_a_pessoa")
         if casados:
             sinais = (*casados, *(f"digitacao:{t}" for t in corrigidas))
             return Interpretacao(intencao=intencao, sinais=sinais, **pistas)
