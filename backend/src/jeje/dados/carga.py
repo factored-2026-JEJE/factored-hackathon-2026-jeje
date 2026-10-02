@@ -128,7 +128,8 @@ def carregar(
                     "insert into meta.dataset_version (id, version, source, pipeline, loaded_at) "
                     "values (1, :versao, :origem, :pipeline, now()) on conflict (id) do update "
                     "set version = excluded.version, source = excluded.source, "
-                    "pipeline = excluded.pipeline, loaded_at = now()"
+                    "pipeline = excluded.pipeline, loaded_at = now(), recusada_versao = null, "
+                    "recusada_motivo = null, recusada_em = null"
                 ),
                 {"versao": versao, "origem": origem, "pipeline": pipeline},
             )

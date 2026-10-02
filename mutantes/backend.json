@@ -68,6 +68,21 @@
       ]
     },
     {
+      "id": "M-HEALTH-03",
+      "requisito": "R09",
+      "descricao": "A prontidão não mostra a versão recusada (ninguém vê que os dados novos não entraram; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/health.py",
+          "de": "        if linha.recusada_versao is None\n",
+          "para": "        if True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_health.py::test_ready_mostra_a_versao_recusada_e_segue_pronto_com_a_anterior"
+      ]
+    },
+    {
       "id": "M-CFG-01",
       "requisito": "ENG-003",
       "descricao": "Configuração ganha default silencioso e deixa de falhar sem a variável",
@@ -315,8 +330,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/health.py",
-          "de": "select(DatasetVersion.version, DatasetVersion.source, DatasetVersion.loaded_at)",
-          "para": "select(DatasetVersion.source.label(\"version\"), DatasetVersion.source, DatasetVersion.loaded_at)"
+          "de": "version=linha.version, source=linha.source",
+          "para": "version=linha.source, source=linha.source"
         }
       ],
       "testes": [
@@ -360,8 +375,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/health.py",
-          "de": "    return Readiness(status=\"ready\", database=\"ok\", dataset=DatasetInfo(**linha._mapping))",
-          "para": "    response.status_code = 202\n    return Readiness(status=\"ready\", database=\"ok\", dataset=DatasetInfo(**linha._mapping))"
+          "de": "    return Readiness(status=\"ready\", database=\"ok\", dataset=dataset)",
+          "para": "    response.status_code = 202\n    return Readiness(status=\"ready\", database=\"ok\", dataset=dataset)"
         }
       ],
       "testes": [
@@ -1032,7 +1047,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/__main__.py",
-          "de": "    if versao_no_banco(settings) == (versao, pipeline):",
+          "de": "    if anterior == (versao, pipeline):",
           "para": "    if False:"
         }
       ],
@@ -1552,6 +1567,21 @@
       ]
     },
     {
+      "id": "M-CARGA-13",
+      "requisito": "R09",
+      "descricao": "A carga boa não apaga a recusa anterior (a página diz recusada com os dados novos no ar; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/carga.py",
+          "de": "\"pipeline = excluded.pipeline, loaded_at = now(), recusada_versao = null, \"\n                    \"recusada_motivo = null, recusada_em = null\"",
+          "para": "\"pipeline = excluded.pipeline, loaded_at = now()\""
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_versao_nova_recusada_mantem_a_anterior_e_o_seed_segue"
+      ]
+    },
+    {
       "id": "M-VER-01",
       "requisito": "R04",
       "descricao": "Versão do pipeline só olha os nomes dos arquivos",
@@ -1573,12 +1603,42 @@
       "trocas": [
         {
           "arquivo": "src/jeje/dados/__main__.py",
-          "de": "    if versao_no_banco(settings) == (versao, pipeline):",
-          "para": "    if (versao_no_banco(settings) or (None,))[0] == versao:"
+          "de": "    if anterior == (versao, pipeline):",
+          "para": "    if (anterior or (None,))[0] == versao:"
         }
       ],
       "testes": [
         "tests/test_dados_cli.py::test_preparar_recarrega_quando_o_pipeline_gravado_e_antigo"
+      ]
+    },
+    {
+      "id": "M-CLI-09",
+      "requisito": "R06",
+      "descricao": "Versão recusada derruba o serviço mesmo com a anterior no banco (o seed sai com 1; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "        if anterior is None:\n            raise\n",
+          "para": "        raise\n"
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_versao_nova_recusada_mantem_a_anterior_e_o_seed_segue"
+      ]
+    },
+    {
+      "id": "M-CLI-10",
+      "requisito": "R09",
+      "descricao": "A recusa não fica gravada (a prontidão não tem como mostrá-la; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/dados/__main__.py",
+          "de": "        registrar_recusa(settings, versao, str(erro))\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_dados_cli.py::test_versao_nova_recusada_mantem_a_anterior_e_o_seed_segue"
       ]
     },
     {

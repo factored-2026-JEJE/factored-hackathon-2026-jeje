@@ -1571,6 +1571,21 @@
       ]
     },
     {
+      "id": "M-WEB-113",
+      "requisito": "R09",
+      "descricao": "A página de status esconde a versão recusada (ninguém vê que os dados novos não entraram; ACH-112)",
+      "trocas": [
+        {
+          "arquivo": "src/StatusDoSistema.tsx",
+          "de": "        {dataset?.recusada && (",
+          "para": "        {false && dataset?.recusada && ("
+        }
+      ],
+      "testes": [
+        "src/StatusDoSistema.test.tsx > mostra a versão nova recusada pela carga e que a anterior segue valendo (ACH-112)"
+      ]
+    },
+    {
       "id": "M-WEB-107",
       "requisito": "R08",
       "descricao": "A lista das personas não diz quantas contestáveis cada uma tem",
