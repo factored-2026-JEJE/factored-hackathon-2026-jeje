@@ -1085,7 +1085,6 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
         "Un señor haciéndose pasar por el banco me pidió la clave",
         "Me llamó alguien que se hacía pasar por el banco y consiguió mi clave",
         "Um homem conseguiu minha senha pelo telefone",
-        "Me pidieron mi clave por WhatsApp",
         "Meu cartão se roubou ontem",
         # O leitor lia com confiança como contestação (ACH-182, LLM-01): agora as regras leem antes.
         "Alguien anda gastando con mi plástico en tiendas donde nunca he puesto un pie",
@@ -1205,6 +1204,30 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
     ],
 )
 def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Mensagens comuns com os termos de golpe da leva de 02/10, que bloqueariam o cartão:
+        # a senha pedida pelo caixa, pelo app ou pelo caixa eletrônico...
+        "El cajero automático me pidió mi pin dos veces y no me dio el dinero",
+        "O app pediu minha senha para entrar",
+        "La página me pidió mi clave y no la acepta",
+        "O sistema conseguiu recuperar minha senha",
+        # ... o dinheiro recebido de outra pessoa...
+        "Alguém transferiu dinheiro para mim por engano",
+        "Una persona me transfirió el pago del alquiler",
+        # ... outra pessoa usando outra coisa, e o plástico que não é o cartão.
+        "Uma pessoa está usando o caixa ao meu lado",
+        "La bolsa de plástico que perdí no importa, quiero ver mi saldo",
+        # A senha pedida sem dizer por quem não separa golpe de rotina: fica fora de escopo, e a
+        # conversa oferece o atendente.
+        "Me pidieron mi clave por WhatsApp",
+    ],
+)
+def test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude(texto):
     assert ler(texto).intencao != "fraude"
 
 
