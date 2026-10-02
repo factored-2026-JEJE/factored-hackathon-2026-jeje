@@ -142,6 +142,10 @@ def _negado(antes: str) -> bool:
 
 # Perda ou extravio só é relato de fraude com cartão, carteira ou celular perto: "perdí la
 # conexión" e "no encuentro la compra en mi tarjeta" continuam consulta (ACH-101).
+# "Plástico" é o cartão na gíria (ACH-182), mas só com determinante: "congelen mi plástico" é o
+# cartão; "la bolsa de plástico" não.
+PLASTICO = ("mi plastico", "meu plastico", "el plastico", "o plastico", "su plastico",
+            "seu plastico", "mis plasticos", "meus plasticos")  # fmt: skip
 PERDA_DE_MEIO = Perto(
     ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*",
      # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
@@ -150,7 +154,7 @@ PERDA_DE_MEIO = Perto(
      "desaparec*", "esqueci*",
      # O cartão antes do verbo, com "se me cayó" ou o tipo do cartão no meio (PERDA-01, EV-199).
      "se me cayo"),
-    ("tarjeta*", "cartao", "cartoes", "plastico*", "cartera", "carteira", "billetera", "celular",
+    ("tarjeta*", "cartao", "cartoes", *PLASTICO, "cartera", "carteira", "billetera", "celular",
      "tarjeta de credito", "tarjeta de debito", "cartao de credito", "cartao de debito"),
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
@@ -245,7 +249,7 @@ RECUSA_DE_HUMANO = re.compile(
 # Pedido de bloqueio ou desbloqueio de cartão (PRD-007): verbo de pedido (infinitivo, imperativo,
 # "¿cómo bloqueo…?", "el bloqueo") perto de cartão. "¿Por qué bloquearon mi tarjeta?" e "meu cartão
 # foi bloqueado?" não pedem nada; roubo e perda já são relato de fraude, que também bloqueia.
-CARTAO = ("tarjeta*", "cartao", "cartoes", "plastico*")  # "plástico": o cartão na gíria (ACH-182)
+CARTAO = ("tarjeta*", "cartao", "cartoes", *PLASTICO)
 # Congelar e travar também pedem bloqueio (ACH-140), nas formas de pedido: "mi tarjeta está
 # congelada" e "o cartão travou na maquininha" contam o estado, não pedem nada.
 PEDIDO_DE_BLOQUEIO = Perto(

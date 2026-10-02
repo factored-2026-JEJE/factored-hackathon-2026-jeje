@@ -7288,8 +7288,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\")",
-          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\", \"cuenta\", \"conta\")"
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO)",
+          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO, \"cuenta\", \"conta\")"
         }
       ],
       "testes": [
@@ -12282,7 +12282,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\")",
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO)",
           "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\")"
         }
       ],
@@ -12327,7 +12327,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\", \"cartera\",",
+          "de": "    (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO, \"cartera\",",
           "para": "    (\"tarjeta*\", \"cartao\", \"cartoes\", \"cartera\","
         }
       ],
@@ -12494,6 +12494,21 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
           "para": "    (\"usando\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-182",
+      "requisito": "R03",
+      "descricao": "\"La bolsa de plástico que perdí\" vira perda do cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "PLASTICO = (\"mi plastico\", \"meu plastico\", \"el plastico\", \"o plastico\", \"su plastico\",",
+          "para": "PLASTICO = (\"plastico*\", \"mi plastico\", \"meu plastico\", \"el plastico\", \"o plastico\", \"su plastico\","
         }
       ],
       "testes": [
