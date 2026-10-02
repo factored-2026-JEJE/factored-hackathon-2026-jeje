@@ -1194,6 +1194,6 @@ def test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao(cenar
         ).one()
     assert sem["recibo"] is None
     assert com["recibo"] == {
-        "transaction_id": "TRX-A1", "arquivo": arquivo, "linha": linha,
+        "transaction_id": "TRX-A1", "arquivo": arquivo, "linha": linha + 1,
         "versao_dos_dados": "versao-do-teste",
     }  # fmt: skip
