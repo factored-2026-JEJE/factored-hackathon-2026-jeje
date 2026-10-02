@@ -1461,6 +1461,37 @@ def test_so_o_q_sozinho_vira_que():
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("No encontré mi tarjeta", "es"),
+        ("Todavía no encontré mi tarjeta, ¿qué hago?", "es"),
+        ("Não encontrei meu cartão em lugar nenhum", "pt"),
+        ("Ainda não achei o cartão", "pt"),
+    ],
+)
+def test_o_cartao_que_nao_se_achou_e_perda(texto, anterior):
+    """O cartão que não se achou é perda: bloqueia e encaminha, não é o pedido de desbloqueio."""
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+def test_o_cartao_achado_negado_nao_e_desbloqueio():
+    # "En casa" logo depois desfaz a perda; o achado negado também não é desbloqueio.
+    assert ler("No encontré mi tarjeta en casa").intencao != "desbloquear"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Encontré la tarjeta que perdí, ¿cómo la reactivo?", "es"),
+        ("Quiero reactivar la tarjeta que perdí y ya apareció", "es"),
+        ("Posso reativar o cartão que perdi semana passada?", "pt"),
+    ],
+)
+def test_quem_achou_o_cartao_e_quer_reativar_pede_o_desbloqueio(texto, anterior):
+    assert ler(texto, anterior).intencao == "desbloquear"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("¡Es un robo! Me cobraron 3 dólares de comisión", "es"),
         ("¡Esto es un robo! Pagué el pedido hace dos semanas y nunca llegó", "es"),
         ("Isso é um assalto, a tarifa subiu de novo", "pt"),
