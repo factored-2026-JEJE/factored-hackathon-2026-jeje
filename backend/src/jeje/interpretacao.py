@@ -498,6 +498,23 @@ TERCEIRO_USOU = Perto(
     # sucursal", "uma pessoa da agência acessou minha conta para me ajudar") não é terceiro.
     fora=("banco", "agencia", "sucursal"),
 )  # fmt: skip
+# Um terceiro que entrou na conta ("una mujer que llamó del banco entró a mi cuenta y sacó plata",
+# ACH-192): o sujeito é outra pessoa, e não o banco, o filho ou a filha com permissão; quem entrou
+# para ajudar ("para ayudarme con la app") não conta. As palavras não entram no corretor.
+TERCEIRO_ENTROU_NA_CONTA = Perto(
+    (*TERCEIRO_USOU.um, "un hombre", "una mujer", "um homem", "uma mulher", "un senor",
+     "una senora", "um senhor", "uma senhora", "un tipo", "um cara", "el estafador", "o golpista",
+     "el ladron", "o ladrao"),
+    ("entro a mi cuenta", "entro en mi cuenta", "entraron a mi cuenta", "entraron en mi cuenta",
+     "accedio a mi cuenta", "accedieron a mi cuenta", "entrou na minha conta",
+     "entraram na minha conta", "acessou minha conta", "acessou a minha conta",
+     "acessaram minha conta", "acessaram a minha conta"),
+    entre=5,
+    so_nessa_ordem=True,
+    depois=3,
+    fora_depois=("ayudar", "ayudarme", "ajudar", "me ajudar", "revisar", "configurar"),
+    corrige=False,
+)  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -566,6 +583,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 PESSOA_SUPOSTAMENTE,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
+                TERCEIRO_ENTROU_NA_CONTA,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
