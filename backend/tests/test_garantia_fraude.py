@@ -18,6 +18,7 @@ from jeje.leitor.garantia import (
     do_corpus,
     golpes,
     metade_de_calibracao,
+    particao_da_validacao,
     posicoes_de_calibracao,
     quantil,
 )
@@ -32,6 +33,17 @@ ROTULO = {
 }  # fmt: skip
 TREINO = [Exemplo(t, fluxo, "es", intencao=ROTULO[fluxo])
           for fluxo, ts in FRASES.items() for t in ts]  # fmt: skip
+
+
+def oficial(rotulo=ROTULO) -> list[Exemplo]:
+    """O treino oficial alinhado nas três línguas: a mesma frase na mesma posição."""
+    frases = [(t, fluxo) for fluxo, ts in FRASES.items() for t in ts]
+    linguas = (("en", "en"), ("es", ""), ("pt", "pt"))
+    return [Exemplo(f"{p} {t}".strip(), fluxo, idioma, intencao=rotulo[fluxo])
+            for idioma, p in linguas for t, fluxo in frases]  # fmt: skip
+
+
+OFICIAL = oficial()
 # Golpe que o corpus não tem: a validação o gerou (NOV-31), e só a garantia o aprende.
 GERADAS = [
     Mensagem("me llamaron del banco y les di el codigo", "fraude", "es"),
@@ -62,7 +74,20 @@ TESTE = [e for i, ts in FRAUDES.items() for e in (
 
 @pytest.fixture(scope="module")
 def garantia() -> Garantia:
-    return Garantia.treinada(Corpus(TREINO, TREINO, TESTE), codificar, "v-teste", GERADAS)
+    return Garantia.treinada(Corpus([], [], TESTE, OFICIAL), codificar, "v-teste", GERADAS)
+
+
+def test_particao_da_validacao_e_a_pre_registrada():
+    """O esperado é a saída de rotulos.split_de_validacao da validação para estas linhas: as três
+    línguas de uma posição e as frases iguais depois de normalizar ficam juntas."""
+    intencoes = ["lost_or_stolen_card"] * 7 + ["declined_card_payment"] * 7 + ["exchange_rate"] * 6
+    linhas = {i: [f"{i} frase {k}" for k in range(20)] for i in ("en", "es", "pt")}
+    for k, igual in ((7, 13), (11, 9), (15, 16), (18, 16)):  # iguais depois de normalizar
+        linhas["es"][k] = f"ES FRASE {igual}?" + ("?" if k == 15 else "")
+    exemplos = [Exemplo(t, "fora_de_escopo", i, intencao=intencoes[k])
+                for i, ts in linhas.items() for k, t in enumerate(ts)]  # fmt: skip
+    # Sem juntar as iguais, a validação sortearia {0, 4, 7, 12, 18}.
+    assert particao_da_validacao(exemplos) == {0, 4, 7, 13, 17}
 
 
 def test_treino_so_com_frases_es_e_pt_do_banking77_e_o_rotulo_da_validacao():
@@ -102,10 +127,18 @@ def test_limiar_cobre_as_fraudes_da_calibracao_por_idioma(garantia):
 def test_temperatura_ajustada_na_calibracao():
     """Rótulos da calibração trocados: o detector acerta o treino com confiança e erra a
     calibração; a temperatura que minimiza a perda achata as probabilidades (T > 1)."""
-    trocados = [Exemplo(e.texto, e.fluxo, "es", intencao="exchange_rate"
-                        if e.intencao == "lost_or_stolen_card" else "lost_or_stolen_card")
-                for e in TREINO]  # fmt: skip
-    detector = Garantia.treinada(Corpus(TREINO, trocados, TESTE), codificar, "v", GERADAS)
+    validacao = particao_da_validacao(OFICIAL)
+    posicao = {id(e): k for i in ("en", "es", "pt")
+               for k, e in enumerate(e for e in OFICIAL if e.idioma == i)}  # fmt: skip
+    troca = {"lost_or_stolen_card": "exchange_rate"}
+
+    def trocado(e: Exemplo) -> Exemplo:
+        rotulo = troca.get(e.intencao, "lost_or_stolen_card")
+        return Exemplo(e.texto, e.fluxo, e.idioma, intencao=rotulo)
+
+    trocados = [trocado(e) if posicao[id(e)] in validacao and e.idioma != "en" else e
+                for e in OFICIAL]  # fmt: skip
+    detector = Garantia.treinada(Corpus([], [], TESTE, trocados), codificar, "v", GERADAS)
     assert detector.temperatura > 1.5
 
 
@@ -130,9 +163,9 @@ def test_quantil_com_a_correcao_de_amostra_finita():
 
 
 def test_treino_sem_alguma_classe_e_recusado():
-    sem_fora = [e for e in TREINO if e.intencao not in ("exchange_rate", "card_arrival")]
+    sem_fora = [e for e in OFICIAL if e.intencao not in ("exchange_rate", "card_arrival")]
     with pytest.raises(ModeloInvalido, match="classes"):
-        Garantia.treinada(Corpus(sem_fora, sem_fora, TESTE), codificar, "v", [])
+        Garantia.treinada(Corpus([], [], TESTE, sem_fora), codificar, "v", [])
 
 
 def test_artefato_da_garantia_salvo_e_carregado_le_igual(tmp_path, garantia):
