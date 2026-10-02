@@ -546,6 +546,15 @@ DO_BANCO_E_TIROU = Perto(
     fora=("avisarme", "avisar", "avisando", "avisaron", "avisou", "avisaram", "informarme"),
     corrige=False,
 )  # fmt: skip
+# A indignação com a tarifa ou com a compra que não chegou ("¡esto es un robo!", "isso é um
+# assalto") não é relato de roubo: a fraude é lida sem ela, e o relato que vem junto continua
+# ("¡esto es un robo! alguien usó mi tarjeta"). 4 mensagens da gemma ES bloqueavam o cartão de quem
+# reclamava da compra não entregue. O roubo contado ("sufrí un robo", "fue un robo") não é
+# indignação.
+INDIGNACAO = re.compile(
+    r"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que) "
+    r"(?:un |um )?(?:robo|roubo|asalto|assalto)(?![a-z0-9])"
+)
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -609,6 +618,9 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
                 # O golpe contado no passado e o "roubaron" do portunhol (EV-230 da validação).
                 "me estafo", "nos estafo", "la estafo", "roubaron",
+                # O particípio ("me han estafado", "fui estafada"): sem ele, o golpe contado assim
+                # só era fraude pela indignação ("¡esto es un robo!"), que não conta mais.
+                "estafado", "estafada", "estafados", "estafadas",
                 # Golpe de engenharia social (ACH-142).
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
                 SITE_FALSO,
@@ -1126,7 +1138,8 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
             continue
         if intencao == "bloquear" and BLOQUEIO_CONTADO.search(texto.casefold()):
             continue
-        casados = tuple(sinal for t in termos if (sinal := _casou(t, limpo)))
+        lido = INDIGNACAO.sub(" ", limpo) if intencao == "fraude" else limpo
+        casados = tuple(sinal for t in termos if (sinal := _casou(t, lido)))
         if intencao == "humano" and SO_A_PESSOA.match(limpo):
             casados = (*casados, "so_a_pessoa")
         if casados:
