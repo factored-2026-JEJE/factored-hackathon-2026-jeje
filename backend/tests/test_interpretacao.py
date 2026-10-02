@@ -983,6 +983,32 @@ def test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem():
 
 
 @pytest.mark.parametrize(
+    "texto",
+    [
+        # DEV-079 (ACH-157, PERDA-01): as outras formas de dizer que o cartão foi perdido ou levado.
+        "Me quitaron la tarjeta en el metro",
+        "Me hurtaron la cartera con las tarjetas",
+        "No hallo mi tarjeta por ningún lado",
+        "No puedo encontrar mi tarjeta, se ha ido",
+        "Ya no tengo mi tarjeta",
+        "Olvidé la tarjeta en un taxi",
+        "Se me cayó la tarjeta y no aparece",
+        "Se me perdió la tarjeta ayer",
+        "Furtaram meu cartão no ônibus",
+        "Levaram minha carteira com o cartão",
+        "Não acho meu cartão",
+        "Não consigo achar o cartão",
+        "Não tenho mais o cartão",
+        "Meu cartão desapareceu",
+        "Meu cartão caiu e não acho",
+        "Esqueci o cartão no táxi",
+    ],
+)
+def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
     ("texto", "intencao"),
     [
         # Os mesmos verbos sem o cartão perto não são relato de perda.
