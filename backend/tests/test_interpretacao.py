@@ -560,6 +560,12 @@ def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto)
         ("Me están robando plata de la cuenta", "fraude"),
         ("Caí num golpe e fizeram um pix", "fraude"),
         ("Estão tirando dinheiro da minha conta", "fraude"),
+        # REG-21: a conta esvaziada.
+        ("Me vaciaron la cuenta", "fraude"),
+        ("Entraron a mi cuenta y la vaciaron", "fraude"),
+        ("Me pidieron el código por WhatsApp, lo di y vaciaron mi cuenta", "fraude"),
+        ("Esvaziaram minha conta", "fraude"),
+        ("Passei o código e limparam minha conta", "fraude"),
     ],
 )
 def test_palavras_comuns_do_cartao_do_atendente_e_da_fraude(texto, intencao):
@@ -953,6 +959,9 @@ def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
         ("Me estafaron, transferí 500 dólares", False),
         ("Caí en una estafa y me sacaron dinero", False),
         ("Me robaron la tarjeta", False),
+        # A conta esvaziada é perda, mesmo com a suspeita na mesma mensagem (REG-21).
+        ("Un supuesto asesor me pidió la clave, no se la di, pero igual vaciaron mi cuenta", False),
+        ("Um falso atendente pediu o código, não informei, mas esvaziaram minha conta", False),
     ],
 )
 def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao):
