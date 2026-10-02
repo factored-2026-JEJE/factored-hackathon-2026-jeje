@@ -100,6 +100,7 @@ class Perto:
     antes: int = 0
     fora_antes: tuple[str, ...] = ()
     negavel: bool = False  # negado logo antes ("no me cobraron de más"), não casa
+    so_nessa_ordem: bool = False  # só o termo do primeiro grupo e depois o do segundo
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -113,13 +114,16 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
     outro = [b for b in termo.outro if _casa(b, limpo)]
     for a, b in product(um, outro):
         x, y = _padrao(a), _padrao(b)
-        for achado in _regex(f"{x}{entre}{y}|{y}{entre}{x}").finditer(limpo):
-            meio = achado.group(1) or achado.group(2) or ""
+        padrao = f"{x}{entre}{y}" if termo.so_nessa_ordem else f"{x}{entre}{y}|{y}{entre}{x}"
+        for achado in _regex(padrao).finditer(limpo):
+            grupos = achado.groups()
+            meio = next((g for g in grupos if g), "")
             if any(_casa(f, meio) for f in termo.fora):
                 continue
-            # group(2) só participa quando o termo do segundo grupo veio antes.
+            # O segundo grupo só participa quando o termo do segundo grupo veio antes.
+            invertido = len(grupos) == 2 and grupos[1] is not None
             antes = " ".join(limpo[: achado.start()].split()[-termo.antes :] if termo.antes else ())
-            if achado.group(2) is not None and any(_casa(f, antes) for f in termo.fora_antes):
+            if invertido and any(_casa(f, antes) for f in termo.fora_antes):
                 continue
             if termo.negavel and _negado(limpo[: achado.start()]):
                 continue
@@ -290,6 +294,9 @@ SE_PASSOU_POR = Perto(
      "haciendose pasar por"),
     QUEM_ELE_DISSE_SER,
     entre=2,
+    # Só o verbo e depois o papel: "o atendente falou que era só esperar" é o atendente de
+    # verdade (ACH-173, REG-18).
+    so_nessa_ordem=True,
 )  # fmt: skip
 # "Disse que era" é comum fora do golpe ("o vendedor disse que era problema do banco"): só com
 # quem ele disse ser logo depois.
@@ -300,6 +307,7 @@ DISSE_QUE_ERA = Perto(
      "falou que era", "se dizia do", "que se dizia"),
     QUEM_ELE_DISSE_SER,
     entre=1,
+    so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)
 )  # fmt: skip
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
@@ -309,11 +317,21 @@ FALSO_ATENDENTE = Perto(
 )  # fmt: skip
 SENHA_ENTREGUE = Perto(
     ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
-     "diera",
-     # A senha ou o código obtidos ou pedidos por outra pessoa (ACH-171).
-     "conseguiu", "consiguio", "pediu", "pidio", "pidieron", "pediram", "roubou", "robo"),
+     "diera"),
     ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
     entre=2,
+)  # fmt: skip
+# A senha, o código ou os dados do cliente obtidos ou pedidos por outra pessoa ("conseguiu minha
+# senha", "me pidieron mi clave", ACH-171): só com o possessivo e sem negação. "La app me pidió un
+# código de verificación", "o caixa pediu a senha duas vezes" e "não conseguiu trocar a senha" não
+# são golpe (REG-17).
+SENHA_OBTIDA = Perto(
+    ("conseguiu", "consiguio", "consiguieron", "conseguiram", "pediu", "pidio", "pidieron",
+     "pediram", "roubou", "robo", "roubaram", "robaron"),
+    ("minha senha", "mi clave", "mi contrasena", "meu codigo", "mi codigo", "meus dados",
+     "mis datos", "meu pin", "mi pin", "meu token", "mi token"),
+    entre=1,
+    negavel=True,
 )  # fmt: skip
 SITE_FALSO = Perto(
     ("sitio", "sitios", "site", "sites", "pagina", "paginas", "enlace", "enlaces", "link",
@@ -416,7 +434,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
                 # Golpe de engenharia social (ACH-142).
-                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,
+                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
+                SITE_FALSO,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
