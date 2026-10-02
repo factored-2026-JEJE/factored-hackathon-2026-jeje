@@ -1556,6 +1556,21 @@
       ]
     },
     {
+      "id": "M-WEB-160",
+      "requisito": "R09",
+      "descricao": "O \"Por que esta resposta?\" diz que a transação achada pelo filtro exato foi escolhida pelo cliente (DEV-071)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  const como = { filtro: \"pelo filtro exato\", escolha: \"escolhida pelo cliente na lista\", foco: \"a que já estava em curso\" };",
+          "para": "  const como = { filtro: \"escolhida pelo cliente na lista\", escolha: \"pelo filtro exato\", foco: \"a que já estava em curso\" };"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta diz como a transação foi achada (DEV-071): o filtro exato achou"
+      ]
+    },
+    {
       "id": "M-WEB-111",
       "requisito": "R09",
       "descricao": "As opções ordenadas pelo ranking aparecem como escolhidas com garantia",

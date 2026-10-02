@@ -1478,6 +1478,92 @@ def test_so_o_q_sozinho_vira_que():
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("No fue un fraude, yo hice la compra pero me la rechazaron", "es"),
+        ("No es fraude, solo quiero saber por qué me rechazaron la compra", "es"),
+        ("Não foi fraude, fui eu que comprei, por que recusaram?", "pt"),
+        ("Não é golpe, só quero entender essa cobrança", "pt"),
+        # Depois do cumprimento (REG-44 da validação).
+        ("Hola, no es fraude, solo quiero saber por qué me rechazaron la compra", "es"),
+        ("Boa tarde, não foi golpe, só quero entender a cobrança", "pt"),
+    ],
+)
+def test_a_fraude_negada_pelo_cliente_nao_e_relato(texto, anterior):
+    """Quem diz que não foi fraude pergunta pela compra: o cartão não é bloqueado."""
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # A negação dentro da oração com "que" é a dúvida ou a crença de quem caiu no golpe.
+        ("Quiero asegurarme de que no fue un fraude", "es"),
+        ("Achei que não era golpe e passei a senha", "pt"),
+        # A negação do golpista citada pela vítima (REG-42 da validação).
+        ("Me juró: no es una estafa. Le transferí 500 dólares", "es"),
+        ("El asesor me dijo 'no es fraude' y me pidió la clave", "es"),
+        # A negação do golpista citada no começo, com o verbo de fala depois (REG-44).
+        ('"Não é golpe", ele falou, e eu fiz o pix', "pt"),
+        # O "no" do português não é negação.
+        ("No golpe do pix que sofri, perdi dois mil reais", "pt"),
+        ("No fue un robo, perdí la tarjeta en el bus", "es"),
+    ],
+)
+def test_a_negacao_que_nao_e_do_cliente_segue_relato(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("No encontré mi tarjeta", "es"),
+        ("Todavía no encontré mi tarjeta, ¿qué hago?", "es"),
+        ("Não encontrei meu cartão em lugar nenhum", "pt"),
+        ("Ainda não achei o cartão", "pt"),
+    ],
+)
+def test_o_cartao_que_nao_se_achou_e_perda(texto, anterior):
+    """O cartão que não se achou é perda: bloqueia e encaminha, não é o pedido de desbloqueio."""
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+def test_o_cartao_achado_negado_nao_e_desbloqueio():
+    # "En casa" logo depois desfaz a perda; o achado negado também não é desbloqueio.
+    assert ler("No encontré mi tarjeta en casa").intencao != "desbloquear"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Encontré la tarjeta que perdí, ¿cómo la reactivo?", "es"),
+        # O achado logo depois do cartão e o cartão que só se pensou ter perdido (REG-41).
+        ("Posso reativar meu cartão perdido que encontrei esta manhã?", "pt"),
+        ("Posso reativar um cartão que pensei ter perdido?", "pt"),
+    ],
+)
+def test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado(texto, anterior):
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O reativar antes do cartão não desfaz a perda contada depois (REG-40 da validação).
+        ("Reactivé mi tarjeta y la perdí de nuevo", "es"),
+        ("Queria reativar meu cartão mas perdi ele de novo", "pt"),
+    ],
+)
+def test_a_perda_contada_depois_de_reativar_segue_perda(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+def test_nao_achei_que_e_pensar_e_nao_perda():
+    texto = "Eu notei uma taxa no meu cartão, mas não achei que tinha atingido o limite"
+    assert ler(texto, "pt").intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("¡Es un robo! Me cobraron 3 dólares de comisión", "es"),
         ("¡Esto es un robo! Pagué el pedido hace dos semanas y nunca llegó", "es"),
         ("Isso é um assalto, a tarifa subiu de novo", "pt"),
