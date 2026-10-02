@@ -4834,8 +4834,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "        for achado in _regex(f\"{x}{entre}{y}|{y}{entre}{x}\").finditer(limpo):",
-          "para": "        for achado in _regex(f\"{x}{entre}{y}\").finditer(limpo):"
+          "de": "        padrao = f\"{x}{entre}{y}\" if termo.so_nessa_ordem else f\"{x}{entre}{y}|{y}{entre}{x}\"",
+          "para": "        padrao = f\"{x}{entre}{y}\""
         }
       ],
       "testes": [
@@ -12011,8 +12011,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            meio = achado.group(1) or achado.group(2) or \"\"",
-          "para": "            meio = achado.group(1) or \"\""
+          "de": "            meio = next((g for g in grupos if g), \"\")",
+          "para": "            meio = grupos[0] or \"\""
         }
       ],
       "testes": [
@@ -12192,7 +12192,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            if achado.group(2) is not None and any(_casa(f, antes) for f in termo.fora_antes):\n",
+          "de": "            if invertido and any(_casa(f, antes) for f in termo.fora_antes):\n",
           "para": "            if any(_casa(f, antes) for f in termo.fora_antes):\n"
         }
       ],
@@ -12378,6 +12378,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_flexoes_de_evitar_e_cuidar_sao_prevencao"
+      ]
+    },
+    {
+      "id": "M-ITP-174",
+      "requisito": "R03",
+      "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        padrao = f\"{x}{entre}{y}\" if termo.so_nessa_ordem else f\"{x}{entre}{y}|{y}{entre}{x}\"",
+          "para": "        padrao = f\"{x}{entre}{y}|{y}{entre}{x}\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_que_o_atendente_de_verdade_disse_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-175",
+      "requisito": "R03",
+      "descricao": "\"O atendente falou que era...\" vira golpe e bloqueia o cartão (ACH-173)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_que_o_atendente_de_verdade_disse_nao_e_golpe"
       ]
     },
     {
