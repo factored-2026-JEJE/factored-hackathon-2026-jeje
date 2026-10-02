@@ -162,6 +162,13 @@ PLASTICO = ("mi plastico", "meu plastico", "el plastico", "o plastico", "su plas
             "seu plastico", "mis plasticos", "meus plasticos")  # fmt: skip
 PERDA_DE_MEIO = Perto(
     ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*",
+     # O cartão que não se achou ("no encontré mi tarjeta", "ainda não achei o cartão") é perda, não
+     # o cartão achado. O "não achei" só com o objeto logo depois: "não achei que" é pensar
+     # (REG-41).
+     "no encontre", "nunca encontre", "nao encontrei", "nunca encontrei", "nao achei o",
+     "nao achei meu", "nao achei minha", "nao achei a", "nao achei mais o", "nao achei mais meu",
+     "nunca achei o", "nunca achei meu", "nunca achei minha", "nunca achei a",
+     "nunca achei mais o", "nunca achei mais meu",
      # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
      "quitaron", "hurt*", "no hallo", "no puedo encontrar", "ya no tengo", "olvid*",
      "no aparece", "furt*", "levaram", "nao acho", "nao consigo achar", "nao tenho mais",
@@ -176,19 +183,27 @@ PERDA_DE_MEIO = Perto(
           "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na",
           # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).
           "fatura", "factura", "extrato", "extracto", "resumen", "opcion", "opcao", "boleto",
-          "comprovante", "comprobante"),
+          "comprovante", "comprobante",
+          # O cartão que se pensou ter perdido ("um cartão que pensei ter perdido", REG-41).
+          "pense", "pensei", "pensaba", "pensava", "achava"),
     # Com o cartão antes do verbo, o que vem logo antes dele também conta: "la compra con mi
     # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
     antes=3,
     fora_antes=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "moviment*",
-                "debito*", "saldo", "limite"),
+                "debito*", "saldo", "limite",
+                # Quem achou o cartão e quer reativá-lo ("encontré la tarjeta que perdí, ¿cómo la
+                # reactivo?") pede o desbloqueio. O reativar não entra: "reactivé mi tarjeta y la
+                # perdí de nuevo" é perda (REG-40).
+                "encontre", "encontrei"),
     # Logo depois do par: o cartão em casa ou a tela do app não são perda (auditoria do dev,
     # 02/10). Só 3 palavras: mais longe, já é outra oração ("perdi meu cartão e não aparece no
     # aplicativo a opção de bloquear" é perda).
     depois=3,
     fora_depois=("en casa", "em casa", "en mi casa", "na minha casa", "en la app", "en el app",
                  "na app", "no app", "en la aplicacion", "no aplicativo", "na aplicacao",
-                 "en la lista", "de la lista", "na lista", "da lista", "en la pantalla", "na tela"),
+                 "en la lista", "de la lista", "na lista", "da lista", "en la pantalla", "na tela",
+                 # O cartão achado logo depois ("meu cartão perdido que encontrei esta manhã").
+                 "encontre", "encontrei", "la encontre", "o encontrei"),
 )  # fmt: skip
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
@@ -303,7 +318,10 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
 # O cartão achado ("ya apareció mi tarjeta", "achei meu cartão"): o cartão logo depois do verbo.
 # "Encontré un pago con tarjeta no autorizado" é outra coisa.
 CARTAO_ACHADO = Perto(
-    ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"), CARTAO, entre=1
+    ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"),
+    CARTAO,
+    entre=1,
+    negavel=True,  # "no encontré mi tarjeta" é perda
 )
 # Dinheiro sendo tirado da conta é relato de fraude (ACH-140); "¿por qué me estás robando con
 # las comisiones?" sem o dinheiro ou a conta perto, não. A conta esvaziada ("me vaciaron la
