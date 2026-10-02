@@ -13022,6 +13022,51 @@
       ]
     },
     {
+      "id": "M-ITP-238",
+      "requisito": "R02",
+      "descricao": "A fraude negada pelo cliente (\"no fue un fraude, yo hice la compra\") é relato e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo)).split())\n",
+          "para": "    return \" \".join(INDIGNACAO.sub(\" \", limpo).split())\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_fraude_negada_pelo_cliente_nao_e_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-239",
+      "requisito": "R02",
+      "descricao": "A negação em qualquer ponto da mensagem sai: a do golpista citada pela vítima (\"me juró: no es una estafa\") deixa de ser relato",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"^(?:no|nao|nunca) ",
+          "para": "    r\"(?<![a-z0-9])(?:no|nao|nunca) "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_negacao_que_nao_e_do_cliente_segue_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-240",
+      "requisito": "R02",
+      "descricao": "A negação sem o verbo: o \"no\" do português (\"caí no golpe\") tira o golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|\"\n    r\"creo que es|acho que seja|acho que foi|acho que e) (?:un |um |una |uma )?\"",
+          "para": "(?:no|nao|nunca)(?: (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|\"\n    r\"creo que es|acho que seja|acho que foi|acho que e))? (?:un |um |una |uma )?\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_negacao_que_nao_e_do_cliente_segue_relato"
+      ]
+    },
+    {
       "id": "M-ITP-241",
       "requisito": "R03",
       "descricao": "O \"não achei\" solto é perda: \"não achei que tinha atingido o limite\" bloqueia o cartão",
@@ -13193,8 +13238,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "        lido = \" \".join(INDIGNACAO.sub(\" \", limpo).split()) if intencao == \"fraude\" else limpo\n",
-          "para": "        lido = INDIGNACAO.sub(\" \", limpo) if intencao == \"fraude\" else limpo\n"
+          "de": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo)).split())\n",
+          "para": "    return FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo))\n"
         }
       ],
       "testes": [
@@ -13253,8 +13298,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "        lido = \" \".join(INDIGNACAO.sub(\" \", limpo).split()) if intencao == \"fraude\" else limpo\n",
-          "para": "        lido = limpo\n"
+          "de": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo)).split())\n",
+          "para": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", limpo).split())\n"
         }
       ],
       "testes": [
