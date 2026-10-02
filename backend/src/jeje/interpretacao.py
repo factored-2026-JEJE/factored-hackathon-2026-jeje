@@ -99,6 +99,7 @@ class Perto:
     fora: tuple[str, ...] = ()
     antes: int = 0
     fora_antes: tuple[str, ...] = ()
+    negavel: bool = False  # negado logo antes ("no me cobraron de más"), não casa
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -120,8 +121,19 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
             antes = " ".join(limpo[: achado.start()].split()[-termo.antes :] if termo.antes else ())
             if achado.group(2) is not None and any(_casa(f, antes) for f in termo.fora_antes):
                 continue
+            if termo.negavel and _negado(limpo[: achado.start()]):
+                continue
             return f"{a}+{b}"
     return None
+
+
+def _negado(antes: str) -> bool:
+    """A palavra logo antes do termo, pulando um pronome ("no me cobraron", "não me roubaram"), é
+    uma negação."""
+    palavras = antes.split()
+    if palavras and palavras[-1] in PRONOMES_DA_VITIMA:
+        palavras = palavras[:-1]
+    return bool(palavras) and palavras[-1] in NEGA_A_VITIMA
 
 
 # Perda ou extravio só é relato de fraude com cartão, carteira ou celular perto: "perdí la
@@ -172,11 +184,13 @@ COBRANCA_REPETIDA = Perto(
      "repetid*"),
 )  # fmt: skip
 # Cobrança a mais é contestação: "me cobraron de más", "a loja me cobrou a mais" (ACH-159). Só com
-# o verbo de cobrar: "a cobrança mais recente" e "el cobro más reciente" continuam consulta.
+# o verbo de cobrar: "a cobrança mais recente" e "el cobro más reciente" continuam consulta. Negada
+# ("no me cobraron de más, solo quería saber el saldo") não é contestação.
 COBRANCA_A_MAIS = Perto(
     ("cobraron", "cobro", "cobran", "cobra", "cobrou", "cobraram", "cobram", "cobrado", "cobrada"),
-    ("de mas", "demas", "a mais", "de mais"),
+    ("de mas", "demas", "a mais", "de mais", "mas caro", "mais caro"),
     entre=2,
+    negavel=True,
 )  # fmt: skip
 # Pedido de contestação com substantivo perto da transação ("una contestación a esta compra", "abrir
 # un reclamo por la compra", "uma reclamação da cobrança"): sobrava só "compra", e a conversa
@@ -1011,10 +1025,7 @@ def _vitima(limpo: str) -> bool:
     """Algum termo de vítima sem negação logo antes (ou antes do pronome que o precede)."""
     for termo in VITIMA:
         for achado in _regex(_padrao(termo)).finditer(limpo):
-            antes = limpo[: achado.start()].split()
-            if antes and antes[-1] in PRONOMES_DA_VITIMA:
-                antes = antes[:-1]
-            if not (antes and antes[-1] in NEGA_A_VITIMA):
+            if not _negado(limpo[: achado.start()]):
                 return True
     return False
 
