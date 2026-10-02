@@ -44,7 +44,7 @@ from jeje.interpretacao import (
     interpretar,
     prevencao,
 )
-from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
+from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras, pelo_modelo
 from jeje.mensagens import (
     ESTADO,
     ESTADO_DO_CASO,
@@ -845,6 +845,10 @@ class _Turno:
         """Por que a fraude vai ao atendente sem bloquear o cartão, se for o caso."""
         if prevencao(self.mensagem):
             return "prevenção ou suspeita sem perda"  # ACH-144
+        if pelo_modelo(self.lida):
+            # O LLM também lê fraude na suspeita sem prejuízo, no cartão retido pelo caixa
+            # eletrônico e na tarifa (REG-15): o atendente decide o bloqueio.
+            return "possível fraude lida pelo modelo"
         return None
 
     def _relato_de_fraude(self, decisao: politica.Decisao) -> Saida:

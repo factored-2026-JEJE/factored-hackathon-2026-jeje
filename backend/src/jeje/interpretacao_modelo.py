@@ -96,6 +96,12 @@ def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitu
     return Leitura(interpretar(texto, idioma_anterior, referencia), "regras")
 
 
+def pelo_modelo(lida: Interpretacao) -> bool:
+    """A intenção veio do modelo (o modo modelo ou o LLM do "não entendi"), não das regras nem do
+    leitor."""
+    return SINAL_DO_MODELO in lida.sinais
+
+
 def entendida(lida: Interpretacao) -> bool:
     """As regras já sabem o que fazer (ou há sinal que só as regras podem tratar). O aceite largo da
     oferta do atendente ("sí, pásame") é um desses: o leitor o lia como fora de escopo (ACH-125 da
