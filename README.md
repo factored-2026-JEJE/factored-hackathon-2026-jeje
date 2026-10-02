@@ -214,11 +214,11 @@ palavra ("fraude", "me estafaron", "me robaron", "clonaron") ou o golpe de engen
 termos compostos, com as duas partes perto e na ordem da história:
 
 - quem se fez passar por outro: o verbo e depois o papel ("decía ser del banco", "se passou por
-  funcionário", "creyendo que era mi sobrino"), nunca o papel antes do verbo ("o atendente falou que
-  era só esperar", ACH-173) nem a loja que diz que o problema é do banco ("me rechazaron la compra y
-  en la tienda me dijeron que era del banco", ACH-195), mas sim quem disse ser do banco e pediu a
-  senha ou tomou o cartão, mesmo na loja ("en el cajero me dijo que era del banco y me cambió la
-  tarjeta", REG-38); e o "supuesto" ou "falso" gerente, atendente ou suporte;
+  funcionário", "creyendo que era mi sobrino"), e o "supuesto" ou "falso" gerente, atendente ou
+  suporte. O papel antes do verbo não conta ("o atendente falou que era só esperar", ACH-173), nem a
+  loja que diz que o problema é do banco ("me rechazaron la compra y en la tienda me dijeron que era
+  del banco", ACH-195). Quem disse ser do banco e pediu a senha ou tomou o cartão conta mesmo na
+  loja ("en el cajero me dijo que era del banco y me cambió la tarjeta", REG-38);
 - quem se apresentou como parente, ou como funcionário e pediu a senha, o código ou o dinheiro ("se
   presentó como empleado del banco y me pidió la clave", a lista do REG-28 da validação): o
   atendente de verdade também se apresenta (ACH-179);
