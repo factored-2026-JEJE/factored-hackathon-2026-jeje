@@ -8,6 +8,7 @@ conversa e a política são o código real.
 import logging
 from datetime import date
 
+import numpy as np
 import pytest
 from conftest import abrir_conversa, autenticar, cliente, conexao, dizer
 from sqlalchemy import text
@@ -21,16 +22,22 @@ VAGA = "apareceu um negócio esquisito na minha fatura"
 
 
 class ModeloFixo:
+    """Lê sempre o fluxo e a confiança dados. `codificar` faz as vezes do e5: guarda os textos que
+    chegaram ao leitor e devolve um vetor por texto."""
+
     versao = "abcdef0123456789"
 
     def __init__(self, fluxo: str, confianca: float, erro: Exception | None = None):
         self.fluxo, self.confianca, self.erro, self.lidos = fluxo, confianca, erro, []
 
-    def ler(self, textos, _codificar):
+    def codificar(self, textos):
+        self.lidos += list(textos)
+        return np.ones((len(textos), 4), dtype=np.float32) / 2
+
+    def ler_vetores(self, vetores):
         if self.erro is not None:
             raise self.erro
-        self.lidos += list(textos)
-        return [LidaDoModelo(self.fluxo, self.confianca) for _ in textos]
+        return [LidaDoModelo(self.fluxo, self.confianca) for _ in vetores]
 
 
 def leitor(fluxo="abrir_disputa", confianca=0.95, limite=0.8, erro=None, falha_na_carga=None):
@@ -40,7 +47,7 @@ def leitor(fluxo="abrir_disputa", confianca=0.95, limite=0.8, erro=None, falha_n
         cargas.append(1)
         if falha_na_carga is not None:
             raise falha_na_carga
-        return modelo, lambda textos: None
+        return modelo, modelo.codificar
 
     return Leitor(carregar, limite), modelo, cargas
 

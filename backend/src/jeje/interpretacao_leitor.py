@@ -10,6 +10,9 @@ não conferem) ou falha ao ler → vale a leitura das regras, com o motivo regis
 
 O leitor roda na CPU do próprio processo (~15 ms por mensagem, nenhuma chamada de rede); a carga
 (pesos do e5 e artefato) é pedida ao iniciar a API, em segundo plano.
+
+Com o LLM do "não entendi" (INTERPRETADOR=leitor_modelo, DEV-042, jeje.nao_entendi), a mensagem que
+o leitor não decide vai a ele antes de terminar não entendida, com o vetor do e5 já calculado.
 """
 
 import contextlib
@@ -29,6 +32,7 @@ from jeje.leitor.fluxos import LEITURA_DO_FLUXO
 from jeje.leitor.modelo import Leitura as LidaDoModelo
 from jeje.leitor.modelo import ModeloLeitor
 from jeje.mensagens import Idioma
+from jeje.nao_entendi import NaoEntendi
 
 log = logging.getLogger("jeje.leitor")
 
@@ -61,11 +65,14 @@ def em_cascata(
 
 
 class Leitor:
-    """Interpretador em cascata com o leitor. A carga acontece uma vez só: turnos que chegam
-    durante ela esperam; se ela falhar, todo turno segue pelas regras com o motivo."""
+    """Interpretador em cascata com o leitor e, se houver, o LLM do "não entendi". A carga acontece
+    uma vez só: turnos que chegam durante ela esperam; se ela falhar, todo turno segue pelas regras
+    com o motivo."""
 
-    def __init__(self, carregador: Carregador, limite: float):
-        self.carregador, self.limite = carregador, limite
+    def __init__(
+        self, carregador: Carregador, limite: float, nao_entendi: NaoEntendi | None = None
+    ):
+        self.carregador, self.limite, self.nao_entendi = carregador, limite, nao_entendi
         self._trava = threading.Lock()
         self._pronto: tuple[ModeloLeitor, Codificador] | None = None
         self._falha: Exception | None = None
@@ -91,11 +98,13 @@ class Leitor:
                 raise self._falha
             return self._pronto
 
-    def carregar(self, _timeout_s: float) -> None:
+    def carregar(self, timeout_s: float) -> None:
         """Carga ao iniciar a API (em segundo plano); falha só vira aviso no log."""
         # A falha já foi registrada em _carregado; os turnos seguem pelas regras.
         with contextlib.suppress(Exception):
             self._carregado()
+        if self.nao_entendi is not None:
+            self.nao_entendi.carregar(timeout_s)
 
     def __call__(self, texto: str, idioma_anterior: Idioma, referencia: date) -> Leitura:
         regras = interpretar(texto, idioma_anterior, referencia)
@@ -104,13 +113,17 @@ class Leitor:
         inicio = time.perf_counter()
         try:
             modelo, codificar = self._carregado()
-            (lida,) = modelo.ler([texto], codificar)
+            vetores = codificar([texto])
+            (lida,) = modelo.ler_vetores(vetores)
         except Exception as erro:
             # Fronteira do modelo: qualquer falha ao ler vale a leitura das regras.
             return Leitura(
                 regras, f"regras (fallback: {type(erro).__name__})", self._chamada(inicio)
             )
         lido, decidiu = em_cascata(regras, lida, self.limite)
+        if not decidiu and self.nao_entendi is not None:
+            # Terminaria em "não entendi": antes, o LLM com os exemplos (DEV-042).
+            return self.nao_entendi(lido, texto, vetores[0], inicio)
         fonte = f"leitor:e5@{modelo.versao[:12]}" if decidiu else "regras (leitor abaixo do limite)"
         return Leitura(lido, fonte, self._chamada(inicio))
 

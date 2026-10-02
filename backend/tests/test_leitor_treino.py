@@ -190,6 +190,16 @@ def test_espanhol_herda_a_intencao_do_ingles_pela_posicao(tmp_path):
     }
 
 
+def test_cada_frase_guarda_o_rotulo_do_corpus_de_onde_veio_o_fluxo(tmp_path):
+    """Os exemplos do LLM do "não entendi" (DEV-042) usam o rótulo do corpus, não o fluxo."""
+    lidos = lido(tmp_path, pt_teste_extra=[("pix recusado", "pagamento_recusado")])
+    rotulo = {(e.idioma, e.texto): e.intencao for e in lidos.teste + lidos.treino}
+    assert rotulo["es", "cuál es mi saldo"] == rotulo["en", "what is my balance"] == "balance"
+    assert rotulo["pt", "pix recusado"] == "declined_card_payment"
+    assert rotulo["pt", "roubaram meu cartão"] == "lost_or_stolen_card"
+    assert rotulo["es", "quiero bloquear la tarjeta"] == "freeze"
+
+
 def test_portugues_mapeia_rotulo_pelo_treino_alinhado_e_ignora_linha_sem_texto(tmp_path):
     lidos = lido(tmp_path, pt_teste_extra=[("pix recusado", "pagamento_recusado")])
     portugues = [(e.texto, e.fluxo) for e in lidos.teste if e.idioma == "pt"]
