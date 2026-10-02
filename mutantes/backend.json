@@ -7882,7 +7882,8 @@
         }
       ],
       "testes": [
-        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear"
+        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear",
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
       ]
     },
     {
@@ -9175,6 +9176,51 @@
       "testes": [
         "tests/test_bloqueio_conversa.py::test_cliente_desfaz_em_ate_7_dias_o_bloqueio_do_relato_de_roubo_e_o_caso_fica_sabendo",
         "tests/test_bloqueio_conversa.py::test_atendente_desfaz_no_console_e_o_caso_ligado_ao_bloqueio_fica_sabendo"
+      ]
+    },
+    {
+      "id": "M-BLQ-16",
+      "requisito": "R03",
+      "descricao": "O sim depois da pergunta (POL-BLQ-07) não bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando_bloqueio\":\n            if self.lida.resposta == \"sim\":\n                return self._pedido_de_bloqueio(confirmado=True)\n            if self.lida.resposta == \"nao\":\n                nada = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n                return Saida(\"CANCELADO\", \"responder\", (nada,), \"livre\", {})\n            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
+      ]
+    },
+    {
+      "id": "M-BLQ-17",
+      "requisito": "R03",
+      "descricao": "O não depois da pergunta (POL-BLQ-07) não cancela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if self.lida.resposta == \"nao\":\n                nada = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n                return Saida(\"CANCELADO\", \"responder\", (nada,), \"livre\", {})\n            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n",
+          "para": "            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_com_nao_nao_bloqueia"
+      ]
+    },
+    {
+      "id": "M-BLQ-18",
+      "requisito": "R03",
+      "descricao": "A conversa ignora a pergunta hipotética e bloqueia na hora",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        hipotese = not confirmado and hipotese_ou_capacidade(self.mensagem)",
+          "para": "        hipotese = False"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
       ]
     },
     {
@@ -13086,6 +13132,21 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_cada_downgrade_desfaz_exatamente_o_seu_upgrade"
+      ]
+    },
+    {
+      "id": "M-MIG-18",
+      "requisito": "R03",
+      "descricao": "A migration 0026 não aceita o estado confirmando_bloqueio",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0026_conversa_confirmando_bloqueio.py",
+          "de": "DEPOIS = (*ANTES, \"confirmando_bloqueio\")",
+          "para": "DEPOIS = ANTES"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
       ]
     }
   ]
