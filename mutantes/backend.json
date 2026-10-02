@@ -11500,7 +11500,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    um = [a for a in termo.um if _casa(a, limpo)]\n    outro = [b for b in termo.outro if _casa(b, limpo)]\n    for a, b in product(um, outro):\n",
+          "de": "    um = [a for a in termo.um if _casa(a, limpo)]\n    if not um:\n        return None  # sem nenhum termo do primeiro grupo, o segundo nem é procurado\n    outro = [b for b in termo.outro if _casa(b, limpo)]\n    for a, b in product(um, outro):\n",
           "para": "    for a, b in product(termo.um, termo.outro):\n"
         }
       ],

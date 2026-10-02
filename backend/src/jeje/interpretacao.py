@@ -115,6 +115,8 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
         return termo if _casa(termo, limpo) else None
     entre = rf"((?: [a-z0-9]+){{0,{termo.entre}}}) "
     um = [a for a in termo.um if _casa(a, limpo)]
+    if not um:
+        return None  # sem nenhum termo do primeiro grupo, o segundo nem é procurado
     outro = [b for b in termo.outro if _casa(b, limpo)]
     for a, b in product(um, outro):
         x, y = _padrao(a), _padrao(b)
