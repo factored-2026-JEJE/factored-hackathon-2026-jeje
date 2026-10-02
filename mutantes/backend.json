@@ -12336,6 +12336,36 @@
       ]
     },
     {
+      "id": "M-ITP-171",
+      "requisito": "R03",
+      "descricao": "Senha obtida por outra pessoa não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"conseguiu\", \"consiguio\", \"pediu\", \"pidio\", \"pidieron\", \"pediram\", \"roubou\", \"robo\"),",
+          "para": "     ),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-172",
+      "requisito": "R03",
+      "descricao": "\"Se passava por\" e \"falando que era\" não são golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"se passava por\", \"se fazia passar por\", \"fingia ser\", \"se hacia pasar por\",\n     \"haciendose pasar por\"),",
+          "para": "     ),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude"
+      ]
+    },
+    {
       "id": "M-LLM-25",
       "requisito": "R02",
       "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",
