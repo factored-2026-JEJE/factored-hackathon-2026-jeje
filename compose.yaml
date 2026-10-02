@@ -44,8 +44,8 @@ x-app-env: &app-env
   # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local), "leitor_modelo"
   # (o leitor e, no que ele não decide, o LLM local com exemplos) ou "ollama" (modelo local), todos
   # consultados só quando as regras não entendem (interpretacao_leitor.py, nao_entendi.py,
-  # interpretacao_modelo.py). Regras aqui (testes, carga, migrações); a API da stack de
-  # demonstração liga o leitor (serviço api).
+  # interpretacao_modelo.py). Regras aqui (testes, carga, migrações); a API liga o leitor e o LLM
+  # (serviço api).
   INTERPRETADOR: "regras"
   # Leitor e5 (INTERPRETADOR=leitor): artefato e pesos gerados no build da imagem (estágio
   # "modelo") e a confiança calibrada mínima para ele decidir; abaixo, seguem as regras.
@@ -183,14 +183,16 @@ services:
     image: jeje-api:${JEJE_TAG:-local}
     environment:
       <<: *app-env
-      # Leitor e5 ligado na demonstração (lê o que as regras não entendem, ~15 ms por mensagem, na
-      # CPU da própria API); o compose.ci.yaml volta para "regras". "ollama" continua possível.
-      INTERPRETADOR: "leitor"
+      # Leitor e5 e o LLM do "não entendi" ligados na demonstração e na publicação (PRD-010): o
+      # leitor lê o que as regras não entendem (~15 ms, na CPU da própria API) e o LLM, pela ponte
+      # do Ollama, só o que o leitor não decide. Sem a ponte, essas mensagens seguem não
+      # entendidas, como com "leitor". O compose.ci.yaml volta para "regras".
+      INTERPRETADOR: "leitor_modelo"
       # Processos do uvicorn (DEV-045): cada um usa um núcleo e carrega o próprio leitor (~1 GB).
       # Nada do atendimento fica na memória do processo (sessões, travas e contadores estão no
       # banco). Um na máquina de quem desenvolve; a publicação e o CI sobem mais.
       WEB_CONCURRENCY: "1"
-    # Ollama do host, quando INTERPRETADOR=ollama (no Linux o nome precisa ser declarado).
+    # Ollama do host, para o LLM (no Linux o nome precisa ser declarado).
     extra_hosts:
       - host.docker.internal:host-gateway
     depends_on:
