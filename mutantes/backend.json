@@ -12759,6 +12759,202 @@
       ]
     },
     {
+      "id": "M-GAR-01",
+      "requisito": "R03",
+      "descricao": "Garantia dispara abaixo do limiar do detector",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if p < limiar:\n            return Decisao(p, limiar)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_detector_abaixo_do_limiar_nao_muda_a_leitura"
+      ]
+    },
+    {
+      "id": "M-GAR-02",
+      "requisito": "R03",
+      "descricao": "Prevenção sem vítima não segura a garantia (o LLM é chamado para quem pede dicas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if so_prevencao(texto):\n            return Decisao(p, limiar, prevencao=True)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_prevencao_sem_vitima_segura_antes_do_llm"
+      ]
+    },
+    {
+      "id": "M-GAR-03",
+      "requisito": "R03",
+      "descricao": "Garantia dispara sem a confirmação do LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        return self.detector and not self.prevencao and self.llm in ENCAMINHAM",
+          "para": "        return self.detector and not self.prevencao"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_llm_que_le_outra_coisa_nao_dispara_mas_deixa_o_rastro",
+        "tests/test_garantia_conversa.py::test_llm_que_falha_nao_dispara_a_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-04",
+      "requisito": "R03",
+      "descricao": "Falha do LLM na garantia apaga o rastro do detector",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        except Exception as erro:\n            log.warning(\"garantia sem o modelo",
+          "para": "        except ValueError as erro:\n            log.warning(\"garantia sem o modelo"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_llm_que_falha_nao_dispara_a_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-05",
+      "requisito": "R03",
+      "descricao": "Fraude e atendente lidos pela cascata passam de novo pela garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if lida.intencao in ENCAMINHAM or controle(lida):",
+          "para": "        if controle(lida):"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-06",
+      "requisito": "R03",
+      "descricao": "Sim, não e escolhas passam pela garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if lida.intencao in ENCAMINHAM or controle(lida):",
+          "para": "        if lida.intencao in ENCAMINHAM:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-07",
+      "requisito": "R03",
+      "descricao": "A leitura do LLM na cascata não é reaproveitada (duas chamadas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        lido = lida.intencao if leitura.fonte.startswith(\"ollama:\") else None",
+          "para": "        lido = None"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_a_leitura_do_llm_na_cascata_e_reaproveitada"
+      ]
+    },
+    {
+      "id": "M-GAR-08",
+      "requisito": "R03",
+      "descricao": "A garantia bloqueia o cartão na conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if decisao.regra == \"POL-HUM-01\" and pela_garantia(self.lida):\n",
+          "para": "            if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_na_conversa_a_garantia_encaminha_sem_bloquear_o_cartao"
+      ]
+    },
+    {
+      "id": "M-GAR-09",
+      "requisito": "R03",
+      "descricao": "O rastro que segue conta como disparo da garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    return any(s.startswith(prefixo) and s.endswith(\":dispara\") for s in lida.sinais)",
+          "para": "    return any(s.startswith(prefixo) for s in lida.sinais)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_llm_que_le_outra_coisa_nao_dispara_mas_deixa_o_rastro"
+      ]
+    },
+    {
+      "id": "M-GAR-10",
+      "requisito": "R03",
+      "descricao": "GARANTIA_DE_FRAUDE ignorada: a garantia liga sempre com o LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        if llm is None or not settings.garantia_de_fraude:",
+          "para": "        if llm is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_api_liga_a_garantia_so_com_o_llm_e_a_flag"
+      ]
+    },
+    {
+      "id": "M-GAR-11",
+      "requisito": "R03",
+      "descricao": "A garantia liga sem o LLM (NOV-39)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        if llm is None or not settings.garantia_de_fraude:",
+          "para": "        if not settings.garantia_de_fraude:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_api_liga_a_garantia_so_com_o_llm_e_a_flag"
+      ]
+    },
+    {
+      "id": "M-GAR-12",
+      "requisito": "R03",
+      "descricao": "Falha na carga do detector não é lembrada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "            if self._pronto is None and self._falha is None:",
+          "para": "            if self._pronto is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_detector_indisponivel_segue_a_cascata_e_a_falha_e_lembrada"
+      ]
+    },
+    {
+      "id": "M-GAR-13",
+      "requisito": "R03",
+      "descricao": "Sinal de vítima não desfaz a prevenção na garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "    return _tem(limpo, PREVENCAO) and not _tem(limpo, VITIMA)",
+          "para": "    return _tem(limpo, PREVENCAO)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_prevencao_sem_vitima_segura_antes_do_llm"
+      ]
+    },
+    {
       "id": "M-CONV-101",
       "requisito": "R03",
       "descricao": "\"No, esa no\" na confirmação vira o resumo da etapa, com a mesma proposta (ACH-145)",
