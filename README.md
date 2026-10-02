@@ -40,7 +40,7 @@ flowchart LR
   api --> sessao[Sessão de teste<br/>quem é o cliente]
   api --> leitura[Leitura da mensagem<br/>regras primeiro]
   leitura -. só o que as regras<br/>não entendem .-> leitor[Leitor e5<br/>na própria API]
-  leitura -. opcional .-> ollama[(Ollama do host<br/>pela ponte)]
+  leitor -. só o que ele<br/>não decide .-> ollama[(LLM local qwen3:4b<br/>Ollama do host, pela ponte)]
   api --> politica[Política determinística<br/>regras POL-*]
   politica --> acoes[Consulta · pré-caso<br/>encaminhamento]
   acoes --> banco[(PostgreSQL<br/>curada + atendimento<br/>+ eventos)]
@@ -207,15 +207,16 @@ registro. Mesma versão já carregada: nada muda.
 
 ## Leitor de intenção (e5)
 
-A API da demonstração lê em cascata: as regras leem primeiro, e só as frases que elas não entendem
-vão para o leitor e5, um classificador que roda na CPU da própria API (~15–90 ms por mensagem,
-nenhuma chamada de rede). Ele só classifica: vira intenção e status pelo mapeamento abaixo, e só com
-confiança calibrada de 0,8 ou mais (`LEITOR_LIMITE`); abaixo disso a frase segue como não entendida
-e a conversa responde com o que entendeu e a oferta de um atendente. Sim/não, fraude por palavra, pedido de atendente, valor, data, comércio
-e identificadores continuam com as regras, e a política decide o que fazer. A API pede a carga do
-leitor ao iniciar (log `leitor pronto` ou `leitor indisponivel`); qualquer falha segue pelas regras,
-e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu cada mensagem:
-`regras`, `leitor:e5@<versão>` ou `regras (leitor abaixo do limite)`.
+A API lê em cascata: as regras leem primeiro, e só as frases que elas não entendem vão para o leitor
+e5, um classificador que roda na CPU da própria API (~15–90 ms por mensagem, nenhuma chamada de
+rede). Ele só classifica: vira intenção e status pelo mapeamento abaixo, e só com confiança
+calibrada de 0,8 ou mais (`LEITOR_LIMITE`); abaixo disso a frase vai ao LLM do "não entendi" (seção
+seguinte) e, se ele também não entender, segue como não entendida, e a conversa responde com o que
+entendeu e a oferta de um atendente. Sim/não, fraude por palavra, pedido de atendente, valor, data,
+comércio e identificadores continuam com as regras, e a política decide o que fazer. A API pede a
+carga do leitor ao iniciar (log `leitor pronto` ou `leitor indisponivel`); qualquer falha segue pelas
+regras, e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu cada
+mensagem: `regras`, `leitor:e5@<versão>`, `ollama:qwen3:4b` ou `regras (leitor abaixo do limite)`.
 
 - Modelo: `intfloat/multilingual-e5-base` (MIT) para transformar a frase em vetor + regressão
   logística nos fluxos, com a confiança calibrada por temperatura. Fluxo → leitura:
@@ -245,7 +246,8 @@ e o trace do turno (`app.eventos.interpretacao`, `make metricas`) diz quem leu c
   repetida, que tiram "me cobraron dos veces" da consulta). O BANKING77 é traduzido e o MInDS-14 é ibérico: gíria latino-americana ("me la
   rebotaron", "pix") fica abaixo do limite e cai no esclarecimento. A avaliação que vale é um
   conjunto ES/PT escrito pelo time.
-- Sem leitor: `INTERPRETADOR: "regras"` no serviço `api` do `compose.yaml`. Testes, fixture, CI e
+- Sem o LLM: `INTERPRETADOR: "leitor"`; sem leitor nem LLM: `INTERPRETADOR: "regras"`, no serviço
+  `api` do `compose.yaml`. Testes, fixture, CI e
   mutantes já rodam com regras (`compose.ci.yaml`); os testes do leitor usam um codificador falso
   (a imagem de testes não tem torch).
 
@@ -281,7 +283,33 @@ mais frases (53% contra 41% em es), porque as probabilidades do TF-IDF são meno
 não tem a calibração por temperatura do leitor. Por isso a cascata da API continua com o e5. Pela
 regra do time, nada de Enzo é trocado sem resultado melhor.
 
-### Modelo local (Ollama, opcional)
+### LLM no lugar do "não entendi" (padrão)
+
+Com `INTERPRETADOR: "leitor_modelo"` (o padrão da API, decidido por Jader na PRD-010), a frase que as
+regras não entendem e o leitor não decide não termina em "não entendi": antes, o LLM local
+(`NAO_ENTENDI_MODELO`, `qwen3:4b`, pelo Ollama do host e a ponte) a lê. É a variante AL do NOV-19 da
+validação, com bloquear e desbloquear entre as intenções (NOV-27) e o golpe na definição de fraude
+(NOV-30):
+
+- o prompt é o da validação (`backend/src/jeje/nao_entendi.py`, conferido contra o texto gerado pelo
+  código dela), com exemplos: as 3 frases de treino do BANKING77 mais parecidas com a mensagem, de
+  cada intenção, no idioma dela, e frases fixas de bloqueio, desbloqueio, mensagem sem pedido e
+  atendente. As frases e os vetores do e5 saem do build, ao lado do leitor (`vizinhos.joblib`), e a
+  mensagem usa o vetor que o leitor já calculou, sem outro modelo na imagem;
+- ele só diz a intenção (esquema forçado, temperatura 0, semente fixa, sem raciocínio). Língua,
+  pistas, sim/não e sinais continuam das regras, e a política decide o que fazer;
+- saída fora do esquema, lentidão (`OLLAMA_TIMEOUT_S`) ou Ollama fora do ar: a frase segue não
+  entendida, como antes, com o motivo no trace (`regras (fallback: …)`); o turno lido pelo LLM
+  registra `ollama:qwen3:4b`, a latência e os tokens.
+
+Medido pela validação (NOV-19, EV-146, com os vizinhos pelo MiniLM): +10,7 e +14,4 p.p. de acerto no
+teste do BANKING77 e +5,9 p.p. nas mensagens dela, sem mais ação indevida, com o LLM em 11% a 18%
+das mensagens; no conjunto novo do NOV-21, +1,6 (es) e +2,1 (pt). No produto, com os vizinhos pelo
+e5, na mesma metade de avaliação do teste do BANKING77 e com os rótulos da validação: acerto de 76,0%
+para 85,3% (es) e de 72,0% para 85,8% (pt), sem mais ação indevida (0,3% e 0,4%), com o LLM em 12% e
+17% das mensagens e ~0,6 s nesses turnos (p50, `qwen3:4b` na GPU da máquina da publicação).
+
+### Modelo local no lugar do leitor (Ollama, opcional)
 
 `INTERPRETADOR: "ollama"` troca o leitor por um modelo local (Ollama do host, `qwen2.5:7b`) no
 mesmo papel: só classifica o que as regras não entendem, e diz a língua, a intenção e o status
