@@ -6597,6 +6597,21 @@
       ]
     },
     {
+      "id": "M-LEITOR-73",
+      "requisito": "R02",
+      "descricao": "O ruído sem palavra conhecida (\"asdf qwer\", \"kkkkk\") chega ao leitor e é lido como pedido fora de escopo (ACH-122)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if not reconhecivel(texto):\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_mensagem_sem_palavra_conhecida_nao_chega_ao_leitor"
+      ]
+    },
+    {
       "id": "M-ITP-28",
       "requisito": "R07",
       "descricao": "Cobrança repetida volta a ser consulta (\"me cobraron dos veces\" responde só o status)",
@@ -12558,6 +12573,21 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-200",
+      "requisito": "R02",
+      "descricao": "O pedido que é só a pessoa com o \"por favor\" abreviado (\"asesor pfv\") não é pedido de atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "POR_FAVOR = r\"(?:por favor|porfavor|porfa|pfv|pfvr|pf|pls|plis|plz|please)\"",
+          "para": "POR_FAVOR = r\"(?:por favor)\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente"
       ]
     },
     {

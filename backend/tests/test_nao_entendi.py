@@ -216,6 +216,13 @@ def test_o_que_as_regras_entendem_nao_chega_ao_leitor_nem_ao_llm(exemplos, texto
     assert (leitura.fonte, leitura.lida) == ("regras", interpretar(texto, "pt", REFERENCIA))
 
 
+def test_ruido_nao_chega_ao_llm(exemplos):
+    """ACH-122: a mensagem sem nenhuma palavra do vocabulário não custa uma chamada ao LLM."""
+    with ollama_falso(resposta("fora_de_escopo")) as (url, pedidos):
+        leitura = cascata(url, exemplos)("kkkkk", "pt", REFERENCIA)
+    assert (pedidos, leitura.lida.intencao) == ([], "desconhecida")
+
+
 @pytest.mark.parametrize(
     ("conteudo", "erro"),
     [
