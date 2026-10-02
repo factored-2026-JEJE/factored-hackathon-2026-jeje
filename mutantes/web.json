@@ -1717,7 +1717,7 @@
         }
       ],
       "testes": [
-        "src/site/Site.test.tsx > a persona da conversa de verdade > prefere a que tem exemplo para contestar, cartão e mais de uma recusa"
+        "src/site/Site.test.tsx > a persona da conversa de verdade > prefere a que tem exemplo para contestar; depois, a com mais de uma recusa; depois, cartão"
       ]
     },
     {
@@ -2131,6 +2131,21 @@
       ],
       "testes": [
         "src/site/Site.test.tsx > com a API (acesso aberto) > a contestação vai com uma compra da persona, e o balão mostra o turno da API"
+      ]
+    },
+    {
+      "id": "M-WEB-147",
+      "requisito": "DEV-032a",
+      "descricao": "A persona da conversa prefere cartão a recusas (o \"qual transação\" some da demo)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "(p.transacoes_recusadas > 1 ? 2 : 0)",
+          "para": "(p.transacoes_recusadas > 1 ? 0 : 0)"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a persona da conversa de verdade > prefere a que tem exemplo para contestar; depois, a com mais de uma recusa; depois, cartão"
       ]
     }
   ]
