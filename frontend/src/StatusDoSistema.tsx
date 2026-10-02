@@ -48,6 +48,14 @@ export function StatusDoSistema() {
             ? `versão ${dataset.version.slice(0, 12)} (${dataset.source}), carregada em ${new Date(dataset.loaded_at).toLocaleString("pt-BR")}`
             : "nenhum dataset carregado"}
         </dd>
+        {dataset?.recusada && (
+          <>
+            <dt>Versão recusada</dt>
+            <dd role="alert">
+              {`versão ${dataset.recusada.version.slice(0, 12)} recusada em ${new Date(dataset.recusada.em).toLocaleString("pt-BR")}: ${dataset.recusada.motivo}; segue a versão ${dataset.version.slice(0, 12)}`}
+            </dd>
+          </>
+        )}
       </dl>
     </section>
   );
