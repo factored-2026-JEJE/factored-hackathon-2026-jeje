@@ -12372,12 +12372,27 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    \"evito\", \"evita\", \"evitas\", \"evite\", \"evitamos\", \"evitarlo\", \"evitarla\", \"evitalo\", \"evitala\",\n    \"como no caer\", \"para no caer\", \"para nao cair\", \"como nao cair\", \"cuidarme\", \"cuidarse\",\n    \"como me cuido\", \"me cuidar\", \"me previno\", \"como me previno\", \"prevengo\"\n",
+          "de": "    \"evito\", \"evita\", \"evitas\", \"evite\", \"evitamos\", \"evitarlo\", \"evitarla\", \"evitalo\", \"evitala\",\n    \"como no caer\", \"para no caer\", \"para nao cair\", \"como nao cair\", \"cuidarme\", \"cuidarse\",\n    \"como me cuido\", \"me cuidar\", \"me previno\", \"como me previno\", \"prevengo\",\n",
           "para": ""
         }
       ],
       "testes": [
         "tests/test_interpretacao.py::test_flexoes_de_evitar_e_cuidar_sao_prevencao"
+      ]
+    },
+    {
+      "id": "M-ITP-189",
+      "requisito": "R07",
+      "descricao": "A hipótese de perda (\"en caso de perder la tarjeta\") lida como fraude bloqueia o cartão (REG-20)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # A hipótese de perda (\"en caso de perder la tarjeta, ¿cómo la bloqueo?\"), do REG-20.\n    \"en caso de\", \"em caso de\", \"caso eu\", \"si la pierdo\", \"si lo pierdo\", \"si pierdo\",\n    \"se eu perder\", \"se eu perdesse\", \"que pasa si\", \"o que acontece se\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_hipotese_de_perda_e_prevencao"
       ]
     },
     {
