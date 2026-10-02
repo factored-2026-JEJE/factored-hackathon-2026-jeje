@@ -1478,8 +1478,11 @@ def test_a_fraude_negada_pelo_cliente_nao_e_relato(texto, anterior):
         # A negação dentro da oração com "que" é a dúvida ou a crença de quem caiu no golpe.
         ("Quiero asegurarme de que no fue un fraude", "es"),
         ("Achei que não era golpe e passei a senha", "pt"),
+        # A negação do golpista citada pela vítima (REG-42 da validação).
+        ("Me juró: no es una estafa. Le transferí 500 dólares", "es"),
+        ("El asesor me dijo 'no es fraude' y me pidió la clave", "es"),
         # O "no" do português não é negação.
-        ("Acho que caí no golpe agora, mandei um pix", "pt"),
+        ("No golpe do pix que sofri, perdi dois mil reais", "pt"),
         ("No fue un robo, perdí la tarjeta en el bus", "es"),
     ],
 )
