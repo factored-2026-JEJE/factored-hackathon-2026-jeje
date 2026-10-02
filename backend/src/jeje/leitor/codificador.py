@@ -68,3 +68,17 @@ class E5:
             [PREFIXO + t for t in textos], batch_size=self.lote, normalize_embeddings=True
         )
         return np.asarray(vetores, dtype=np.float32)
+
+
+class ComMemoria:
+    """Cada texto é codificado uma vez só: o treino do leitor e os exemplos do LLM do "não
+    entendi" (DEV-042) leem o mesmo corpus, e o e5 é o passo caro do build."""
+
+    def __init__(self, codificar: Codificador):
+        self.codificar, self.vistos = codificar, {}
+
+    def __call__(self, textos: Sequence[str]) -> np.ndarray:
+        faltam = [t for t in dict.fromkeys(textos) if t not in self.vistos]
+        if faltam:
+            self.vistos.update(zip(faltam, self.codificar(faltam), strict=True))
+        return np.array([self.vistos[t] for t in textos])
