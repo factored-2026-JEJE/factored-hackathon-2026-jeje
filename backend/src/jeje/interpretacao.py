@@ -272,8 +272,13 @@ CARTAO = ("tarjeta*", "cartao", "cartoes", *PLASTICO)
 PEDIDO_DE_BLOQUEIO = Perto(
     ("bloquear", "bloquearla", "bloquearlo", "bloquea", "bloquee", "bloqueen", "bloqueela",
      "bloqueala", "bloqueenla", "bloqueia", "bloqueie", "bloqueiem", "como bloqueo",
-     "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congela", "congele", "congelen",
-     "congelem", "congelarla", "congelala", "travar", "trava", "trave", "travem"),
+     "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congele", "congelen",
+     "congelem", "congelarla", "congelala", "travar", "trave", "travem",
+     # "Trava" e "congela" também descrevem o cartão ("meu cartão trava na maquininha", "o
+     # aplicativo trava quando abro o cartão", "a trava do cartão"): só são pedido seguidos do
+     # cartão de quem pede (auditoria do dev, 02/10).
+     "trava meu", "trava minha", "trava o", "trava a", "trava esse", "trava este",
+     "congela mi", "congela la", "congela el", "congela esta", "congela esa"),
     CARTAO,
 )  # fmt: skip
 # Reativar, achar o cartão e liberar de novo também pedem desbloqueio (ACH-140); ativar um cartão
