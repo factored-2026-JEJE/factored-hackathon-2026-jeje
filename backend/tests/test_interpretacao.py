@@ -1476,6 +1476,96 @@ def test_so_o_q_sozinho_vira_que():
 
 
 @pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("¡Es un robo! Me cobraron 3 dólares de comisión", "es"),
+        ("¡Esto es un robo! Pagué el pedido hace dos semanas y nunca llegó", "es"),
+        ("Isso é um assalto, a tarifa subiu de novo", "pt"),
+        # O dinheiro tirado pela tarifa (REG-39 da validação).
+        ("Me sacaron plata de la cuenta por la comisión de mantenimiento", "es"),
+        ("Tiraram dinheiro da minha conta pela tarifa do pacote", "pt"),
+    ],
+)
+def test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo(texto, anterior):
+    """A indignação ("¡esto es un robo!") sozinha não é relato: o cartão de quem reclama da tarifa
+    ou da compra que não chegou não é bloqueado."""
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Sufrí un robo y se llevaron mi tarjeta", "es"),
+        ("Hubo un robo en mi casa y se llevaron mi tarjeta", "es"),
+        ("¡Esto es un robo! Alguien usó mi tarjeta en otra ciudad", "es"),
+        ("Fui vítima de um roubo, levaram meu cartão", "pt"),
+        ("Me han estafado con una transferencia y no recupero el dinero", "es"),
+        # O "que" de quem roubou e o roubo de alguma coisa não são indignação (REG-39 da validação).
+        ("Alguien que robó mi tarjeta la está usando", "es"),
+        ("Fui víctima de alguien que robó mi billetera", "es"),
+        ("Creo que es un robo de identidad", "es"),
+        ("Isso é um roubo de identidade", "pt"),
+        # O dinheiro tirado da conta por outros.
+        ("¡Esto es un robo! Me sacaron plata de la cuenta", "es"),
+        ("Que roubo! Tiraram dinheiro da minha conta sem eu saber", "pt"),
+        # Sem a exclamação, o relato em volta dela continua inteiro.
+        ("Alguien, ¡esto es un robo!, usó mi tarjeta", "es"),
+    ],
+)
+def test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Me rechazaron la compra y en la tienda me dijeron que era del banco", "es"),
+        ("El comercio me dijo que era el banco el que no autorizaba", "es"),
+        ("Pensé que era el banco el que me cobró la comisión", "es"),
+        ("A loja disse que era do banco o problema", "pt"),
+        ("Na loja disseram que era do banco e que eu devia ligar para a central", "pt"),
+        # A loja que pede outra coisa (REG-38 da validação).
+        ("En la tienda me dijeron que era del banco y me pidieron otra tarjeta", "es"),
+        ("A loja disse que era do banco e pediu para eu ligar na central", "pt"),
+    ],
+)
+def test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe(texto, anterior):
+    """A loja que diz que o problema é do banco, ou quem achou que a cobrança era do banco, não
+    conta um golpe, e o cartão não é bloqueado (ACH-195)."""
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # A loja longe do verbo: quem diz ser do banco é a pessoa.
+        ("En la tienda una señora me dijo que era del banco y me pidió mis datos", "es"),
+        ("Me llamaron diciendo que era del banco y me pidieron el código", "es"),
+        # A Caixa é banco, não loja.
+        ("Ligaram da Caixa dizendo que era do banco e pediram a senha", "pt"),
+    ],
+)
+def test_quem_disse_que_era_do_banco_fora_da_loja_continua_golpe(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # Os golpes do REG-37 da validação, que o fora da loja tirava de fraude.
+        ("En el cajero me dijo que era del banco y me cambió la tarjeta", "es"),
+        ("Un hombre en la tienda dijo que era del banco y se llevó mi tarjeta", "es"),
+        ("En el mercado me dijo que era del banco y me pidió la clave", "es"),
+        ("Me llamaron diciendo que era del banco quien hablaba y me pidieron el código", "es"),
+        ("No posto um homem disse que era do banco e pegou meu cartão", "pt"),
+        ("Disseram que era do banco quem estava ligando e pediram a senha", "pt"),
+    ],
+)
+def test_quem_disse_ser_do_banco_e_pediu_ou_tomou_o_cartao_e_golpe_mesmo_na_loja(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
     "texto",
     [
         # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).
