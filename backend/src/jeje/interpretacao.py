@@ -617,21 +617,39 @@ INDIGNACAO = re.compile(
     r"(?:un |um )?(?:robo|roubo|asalto|assalto)(?![a-z0-9])(?! d[eoa]\b)"
 )
 # A fraude negada pelo cliente ("no fue un fraude, yo hice la compra", "não é golpe, só quero
-# entender essa cobrança") também não é relato. Só no começo da mensagem, onde o cliente nega: a
-# negação do golpista citada pela vítima ("me juró: no es una estafa") e a da oração com "que"
-# ("quiero asegurarme de que no fue un fraude") seguem relato (REG-42 da validação). E só com o
-# verbo logo depois da negação: "no golpe do pix" é o "no" do português.
+# entender essa cobrança") também não é relato. Só no começo da mensagem, onde o cliente nega,
+# também depois do cumprimento ("hola, no es fraude…"): a negação do golpista citada no meio ("me
+# juró: no es una estafa") e a da oração com "que" seguem relato (REG-42 e REG-44 da validação). E
+# só com o verbo logo depois da negação: "no golpe do pix" é o "no" do português.
 FRAUDE_NEGADA = re.compile(
-    r"^(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|"
+    r"^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|buen dia|oi|ola|bom dia|boa tarde|"
+    r"boa noite) )?(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|"
     r"creo que es|acho que seja|acho que foi|acho que e) (?:un |um |una |uma )?"
     r"(?:fraude|golpe|estafa|robo|roubo)(?![a-z0-9])"
 )
 
 
+# Um verbo de fala logo depois marca a negação do golpista citada no começo ("'não é golpe', ele
+# falou, e eu fiz o pix"): ali, a negação fica no texto (REG-44 da validação, ACH-200).
+FALA = frozenset((
+    "disse", "disseram", "dizia", "diziam", "dizendo", "falou", "falaram", "falava", "falando",
+    "jurou", "juraram", "garantiu", "garantiram", "afirmou", "insistiu", "repetiu", "respondeu",
+    "escreveu", "dijo", "dijeron", "decia", "decian", "diciendo", "juro", "juraron", "aseguro",
+    "aseguraron", "afirmo", "insistio", "repitio", "respondio", "escribio",
+))  # fmt: skip
+FALA_JANELA = 3
+
+
 def _sem_o_que_nao_e_relato(limpo: str) -> str:
-    """O texto lido para a fraude: sem a indignação nem a fraude negada, com os espaços juntados
-    (o `Perto` conta palavras com um espaço só)."""
-    return " ".join(FRAUDE_NEGADA.sub(" ", INDIGNACAO.sub(" ", limpo)).split())
+    """O texto lido para a fraude: sem a indignação nem a fraude negada pelo cliente, com os espaços
+    juntados (o `Perto` conta palavras com um espaço só)."""
+    texto = INDIGNACAO.sub(" ", limpo)
+
+    def citada_ou_tirada(achado: re.Match[str]) -> str:
+        perto = {*texto[achado.end() :].split()[:FALA_JANELA]}
+        return achado.group(0) if FALA & perto else " "
+
+    return " ".join(FRAUDE_NEGADA.sub(citada_ou_tirada, texto).split())
 
 
 # O dinheiro tirado da conta por outros ("¡esto es un robo! me sacaron plata de la cuenta", "que

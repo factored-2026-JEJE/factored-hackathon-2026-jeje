@@ -13024,14 +13024,44 @@
       ]
     },
     {
+      "id": "M-ITP-245",
+      "requisito": "R02",
+      "descricao": "A negação depois do cumprimento segue relato (\"Hola, no es fraude, solo quiero saber…\" bloqueia ou encaminha como fraude)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?:hola|buenas|buenos dias|buenas tardes|buenas noches|buen dia|oi|ola|bom dia|boa tarde|\"\n    r\"boa noite) )?",
+          "para": "(?:xyz) )?"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_fraude_negada_pelo_cliente_nao_e_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-246",
+      "requisito": "R02",
+      "descricao": "O verbo de fala depois não conta: \"\\\"Não é golpe\\\", ele falou, e eu fiz o pix\" deixa de ser relato",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        perto = {*texto[achado.end() :].split()[:FALA_JANELA]}\n",
+          "para": "        perto = set()\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_negacao_que_nao_e_do_cliente_segue_relato"
+      ]
+    },
+    {
       "id": "M-ITP-238",
       "requisito": "R02",
       "descricao": "A fraude negada pelo cliente (\"no fue un fraude, yo hice la compra\") é relato e bloqueia o cartão",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo)).split())\n",
-          "para": "    return \" \".join(INDIGNACAO.sub(\" \", limpo).split())\n"
+          "de": "        return achado.group(0) if FALA & perto else \" \"\n",
+          "para": "        return achado.group(0)\n"
         }
       ],
       "testes": [
@@ -13045,7 +13075,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    r\"^(?:no|nao|nunca) ",
+          "de": "    r\"^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|buen dia|oi|ola|bom dia|boa tarde|\"\n    r\"boa noite) )?(?:no|nao|nunca) ",
           "para": "    r\"(?<![a-z0-9])(?:no|nao|nunca) "
         }
       ],
@@ -13240,8 +13270,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo)).split())\n",
-          "para": "    return FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo))\n"
+          "de": "    return \" \".join(FRAUDE_NEGADA.sub(citada_ou_tirada, texto).split())\n",
+          "para": "    return FRAUDE_NEGADA.sub(citada_ou_tirada, texto)\n"
         }
       ],
       "testes": [
@@ -13300,8 +13330,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", INDIGNACAO.sub(\" \", limpo)).split())\n",
-          "para": "    return \" \".join(FRAUDE_NEGADA.sub(\" \", limpo).split())\n"
+          "de": "    texto = INDIGNACAO.sub(\" \", limpo)\n",
+          "para": "    texto = limpo\n"
         }
       ],
       "testes": [
