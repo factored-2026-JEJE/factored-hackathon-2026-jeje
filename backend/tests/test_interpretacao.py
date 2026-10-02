@@ -1030,3 +1030,51 @@ def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
 )
 def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
     assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # DEV-080 (ACH-159, HUM-01): a pessoa citada sem pedido não é pedido de atendente.
+        "Una persona me cobró de más en la tienda.",
+        "Uma pessoa me cobrou a mais na loja.",
+        "O atendente da loja foi muito educado.",
+        "El agente de viajes me vendió el paquete",
+    ],
+)
+def test_pessoa_citada_sem_pedido_nao_e_pedido_de_atendente(texto):
+    assert ler(texto).intencao != "humano"
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # Com o verbo de pedido perto, é; e "gerente" vale com os pedidos de PT.
+        ("Chama um gerente.", "humano"),
+        ("Me coloca com um gerente.", "humano"),
+        ("quiero que una persona revise mi caso", "humano"),
+        # A mensagem que é só a pessoa continua sendo pedido.
+        ("Agente", "humano"),
+        ("Un humano por favor", "humano"),
+        ("atendente agora", "humano"),
+    ],
+)
+def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # Cobrança a mais é contestação ("uma pessoa me cobrou a mais" não gerava o pré-caso).
+        ("Una persona me cobró de más en la tienda.", "contestar"),
+        ("Uma pessoa me cobrou a mais na loja.", "contestar"),
+        ("Me cobraron 20 dólares de más", "contestar"),
+        ("O mercado me cobrou a mais", "contestar"),
+        # Sem o verbo de cobrar, "mais" e "más" continuam consulta.
+        ("Qual é a cobrança mais recente?", "consultar"),
+        ("¿Cuál es el cobro más reciente?", "consultar"),
+    ],
+)
+def test_cobranca_a_mais_e_contestacao(texto, intencao):
+    assert ler(texto).intencao == intencao
