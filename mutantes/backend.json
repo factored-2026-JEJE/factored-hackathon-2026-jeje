@@ -12791,6 +12791,21 @@
       ]
     },
     {
+      "id": "M-ITP-204",
+      "requisito": "R02",
+      "descricao": "O corretor troca \"facilita\" por \"facilite\" e \"pensado\" por \"pensando\", e a mensagem comum vira golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                    if len(palavra) >= 4 and palavra not in NAO_SAO_ALVO:",
+          "para": "                    if len(palavra) >= 4:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",

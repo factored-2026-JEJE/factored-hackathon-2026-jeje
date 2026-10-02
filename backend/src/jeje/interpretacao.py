@@ -922,6 +922,14 @@ def _palavras_do_termo(termo: str | Perto) -> Iterator[str]:
         yield from normalizar(termo).split()
 
 
+# Palavras dos termos de golpe vizinhas de palavras comuns: como alvo do corretor, "la app me
+# facilita el código" virava "facilite el código" (golpe), "había pensado que era del banco" virava
+# "pensando que era" e "hombre" virava "nombre" (medido nas 14.124 mensagens da validação).
+NAO_SAO_ALVO = frozenset(
+    {"facilite", "facilitei", "pensando", "nombre", "pediram", "aseguro", "trabajar", "pariente"}
+)
+
+
 def _lexico() -> dict[str, frozenset[str]]:
     """Cada palavra (4 letras ou mais) dos termos das intenções corrigidas, e as intenções dela."""
     intencoes: dict[str, set[str]] = {}
@@ -929,7 +937,7 @@ def _lexico() -> dict[str, frozenset[str]]:
         if intencao in INTENCOES_CORRIGIDAS:
             for termo in termos:
                 for palavra in _palavras_do_termo(termo):
-                    if len(palavra) >= 4:
+                    if len(palavra) >= 4 and palavra not in NAO_SAO_ALVO:
                         intencoes.setdefault(palavra, set()).add(intencao)
     return {palavra: frozenset(i) for palavra, i in intencoes.items()}
 
