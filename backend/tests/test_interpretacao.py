@@ -1216,6 +1216,10 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         "O app pediu minha senha para entrar",
         "La página me pidió mi clave y no la acepta",
         "O sistema conseguiu recuperar minha senha",
+        # ... o dinheiro recebido de outra pessoa e outra pessoa usando outra coisa...
+        "Alguém transferiu dinheiro para mim por engano",
+        "Una persona me transfirió el pago del alquiler",
+        "Uma pessoa está usando o caixa ao meu lado",
         # A senha pedida sem dizer por quem não separa golpe de rotina: fica fora de escopo, e a
         # conversa oferece o atendente.
         "Me pidieron mi clave por WhatsApp",

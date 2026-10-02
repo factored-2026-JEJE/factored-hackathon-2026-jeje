@@ -12147,8 +12147,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso\", \"usaba\", \"usaron\",",
-          "para": "    (\"usa\", \"uso\", \"usaba\", \"usaron\","
+          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
+          "para": "    (\"usa mi\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -12297,8 +12297,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"utilizando\", \"gastando\", \"gastaron\",",
-          "para": "\"utilizando\", \"gastaron\","
+          "de": "     \"gastando con mi\", \"gastando en mi\", \"gastaron\", \"robo\", \"hizo pagos\", \"hizo compras\",",
+          "para": "     \"gastaron\", \"robo\", \"hizo pagos\", \"hizo compras\","
         }
       ],
       "testes": [
@@ -12456,6 +12456,21 @@
       ]
     },
     {
+      "id": "M-ITP-179",
+      "requisito": "R03",
+      "descricao": "Dinheiro recebido de outra pessoa (\"alguém transferiu para mim\") vira golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\",",
+          "para": "     \"comprou\", \"sacou\", \"transferiu\", \"tirou\", \"se passou\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
       "id": "M-ITP-180",
       "requisito": "R03",
       "descricao": "A senha pedida pelo caixa eletrônico ou pelo app vira golpe (REG-17)",
@@ -12464,6 +12479,21 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "    (\"conseguiu\", \"consiguio\", \"consiguieron\", \"conseguiram\", \"roubou\", \"robo\", \"roubaram\",",
           "para": "    (\"conseguiu\", \"consiguio\", \"consiguieron\", \"conseguiram\", \"pediu\", \"pidio\", \"roubou\", \"robo\", \"roubaram\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-181",
+      "requisito": "R03",
+      "descricao": "\"Uma pessoa está usando o caixa\" vira golpe (o uso sem o possessivo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
+          "para": "    (\"usando\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
         }
       ],
       "testes": [
