@@ -101,6 +101,10 @@ class Perto:
     fora_antes: tuple[str, ...] = ()
     negavel: bool = False  # negado logo antes ("no me cobraron de más"), não casa
     so_nessa_ordem: bool = False  # só o termo do primeiro grupo e depois o do segundo
+    # Nas `depois` palavras depois do par, um termo de `fora_depois` mostra que o objeto está
+    # seguro ou é outro: "olvidé mi tarjeta en casa", "la tarjeta no aparece en la app".
+    depois: int = 0
+    fora_depois: tuple[str, ...] = ()
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -126,6 +130,9 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
             if invertido and any(_casa(f, antes) for f in termo.fora_antes):
                 continue
             if termo.negavel and _negado(limpo[: achado.start()]):
+                continue
+            seguinte = " ".join(limpo[achado.end() :].split()[: termo.depois])
+            if any(_casa(f, seguinte) for f in termo.fora_depois):
                 continue
             return f"{a}+{b}"
     return None
@@ -159,12 +166,22 @@ PERDA_DE_MEIO = Perto(
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
     fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
-          "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na"),
+          "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na",
+          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).
+          "fatura", "factura", "extrato", "extracto", "resumen", "opcion", "opcao", "boleto",
+          "comprovante", "comprobante"),
     # Com o cartão antes do verbo, o que vem logo antes dele também conta: "la compra con mi
     # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
     antes=3,
     fora_antes=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "moviment*",
                 "debito*", "saldo", "limite"),
+    # Logo depois do par: o cartão em casa ou a tela do app não são perda (auditoria do dev,
+    # 02/10). Só 3 palavras: mais longe, já é outra oração ("perdi meu cartão e não aparece no
+    # aplicativo a opção de bloquear" é perda).
+    depois=3,
+    fora_depois=("en casa", "em casa", "en mi casa", "na minha casa", "en la app", "en el app",
+                 "na app", "no app", "en la aplicacion", "no aplicativo", "na aplicacao",
+                 "en la lista", "de la lista", "na lista", "da lista", "en la pantalla", "na tela"),
 )  # fmt: skip
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.

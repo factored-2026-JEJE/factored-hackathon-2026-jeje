@@ -1065,6 +1065,38 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
 @pytest.mark.parametrize(
     "texto",
     [
+        # O cartão seguro, a tela do app, o cartão cancelado, a fatura ou o extrato do cartão não
+        # são perda (auditoria do dev, 02/10): bloqueariam o cartão.
+        "Olvidé mi tarjeta en casa, ¿puedo pagar con el celular?",
+        "Esqueci meu cartão em casa, posso pagar pelo celular?",
+        "La tarjeta nueva no aparece en la app",
+        "Mi celular desapareció de la lista de dispositivos",
+        "Esqueci a fatura do cartão em casa",
+        "Não acho o extrato do cartão no app",
+        "Esqueci a fatura do cartão",
+        "No encuentro el resumen de la tarjeta",
+    ],
+)
+def test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Mais longe que 3 palavras já é outra oração: continua perda.
+        "Perdi meu cartão e não aparece no aplicativo a opção de bloquear",
+        "Se me perdió la tarjeta en el sistema de transporte",
+        "Perdí la tarjeta y no aparece en la app",
+    ],
+)
+def test_perda_seguida_de_outra_oracao_continua_perda(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # Outra pessoa usou, roubou, sacou ou pediu dinheiro: relato de fraude, que até o #57 ia ao
         # atendente pelos termos soltos de humano (REG-12 no d9dfad0).
         "alguien utilizó mi tarjeta sin mi permiso",
