@@ -12778,16 +12778,31 @@
     {
       "id": "M-ITP-203",
       "requisito": "R03",
-      "descricao": "O atendente de verdade que se apresenta e pede para esperar é golpe (ACH-179)",
+      "descricao": "O atendente de verdade que se apresenta e pede o comprovante ou o número de cliente é golpe (REG-27)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"me pidio la\", \"me pidio mi\",",
-          "para": "    (\"me pidio\", \"me pidio la\", \"me pidio mi\","
+          "de": "    (\"pidio la clave\", \"pidio mi clave\",",
+          "para": "    (\"pidio mi\", \"pidio el\", \"pediu o\", \"pidio la clave\", \"pidio mi clave\","
         }
       ],
       "testes": [
         "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-204",
+      "requisito": "R02",
+      "descricao": "O corretor troca \"facilita\" por \"facilite\" e \"pensado\" por \"pensando\", e a mensagem comum vira golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                    if len(palavra) >= 4 and palavra not in NAO_SAO_ALVO:",
+          "para": "                    if len(palavra) >= 4:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
       ]
     },
     {
