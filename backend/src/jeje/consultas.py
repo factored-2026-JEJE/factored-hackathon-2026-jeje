@@ -78,8 +78,9 @@ def transacao_do_cliente(
 
 @dataclass(frozen=True)
 class Origem:
-    """De onde veio a transação citada (DEV-044): o arquivo e a linha do CSV de origem, gravados na
-    curada pela carga, e a versão dos dados em vigor."""
+    """De onde veio a transação citada (DEV-044): o arquivo e a linha física do CSV de origem (o
+    cabeçalho é a linha 1, como no editor e no `sed -n`; a curada guarda o número do registro, e o
+    CSV de transações não tem campo com quebra de linha) e a versão dos dados em vigor (ACH-180)."""
 
     transaction_id: str
     arquivo: str
@@ -92,7 +93,8 @@ def origem_da_transacao(
 ) -> Origem | None:
     linha = conexao.execute(
         text(
-            "SELECT transaction_id, _arquivo, _linha, (SELECT version FROM meta.dataset_version)"
+            "SELECT transaction_id, _arquivo, _linha + 1,"
+            " (SELECT version FROM meta.dataset_version)"
             " FROM curated.transactions"
             " WHERE customer_id = :cliente AND transaction_id = :transacao"
         ),

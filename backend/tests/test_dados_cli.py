@@ -9,6 +9,7 @@ from sqlalchemy import text
 from test_carga import escrever_csv
 from test_download import cliente
 
+from jeje import consultas
 from jeje.dados import manifesto
 from jeje.dados.__main__ import main, preparar
 from jeje.dados.config import ConfigDados
@@ -188,3 +189,33 @@ def test_preparar_provisiona_personas_mesmo_quando_a_carga_e_pulada(
         assert con.execute(text("select customer_id from app.personas")).scalars().all() == [
             "CLI-A"
         ]
+
+
+def test_recibo_aponta_a_linha_fisica_do_csv_de_origem(
+    ambiente_fixture, banco_migrado, tmp_path, monkeypatch
+):
+    """ACH-180 (DEV-081): quem confere o recibo no editor ou com `sed -n Np` acha a transação
+    citada na linha que ele diz, contando o cabeçalho como a linha 1."""
+    raiz, _ = ambiente_fixture
+    escrever_csv(raiz, "customers.csv", "customers", [{"customer_id": "CLI-A"}])
+    escrever_csv(raiz, "products.csv", "products", [
+        {"product_id": "PRD-A", "customer_id": "CLI-A", "product_type": "Cuenta Ahorro",
+         "currency": "USD", "product_status": "Active"},
+    ])  # fmt: skip
+    caminho = "transactions/year=2025/month=03/day=10/t.csv"
+    escrever_csv(raiz, caminho, "transactions", [
+        {"transaction_id": f"TRX-{n}", "transaction_date": "2025-03-10 10:00:00",
+         "customer_id": "CLI-A", "product_id": "PRD-A", "amount": f"{n}.00", "currency": "USD",
+         "transaction_status": "Approved"}
+        for n in (1, 2, 3)
+    ])  # fmt: skip
+    tabelas = "customers,products,transactions"
+    manifestos = tmp_path / "manifesto-trx"
+    manifesto.escrever(manifestos, manifesto.gerar(raiz, tabelas.split(",")))
+    monkeypatch.setenv("DATASET_TABLES", tabelas)
+    monkeypatch.setenv("DATASET_MANIFEST_DIR", str(manifestos))
+    preparar(banco_migrado, ConfigDados())
+    with conexao(banco_migrado) as con:
+        origem = consultas.origem_da_transacao(con, "CLI-A", "TRX-2")
+    linhas = (raiz / origem.arquivo).read_text(encoding="utf-8-sig").splitlines()
+    assert linhas[origem.linha - 1].startswith("TRX-2,")
