@@ -153,6 +153,13 @@ COBRANCA_REPETIDA = Perto(
     ("dos veces", "2 veces", "duas vezes", "2 vezes", "2x", "doble", "dobro", "duplicad*",
      "repetid*"),
 )  # fmt: skip
+# Cobrança a mais é contestação: "me cobraron de más", "a loja me cobrou a mais" (ACH-159). Só com
+# o verbo de cobrar: "a cobrança mais recente" e "el cobro más reciente" continuam consulta.
+COBRANCA_A_MAIS = Perto(
+    ("cobraron", "cobro", "cobran", "cobra", "cobrou", "cobraram", "cobram", "cobrado", "cobrada"),
+    ("de mas", "demas", "a mais", "de mais"),
+    entre=2,
+)  # fmt: skip
 # Pedido de contestação com substantivo perto da transação ("una contestación a esta compra", "abrir
 # un reclamo por la compra", "uma reclamação da cobrança"): sobrava só "compra", e a conversa
 # respondia como consulta (ACH-120). Sem a transação perto, "hacer una disputa" (segurança da
@@ -370,8 +377,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
                    "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
-                   COBRANCA_REPETIDA, "revisen", "revisem", "reclamar", PEDIDO_DE_CONTESTACAO,
-                   TRANSACAO_NEGADA)),
+                   COBRANCA_REPETIDA, COBRANCA_A_MAIS, "revisen", "revisem", "reclamar",
+                   PEDIDO_DE_CONTESTACAO, TRANSACAO_NEGADA)),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
                    "negaram", "pendiente*", "pendente*", "revertid*", "estornad*", "estado",
