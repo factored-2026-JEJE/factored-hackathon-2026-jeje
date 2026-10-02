@@ -12782,8 +12782,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
-          "para": "                   \"deposito\", \"prestamo\", \"emprestimo\", \"comprobante\", \"comprovante\", \"numero\")"
+          "de": "     \"deposito\", \"prestamo\", \"emprestimo\"),",
+          "para": "     \"deposito\", \"prestamo\", \"emprestimo\", \"comprobante\", \"comprovante\", \"numero\"),"
         }
       ],
       "testes": [
@@ -12817,8 +12817,8 @@
         },
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
-          "para": "                   )"
+          "de": "     \"deposito\", \"prestamo\", \"emprestimo\"),",
+          "para": "     ),"
         }
       ],
       "testes": [

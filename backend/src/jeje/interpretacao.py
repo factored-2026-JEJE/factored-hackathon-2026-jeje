@@ -352,19 +352,32 @@ APRESENTOU = (
     "se presento como", "se presentaron como", "se apresentou como", "se apresentaram como",
 )  # fmt: skip
 SE_APRESENTOU_COMO_PARENTE = Perto(APRESENTOU, PARENTES, entre=1, so_nessa_ordem=True)
+
+
 # "Se presentó como empleado del banco y me pidió la clave", "decía trabajar en este banco y me
 # pidió la clave": só com o segredo ou o dinheiro pedidos, a lista do REG-28 da validação; o
 # atendente de verdade também se apresenta e pede o comprovante, o protocolo ou o número de cliente
 # (REG-27). As frases não entram no corretor: são muitas, e as palavras delas, comuns.
-PEDIDO_DE_SEGREDO_OU_DINHEIRO = tuple(
-    " ".join(p for p in (verbo, artigo, objeto) if p)
-    for verbo in ("me pidio", "me pidieron", "me solicito", "me pediu", "me pediram",
-                  "me solicitou")
-    for artigo in ("", "la", "el", "los", "las", "mi", "mis", "su", "a", "o", "os", "as", "minha",
-                   "meu", "meus", "minhas", "una", "un", "uma", "um")
-    for objeto in ("clave", "claves", "contrasena", "codigo", "codigos", "pin", "token", "cvv",
-                   "senha", "senhas", "plata", "dinero", "dinheiro", "pix", "transferencia",
-                   "deposito", "prestamo", "emprestimo")
+def _pedidos(
+    verbos: tuple[str, ...], artigos: tuple[str, ...], objetos: tuple[str, ...]
+) -> tuple[str, ...]:
+    """Cada pedido: o verbo, o artigo ou o possessivo (opcional) e o objeto ("me pidió la
+    clave")."""
+    return tuple(
+        " ".join(p for p in (verbo, artigo, objeto) if p)
+        for verbo in verbos
+        for artigo in artigos
+        for objeto in objetos
+    )
+
+
+PEDIDO_DE_SEGREDO_OU_DINHEIRO = _pedidos(
+    ("me pidio", "me pidieron", "me solicito", "me pediu", "me pediram", "me solicitou"),
+    ("", "la", "el", "los", "las", "mi", "mis", "su", "a", "o", "os", "as", "minha", "meu",
+     "meus", "minhas", "una", "un", "uma", "um"),
+    ("clave", "claves", "contrasena", "codigo", "codigos", "pin", "token", "cvv",
+     "senha", "senhas", "plata", "dinero", "dinheiro", "pix", "transferencia",
+     "deposito", "prestamo", "emprestimo"),
 )  # fmt: skip
 APRESENTOU_E_PEDIU = Perto(
     (*APRESENTOU, "decia trabajar", "dijo trabajar", "dizia trabalhar", "disse trabalhar"),
