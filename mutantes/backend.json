@@ -4834,8 +4834,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "        if _regex(f\"{x}{entre}{y}|{y}{entre}{x}\").search(limpo):",
-          "para": "        if _regex(f\"{x}{entre}{y}\").search(limpo):"
+          "de": "        for achado in _regex(f\"{x}{entre}{y}|{y}{entre}{x}\").finditer(limpo):",
+          "para": "        for achado in _regex(f\"{x}{entre}{y}\").finditer(limpo):"
         }
       ],
       "testes": [
@@ -9785,8 +9785,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "rf\"(?: [a-z0-9]+){{0,{termo.entre}}} \"",
-          "para": "rf\"(?: [a-z0-9]+){{0,{PALAVRAS_ENTRE}}} \""
+          "de": "rf\"((?: [a-z0-9]+){{0,{termo.entre}}}) \"",
+          "para": "rf\"((?: [a-z0-9]+){{0,{PALAVRAS_ENTRE}}}) \""
         }
       ],
       "testes": [
@@ -11668,6 +11668,66 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_a_correcao_de_digitacao_fica_nos_sinais"
+      ]
+    },
+    {
+      "id": "M-ITP-146",
+      "requisito": "R07",
+      "descricao": "As formas de perda e roubo em espanhol (\"me quitaron\", \"no puedo encontrar\", \"olvidé\") não são relato (ACH-157)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"quitaron\", \"hurt*\", \"no hallo\", \"no puedo encontrar\", \"ya no tengo\", \"olvid*\",\n     \"no aparece\", ",
+          "para": "     \"no aparece\", "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-147",
+      "requisito": "R07",
+      "descricao": "As formas de perda e roubo em português (\"furtaram\", \"não acho\", \"esqueci\") não são relato (ACH-157)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"furt*\", \"levaram\", \"nao acho\", \"nao consigo achar\", \"nao tenho mais\",\n     \"desaparec*\", \"esqueci*\"),",
+          "para": "),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-148",
+      "requisito": "R07",
+      "descricao": "O objeto entre o verbo e o cartão não conta (\"esqueci a senha do cartão\" vira perda e bloqueia o cartão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if not any(_casa(f, meio) for f in termo.fora):",
+          "para": "            if True:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-149",
+      "requisito": "R07",
+      "descricao": "Com o cartão antes do verbo, o objeto entre eles não conta (\"en la tarjeta la compra no aparece\" vira perda)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            meio = achado.group(1) or achado.group(2) or \"\"",
+          "para": "            meio = achado.group(1) or \"\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude"
       ]
     },
     {

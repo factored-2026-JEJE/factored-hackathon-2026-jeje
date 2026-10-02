@@ -89,11 +89,12 @@ PALAVRAS_ENTRE = 3
 @dataclass(frozen=True)
 class Perto:
     """Termo composto: um termo de cada grupo, em qualquer ordem, separados por no máximo `entre`
-    palavras."""
+    palavras, nenhuma delas de `fora` (o que mostra que o objeto é outro)."""
 
     um: tuple[str, ...]
     outro: tuple[str, ...]
     entre: int = PALAVRAS_ENTRE
+    fora: tuple[str, ...] = ()
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -102,22 +103,32 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
     busca por par, centenas no relato de golpe (ACH-142)."""
     if isinstance(termo, str):
         return termo if _casa(termo, limpo) else None
-    entre = rf"(?: [a-z0-9]+){{0,{termo.entre}}} "
+    entre = rf"((?: [a-z0-9]+){{0,{termo.entre}}}) "
     um = [a for a in termo.um if _casa(a, limpo)]
     outro = [b for b in termo.outro if _casa(b, limpo)]
     for a, b in product(um, outro):
         x, y = _padrao(a), _padrao(b)
-        if _regex(f"{x}{entre}{y}|{y}{entre}{x}").search(limpo):
-            return f"{a}+{b}"
+        for achado in _regex(f"{x}{entre}{y}|{y}{entre}{x}").finditer(limpo):
+            meio = achado.group(1) or achado.group(2) or ""
+            if not any(_casa(f, meio) for f in termo.fora):
+                return f"{a}+{b}"
     return None
 
 
 # Perda ou extravio só é relato de fraude com cartão, carteira ou celular perto: "perdí la
 # conexión" e "no encuentro la compra en mi tarjeta" continuam consulta (ACH-101).
 PERDA_DE_MEIO = Perto(
-    ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*"),
+    ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*",
+     # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
+     "quitaron", "hurt*", "no hallo", "no puedo encontrar", "ya no tengo", "olvid*",
+     "no aparece", "furt*", "levaram", "nao acho", "nao consigo achar", "nao tenho mais",
+     "desaparec*", "esqueci*"),
     ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular"),
-)
+    # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
+    # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
+    fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
+          "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na"),
+)  # fmt: skip
 # Cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente de la tienda
 # dice que…" é consulta (ACH-104).
 PEDIDO_DE_CARGO = Perto(
