@@ -137,6 +137,14 @@ class NaoEntendi:
             self._carregados()
         self.ollama.carregar(timeout_s)
 
+    def ler(self, texto: str, idioma: Idioma, vetor: np.ndarray, uso: dict) -> IntencaoDoLLM:
+        """A intenção que o LLM lê na mensagem, com os exemplos mais parecidos com ela. Qualquer
+        falha (exemplos, rede, tempo, saída fora do esquema) levanta; os tokens vão para `uso`. A
+        garantia de fraude (DEV-046) confirma por aqui também."""
+        vizinhos = self._carregados().mais_parecidos(vetor, idioma)
+        conteudo = self.ollama.conversar(prompt(vizinhos, idioma), texto, ESQUEMA, OPCOES, uso)
+        return SaidaDoLLM.model_validate_json(conteudo).intencao
+
     def __call__(
         self, lido: Interpretacao, texto: str, vetor: np.ndarray, inicio: float
     ) -> Leitura:
@@ -144,10 +152,7 @@ class NaoEntendi:
         do leitor). `inicio` vem de antes do leitor: a chamada registrada conta os dois."""
         uso: dict = {}
         try:
-            vizinhos = self._carregados().mais_parecidos(vetor, lido.idioma)
-            sistema = prompt(vizinhos, lido.idioma)
-            conteudo = self.ollama.conversar(sistema, texto, ESQUEMA, OPCOES, uso)
-            saida = SaidaDoLLM.model_validate_json(conteudo)
+            intencao = self.ler(texto, lido.idioma, vetor, uso)
         # Fronteira externa: qualquer falha ao obter uma leitura válida deixa a mensagem não
         # entendida, como sem o LLM.
         except Exception as erro:
@@ -158,6 +163,7 @@ class NaoEntendi:
                 type(erro).__name__,
             )
             fallback = f"regras (fallback: {type(erro).__name__})"
-            return Leitura(lido, fallback, self.ollama.chamada(inicio, uso))
-        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))
-        return Leitura(lida, f"ollama:{self.ollama.modelo}", self.ollama.chamada(inicio, uso))
+            return Leitura(lido, fallback, self.ollama.chamada(inicio, uso), vetor)
+        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))
+        fonte = f"ollama:{self.ollama.modelo}"
+        return Leitura(lida, fonte, self.ollama.chamada(inicio, uso), vetor)

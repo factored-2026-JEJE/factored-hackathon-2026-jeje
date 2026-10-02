@@ -315,6 +315,26 @@ e5, na mesma metade de avaliação do teste do BANKING77 e com os rótulos da va
 para 85,3% (es) e de 72,0% para 85,8% (pt), sem mais ação indevida (0,3% e 0,4%), com o LLM em 12% e
 17% das mensagens e ~0,6 s nesses turnos (p50, `qwen3:4b` na GPU da máquina da publicação).
 
+### Garantia de encaminhamento da fraude (padrão)
+
+Com `GARANTIA_DE_FRAUDE: "true"` (no modo `leitor_modelo`), a mensagem que a cascata não leu como
+fraude nem como pedido de atendente, e que não é controle da conversa nem ruído, passa pelos três
+passos da V3 do NOV-33 da validação (DEV-046, `backend/src/jeje/garantia_fraude.py`):
+
+1. um detector próprio sobre o vetor do e5 que o leitor já calculou (regressão logística treinada
+   no build com o BANKING77 ES/PT e os golpes gerados do NOV-31, temperatura e limiar conformal
+   por idioma na divisão pré-registrada da validação: 0,5719 em ES e 0,4501 em PT) dispara;
+2. a pergunta de prevenção sem vítima segura a mensagem;
+3. o LLM do "não entendi" confirma, lendo fraude ou pedido de atendente.
+
+Passando os três, a conversa encaminha ao atendente (POL-HUM-01) como possível fraude, **sem
+bloquear o cartão**, com o sinal da garantia (`garantia:p=…:limiar=…:llm=…:dispara`) no trace e no
+caso. Sem o LLM, ou com ele falhando, a garantia não dispara. Medido pela validação na branch (REG-22
+e REG-22b): a fraude que chega ao atendente vai de 65,1% para 89,9% (golpes da gemma, ES) e de 59,6%
+para 87,7% (PT), de 73,7% para 91,5% e de 75,8% para 88,3% no NOV-30, sem nenhum bloqueio a mais;
+quem só pergunta é encaminhado um pouco mais (perguntas dos trios, +4,9 e +5,9 p.p.). O passo a
+passo da decisão sai em `ComGarantia.decidir(texto, idioma)`.
+
 ### Modelo local no lugar do leitor (Ollama, opcional)
 
 `INTERPRETADOR: "ollama"` troca o leitor por um modelo local (Ollama do host, `qwen2.5:7b`) no

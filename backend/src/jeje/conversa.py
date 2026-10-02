@@ -44,7 +44,13 @@ from jeje.interpretacao import (
     interpretar,
     prevencao,
 )
-from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras, pelo_modelo
+from jeje.interpretacao_modelo import (
+    Interpretador,
+    Leitura,
+    pela_garantia,
+    pelas_regras,
+    pelo_modelo,
+)
 from jeje.mensagens import (
     ESTADO,
     ESTADO_DO_CASO,
@@ -849,6 +855,8 @@ class _Turno:
             # O LLM também lê fraude na suspeita sem prejuízo, no cartão retido pelo caixa
             # eletrônico e na tarifa (REG-15): o atendente decide o bloqueio.
             return "possível fraude lida pelo modelo"
+        if pela_garantia(self.lida):
+            return "possível fraude pela garantia"  # DEV-046: não é um relato
         return None
 
     def _relato_de_fraude(self, decisao: politica.Decisao) -> Saida:
