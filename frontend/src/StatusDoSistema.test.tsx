@@ -22,13 +22,31 @@ test("mostra pronto com versão e origem do dataset", async () => {
   const corpo: Prontidao = {
     status: "ready",
     database: "ok",
-    dataset: { version: "abc123def456789", source: "s3", loaded_at: "2026-09-28T03:00:00Z" },
+    dataset: { version: "abc123def456789", source: "s3", loaded_at: "2026-09-28T03:00:00Z", recusada: null },
   };
   responder(200, corpo);
   render(<StatusDoSistema />);
   expect(await screen.findByRole("heading", { name: "Pronto para atender" })).toBeInTheDocument();
   expect(screen.getByText(/versão abc123def456 \(s3\)/)).toBeInTheDocument();
   expect(screen.getByText("conectado")).toBeInTheDocument();
+  expect(screen.queryByText(/recusada/)).not.toBeInTheDocument();
+});
+
+test("mostra a versão nova recusada pela carga e que a anterior segue valendo (ACH-112)", async () => {
+  const corpo: Prontidao = {
+    status: "ready",
+    database: "ok",
+    dataset: {
+      version: "abc123def456789",
+      source: "s3",
+      loaded_at: "2026-09-28T03:00:00Z",
+      recusada: { version: "fed987654321000", motivo: "coluna nova em branches", em: "2026-10-01T22:00:00Z" },
+    },
+  };
+  responder(200, corpo);
+  render(<StatusDoSistema />);
+  expect(await screen.findByText(/versão fed987654321 recusada/)).toBeInTheDocument();
+  expect(screen.getByText(/coluna nova em branches; segue a versão abc123def456/)).toBeInTheDocument();
 });
 
 test("mostra indisponível e banco sem migrations quando a API responde 503", async () => {

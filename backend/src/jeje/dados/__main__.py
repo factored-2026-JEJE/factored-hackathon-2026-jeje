@@ -8,6 +8,7 @@ import sys
 
 import boto3
 from botocore.config import Config
+from sqlalchemy import text
 
 from jeje import sessao
 from jeje.config import Settings
@@ -54,11 +55,51 @@ def preparar(settings: Settings, config: ConfigDados) -> None:
     provisionar(settings, config)
 
 
+# O que faz uma versão nova ser recusada: o download, o manifesto ou a carga (contrato violado,
+# coluna nova). Com uma anterior no banco, nada disso derruba o serviço.
+RECUSAS = (DownloadInvalido, CargaInvalida, manifesto.ManifestoInvalido)
+
+
+def registrar_recusa(settings: Settings, versao: str, motivo: str) -> None:
+    engine = create_db_engine(settings)
+    try:
+        with engine.begin() as conexao:
+            conexao.execute(
+                text(
+                    "update meta.dataset_version set recusada_versao = :versao, "
+                    "recusada_motivo = :motivo, recusada_em = now()"
+                ),
+                {"versao": versao, "motivo": motivo},
+            )
+    finally:
+        engine.dispose()
+
+
 def carregar_se_preciso(settings: Settings, config: ConfigDados) -> None:
+    """Carrega a versão dos manifestos, se for outra. Recusada com uma anterior no banco (ACH-112),
+    a anterior continua valendo e a recusa fica gravada; sem anterior, o erro sobe."""
+    anterior = versao_no_banco(settings)
+    versao = "?"
+    try:
+        versao = manifesto.versao(config.dataset_manifest_dir, config.dataset_tables)
+        _carregar(settings, config, versao, anterior)
+    except RECUSAS as erro:
+        if anterior is None:
+            raise
+        registrar_recusa(settings, versao, str(erro))
+        print(
+            f"[dados] versão {versao[:12]} recusada; segue a {anterior[0][:12]}: {erro}",
+            file=sys.stderr,
+            flush=True,
+        )
+
+
+def _carregar(
+    settings: Settings, config: ConfigDados, versao: str, anterior: tuple[str, str] | None
+) -> None:
     tabelas = config.dataset_tables
-    versao = manifesto.versao(config.dataset_manifest_dir, tabelas)
     pipeline = versao_pipeline()
-    if versao_no_banco(settings) == (versao, pipeline):
+    if anterior == (versao, pipeline):
         print(f"[dados] versão {versao[:12]} já carregada; nada a fazer", flush=True)
         return
     if config.dataset_source == "s3":
