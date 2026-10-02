@@ -58,10 +58,12 @@ class Interpretacao:
 
 
 def normalizar(texto: str) -> str:
-    """Minúsculas, sem acento e sem pontuação: comparações estáveis entre variantes de escrita."""
+    """Minúsculas, sem acento e sem pontuação: comparações estáveis entre variantes de escrita. O
+    "q" sozinho é o "que" da escrita de chat ("me hicieron creer q era un operador"), e os termos
+    com "que" casam também nela."""
     decomposto = unicodedata.normalize("NFKD", texto.casefold())
     sem_acento = "".join(c for c in decomposto if not unicodedata.combining(c))
-    return " ".join(re.findall(r"[a-z0-9]+", sem_acento))
+    return " ".join("que" if p == "q" else p for p in re.findall(r"[a-z0-9]+", sem_acento))
 
 
 def _padrao(termo: str) -> str:
@@ -334,6 +336,7 @@ SE_PASSOU_POR = Perto(
      # também o atendente de verdade ("se presentó como gerente y me ayudó mucho", ACH-179).
      "afirma ser", "afirmo ser", "afirmando ser", "aseguro ser", "asegurando ser",
      "se fazendo passar por", "fazendo se passar por", "se passando por", "se passava como",
+     "se dizendo", "se diciendo",
      "disfrazado de", "disfrazada de", "disfarcado de", "disfarcada de"),
     QUEM_ELE_DISSE_SER,
     entre=2,
@@ -385,8 +388,25 @@ DISSE_QUE_ERA = Perto(
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
     ("vendedor", "corretor", "funcionario", "operador", "empleado", "ligacao", "llamada",
-     "central", "atendente", "asesor", "gerente", "agente"),
+     "central", "atendente", "asesor", "gerente", "agente", "soporte", "suporte", "tecnico",
+     "atendimento"),
     entre=1,
+)  # fmt: skip
+# "Una persona supuestamente del banco accedió a mi cuenta": a pessoa logo antes do
+# "supuestamente" e o banco, a agência ou a sucursal logo depois são o falso atendente (S2 do
+# REG-32); "supuestamente el banco me iba a llamar" não é. As frases não entram no corretor.
+PESSOA_SUPOSTAMENTE = Perto(
+    tuple(
+        f"{pessoa} {s}"
+        for pessoa in ("persona", "alguien", "hombre", "mujer", "senor", "senora", "tipo", "chico",
+                       "chica", "pessoa", "alguem", "homem", "mulher", "senhor", "senhora", "cara",
+                       "rapaz", "moca")
+        for s in ("supuestamente", "supostamente")
+    ),
+    ("banco", "agencia", "sucursal"),
+    entre=1,
+    so_nessa_ordem=True,
+    corrige=False,
 )  # fmt: skip
 SENHA_ENTREGUE = Perto(
     ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
@@ -478,9 +498,41 @@ TERCEIRO_USOU = Perto(
      "intento cobrar con mi", "tentou cobrar com meu", "se ha hecho pasar", "pegou meu cartao",
      "pegou meus cartoes", "pegou minha carteira", "forjou o meu", "forjou meu", "rouba o meu",
      "rouba meu"),
-    # A pessoa do próprio banco ("una persona del banco abrió una cuenta a mi nombre cuando fui a la
-    # sucursal", "uma pessoa da agência acessou minha conta para me ajudar") não é terceiro.
-    fora=("banco", "agencia", "sucursal"),
+    # A pessoa do próprio banco ou do suporte ("una persona del banco abrió una cuenta a mi nombre
+    # cuando fui a la sucursal", "alguien del soporte entró a mi cuenta para restablecer la
+    # contraseña", ACH-194) não é terceiro.
+    fora=("banco", "agencia", "sucursal", "soporte", "suporte", "atendimento", "atencion"),
+)  # fmt: skip
+# Quem ligou ou disse ser do banco e, a até 6 palavras, tirou o dinheiro ("una mujer que llamó del
+# banco entró a mi cuenta y sacó plata", ACH-192): a A3 do REG-33 da validação. "Entrou na conta"
+# sozinho não basta, porque a pessoa do banco também entra para mostrar o extrato ou conferir o
+# cadastro (REG-34). O aviso do banco no meio ("me llamaron del banco para avisarme que mi hijo sacó
+# plata") não é golpe. As palavras não entram no corretor.
+DO_BANCO_E_TIROU = Perto(
+    ("llamo del banco", "llamaron del banco", "llamo de la sucursal", "llamaron de la sucursal",
+     "dijo ser del banco", "dijeron ser del banco", "decia ser del banco", "decian ser del banco",
+     "dijo ser de la sucursal", "decia ser de la sucursal", "se presento del banco",
+     "se presentaron del banco", "dijo que era del banco", "dijeron que eran del banco",
+     "supuestamente del banco", "ligou do banco", "ligaram do banco", "ligou da agencia",
+     "ligaram da agencia", "disse ser do banco", "disseram ser do banco", "dizia ser do banco",
+     "diziam ser do banco", "disse ser da agencia", "se dizendo do banco", "se dizendo da agencia",
+     "dizendo ser do banco", "dizendo ser da agencia", "disse que era do banco",
+     "falou que era do banco", "supostamente do banco"),
+    ("saco plata", "saco dinero", "saco mi plata", "saco mi dinero", "saco la plata",
+     "saco el dinero", "saco todo", "sacaron plata", "sacaron dinero", "sacaron mi plata",
+     "sacaron mi dinero", "robo", "robaron", "transfirio mi", "transfirio la plata",
+     "transfirio el dinero", "transfirieron mi", "hizo compras", "hizo una compra",
+     "hicieron compras", "vacio mi cuenta", "vaciaron mi cuenta", "retiro plata", "retiro dinero",
+     "retiraron plata", "retiraron dinero", "tirou dinheiro", "tirou o dinheiro",
+     "tirou meu dinheiro", "tiraram dinheiro", "tiraram o dinheiro", "tiraram meu dinheiro",
+     "sacou dinheiro", "sacou o dinheiro", "sacaram", "roubou", "roubaram", "transferiu meu",
+     "transferiu o dinheiro", "transferiram", "fez compras", "fez uma compra", "fizeram compras",
+     "esvaziou minha conta", "esvaziaram", "limpou minha conta", "levou meu dinheiro",
+     "levaram meu dinheiro", "fez um pix", "fizeram um pix"),
+    entre=6,
+    so_nessa_ordem=True,
+    fora=("avisarme", "avisar", "avisando", "avisaron", "avisou", "avisaram", "informarme"),
+    corrige=False,
 )  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
@@ -543,12 +595,16 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "fue fraudulent*", "foi fraudulent*", "fraudulentamente",
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
+                # O golpe contado no passado e o "roubaron" do portunhol (EV-230 da validação).
+                "me estafo", "nos estafo", "la estafo", "roubaron",
                 # Golpe de engenharia social (ACH-142).
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
                 SITE_FALSO,
                 SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,
+                PESSOA_SUPOSTAMENTE,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
+                DO_BANCO_E_TIROU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
@@ -973,6 +1029,36 @@ def _uma_edicao(a: str, b: str) -> bool:
     return curta[i:] == longa[i + 1 :]
 
 
+# As teclas vizinhas no QWERTY e as trocas que soam igual: o erro de digitação tem uma delas.
+VIZINHAS_NO_TECLADO = {
+    "q": "wa", "w": "qeas", "e": "wrsd", "r": "etdf", "t": "ryfg", "y": "tugh", "u": "yihj",
+    "i": "uojk", "o": "ipkl", "p": "ol", "a": "qwsz", "s": "adwezx", "d": "sferxc", "f": "dgrtcv",
+    "g": "fhtyvb", "h": "gjyubn", "j": "hkuinm", "k": "jliom", "l": "kop", "z": "asx", "x": "zcsd",
+    "c": "xvdf", "v": "cbfg", "b": "vngh", "n": "bmhj", "m": "njk",
+}  # fmt: skip
+TROCAS_QUE_SOAM_IGUAL = ({"s", "z"}, {"s", "c"}, {"z", "c"}, {"b", "v"})
+
+
+def _forma_de_erro(a: str, b: str) -> bool:
+    """`a` sai de `b` por um erro de digitação, a forma que o REG-30 da validação mediu (V2): a
+    tecla vizinha ou a troca que soa igual, a letra que falta (menos o "n" do gerúndio: "pensado"
+    não é "pensando"), a letra repetida ou duas vizinhas invertidas. A uma edição com outra forma é
+    outra palavra: "mirando" não é "tirando", "tratar" não é "travar", "fallos" não é "falsos"."""
+    if not _uma_edicao(a, b):
+        return False
+    if len(a) == len(b):
+        dif = [i for i, (x, y) in enumerate(zip(a, b, strict=True)) if x != y]
+        if len(dif) == 2:
+            return True  # duas vizinhas invertidas
+        x, y = a[dif[0]], b[dif[0]]
+        return x in VIZINHAS_NO_TECLADO.get(y, "") or {x, y} in TROCAS_QUE_SOAM_IGUAL
+    if len(a) == len(b) - 1:  # falta uma letra
+        i = next((k for k, (x, y) in enumerate(zip(a, b, strict=False)) if x != y), len(a))
+        return not (b[i] == "n" and b[i + 1 : i + 2] == "d" and b[i - 1 : i] in ("a", "i", "e"))
+    i = next((k for k, (x, y) in enumerate(zip(a, b, strict=False)) if x != y), len(b))
+    return a[i] in (a[i - 1 : i], a[i + 1 : i + 2])  # a letra a mais só se repetida
+
+
 def corrigir(texto: str) -> tuple[str, tuple[str, ...]]:
     """O texto com as palavras de intenção corrigidas, e as trocas feitas ("robron→robaron")."""
     trocas, pedacos = [], re.split(r"(\w+)", texto)
@@ -984,8 +1070,11 @@ def corrigir(texto: str) -> tuple[str, tuple[str, ...]]:
             or VOCABULARIO.get(palavra, 0) >= 2
         ):
             continue
+        # Uma só candidata a uma edição, e com a forma de erro de digitação (ACH-191): restringir a
+        # forma antes de contar as candidatas criaria trocas novas ("desbloqueei" viraria
+        # "desbloqueie", porque "desbloquei" sairia da conta).
         candidatas = [termo for termo in LEXICO_DE_INTENCAO if _uma_edicao(palavra, termo)]
-        if len(candidatas) != 1:
+        if len(candidatas) != 1 or not _forma_de_erro(palavra, candidatas[0]):
             continue
         if "fraude" in LEXICO_DE_INTENCAO[candidatas[0]] and palavra in VOCABULARIO:
             continue
