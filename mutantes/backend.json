@@ -12856,6 +12856,51 @@
       ]
     },
     {
+      "id": "M-ITP-209",
+      "requisito": "R02",
+      "descricao": "O corretor troca qualquer palavra a uma edição (\"mirando\" vira \"tirando\" e a frase comum vira golpe, ACH-191)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if len(candidatas) != 1 or not _forma_de_erro(palavra, candidatas[0]):",
+          "para": "        if len(candidatas) != 1:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-210",
+      "requisito": "R02",
+      "descricao": "A letra que falta vale também para o \"n\" do gerúndio (\"pensado\" vira \"pensando\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        return not (b[i] == \"n\" and b[i + 1 : i + 2] == \"d\" and b[i - 1 : i] in (\"a\", \"i\", \"e\"))",
+          "para": "        return True"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_so_a_forma_de_erro_de_digitacao_e_corrigida"
+      ]
+    },
+    {
+      "id": "M-ITP-211",
+      "requisito": "R02",
+      "descricao": "A forma do erro restringe as candidatas antes de contá-las (\"desbloqueei\" vira \"desbloqueie\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        candidatas = [termo for termo in LEXICO_DE_INTENCAO if _uma_edicao(palavra, termo)]",
+          "para": "        candidatas = [termo for termo in LEXICO_DE_INTENCAO if _forma_de_erro(palavra, termo)]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",
