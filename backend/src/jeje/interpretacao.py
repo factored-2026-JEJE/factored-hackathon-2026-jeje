@@ -58,10 +58,12 @@ class Interpretacao:
 
 
 def normalizar(texto: str) -> str:
-    """Minúsculas, sem acento e sem pontuação: comparações estáveis entre variantes de escrita."""
+    """Minúsculas, sem acento e sem pontuação: comparações estáveis entre variantes de escrita. O
+    "q" sozinho é o "que" da escrita de chat ("me hicieron creer q era un operador"), e os termos
+    com "que" casam também nela."""
     decomposto = unicodedata.normalize("NFKD", texto.casefold())
     sem_acento = "".join(c for c in decomposto if not unicodedata.combining(c))
-    return " ".join(re.findall(r"[a-z0-9]+", sem_acento))
+    return " ".join("que" if p == "q" else p for p in re.findall(r"[a-z0-9]+", sem_acento))
 
 
 def _padrao(termo: str) -> str:
