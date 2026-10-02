@@ -7438,8 +7438,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\")",
-          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\", \"cuenta\", \"conta\")"
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO)",
+          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO, \"cuenta\", \"conta\")"
         }
       ],
       "testes": [
@@ -10253,7 +10253,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"congelar\", \"congela\", \"congele\", \"congelen\",",
+          "de": "\"congelar\", \"congele\", \"congelen\",",
           "para": "\"congelem_\","
         }
       ],
@@ -10298,7 +10298,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "DINHEIRO_TIRADO = Perto(\n    (\"robando\", \"roubando\", \"tirando\"), (\"plata\", \"dinero\", \"dinheiro\", \"cuenta\", \"conta\")\n)",
+          "de": "DINHEIRO_TIRADO = Perto(\n    (\"robando\", \"roubando\", \"tirando\", \"vaciaron\", \"esvaziaram\", \"limparam\"),\n    (\"plata\", \"dinero\", \"dinheiro\", \"cuenta\", \"conta\"),\n)",
           "para": "DINHEIRO_TIRADO = \"robando\""
         }
       ],
@@ -11905,8 +11905,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if decisao.regra == \"POL-HUM-01\" and prevencao(self.mensagem):",
-          "para": "            if False:"
+          "de": "        if prevencao(self.mensagem):",
+          "para": "        if False:"
         }
       ],
       "testes": [
@@ -11942,6 +11942,21 @@
       "testes": [
         "tests/test_dados_cli.py::test_recibo_aponta_a_linha_fisica_do_csv_de_origem",
         "tests/test_conversa.py::test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao"
+      ]
+    },
+    {
+      "id": "M-CONV-113",
+      "requisito": "R07",
+      "descricao": "A fraude que só o LLM leu bloqueia o cartão (REG-15)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if pelo_modelo(self.lida):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_fraude_que_so_o_llm_leu_vai_ao_atendente_sem_bloquear_o_cartao"
       ]
     },
     {
@@ -12297,8 +12312,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso\", \"usaba\", \"usaron\",",
-          "para": "    (\"usa\", \"uso\", \"usaba\", \"usaron\","
+          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
+          "para": "    (\"usa mi\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -12432,7 +12447,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\")",
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO)",
           "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\")"
         }
       ],
@@ -12447,8 +12462,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"utilizando\", \"gastando\", \"gastaron\",",
-          "para": "\"utilizando\", \"gastaron\","
+          "de": "     \"gastando con mi\", \"gastando en mi\", \"gastaron\", \"robo\", \"hizo pagos\", \"hizo compras\",",
+          "para": "     \"gastaron\", \"robo\", \"hizo pagos\", \"hizo compras\","
         }
       ],
       "testes": [
@@ -12477,7 +12492,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\", \"cartera\",",
+          "de": "    (\"tarjeta*\", \"cartao\", \"cartoes\", *PLASTICO, \"cartera\",",
           "para": "    (\"tarjeta*\", \"cartao\", \"cartoes\", \"cartera\","
         }
       ],
@@ -12522,12 +12537,72 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    \"evito\", \"evita\", \"evitas\", \"evite\", \"evitamos\", \"evitarlo\", \"evitarla\", \"evitalo\", \"evitala\",\n    \"como no caer\", \"para no caer\", \"para nao cair\", \"como nao cair\", \"cuidarme\", \"cuidarse\",\n    \"como me cuido\", \"me cuidar\", \"me previno\", \"como me previno\", \"prevengo\"\n",
+          "de": "    \"evito\", \"evita\", \"evitas\", \"evite\", \"evitamos\", \"evitarlo\", \"evitarla\", \"evitalo\", \"evitala\",\n    \"como no caer\", \"para no caer\", \"para nao cair\", \"como nao cair\", \"cuidarme\", \"cuidarse\",\n    \"como me cuido\", \"me cuidar\", \"me previno\", \"como me previno\", \"prevengo\",\n",
           "para": ""
         }
       ],
       "testes": [
         "tests/test_interpretacao.py::test_flexoes_de_evitar_e_cuidar_sao_prevencao"
+      ]
+    },
+    {
+      "id": "M-ITP-189",
+      "requisito": "R07",
+      "descricao": "A hipótese de perda (\"en caso de perder la tarjeta\") lida como fraude bloqueia o cartão (REG-20)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # A hipótese de perda (\"en caso de perder la tarjeta, ¿cómo la bloqueo?\"), do REG-20.\n    \"en caso de\", \"em caso de\", \"caso eu\", \"si la pierdo\", \"si lo pierdo\", \"si pierdo\",\n    \"se eu perder\", \"se eu perdesse\", \"que pasa si\", \"o que acontece se\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_hipotese_de_perda_e_prevencao"
+      ]
+    },
+    {
+      "id": "M-ITP-190",
+      "requisito": "R07",
+      "descricao": "A suspeita sem prejuízo com \"no se la di\" lida como fraude bloqueia o cartão (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"queria confirmar\",\n    # O objeto antes do verbo (\"no se la di\") e o nada entregue (\"não passei nada\"), do REG-21.\n    \"no se la di\", \"no se lo di\", \"no se las di\", \"no se los di\", \"no la di\", \"no lo di\",\n    \"nunca se la di\", \"nunca se lo di\", \"no se la pase\", \"no se lo pase\", \"nao passei nada\",\n    \"nao informei\", \"nao forneci nada\"\n",
+          "para": "    \"queria confirmar\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-191",
+      "requisito": "R07",
+      "descricao": "A conta esvaziada (\"me vaciaron la cuenta\") não é relato de fraude e não chega ao atendente (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"tirando\", \"vaciaron\", \"esvaziaram\", \"limparam\"",
+          "para": "\"tirando\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-192",
+      "requisito": "R07",
+      "descricao": "A conta esvaziada com a suspeita na mesma mensagem (\"no se la di, pero vaciaron mi cuenta\") não bloqueia o cartão (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"usaram\",\n    # A conta esvaziada (\"no se la di, pero vaciaron mi cuenta\"), do REG-21.\n    \"vaciaron\", \"esvaziaram\", \"limparam\"\n",
+          "para": "    \"usaram\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
       ]
     },
     {
@@ -12567,8 +12642,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"mis datos\", \"meu pin\", \"mi pin\", \"meu token\", \"mi token\"),\n    entre=1,\n    negavel=True,\n",
-          "para": "     \"mis datos\", \"meu pin\", \"mi pin\", \"meu token\", \"mi token\"),\n    entre=1,\n"
+          "de": "          \"redefinir\", \"restablecer\", \"cadastrar\", \"registrar\", \"desbloquear\"),\n    negavel=True,\n",
+          "para": "          \"redefinir\", \"restablecer\", \"cadastrar\", \"registrar\", \"desbloquear\"),\n"
         }
       ],
       "testes": [
@@ -12588,6 +12663,171 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-178",
+      "requisito": "R03",
+      "descricao": "\"O sistema conseguiu recuperar minha senha\" vira golpe e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=(\"recuperar\", \"trocar\", \"mudar\", \"alterar\", \"cambiar\", \"validar\", \"confirmar\",\n          \"redefinir\", \"restablecer\", \"cadastrar\", \"registrar\", \"desbloquear\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-179",
+      "requisito": "R03",
+      "descricao": "Dinheiro recebido de outra pessoa (\"alguém transferiu para mim\") vira golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\",",
+          "para": "     \"comprou\", \"sacou\", \"transferiu\", \"tirou\", \"se passou\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-180",
+      "requisito": "R03",
+      "descricao": "A senha pedida pelo caixa eletrônico ou pelo app vira golpe (REG-17)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"conseguiu\", \"consiguio\", \"consiguieron\", \"conseguiram\", \"roubou\", \"robo\", \"roubaram\",",
+          "para": "    (\"conseguiu\", \"consiguio\", \"consiguieron\", \"conseguiram\", \"pediu\", \"pidio\", \"roubou\", \"robo\", \"roubaram\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-181",
+      "requisito": "R03",
+      "descricao": "\"Uma pessoa está usando o caixa\" vira golpe (o uso sem o possessivo)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
+          "para": "    (\"usando\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-182",
+      "requisito": "R03",
+      "descricao": "\"La bolsa de plástico que perdí\" vira perda do cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "PLASTICO = (\"mi plastico\", \"meu plastico\", \"el plastico\", \"o plastico\", \"su plastico\",",
+          "para": "PLASTICO = (\"plastico*\", \"mi plastico\", \"meu plastico\", \"el plastico\", \"o plastico\", \"su plastico\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-183",
+      "requisito": "R03",
+      "descricao": "\"Olvidé mi tarjeta en casa\" vira perda e bloqueia o cartão (sem olhar depois do par)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=3,\n",
+          "para": "    depois=0,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-184",
+      "requisito": "R03",
+      "descricao": "A janela depois do par alcança outra oração (\"perdi meu cartão e não aparece no aplicativo\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=3,\n",
+          "para": "    depois=6,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_seguida_de_outra_oracao_continua_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-185",
+      "requisito": "R03",
+      "descricao": "A fatura ou o extrato do cartão viram perda do cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).\n          \"fatura\", \"factura\", \"extrato\", \"extracto\", \"resumen\", \"opcion\", \"opcao\", \"boleto\",\n          \"comprovante\", \"comprobante\"),",
+          "para": "          ),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-186",
+      "requisito": "R03",
+      "descricao": "O termo composto ignora as palavras depois do par",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if any(_casa(f, seguinte) for f in termo.fora_depois):\n                continue\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-187",
+      "requisito": "R03",
+      "descricao": "\"Meu cartão trava na maquininha\" pede bloqueio e o cartão é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"congelem\", \"congelarla\", \"congelala\", \"travar\", \"trave\", \"travem\",",
+          "para": "\"congelem\", \"congelarla\", \"congelala\", \"travar\", \"trava\", \"trave\", \"travem\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-188",
+      "requisito": "R03",
+      "descricao": "\"Mi tarjeta se congela cuando pago\" pede bloqueio e o cartão é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"congela mi\", \"congela la\", \"congela el\", \"congela esta\", \"congela esa\"),",
+          "para": "     \"congela\", \"congela mi\", \"congela la\", \"congela el\", \"congela esta\", \"congela esa\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio"
       ]
     },
     {
@@ -12735,8 +12975,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, \"modelo\"))",
-          "para": "        lida = replace(lido, sinais=(*lido.sinais, \"modelo\"))"
+          "de": "        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))",
+          "para": "        lida = replace(lido, sinais=(*lido.sinais, SINAL_DO_MODELO))"
         }
       ],
       "testes": [
@@ -12931,8 +13171,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if decisao.regra == \"POL-HUM-01\" and pela_garantia(self.lida):\n",
-          "para": "            if False:\n"
+          "de": "        if pela_garantia(self.lida):",
+          "para": "        if False:"
         }
       ],
       "testes": [

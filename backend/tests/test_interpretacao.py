@@ -549,6 +549,8 @@ def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto)
         ("Quiero congelar mi tarjeta", "bloquear"),
         ("Quero travar o cartão", "bloquear"),
         ("Trava meu cartão, por favor", "bloquear"),
+        ("Trava o cartão, por favor", "bloquear"),
+        ("Congela la tarjeta de débito", "bloquear"),
         ("Reactiva mi tarjeta", "desbloquear"),
         ("Ya apareció mi tarjeta, quiero usarla", "desbloquear"),
         ("Quero reativar o cartão", "desbloquear"),
@@ -558,6 +560,12 @@ def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto)
         ("Me están robando plata de la cuenta", "fraude"),
         ("Caí num golpe e fizeram um pix", "fraude"),
         ("Estão tirando dinheiro da minha conta", "fraude"),
+        # REG-21: a conta esvaziada.
+        ("Me vaciaron la cuenta", "fraude"),
+        ("Entraron a mi cuenta y la vaciaron", "fraude"),
+        ("Me pidieron el código por WhatsApp, lo di y vaciaron mi cuenta", "fraude"),
+        ("Esvaziaram minha conta", "fraude"),
+        ("Passei o código e limparam minha conta", "fraude"),
     ],
 )
 def test_palavras_comuns_do_cartao_do_atendente_e_da_fraude(texto, intencao):
@@ -574,6 +582,12 @@ def test_palavras_comuns_do_cartao_do_atendente_e_da_fraude(texto, intencao):
         "Quiero activar mi tarjeta nueva",  # ativar o cartão novo não é desbloqueio
         "Apareció un cobro en mi tarjeta que no reconozco",
         "Encontré un pago con tarjeta no autorizado",  # o cartão não é o achado
+        # "Trava" e "congela" descrevendo o cartão ou o app (auditoria do dev, 02/10).
+        "Meu cartão trava na maquininha",
+        "Mi tarjeta se congela cuando pago con el celular",
+        "A trava do cartão foi ativada sozinha",
+        "O aplicativo trava quando abro o cartão",
+        "Por que o cartão trava em compras online?",
     ],
 )
 def test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio(texto):
@@ -931,11 +945,23 @@ def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
         ("Recibí un mensaje raro, no di mis datos, ¿es una estafa?", True),
         ("Me ligaram dizendo ser do banco, não passei nada, era golpe?", True),
         ("Me escribieron del banco y no le di mis datos, ¿era una estafa?", True),  # "no le di"
+        # REG-21: o objeto antes do verbo ("no se la di") e o nada entregue.
+        (
+            "Me llamaron diciendo que eran del banco y me pidieron la clave. "
+            "No se la di, ¿es normal?",
+            True,
+        ),
+        ("Me escribieron por WhatsApp pidiendo el código, pero no se lo di", True),
+        ("Me llegó un SMS pidiendo mis datos; no se los di", True),
+        ("Um suposto atendente pediu o código e eu não informei", True),
         # Termo de vítima não negado: é relato, mesmo com a palavra de prevenção.
         ("Fui vítima de golpe, como me protejo agora?", False),
         ("Me estafaron, transferí 500 dólares", False),
         ("Caí en una estafa y me sacaron dinero", False),
         ("Me robaron la tarjeta", False),
+        # A conta esvaziada é perda, mesmo com a suspeita na mesma mensagem (REG-21).
+        ("Un supuesto asesor me pidió la clave, no se la di, pero igual vaciaron mi cuenta", False),
+        ("Um falso atendente pediu o código, não informei, mas esvaziaram minha conta", False),
     ],
 )
 def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao):
@@ -1065,6 +1091,38 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
 @pytest.mark.parametrize(
     "texto",
     [
+        # O cartão seguro, a tela do app, o cartão cancelado, a fatura ou o extrato do cartão não
+        # são perda (auditoria do dev, 02/10): bloqueariam o cartão.
+        "Olvidé mi tarjeta en casa, ¿puedo pagar con el celular?",
+        "Esqueci meu cartão em casa, posso pagar pelo celular?",
+        "La tarjeta nueva no aparece en la app",
+        "Mi celular desapareció de la lista de dispositivos",
+        "Esqueci a fatura do cartão em casa",
+        "Não acho o extrato do cartão no app",
+        "Esqueci a fatura do cartão",
+        "No encuentro el resumen de la tarjeta",
+    ],
+)
+def test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Mais longe que 3 palavras já é outra oração: continua perda.
+        "Perdi meu cartão e não aparece no aplicativo a opção de bloquear",
+        "Se me perdió la tarjeta en el sistema de transporte",
+        "Perdí la tarjeta y no aparece en la app",
+    ],
+)
+def test_perda_seguida_de_outra_oracao_continua_perda(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # Outra pessoa usou, roubou, sacou ou pediu dinheiro: relato de fraude, que até o #57 ia ao
         # atendente pelos termos soltos de humano (REG-12 no d9dfad0).
         "alguien utilizó mi tarjeta sin mi permiso",
@@ -1085,7 +1143,6 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
         "Un señor haciéndose pasar por el banco me pidió la clave",
         "Me llamó alguien que se hacía pasar por el banco y consiguió mi clave",
         "Um homem conseguiu minha senha pelo telefone",
-        "Me pidieron mi clave por WhatsApp",
         "Meu cartão se roubou ontem",
         # O leitor lia com confiança como contestação (ACH-182, LLM-01): agora as regras leem antes.
         "Alguien anda gastando con mi plástico en tiendas donde nunca he puesto un pie",
@@ -1130,6 +1187,22 @@ def test_girias_e_plurais_que_o_leitor_lia_errado_sao_das_regras(texto, intencao
 )
 def test_flexoes_de_evitar_e_cuidar_sao_prevencao(texto, pergunta):
     assert ler(texto).intencao == "fraude"
+    assert interpretacao.prevencao(texto) is pergunta
+
+
+@pytest.mark.parametrize(
+    ("texto", "pergunta"),
+    [
+        # A hipótese de perda é pergunta: lida como fraude (pelo leitor), vai ao atendente sem
+        # bloquear (REG-20). Com vítima, continua relato.
+        ("En caso de perder la tarjeta, ¿cómo la bloqueo?", True),
+        ("Caso eu perca o cartão, o que faço?", True),
+        ("¿Qué pasa si pierdo la tarjeta?", True),
+        ("O que acontece se eu perder o cartão?", True),
+        ("Perdí la tarjeta, en caso de que la usen ¿qué hago?", False),
+    ],
+)
+def test_hipotese_de_perda_e_prevencao(texto, pergunta):
     assert interpretacao.prevencao(texto) is pergunta
 
 
@@ -1205,6 +1278,30 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
     ],
 )
 def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Mensagens comuns com os termos de golpe da leva de 02/10, que bloqueariam o cartão:
+        # a senha pedida pelo caixa, pelo app ou pelo caixa eletrônico...
+        "El cajero automático me pidió mi pin dos veces y no me dio el dinero",
+        "O app pediu minha senha para entrar",
+        "La página me pidió mi clave y no la acepta",
+        "O sistema conseguiu recuperar minha senha",
+        # ... o dinheiro recebido de outra pessoa...
+        "Alguém transferiu dinheiro para mim por engano",
+        "Una persona me transfirió el pago del alquiler",
+        # ... outra pessoa usando outra coisa, e o plástico que não é o cartão.
+        "Uma pessoa está usando o caixa ao meu lado",
+        "La bolsa de plástico que perdí no importa, quiero ver mi saldo",
+        # A senha pedida sem dizer por quem não separa golpe de rotina: fica fora de escopo, e a
+        # conversa oferece o atendente.
+        "Me pidieron mi clave por WhatsApp",
+    ],
+)
+def test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude(texto):
     assert ler(texto).intencao != "fraude"
 
 
