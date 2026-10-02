@@ -388,6 +388,22 @@ FALSO_ATENDENTE = Perto(
      "central", "atendente", "asesor", "gerente", "agente"),
     entre=1,
 )  # fmt: skip
+# "Una persona supuestamente del banco accedió a mi cuenta": a pessoa logo antes do
+# "supuestamente" e o banco, a agência ou a sucursal logo depois são o falso atendente (S2 do
+# REG-32); "supuestamente el banco me iba a llamar" não é. As frases não entram no corretor.
+PESSOA_SUPOSTAMENTE = Perto(
+    tuple(
+        f"{pessoa} {s}"
+        for pessoa in ("persona", "alguien", "hombre", "mujer", "senor", "senora", "tipo", "chico",
+                       "chica", "pessoa", "alguem", "homem", "mulher", "senhor", "senhora", "cara",
+                       "rapaz", "moca")
+        for s in ("supuestamente", "supostamente")
+    ),
+    ("banco", "agencia", "sucursal"),
+    entre=1,
+    so_nessa_ordem=True,
+    corrige=False,
+)  # fmt: skip
 SENHA_ENTREGUE = Perto(
     ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
      "diera"),
@@ -547,6 +563,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
                 SITE_FALSO,
                 SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,
+                PESSOA_SUPOSTAMENTE,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
@@ -973,6 +990,36 @@ def _uma_edicao(a: str, b: str) -> bool:
     return curta[i:] == longa[i + 1 :]
 
 
+# As teclas vizinhas no QWERTY e as trocas que soam igual: o erro de digitação tem uma delas.
+VIZINHAS_NO_TECLADO = {
+    "q": "wa", "w": "qeas", "e": "wrsd", "r": "etdf", "t": "ryfg", "y": "tugh", "u": "yihj",
+    "i": "uojk", "o": "ipkl", "p": "ol", "a": "qwsz", "s": "adwezx", "d": "sferxc", "f": "dgrtcv",
+    "g": "fhtyvb", "h": "gjyubn", "j": "hkuinm", "k": "jliom", "l": "kop", "z": "asx", "x": "zcsd",
+    "c": "xvdf", "v": "cbfg", "b": "vngh", "n": "bmhj", "m": "njk",
+}  # fmt: skip
+TROCAS_QUE_SOAM_IGUAL = ({"s", "z"}, {"s", "c"}, {"z", "c"}, {"b", "v"})
+
+
+def _forma_de_erro(a: str, b: str) -> bool:
+    """`a` sai de `b` por um erro de digitação, a forma que o REG-30 da validação mediu (V2): a
+    tecla vizinha ou a troca que soa igual, a letra que falta (menos o "n" do gerúndio: "pensado"
+    não é "pensando"), a letra repetida ou duas vizinhas invertidas. A uma edição com outra forma é
+    outra palavra: "mirando" não é "tirando", "tratar" não é "travar", "fallos" não é "falsos"."""
+    if not _uma_edicao(a, b):
+        return False
+    if len(a) == len(b):
+        dif = [i for i, (x, y) in enumerate(zip(a, b, strict=True)) if x != y]
+        if len(dif) == 2:
+            return True  # duas vizinhas invertidas
+        x, y = a[dif[0]], b[dif[0]]
+        return x in VIZINHAS_NO_TECLADO.get(y, "") or {x, y} in TROCAS_QUE_SOAM_IGUAL
+    if len(a) == len(b) - 1:  # falta uma letra
+        i = next((k for k, (x, y) in enumerate(zip(a, b, strict=False)) if x != y), len(a))
+        return not (b[i] == "n" and b[i + 1 : i + 2] == "d" and b[i - 1 : i] in ("a", "i", "e"))
+    i = next((k for k, (x, y) in enumerate(zip(a, b, strict=False)) if x != y), len(b))
+    return a[i] in (a[i - 1 : i], a[i + 1 : i + 2])  # a letra a mais só se repetida
+
+
 def corrigir(texto: str) -> tuple[str, tuple[str, ...]]:
     """O texto com as palavras de intenção corrigidas, e as trocas feitas ("robron→robaron")."""
     trocas, pedacos = [], re.split(r"(\w+)", texto)
@@ -984,8 +1031,11 @@ def corrigir(texto: str) -> tuple[str, tuple[str, ...]]:
             or VOCABULARIO.get(palavra, 0) >= 2
         ):
             continue
+        # Uma só candidata a uma edição, e com a forma de erro de digitação (ACH-191): restringir a
+        # forma antes de contar as candidatas criaria trocas novas ("desbloqueei" viraria
+        # "desbloqueie", porque "desbloquei" sairia da conta).
         candidatas = [termo for termo in LEXICO_DE_INTENCAO if _uma_edicao(palavra, termo)]
-        if len(candidatas) != 1:
+        if len(candidatas) != 1 or not _forma_de_erro(palavra, candidatas[0]):
             continue
         if "fraude" in LEXICO_DE_INTENCAO[candidatas[0]] and palavra in VOCABULARIO:
             continue

@@ -1019,6 +1019,58 @@ def test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida(texto):
     assert ler(texto).intencao != "fraude"
 
 
+@pytest.mark.parametrize(
+    ("digitada", "termo", "erro"),
+    [
+        # A forma do erro de digitação (REG-30): a letra que falta, a tecla vizinha ou a troca que
+        # soa igual, a letra repetida e as vizinhas invertidas...
+        ("robron", "robaron", True),
+        ("tarjta", "tarjeta", True),
+        ("atendete", "atendente", True),
+        ("roubarm", "roubaram", True),
+        ("cobranza", "cobranca", True),
+        ("reconosco", "reconozco", True),
+        ("bloquaer", "bloquear", True),
+        # ... e a palavra de verdade a uma edição, com outra forma (ACH-191).
+        ("mirando", "tirando", False),
+        ("probando", "robando", False),
+        ("tratar", "travar", False),
+        ("fallos", "falsos", False),
+        ("pensado", "pensando", False),
+    ],
+)
+def test_so_a_forma_de_erro_de_digitacao_e_corrigida(digitada, termo, erro):
+    assert interpretacao._forma_de_erro(digitada, termo) is erro
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # As frases comuns do REG-29 que o corretor transformava em ação (ACH-191).
+        "Estaba mirando mi cuenta y vi el depósito",
+        "Estoy probando mi cuenta nueva",
+        "Tem algum problema rolando com a minha conta?",
+        "La página del banco tuvo fallos ayer",
+        "O site do banco teve falhas hoje",
+        "Preciso tratar do cartão adicional da minha esposa",
+        "Quiero tratar mi tarjeta adicional",
+        "Tô pirando, cadê o dinheiro do salário?",
+        "Cuando revisan mi identificación, ¿cuáles son los pasos involucrados?",
+        # Uma só candidata antes da forma: "desbloqueei" não vira "desbloqueie".
+        "Já desbloqueei meu cartão pelo app",
+    ],
+)
+def test_frase_comum_nao_e_corrigida_para_termo_de_acao(texto):
+    assert interpretacao.corrigir(texto) == (texto, ())
+
+
+def test_frases_do_pedido_de_segredo_ou_dinheiro_ficam_fora_do_corretor():
+    """As 2.160 frases do pedido de segredo ou dinheiro (REG-28) não entram no léxico do corretor:
+    as palavras delas ("deposito", "prestamo", "solicitou") mudariam as candidatas validadas."""
+    palavras = {"solicitou", "deposito", "prestamo", "emprestimo", "pidieron"}
+    assert palavras.isdisjoint(interpretacao.LEXICO_DE_INTENCAO)
+
+
 def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
     """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe"."""
     texto = "paguei a aula de golfe com o cartão"
@@ -1331,6 +1383,21 @@ def test_golpe_de_quem_se_apresentou_como_outro(texto):
     ],
 )
 def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe):
+    assert (ler(texto).intencao == "fraude") is golpe
+
+
+@pytest.mark.parametrize(
+    ("texto", "golpe"),
+    [
+        # A pessoa "supuestamente del banco" é o falso atendente (REG-32, S2; o custo do #83)...
+        ("Una persona supuestamente del banco accedió a mi cuenta sin permiso", True),
+        ("Uma pessoa supostamente do banco acessou minha conta sem eu saber", True),
+        # ... e o banco "supuestamente" sem a pessoa, não.
+        ("Supuestamente el banco me iba a llamar hoy y nada", False),
+        ("Supostamente a agência abre às 10h, mas está fechada", False),
+    ],
+)
+def test_pessoa_supostamente_do_banco_e_golpe(texto, golpe):
     assert (ler(texto).intencao == "fraude") is golpe
 
 
