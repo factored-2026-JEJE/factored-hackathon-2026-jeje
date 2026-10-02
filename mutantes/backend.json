@@ -12645,8 +12645,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "            vizinhos = self._carregados().mais_parecidos(vetor, lido.idioma)",
-          "para": "            vizinhos = self._carregados().mais_parecidos(vetor, \"es\")"
+          "de": "        vizinhos = self._carregados().mais_parecidos(vetor, idioma)",
+          "para": "        vizinhos = self._carregados().mais_parecidos(vetor, \"es\")"
         }
       ],
       "testes": [
@@ -12660,8 +12660,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "            vizinhos = self._carregados().mais_parecidos(vetor, lido.idioma)",
-          "para": "            vizinhos = self._carregados().mais_parecidos(-vetor, lido.idioma)"
+          "de": "        vizinhos = self._carregados().mais_parecidos(vetor, idioma)",
+          "para": "        vizinhos = self._carregados().mais_parecidos(-vetor, idioma)"
         }
       ],
       "testes": [
@@ -12675,7 +12675,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, \"modelo\"))",
+          "de": "        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, \"modelo\"))",
           "para": "        lida = replace(lido, sinais=(*lido.sinais, \"modelo\"))"
         }
       ],
@@ -12690,8 +12690,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "            return Leitura(lido, fallback, self.ollama.chamada(inicio, uso))",
-          "para": "            return Leitura(lido, fallback)"
+          "de": "            return Leitura(lido, fallback, self.ollama.chamada(inicio, uso), vetor)",
+          "para": "            return Leitura(lido, fallback, vetor=vetor)"
         }
       ],
       "testes": [
