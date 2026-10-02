@@ -28,6 +28,9 @@ from jeje.mensagens import IDIOMAS, Idioma, Status
 
 log = logging.getLogger("jeje.modelo")
 
+# O sinal da intenção que o modelo leu (o modo modelo e o LLM do "não entendi"), no trace do turno.
+SINAL_DO_MODELO = "modelo"
+
 # O modelo não pede bloqueio nem desbloqueio de cartão (PRD-007): efeito sobre o cartão só com o
 # pedido lido pelas regras; cartão perdido ou roubado, para o modelo, é relato de fraude.
 IntencaoDoModelo = Literal[
@@ -93,6 +96,12 @@ def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitu
     return Leitura(interpretar(texto, idioma_anterior, referencia), "regras")
 
 
+def pelo_modelo(lida: Interpretacao) -> bool:
+    """A intenção veio do modelo (o modo modelo ou o LLM do "não entendi"), não das regras nem do
+    leitor."""
+    return SINAL_DO_MODELO in lida.sinais
+
+
 def entendida(lida: Interpretacao) -> bool:
     """As regras já sabem o que fazer (ou há sinal que só as regras podem tratar). O aceite largo da
     oferta do atendente ("sí, pásame") é um desses: o leitor o lia como fora de escopo (ACH-125 da
@@ -139,7 +148,7 @@ class Ollama:
             idioma=saida.idioma,
             intencao=saida.intencao,
             status=saida.status,
-            sinais=("modelo",),
+            sinais=(SINAL_DO_MODELO,),
         )
         return Leitura(lida, f"ollama:{self.modelo}", self.chamada(inicio, uso))
 
