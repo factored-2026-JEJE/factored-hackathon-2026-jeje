@@ -11795,6 +11795,21 @@
       ]
     },
     {
+      "id": "M-CONV-113",
+      "requisito": "R07",
+      "descricao": "A fraude que só o LLM leu bloqueia o cartão (REG-15)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if pelo_modelo(self.lida):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_fraude_que_so_o_llm_leu_vai_ao_atendente_sem_bloquear_o_cartao"
+      ]
+    },
+    {
       "id": "M-ITP-135",
       "requisito": "R02",
       "descricao": "A recusa da transação apontada nunca é lida (ACH-145)",
