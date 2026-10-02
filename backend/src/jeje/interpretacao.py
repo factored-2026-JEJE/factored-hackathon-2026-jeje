@@ -159,7 +159,10 @@ PERDA_DE_MEIO = Perto(
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
     fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
-          "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na"),
+          "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na",
+          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).
+          "fatura", "factura", "extrato", "extracto", "resumen", "opcion", "opcao", "boleto",
+          "comprovante", "comprobante"),
     # Com o cartão antes do verbo, o que vem logo antes dele também conta: "la compra con mi
     # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
     antes=3,
