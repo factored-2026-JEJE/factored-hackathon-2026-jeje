@@ -114,7 +114,7 @@ def test_llm_que_falha_nao_dispara_a_garantia(exemplos, caplog):
 
 
 @pytest.mark.parametrize(
-    "texto", ["me robaron la tarjeta", "quiero hablar con un agente", "sí", "2", "Gracias"]
+    "texto", ["me robaron la tarjeta", "quiero hablar con un agente", "sí", "2", "Gracias", "kkkkk"]
 )
 def test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia(exemplos, texto):
     with ollama_falso(resposta("fraude")) as (url, pedidos):
