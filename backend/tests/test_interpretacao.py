@@ -1461,6 +1461,31 @@ def test_so_o_q_sozinho_vira_que():
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("Encontré mi tarjeta pero alguien ya la había usado", "es"),
+        ("Alguien la había usado sin permiso cuando la perdí", "es"),
+        ("Alguém tinha usado o meu cartão antes de eu bloquear", "pt"),
+    ],
+)
+def test_o_uso_por_outro_contado_no_mais_que_perfeito_e_fraude(texto, anterior):
+    """O achado com o uso por outro é golpe, e não o pedido de desbloqueio (ACH-199)."""
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Yo ya la había usado antes en esa tienda", "es"),
+        ("Mi hijo la había usado con mi permiso", "es"),
+        ("Eu já tinha usado o cartão nessa loja antes", "pt"),
+    ],
+)
+def test_o_mais_que_perfeito_sem_outra_pessoa_nao_e_fraude(texto, anterior):
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("No encontré mi tarjeta", "es"),
         ("Todavía no encontré mi tarjeta, ¿qué hago?", "es"),
         ("Não encontrei meu cartão em lugar nenhum", "pt"),

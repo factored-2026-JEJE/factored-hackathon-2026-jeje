@@ -568,6 +568,11 @@ TERCEIRO_USOU = Perto(
      "intento realizar una compra", "intento realizar una transaccion",
      "tentou realizar uma compra", "tentou realizar uma operacao", "tentou realizar uma transacao",
      "intento cobrar con mi", "tentou cobrar com meu", "se ha hecho pasar", "pegou meu cartao",
+     # O uso contado no mais-que-perfeito ("encontré mi tarjeta pero alguien ya la había usado",
+     # ACH-199), em PT só com o que é do cliente.
+     "la habia usado", "la habian usado", "la habia utilizado", "la habian utilizado",
+     "tinha usado meu", "tinha usado minha", "tinha usado o meu", "tinha usado a minha",
+     "tinham usado meu", "tinham usado minha", "havia usado meu", "havia usado minha",
      "pegou meus cartoes", "pegou minha carteira", "forjou o meu", "forjou meu", "rouba o meu",
      "rouba meu"),
     # A pessoa do próprio banco ou do suporte ("una persona del banco abrió una cuenta a mi nombre
