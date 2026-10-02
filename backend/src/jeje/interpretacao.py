@@ -132,9 +132,10 @@ PERDA_DE_MEIO = Perto(
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
 PEDIDO_DE_PESSOA = Perto(
-    ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "passa",
-     "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar", "chama",
-     "chame", "chamar", "coloca", "coloque", "colocar", "atienda", "atenda"),
+    ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "pasas", "pasa",
+     "passa", "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar",
+     "contacto", "contato", "conect*", "chama", "chame", "chamar", "coloca", "coloque", "colocar",
+     "atienda", "atenda", "dame", "deme", "llamame", "llame", "liga", "ligue", "poe", "ponme"),
     ("agente", "asesor", "atendente", "humano", "operador", "persona", "pessoa", "alguien",
      "alguem", "gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
@@ -713,7 +714,7 @@ def _status(limpo: str) -> str | None:
 # O corretor do NOV-24 da validação: a palavra desconhecida com 6 letras ou mais que está a uma
 # edição (Damerau-Levenshtein) de uma única palavra dos termos de contestar, fraude, bloquear,
 # desbloquear ou humano conta como essa palavra. Palavra com 2 ou mais ocorrências no vocabulário
-# (o BANKING77 de treino ES/PT, `python -m jeje.leitor.palavras`) nunca é trocada, e a que aparece
+# (o BANKING77 de treino ES/PT, `python -m jeje.palavras`) nunca é trocada, e a que aparece
 # nele ao menos uma vez não vira termo de fraude ("probado" não vira "robado").
 VOCABULARIO_DO_ARQUIVO = Path(__file__).with_name("palavras_conhecidas.txt")
 VOCABULARIO: dict[str, int] = {
@@ -752,8 +753,9 @@ LEXICO_DE_INTENCAO = _lexico()
 
 
 def _uma_edicao(a: str, b: str) -> bool:
-    """A uma edição: uma letra trocada, uma a mais ou a menos, ou duas vizinhas invertidas."""
-    if a == b or abs(len(a) - len(b)) > 1:
+    """A uma edição: uma letra trocada, uma a mais ou a menos, ou duas vizinhas invertidas. O plural
+    do termo não conta ("golpes" não vira "golpe", REG-14)."""
+    if a == b or a in (b + "s", b + "es") or abs(len(a) - len(b)) > 1:
         return False
     if len(a) == len(b):
         dif = [i for i, (x, y) in enumerate(zip(a, b, strict=True)) if x != y]

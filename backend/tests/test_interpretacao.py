@@ -1078,3 +1078,28 @@ def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, inte
 )
 def test_cobranca_a_mais_e_contestacao(texto, intencao):
     assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # ACH-181: os pedidos de pessoa com outros verbos (regressão do PEDIDO_DE_PESSOA).
+        "Me pasas con una persona",
+        "Conéctame con un agente",
+        "Dame un asesor",
+        "Llámame un humano",
+        "Me conecta com uma pessoa",
+        "Me liga um atendente",
+        "Me põe em contato com um humano",
+    ],
+)
+def test_outros_verbos_de_pedido_de_pessoa(texto):
+    assert ler(texto).intencao == "humano"
+
+
+def test_plural_de_termo_nao_e_corrigido_para_o_termo():
+    """Regressão do DEV-060 no ACH-144 (REG-14): "golpes" não vira "golpe", nem "estafas" vira
+    "estafa"; o erro de uma letra continua corrigido."""
+    texto = "Estoy preocupado con tantas estafas y golpes"
+    assert interpretacao.corrigir(texto) == (texto, ())
+    assert ler("No reconosco un cargo").intencao == "contestar"
