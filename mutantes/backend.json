@@ -12718,7 +12718,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"haciendose pasar por\",\n     # Afirmou ser outro (\"me aseguró ser mi primo\"). Apresentar-se ou dizer onde trabalha, não: é\n     # também o atendente de verdade (\"se presentó como gerente y me ayudó mucho\", ACH-179).\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\"),",
+          "de": "     \"haciendose pasar por\",\n     # Afirmou ser outro (\"me aseguró ser mi primo\"). Apresentar-se ou dizer onde trabalha, não: é\n     # também o atendente de verdade (\"se presentó como gerente y me ayudó mucho\", ACH-179).\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"se dizendo\", \"se diciendo\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\"),",
           "para": "     \"haciendose pasar por\"),"
         }
       ],
@@ -12768,8 +12768,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"agente\"),",
-          "para": "     \"central\", \"atendente\", \"asesor\", \"gerente\"),"
+          "de": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"agente\", \"soporte\", \"suporte\", \"tecnico\",\n     \"atendimento\"),",
+          "para": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"soporte\", \"suporte\", \"tecnico\",\n     \"atendimento\"),"
         }
       ],
       "testes": [
@@ -12919,16 +12919,16 @@
     {
       "id": "M-ITP-206",
       "requisito": "R02",
-      "descricao": "As frases do pedido de segredo ou dinheiro entram no corretor, e \"pidieran\" vira \"pidieron\"",
+      "descricao": "As frases do pedido de segredo ou dinheiro entram no léxico do corretor",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    so_nessa_ordem=True,\n    corrige=False,\n)",
-          "para": "    so_nessa_ordem=True,\n)"
+          "de": "    entre=5,\n    so_nessa_ordem=True,\n    corrige=False,\n)",
+          "para": "    entre=5,\n    so_nessa_ordem=True,\n)"
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
+        "tests/test_interpretacao.py::test_frases_do_pedido_de_segredo_ou_dinheiro_ficam_fora_do_corretor"
       ]
     },
     {
@@ -12938,12 +12938,178 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    fora=(\"banco\", \"agencia\", \"sucursal\"),\n",
+          "de": "    fora=(\"banco\", \"agencia\", \"sucursal\", \"soporte\", \"suporte\", \"atendimento\", \"atencion\"),\n",
           "para": ""
         }
       ],
       "testes": [
         "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-209",
+      "requisito": "R02",
+      "descricao": "O corretor troca qualquer palavra a uma edição (\"mirando\" vira \"tirando\" e a frase comum vira golpe, ACH-191)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if len(candidatas) != 1 or not _forma_de_erro(palavra, candidatas[0]):",
+          "para": "        if len(candidatas) != 1:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-210",
+      "requisito": "R02",
+      "descricao": "A letra que falta vale também para o \"n\" do gerúndio (\"pensado\" vira \"pensando\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        return not (b[i] == \"n\" and b[i + 1 : i + 2] == \"d\" and b[i - 1 : i] in (\"a\", \"i\", \"e\"))",
+          "para": "        return True"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_so_a_forma_de_erro_de_digitacao_e_corrigida"
+      ]
+    },
+    {
+      "id": "M-ITP-211",
+      "requisito": "R02",
+      "descricao": "A forma do erro restringe as candidatas antes de contá-las (\"desbloqueei\" vira \"desbloqueie\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        candidatas = [termo for termo in LEXICO_DE_INTENCAO if _uma_edicao(palavra, termo)]",
+          "para": "        candidatas = [termo for termo in LEXICO_DE_INTENCAO if _forma_de_erro(palavra, termo)]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-212",
+      "requisito": "R02",
+      "descricao": "A pessoa \"supuestamente del banco\" que acessou a conta não é golpe (REG-32, o custo do #83)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                PESSOA_SUPOSTAMENTE,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_supostamente_do_banco_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-213",
+      "requisito": "R02",
+      "descricao": "Quem ligou do banco e tirou o dinheiro não é golpe (ACH-192)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DO_BANCO_E_TIROU,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-214",
+      "requisito": "R03",
+      "descricao": "O aviso do banco (\"me llamaron del banco para avisarme que mi hijo sacó plata\") é golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=(\"avisarme\", \"avisar\", \"avisando\", \"avisaron\", \"avisou\", \"avisaram\", \"informarme\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-215",
+      "requisito": "R02",
+      "descricao": "O golpe contado no passado (\"me estafó\") e o \"roubaron\" não são fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"me estafo\", \"nos estafo\", \"la estafo\", \"roubaron\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_contado_no_passado_e_o_roubaron_do_portunhol"
+      ]
+    },
+    {
+      "id": "M-ITP-216",
+      "requisito": "R03",
+      "descricao": "O suporte que entrou na conta a pedido (\"alguien del soporte entró a mi cuenta para restablecer la contraseña\") é golpe (ACH-194)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"sucursal\", \"soporte\", \"suporte\", \"atendimento\", \"atencion\"),",
+          "para": "\"sucursal\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-217",
+      "requisito": "R02",
+      "descricao": "O falso suporte (\"alguém do falso suporte acessou minha conta\") não é golpe (ACH-194)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"gerente\", \"agente\", \"soporte\", \"suporte\", \"tecnico\",\n     \"atendimento\"),",
+          "para": "\"gerente\", \"agente\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_supostamente_do_banco_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-218",
+      "requisito": "R02",
+      "descricao": "Quem se disse do suporte (\"uma pessoa se dizendo do suporte acessou minha conta\") não é golpe (ACH-194)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"se dizendo\", \"se diciendo\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-219",
+      "requisito": "R02",
+      "descricao": "O \"q\" abreviado não vira \"que\" (\"me hicieron creer q era un operador\" deixa de ser golpe)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return \" \".join(\"que\" if p == \"q\" else p for p in re.findall(r\"[a-z0-9]+\", sem_acento))\n",
+          "para": "    return \" \".join(re.findall(r\"[a-z0-9]+\", sem_acento))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_escrito_com_o_q_abreviado",
+        "tests/test_interpretacao.py::test_so_o_q_sozinho_vira_que"
       ]
     },
     {
@@ -13088,8 +13254,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    depois=3,\n",
-          "para": "    depois=0,\n"
+          "de": "    # aplicativo a opção de bloquear\" é perda).\n    depois=3,\n",
+          "para": "    # aplicativo a opção de bloquear\" é perda).\n    depois=0,\n"
         }
       ],
       "testes": [
@@ -13103,8 +13269,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    depois=3,\n",
-          "para": "    depois=6,\n"
+          "de": "    # aplicativo a opção de bloquear\" é perda).\n    depois=3,\n",
+          "para": "    # aplicativo a opção de bloquear\" é perda).\n    depois=6,\n"
         }
       ],
       "testes": [
