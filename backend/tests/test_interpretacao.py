@@ -1061,3 +1061,20 @@ def test_pessoa_citada_sem_pedido_nao_e_pedido_de_atendente(texto):
 )
 def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, intencao):
     assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # Cobrança a mais é contestação ("uma pessoa me cobrou a mais" não gerava o pré-caso).
+        ("Una persona me cobró de más en la tienda.", "contestar"),
+        ("Uma pessoa me cobrou a mais na loja.", "contestar"),
+        ("Me cobraron 20 dólares de más", "contestar"),
+        ("O mercado me cobrou a mais", "contestar"),
+        # Sem o verbo de cobrar, "mais" e "más" continuam consulta.
+        ("Qual é a cobrança mais recente?", "consultar"),
+        ("¿Cuál es el cobro más reciente?", "consultar"),
+    ],
+)
+def test_cobranca_a_mais_e_contestacao(texto, intencao):
+    assert ler(texto).intencao == intencao
