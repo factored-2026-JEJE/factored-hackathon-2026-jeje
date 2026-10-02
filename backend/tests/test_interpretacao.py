@@ -1493,6 +1493,55 @@ def test_a_negacao_que_nao_e_do_cliente_segue_relato(texto, anterior):
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("No encontré mi tarjeta", "es"),
+        ("Todavía no encontré mi tarjeta, ¿qué hago?", "es"),
+        ("Não encontrei meu cartão em lugar nenhum", "pt"),
+        ("Ainda não achei o cartão", "pt"),
+    ],
+)
+def test_o_cartao_que_nao_se_achou_e_perda(texto, anterior):
+    """O cartão que não se achou é perda: bloqueia e encaminha, não é o pedido de desbloqueio."""
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+def test_o_cartao_achado_negado_nao_e_desbloqueio():
+    # "En casa" logo depois desfaz a perda; o achado negado também não é desbloqueio.
+    assert ler("No encontré mi tarjeta en casa").intencao != "desbloquear"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Encontré la tarjeta que perdí, ¿cómo la reactivo?", "es"),
+        # O achado logo depois do cartão e o cartão que só se pensou ter perdido (REG-41).
+        ("Posso reativar meu cartão perdido que encontrei esta manhã?", "pt"),
+        ("Posso reativar um cartão que pensei ter perdido?", "pt"),
+    ],
+)
+def test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado(texto, anterior):
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O reativar antes do cartão não desfaz a perda contada depois (REG-40 da validação).
+        ("Reactivé mi tarjeta y la perdí de nuevo", "es"),
+        ("Queria reativar meu cartão mas perdi ele de novo", "pt"),
+    ],
+)
+def test_a_perda_contada_depois_de_reativar_segue_perda(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+def test_nao_achei_que_e_pensar_e_nao_perda():
+    texto = "Eu notei uma taxa no meu cartão, mas não achei que tinha atingido o limite"
+    assert ler(texto, "pt").intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("¡Es un robo! Me cobraron 3 dólares de comisión", "es"),
         ("¡Esto es un robo! Pagué el pedido hace dos semanas y nunca llegó", "es"),
         ("Isso é um assalto, a tarifa subiu de novo", "pt"),
