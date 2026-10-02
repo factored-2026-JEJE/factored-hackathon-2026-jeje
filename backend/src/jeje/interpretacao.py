@@ -118,7 +118,11 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
 # Perda ou extravio só é relato de fraude com cartão, carteira ou celular perto: "perdí la
 # conexión" e "no encuentro la compra en mi tarjeta" continuam consulta (ACH-101).
 PERDA_DE_MEIO = Perto(
-    ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*"),
+    ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*",
+     # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
+     "quitaron", "hurt*", "no hallo", "no puedo encontrar", "ya no tengo", "olvid*",
+     "no aparece", "furt*", "levaram", "nao acho", "nao consigo achar", "nao tenho mais",
+     "desaparec*", "esqueci*"),
     ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular"),
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
