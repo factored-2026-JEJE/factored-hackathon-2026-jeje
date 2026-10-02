@@ -1085,7 +1085,7 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
         "Un señor haciéndose pasar por el banco me pidió la clave",
         "Me llamó alguien que se hacía pasar por el banco y consiguió mi clave",
         "Um homem conseguiu minha senha pelo telefone",
-        "Me pidieron la clave por WhatsApp",
+        "Me pidieron mi clave por WhatsApp",
         "Meu cartão se roubou ontem",
         # O leitor lia com confiança como contestação (ACH-182, LLM-01): agora as regras leem antes.
         "Alguien anda gastando con mi plástico en tiendas donde nunca he puesto un pie",
@@ -1192,6 +1192,20 @@ def test_o_que_o_atendente_de_verdade_disse_nao_e_golpe(texto):
 )
 def test_verbo_e_depois_o_papel_continua_golpe(texto):
     assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Senha ou código pedidos sem ser os do cliente, ou negados, não são golpe (REG-17).
+        "La app me pidió un código de verificación",
+        "O caixa pediu a senha duas vezes",
+        "Minha mãe não conseguiu trocar a senha",
+        "Ele não conseguiu minha senha, eu desliguei antes",
+    ],
+)
+def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
+    assert ler(texto).intencao != "fraude"
 
 
 @pytest.mark.parametrize(

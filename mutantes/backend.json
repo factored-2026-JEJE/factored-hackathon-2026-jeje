@@ -11050,8 +11050,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
-          "para": "                DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n"
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n",
+          "para": "                DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n"
         }
       ],
       "testes": [
@@ -11065,8 +11065,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
-          "para": "                SE_PASSOU_POR, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n"
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n"
         }
       ],
       "testes": [
@@ -11080,8 +11080,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
-          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, SENHA_ENTREGUE, SITE_FALSO,\n"
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n"
         }
       ],
       "testes": [
@@ -11095,8 +11095,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
-          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SITE_FALSO,\n"
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_OBTIDA,\n                SITE_FALSO,\n"
         }
       ],
       "testes": [
@@ -11110,8 +11110,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,\n",
-          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE,\n"
+          "de": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n                SITE_FALSO,\n",
+          "para": "                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,\n"
         }
       ],
       "testes": [
@@ -12252,8 +12252,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    negavel=True,\n",
-          "para": ""
+          "de": "    entre=2,\n    negavel=True,\n",
+          "para": "    entre=2,\n"
         }
       ],
       "testes": [
@@ -12342,8 +12342,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"conseguiu\", \"consiguio\", \"pediu\", \"pidio\", \"pidieron\", \"pediram\", \"roubou\", \"robo\"),",
-          "para": "     ),"
+          "de": "SENHA_ENTREGUE, SENHA_OBTIDA,\n",
+          "para": "SENHA_ENTREGUE,\n"
         }
       ],
       "testes": [
@@ -12408,6 +12408,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_o_que_o_atendente_de_verdade_disse_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-176",
+      "requisito": "R03",
+      "descricao": "Senha negada (\"não roubaram minha senha\") vira golpe (REG-17)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"mis datos\", \"meu pin\", \"mi pin\", \"meu token\", \"mi token\"),\n    entre=1,\n    negavel=True,\n",
+          "para": "     \"mis datos\", \"meu pin\", \"mi pin\", \"meu token\", \"mi token\"),\n    entre=1,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-177",
+      "requisito": "R03",
+      "descricao": "Qualquer senha pedida vira golpe (\"o caixa pediu a senha\") e bloqueia o cartão (REG-17)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"minha senha\", \"mi clave\", \"mi contrasena\", \"meu codigo\", \"mi codigo\", \"meus dados\",\n",
+          "para": "    (\"senha\", \"clave\", \"codigo\", \"minha senha\", \"mi clave\", \"mi contrasena\", \"meu codigo\", \"mi codigo\", \"meus dados\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe"
       ]
     },
     {

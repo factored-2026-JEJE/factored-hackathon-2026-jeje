@@ -317,11 +317,21 @@ FALSO_ATENDENTE = Perto(
 )  # fmt: skip
 SENHA_ENTREGUE = Perto(
     ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
-     "diera",
-     # A senha ou o código obtidos ou pedidos por outra pessoa (ACH-171).
-     "conseguiu", "consiguio", "pediu", "pidio", "pidieron", "pediram", "roubou", "robo"),
+     "diera"),
     ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
     entre=2,
+)  # fmt: skip
+# A senha, o código ou os dados do cliente obtidos ou pedidos por outra pessoa ("conseguiu minha
+# senha", "me pidieron mi clave", ACH-171): só com o possessivo e sem negação. "La app me pidió un
+# código de verificación", "o caixa pediu a senha duas vezes" e "não conseguiu trocar a senha" não
+# são golpe (REG-17).
+SENHA_OBTIDA = Perto(
+    ("conseguiu", "consiguio", "consiguieron", "conseguiram", "pediu", "pidio", "pidieron",
+     "pediram", "roubou", "robo", "roubaram", "robaron"),
+    ("minha senha", "mi clave", "mi contrasena", "meu codigo", "mi codigo", "meus dados",
+     "mis datos", "meu pin", "mi pin", "meu token", "mi token"),
+    entre=1,
+    negavel=True,
 )  # fmt: skip
 SITE_FALSO = Perto(
     ("sitio", "sitios", "site", "sites", "pagina", "paginas", "enlace", "enlaces", "link",
@@ -424,7 +434,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
                 # Golpe de engenharia social (ACH-142).
-                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,
+                SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
+                SITE_FALSO,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
