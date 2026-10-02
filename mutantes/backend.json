@@ -11767,8 +11767,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"contatar\", \"chama\",\n     \"chame\", \"chamar\", \"coloca\", \"coloque\", \"colocar\", \"atienda\", \"atenda\"),",
-          "para": "\"contatar\",\n     \"atienda\", \"atenda\"),"
+          "de": "\"chama\", \"chame\", \"chamar\", \"coloca\", \"coloque\", \"colocar\",",
+          "para": ""
         }
       ],
       "testes": [
@@ -11788,6 +11788,21 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_cobranca_a_mais_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-154",
+      "requisito": "R07",
+      "descricao": "Dame, llámame, me liga e me põe não pedem atendente (ACH-181)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"atenda\", \"dame\", \"deme\", \"llamame\", \"llame\", \"liga\", \"ligue\", \"poe\", \"ponme\"),",
+          "para": "\"atenda\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_outros_verbos_de_pedido_de_pessoa"
       ]
     },
     {

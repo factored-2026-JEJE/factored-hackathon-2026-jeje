@@ -1078,3 +1078,21 @@ def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, inte
 )
 def test_cobranca_a_mais_e_contestacao(texto, intencao):
     assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # ACH-181: os pedidos de pessoa com outros verbos (regressão do PEDIDO_DE_PESSOA).
+        "Me pasas con una persona",
+        "Conéctame con un agente",
+        "Dame un asesor",
+        "Llámame un humano",
+        "Me conecta com uma pessoa",
+        "Me liga um atendente",
+        "Me põe em contato com um humano",
+    ],
+)
+def test_outros_verbos_de_pedido_de_pessoa(texto):
+    assert ler(texto).intencao == "humano"
+
