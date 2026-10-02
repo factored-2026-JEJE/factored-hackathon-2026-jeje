@@ -299,6 +299,26 @@ AUTOR_DESCONHECIDO = Perto(
 PEDIDO_DE_DINHEIRO = Perto(
     ("pidiendo", "pedindo", "pidio", "pediu"), ("dinero", "dinheiro", "plata"), entre=1
 )
+# Outra pessoa usou, roubou, sacou ou pediu dinheiro: "alguien utilizó mi tarjeta sin mi permiso",
+# "alguien está usando mi número", "uma pessoa fez compras no meu cartão". Até o #57, "alguien" e
+# "una persona" soltos levavam essas mensagens ao atendente como pedido de humano; o relato é de
+# fraude (regressão do #57 no REG-12). Só o verbo no passado ou em curso: "si alguien usa mi
+# tarjeta" é pergunta.
+TERCEIRO_USOU = Perto(
+    ("alguien", "alguem", "una persona", "uma pessoa", "otra persona", "outra pessoa",
+     "un desconocido", "um desconhecido", "un extrano", "um estranho"),
+    ("uso", "usaba", "usaron", "esta usando", "estan usando", "utilizo", "esta utilizando", "robo",
+     "hizo pagos", "hizo compras", "hizo un pago", "hizo una compra", "hizo un retiro", "compro",
+     "saco", "retiro", "transfirio", "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
+     "usou", "usava", "usaram", "estao usando", "utilizou", "roubou",
+     "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
+     "comprou", "sacou", "transferiu", "tirou", "se passou", "acessou", "entrou na minha conta",
+     "clonou"),
+)  # fmt: skip
+# O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
+CARTAO_SE_ROUBOU = Perto(
+    ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
+)
 # Não querer falar com o robô é pedir uma pessoa (ACH-140). "Robô" sem acento é "robo", que em
 # espanhol é roubo: o relato de fraude vem antes e só casa "un robo" e "robo de".
 SEM_ROBO = Perto(("no quiero", "nao quero"), ("robot", "robo", "bot", "maquina"))
@@ -359,6 +379,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # Golpe de engenharia social (ACH-142).
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SITE_FALSO,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
+                TERCEIRO_USOU, CARTAO_SE_ROUBOU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",

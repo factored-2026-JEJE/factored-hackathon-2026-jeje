@@ -1035,6 +1035,44 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
 @pytest.mark.parametrize(
     "texto",
     [
+        # Outra pessoa usou, roubou, sacou ou pediu dinheiro: relato de fraude, que até o #57 ia ao
+        # atendente pelos termos soltos de humano (REG-12 no d9dfad0).
+        "alguien utilizó mi tarjeta sin mi permiso",
+        "alguien está usando mi número",
+        "alguien me robó con un número falso",
+        "Alguien hizo compras con mi tarjeta",
+        "una persona sacó dinero de mi cuenta",
+        "un desconocido entró a mi cuenta",
+        "alguém está usando meu cartão",
+        "alguém roubou meu dinheiro da conta",
+        "uma pessoa fez compras no meu cartão",
+        "alguém se passou por mim e fez um pix",
+        "um estranho acessou minha conta",
+        "Mi tarjeta se robó anoche",
+        "Meu cartão se roubou ontem",
+    ],
+)
+def test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # A mesma pessoa sem verbo de uso, roubo ou saque, ou o verbo no presente (pergunta).
+        "Una persona me cobró de más en la tienda.",
+        "¿Qué pasa si alguien usa mi tarjeta?",
+        "Quero que uma pessoa veja meu caso",
+        "alguien del banco me llamó ayer",
+    ],
+)
+def test_outra_pessoa_sem_uso_nem_roubo_nao_e_relato_de_fraude(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # DEV-080 (ACH-159, HUM-01): a pessoa citada sem pedido não é pedido de atendente.
         "Una persona me cobró de más en la tienda.",
         "Uma pessoa me cobrou a mais na loja.",
