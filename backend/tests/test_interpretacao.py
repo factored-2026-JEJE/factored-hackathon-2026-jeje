@@ -1382,6 +1382,10 @@ def test_pessoa_citada_sem_pedido_nao_e_pedido_de_atendente(texto):
         ("Agente", "humano"),
         ("Un humano por favor", "humano"),
         ("atendente agora", "humano"),
+        # O "por favor" abreviado (REG-01: "asesor pfv" ia ao leitor, que o lia fora de escopo).
+        ("asesor pfv", "humano"),
+        ("um atendente pls", "humano"),
+        ("porfa un asesor", "humano"),
     ],
 )
 def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, intencao):

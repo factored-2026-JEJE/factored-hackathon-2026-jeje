@@ -194,11 +194,13 @@ PEDIDO_DE_PESSOA = Perto(
     ("agente", "asesor", "atendente", "humano", "operador", "persona", "pessoa", "alguien",
      "alguem", "gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
-# A mensagem que é só a pessoa ("Agente", "un humano por favor") continua sendo pedido.
+# A mensagem que é só a pessoa ("Agente", "un humano por favor", "asesor pfv") continua sendo
+# pedido, também com o "por favor" abreviado.
+POR_FAVOR = r"(?:por favor|porfavor|porfa|pfv|pfvr|pf|pls|plis|plz|please)"
 SO_A_PESSOA = re.compile(
-    r"^(?:(?:un|una|um|uma|el|la|o|a|por favor|ya|ahora|agora|ja) )*"
+    rf"^(?:(?:un|una|um|uma|el|la|o|a|{POR_FAVOR}|ya|ahora|agora|ja) )*"
     r"(?:agente|asesor|atendente|humano|operador|persona|pessoa|gerente|supervisor)"
-    r"(?: (?:por favor|ya|ahora|agora|ja))*$"
+    rf"(?: (?:{POR_FAVOR}|ya|ahora|agora|ja))*$"
 )
 # Cobrança repetida é contestação quando o verbo de cobrar (ou de aparecer no extrato) está perto:
 # "me cobraron dos veces", "a Streaming Plus me cobrou 2x"; "intenté dos veces y me rechazaron"
@@ -873,6 +875,12 @@ VOCABULARIO: dict[str, int] = {
 }
 INTENCOES_CORRIGIDAS = frozenset({"contestar", "fraude", "bloquear", "desbloquear", "humano"})
 MINIMO_PARA_CORRIGIR = 6
+
+
+def reconhecivel(texto: str) -> bool:
+    """Alguma palavra da mensagem está no vocabulário. Sem nenhuma ("asdf qwer", "kkkk", "👍"), é
+    ruído: o leitor o lia como pedido fora de escopo com confiança (ACH-122, DEV-020s)."""
+    return any(palavra in VOCABULARIO for palavra in normalizar(texto).split())
 
 
 def _palavras_do_termo(termo: str | Perto) -> Iterator[str]:

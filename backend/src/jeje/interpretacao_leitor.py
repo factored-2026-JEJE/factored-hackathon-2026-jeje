@@ -25,7 +25,7 @@ from datetime import date
 from pathlib import Path
 
 from jeje import eventos
-from jeje.interpretacao import Interpretacao, interpretar
+from jeje.interpretacao import Interpretacao, interpretar, reconhecivel
 from jeje.interpretacao_modelo import Chamada, Leitura, entendida
 from jeje.leitor.codificador import E5, Codificador
 from jeje.leitor.fluxos import LEITURA_DO_FLUXO
@@ -35,6 +35,8 @@ from jeje.mensagens import Idioma
 from jeje.nao_entendi import NaoEntendi
 
 log = logging.getLogger("jeje.leitor")
+
+SEM_PALAVRA_CONHECIDA = "regras (sem palavra conhecida)"
 
 Carregador = Callable[[], tuple[ModeloLeitor, Codificador]]
 
@@ -110,6 +112,9 @@ class Leitor:
         regras = interpretar(texto, idioma_anterior, referencia)
         if entendida(regras):
             return Leitura(regras, "regras")
+        if not reconhecivel(texto):
+            # Ruído segue não entendido, sem o leitor nem o LLM (ACH-122).
+            return Leitura(regras, SEM_PALAVRA_CONHECIDA)
         inicio = time.perf_counter()
         try:
             modelo, codificar = self._carregado()
