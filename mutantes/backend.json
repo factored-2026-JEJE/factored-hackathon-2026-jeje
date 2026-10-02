@@ -12531,6 +12531,36 @@
       ]
     },
     {
+      "id": "M-ITP-198",
+      "requisito": "R02",
+      "descricao": "O uso por outra pessoa contado de outros jeitos (\"alguien la utilizó\", \"obtuvo los datos de mi tarjeta\") não é fraude (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la utilizo\", \"la uso\", \"la usaron\", \"la utilizaron\", \"la esta usando\", \"la esta utilizando\",\n     \"la ha utilizado\", \"la ha usado\", \"usado mi\", \"usado meu\", \"usado minha\", \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou a minha\", \"usou o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
+          "para": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-199",
+      "requisito": "R02",
+      "descricao": "\"Usó fraudulentamente mi tarjeta\" não é fraude (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": " \"fraudulentamente\", \"de manera fraudulenta\",\n                \"de forma fraudulenta\",",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",

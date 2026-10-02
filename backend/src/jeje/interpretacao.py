@@ -415,7 +415,28 @@ TERCEIRO_USOU = Perto(
      "usando minha", "usando meus", "utilizou meu", "utilizou minha", "gastando com o meu",
      "gastando com meu", "gastando com a minha", "gastando com minha", "gastou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
-     "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou"),
+     "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou",
+     # Contado de outros jeitos ("alguien la utilizó sin autorización", "alguien obtuvo los datos
+     # de mi tarjeta", "alguém está usando a minha conta"), sempre com o que é do cliente (o resto
+     # do ACH-171, REG-12 no 4c62c69).
+     "la utilizo", "la uso", "la usaron", "la utilizaron", "la esta usando", "la esta utilizando",
+     "la ha utilizado", "la ha usado", "usado mi", "usado meu", "usado minha", "uso la misma",
+     "usando a minha", "usando o meu", "usou a minha", "usou o meu", "usou um cartao meu",
+     "usou o mesmo cartao", "sido utilizada por", "sido usada por", "fue utilizada por",
+     "fue usada por", "foi usado por", "foi usada por", "foi utilizado por", "foi utilizada por",
+     "ha accedido a mi cuenta", "accedieron a mi cuenta", "acessaram minha conta",
+     "tenido acceso a mi", "entrando en mi cuenta", "entrando a mi cuenta",
+     "entrando na minha conta", "haciendo pagos con mi", "haciendo compras con mi",
+     "fazendo compras com meu", "fazendo compras no meu", "fazendo pagamentos com meu",
+     "obtuvo los datos", "obtuvo los detalles", "obteve os dados", "obteve os detalhes",
+     "consiguio los datos", "conseguiu os dados", "conseguido la informacion",
+     "conseguido as informacoes", "conseguiu obter os dados", "conseguiu obter meus dados",
+     "abrio una cuenta a mi nombre", "abriu uma conta no meu nome", "abriu uma conta em meu nome",
+     "intento realizar una compra", "intento realizar una transaccion",
+     "tentou realizar uma compra", "tentou realizar uma operacao", "tentou realizar uma transacao",
+     "intento cobrar con mi", "tentou cobrar com meu", "se ha hecho pasar", "pegou meu cartao",
+     "pegou meus cartoes", "pegou minha carteira", "forjou o meu", "forjou meu", "rouba o meu",
+     "rouba meu"),
 )  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
@@ -475,7 +496,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
                 # a leitura continua a de hoje.
                 "es fraudulent*", "e fraudulent*", "son fraudulent*", "sao fraudulent*",
-                "fue fraudulent*", "foi fraudulent*",
+                "fue fraudulent*", "foi fraudulent*", "fraudulentamente", "de manera fraudulenta",
+                "de forma fraudulenta",
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
                 # Golpe de engenharia social (ACH-142).
