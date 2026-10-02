@@ -133,7 +133,7 @@ class Ollama:
                 self.modelo,
                 type(erro).__name__,
             )
-            return Leitura(regras, fallback, self._chamada(inicio, uso))
+            return Leitura(regras, fallback, self.chamada(inicio, uso))
         lida = replace(
             regras,
             idioma=saida.idioma,
@@ -141,7 +141,7 @@ class Ollama:
             status=saida.status,
             sinais=("modelo",),
         )
-        return Leitura(lida, f"ollama:{self.modelo}", self._chamada(inicio, uso))
+        return Leitura(lida, f"ollama:{self.modelo}", self.chamada(inicio, uso))
 
     def carregar(self, timeout_s: float) -> None:
         """Pede ao Ollama que carregue o modelo (pedido sem prompt: não gera nada), para a primeira
@@ -167,28 +167,35 @@ class Ollama:
             return resposta.read()
 
     @staticmethod
-    def _chamada(inicio: float, uso: dict) -> Chamada:
+    def chamada(inicio: float, uso: dict) -> Chamada:
+        """A chamada despachada desde `inicio`, com os tokens que o servidor informou em `uso`."""
         return Chamada(eventos.desde(inicio), uso.get("entrada"), uso.get("saida"))
 
-    def _perguntar(self, texto: str, uso: dict) -> SaidaDoModelo:
+    def conversar(self, sistema: str, texto: str, esquema: dict, opcoes: dict, uso: dict) -> str:
+        """Uma leitura pelo chat, com a saída presa ao esquema; devolve o conteúdo da resposta. O
+        modo modelo e o LLM do "não entendi" (DEV-042) perguntam por aqui."""
         corpo = {
             "model": self.modelo,
             "messages": [
-                {"role": "system", "content": INSTRUCOES},
+                {"role": "system", "content": sistema},
                 {"role": "user", "content": texto},
             ],
-            "format": ESQUEMA,
+            "format": esquema,
             "stream": False,
             # Sem raciocínio: modelo que pensa gasta o tempo antes do JSON e estoura (ACH-024).
             "think": False,
             # Mantido carregado entre turnos: a carga fria passa do tempo máximo da chamada.
             "keep_alive": self.keep_alive,
-            "options": {"temperature": 0},
+            "options": opcoes,
         }
         dados = json.loads(self._postar("/api/chat", corpo, self.timeout_s))
         # Contado antes de validar: saída inválida também custou a chamada.
         uso["entrada"], uso["saida"] = dados.get("prompt_eval_count"), dados.get("eval_count")
-        return SaidaDoModelo.model_validate_json(dados["message"]["content"])
+        return dados["message"]["content"]
+
+    def _perguntar(self, texto: str, uso: dict) -> SaidaDoModelo:
+        conteudo = self.conversar(INSTRUCOES, texto, ESQUEMA, {"temperature": 0}, uso)
+        return SaidaDoModelo.model_validate_json(conteudo)
 
 
 Interpretador = Callable[[str, Idioma, date], Leitura]

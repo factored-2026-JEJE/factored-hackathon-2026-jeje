@@ -5000,7 +5000,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "            return Leitura(regras, fallback, self._chamada(inicio, uso))",
+          "de": "            return Leitura(regras, fallback, self.chamada(inicio, uso))",
           "para": "            return Leitura(regras, fallback)"
         }
       ],
@@ -5015,8 +5015,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "        uso[\"entrada\"], uso[\"saida\"] = dados.get(\"prompt_eval_count\"), dados.get(\"eval_count\")\n        return SaidaDoModelo.model_validate_json(dados[\"message\"][\"content\"])",
-          "para": "        saida = SaidaDoModelo.model_validate_json(dados[\"message\"][\"content\"])\n        uso[\"entrada\"], uso[\"saida\"] = dados.get(\"prompt_eval_count\"), dados.get(\"eval_count\")\n        return saida"
+          "de": "        conteudo = self.conversar(INSTRUCOES, texto, ESQUEMA, {\"temperature\": 0}, uso)\n        return SaidaDoModelo.model_validate_json(conteudo)",
+          "para": "        contados = {}\n        conteudo = self.conversar(INSTRUCOES, texto, ESQUEMA, {\"temperature\": 0}, contados)\n        saida = SaidaDoModelo.model_validate_json(conteudo)\n        uso.update(contados)\n        return saida"
         }
       ],
       "testes": [
