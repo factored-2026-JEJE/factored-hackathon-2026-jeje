@@ -12561,6 +12561,21 @@
       ]
     },
     {
+      "id": "M-ITP-200",
+      "requisito": "R02",
+      "descricao": "O pedido que é só a pessoa com o \"por favor\" abreviado (\"asesor pfv\") não é pedido de atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "POR_FAVOR = r\"(?:por favor|porfavor|porfa|pfv|pfvr|pf|pls|plis|plz|please)\"",
+          "para": "POR_FAVOR = r\"(?:por favor)\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",

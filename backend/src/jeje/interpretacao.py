@@ -194,11 +194,13 @@ PEDIDO_DE_PESSOA = Perto(
     ("agente", "asesor", "atendente", "humano", "operador", "persona", "pessoa", "alguien",
      "alguem", "gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
-# A mensagem que é só a pessoa ("Agente", "un humano por favor") continua sendo pedido.
+# A mensagem que é só a pessoa ("Agente", "un humano por favor", "asesor pfv") continua sendo
+# pedido, também com o "por favor" abreviado.
+POR_FAVOR = r"(?:por favor|porfavor|porfa|pfv|pfvr|pf|pls|plis|plz|please)"
 SO_A_PESSOA = re.compile(
-    r"^(?:(?:un|una|um|uma|el|la|o|a|por favor|ya|ahora|agora|ja) )*"
+    rf"^(?:(?:un|una|um|uma|el|la|o|a|{POR_FAVOR}|ya|ahora|agora|ja) )*"
     r"(?:agente|asesor|atendente|humano|operador|persona|pessoa|gerente|supervisor)"
-    r"(?: (?:por favor|ya|ahora|agora|ja))*$"
+    rf"(?: (?:{POR_FAVOR}|ya|ahora|agora|ja))*$"
 )
 # Cobrança repetida é contestação quando o verbo de cobrar (ou de aparecer no extrato) está perto:
 # "me cobraron dos veces", "a Streaming Plus me cobrou 2x"; "intenté dos veces y me rechazaron"
