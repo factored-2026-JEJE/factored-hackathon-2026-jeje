@@ -162,6 +162,10 @@ PLASTICO = ("mi plastico", "meu plastico", "el plastico", "o plastico", "su plas
             "seu plastico", "mis plasticos", "meus plasticos")  # fmt: skip
 PERDA_DE_MEIO = Perto(
     ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*",
+     # O cartão que não se achou ("no encontré mi tarjeta", "ainda não achei o cartão") é perda, não
+     # o cartão achado.
+     "no encontre", "nunca encontre", "nao encontrei", "nunca encontrei", "nao achei",
+     "nunca achei",
      # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
      "quitaron", "hurt*", "no hallo", "no puedo encontrar", "ya no tengo", "olvid*",
      "no aparece", "furt*", "levaram", "nao acho", "nao consigo achar", "nao tenho mais",
@@ -181,7 +185,10 @@ PERDA_DE_MEIO = Perto(
     # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
     antes=3,
     fora_antes=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "moviment*",
-                "debito*", "saldo", "limite"),
+                "debito*", "saldo", "limite",
+                # Quem achou o cartão e quer reativá-lo ("encontré la tarjeta que perdí, ¿cómo la
+                # reactivo?", "posso reativar meu cartão perdido?") pede o desbloqueio.
+                "encontre", "encontrei", "reactiv*", "reativ*"),
     # Logo depois do par: o cartão em casa ou a tela do app não são perda (auditoria do dev,
     # 02/10). Só 3 palavras: mais longe, já é outra oração ("perdi meu cartão e não aparece no
     # aplicativo a opção de bloquear" é perda).
@@ -303,7 +310,10 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
 # O cartão achado ("ya apareció mi tarjeta", "achei meu cartão"): o cartão logo depois do verbo.
 # "Encontré un pago con tarjeta no autorizado" é outra coisa.
 CARTAO_ACHADO = Perto(
-    ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"), CARTAO, entre=1
+    ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"),
+    CARTAO,
+    entre=1,
+    negavel=True,  # "no encontré mi tarjeta" é perda
 )
 # Dinheiro sendo tirado da conta é relato de fraude (ACH-140); "¿por qué me estás robando con
 # las comisiones?" sem o dinheiro ou a conta perto, não. A conta esvaziada ("me vaciaron la

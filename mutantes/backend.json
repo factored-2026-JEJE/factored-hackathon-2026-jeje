@@ -10298,8 +10298,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"ya aparecio\", \"ja apareceu\", \"achei\", \"encontrei\", \"encontre\"), CARTAO, entre=1\n",
-          "para": "    (\"ya aparecio\", \"ja apareceu\", \"achei\", \"encontrei\", \"encontre\"), CARTAO\n"
+          "de": "    CARTAO,\n    entre=1,\n    negavel=True,",
+          "para": "    CARTAO,\n    negavel=True,"
         }
       ],
       "testes": [
@@ -13019,6 +13019,51 @@
       "testes": [
         "tests/test_interpretacao.py::test_golpe_escrito_com_o_q_abreviado",
         "tests/test_interpretacao.py::test_so_o_q_sozinho_vira_que"
+      ]
+    },
+    {
+      "id": "M-ITP-235",
+      "requisito": "R03",
+      "descricao": "O cartão que não se achou (\"no encontré mi tarjeta\") não é perda",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"no encontre\", \"nunca encontre\", \"nao encontrei\", \"nunca encontrei\", \"nao achei\",\n     \"nunca achei\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_cartao_que_nao_se_achou_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-236",
+      "requisito": "R03",
+      "descricao": "O cartão achado negado (\"no encontré mi tarjeta en casa\") vira pedido de desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    negavel=True,  # \"no encontré mi tarjeta\" é perda\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_cartao_achado_negado_nao_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-237",
+      "requisito": "R03",
+      "descricao": "Quem achou o cartão e quer reativá-lo (\"encontré la tarjeta que perdí, ¿cómo la reactivo?\") tem o cartão bloqueado como perda",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"encontre\", \"encontrei\", \"reactiv*\", \"reativ*\"),\n",
+          "para": "                ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_pede_o_desbloqueio"
       ]
     },
     {
