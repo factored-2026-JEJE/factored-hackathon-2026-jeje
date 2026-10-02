@@ -1481,12 +1481,30 @@ def test_o_cartao_achado_negado_nao_e_desbloqueio():
     ("texto", "anterior"),
     [
         ("Encontré la tarjeta que perdí, ¿cómo la reactivo?", "es"),
-        ("Quiero reactivar la tarjeta que perdí y ya apareció", "es"),
-        ("Posso reativar o cartão que perdi semana passada?", "pt"),
+        # O achado logo depois do cartão e o cartão que só se pensou ter perdido (REG-41).
+        ("Posso reativar meu cartão perdido que encontrei esta manhã?", "pt"),
+        ("Posso reativar um cartão que pensei ter perdido?", "pt"),
     ],
 )
-def test_quem_achou_o_cartao_e_quer_reativar_pede_o_desbloqueio(texto, anterior):
-    assert ler(texto, anterior).intencao == "desbloquear"
+def test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado(texto, anterior):
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O reativar antes do cartão não desfaz a perda contada depois (REG-40 da validação).
+        ("Reactivé mi tarjeta y la perdí de nuevo", "es"),
+        ("Queria reativar meu cartão mas perdi ele de novo", "pt"),
+    ],
+)
+def test_a_perda_contada_depois_de_reativar_segue_perda(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+def test_nao_achei_que_e_pensar_e_nao_perda():
+    texto = "Eu notei uma taxa no meu cartão, mas não achei que tinha atingido o limite"
+    assert ler(texto, "pt").intencao != "fraude"
 
 
 @pytest.mark.parametrize(

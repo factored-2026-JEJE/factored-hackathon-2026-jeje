@@ -13022,13 +13022,73 @@
       ]
     },
     {
+      "id": "M-ITP-241",
+      "requisito": "R03",
+      "descricao": "O \"não achei\" solto é perda: \"não achei que tinha atingido o limite\" bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"nao achei o\",\n",
+          "para": "\"nao achei\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_nao_achei_que_e_pensar_e_nao_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-242",
+      "requisito": "R03",
+      "descricao": "O reativar antes do cartão desfaz a perda: \"Reactivé mi tarjeta y la perdí de nuevo\" vira desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"encontre\", \"encontrei\"),\n",
+          "para": "                \"encontre\", \"encontrei\", \"reactiv*\", \"reativ*\"),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_perda_contada_depois_de_reativar_segue_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-243",
+      "requisito": "R03",
+      "descricao": "O cartão que só se pensou ter perdido (\"um cartão que pensei ter perdido\") é perda e é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "          \"pense\", \"pensei\", \"pensaba\", \"pensava\", \"achava\"),\n",
+          "para": "          ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado"
+      ]
+    },
+    {
+      "id": "M-ITP-244",
+      "requisito": "R03",
+      "descricao": "O cartão achado logo depois (\"meu cartão perdido que encontrei esta manhã\") é perda e é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                 \"encontre\", \"encontrei\", \"la encontre\", \"o encontrei\"),\n",
+          "para": "                 ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado"
+      ]
+    },
+    {
       "id": "M-ITP-235",
       "requisito": "R03",
       "descricao": "O cartão que não se achou (\"no encontré mi tarjeta\") não é perda",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"no encontre\", \"nunca encontre\", \"nao encontrei\", \"nunca encontrei\", \"nao achei\",\n     \"nunca achei\",\n",
+          "de": "     \"no encontre\", \"nunca encontre\", \"nao encontrei\", \"nunca encontrei\", \"nao achei o\",\n     \"nao achei meu\", \"nao achei minha\", \"nao achei a\", \"nao achei mais o\", \"nao achei mais meu\",\n     \"nunca achei o\", \"nunca achei meu\", \"nunca achei minha\", \"nunca achei a\",\n     \"nunca achei mais o\", \"nunca achei mais meu\",\n",
           "para": ""
         }
       ],
@@ -13058,12 +13118,12 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"encontre\", \"encontrei\", \"reactiv*\", \"reativ*\"),\n",
+          "de": "                \"encontre\", \"encontrei\"),\n",
           "para": "                ),\n"
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_pede_o_desbloqueio"
+        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado"
       ]
     },
     {
@@ -13463,8 +13523,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).\n          \"fatura\", \"factura\", \"extrato\", \"extracto\", \"resumen\", \"opcion\", \"opcao\", \"boleto\",\n          \"comprovante\", \"comprobante\"),",
-          "para": "          ),"
+          "de": "          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).\n          \"fatura\", \"factura\", \"extrato\", \"extracto\", \"resumen\", \"opcion\", \"opcao\", \"boleto\",\n          \"comprovante\", \"comprobante\",\n",
+          "para": ""
         }
       ],
       "testes": [
