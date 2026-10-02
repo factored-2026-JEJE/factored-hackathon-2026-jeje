@@ -3,7 +3,7 @@ e português, cada uma com quantas vezes aparece. É o vocabulário com que a va
 corretor (NOV-24): palavra com 2 ou mais ocorrências nunca é trocada, e a que aparece ao menos
 uma vez não vira termo de fraude ("probado" não vira "robado").
 
-python -m jeje.leitor.palavras <dir_corpus> <arquivo>
+python -m jeje.palavras <dir_corpus> <arquivo>
     baixa as traduções fixadas (sha256) e grava "palavra<TAB>ocorrências", uma por linha
 """
 

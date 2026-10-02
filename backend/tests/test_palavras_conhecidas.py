@@ -3,7 +3,7 @@ do treino do BANKING77, com a contagem; o teste e o inglês nunca entram."""
 
 from jeje.dados.manifesto import sha256_de
 from jeje.leitor import corpus, fontes
-from jeje.leitor.palavras import de_treino, gerar
+from jeje.palavras import de_treino, gerar
 
 
 def tabela(raiz, idioma, particao, frases) -> corpus.Tabela:
