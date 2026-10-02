@@ -311,7 +311,8 @@ QUEM_ELE_DISSE_SER = (
     "central", "gerente", "primo", "prima", "tio", "tia", "sobrinho", "sobrinha", "sobrino",
     "sobrina", "hermano", "hermana", "irmao", "irma", "cunhado", "cunhada", "cunado", "familiar",
     "filho", "filha", "hijo", "hija", "mae", "madre", "amigo", "amiga",
-    "atendente", "operador", "asesor",
+    "atendente", "operador", "asesor", "parente", "pariente", "agente", "representante", "primos",
+    "sobrinos", "sobrinhos", "parentes", "parientes", "ustedes", "voces",
 )  # fmt: skip
 SE_PASSOU_POR = Perto(
     ("dijo ser", "dijeron ser", "dice ser", "diciendo ser", "decia ser", "se decia", "dizendo ser",
@@ -319,7 +320,13 @@ SE_PASSOU_POR = Perto(
      "se fez passar por", "se passou por", "fingiu ser", "fingindo ser", "fingiendo ser",
      # Golpe contado como história (ACH-171, REG-12 no 1c11b16).
      "se passava por", "se fazia passar por", "fingia ser", "se hacia pasar por",
-     "haciendose pasar por"),
+     "haciendose pasar por",
+     # Apresentou-se como outro ("se presentó como empleado del banco", "me aseguró ser mi primo").
+     "se presento como", "se presentaron como",
+     "afirma ser", "afirmo ser", "afirmando ser", "aseguro ser", "asegurando ser",
+     "se fazendo passar por", "fazendo se passar por", "se passando por", "se passava como",
+     "disfrazado de", "disfrazada de", "disfarcado de", "disfarcada de", "decia trabajar",
+     "dijo trabajar", "dizia trabalhar", "disse trabalhar"),
     QUEM_ELE_DISSE_SER,
     entre=2,
     # Só o verbo e depois o papel: "o atendente falou que era só esperar" é o atendente de
@@ -332,7 +339,10 @@ DISSE_QUE_ERA = Perto(
     ("dijo que era", "dijo era", "dijeron que era", "diciendo que era", "diciendo que eran",
      "disse que era", "disseram que era", "dizendo que era", "dizendo que e", "acreditei que era",
      "crei que era", "crei yo era", "achei que era", "pense que era", "falando que era",
-     "falou que era", "se dizia do", "que se dizia"),
+     "falou que era", "se dizia do", "que se dizia", "alegando que era", "alegando que e",
+     "decia era", "decia que era", "hicieron creer que era", "hizo creer que era",
+     "fizeram acreditar que era", "fez acreditar que era", "creyendo que era", "achando que era",
+     "pensando que era"),
     QUEM_ELE_DISSE_SER,
     entre=1,
     so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)
@@ -340,12 +350,12 @@ DISSE_QUE_ERA = Perto(
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
     ("vendedor", "corretor", "funcionario", "operador", "empleado", "ligacao", "llamada",
-     "central", "atendente", "asesor", "gerente"),
+     "central", "atendente", "asesor", "gerente", "agente"),
     entre=1,
 )  # fmt: skip
 SENHA_ENTREGUE = Perto(
     ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
-     "diera"),
+     "diera", "facilite", "facilitei"),
     ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
     entre=2,
 )  # fmt: skip

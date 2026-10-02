@@ -1270,6 +1270,31 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
 @pytest.mark.parametrize(
     "texto",
     [
+        # Quem se apresentou como outro (o resto do ACH-171, REG-12 no 4c62c69): o funcionário do
+        # banco, o parente que pede dinheiro, o agente disfarçado...
+        "Me llamó alguien que se presentó como empleado del banco y me pidió mis datos",
+        "Mandé dinero a una persona que se presentó como mi sobrino",
+        "Acabo de enviar 2000 pesos por pix a alguien que me aseguró ser mi primo",
+        "Uma pessoa se fazendo passar por atendente do banco me ligou",
+        "Me fizeram uma ligação disfarçada de agente bancário e eu acreditei",
+        "Me llamó alguien que decía trabajar en este banco y me pidió la clave",
+        "Uma pessoa ligou, disse que era vocês e pediu 500 reais",
+        # ... quem acreditou que era outro...
+        "Le envié dinero a alguien creyendo que era mi sobrino",
+        "Enviei dinheiro para alguém achando que era meu sobrinho",
+        "Mandei dinheiro para alguém alegando que era meu parente",
+        # ... o agente suposto e o código facilitado.
+        "Un supuesto agente del banco me llamó ayer",
+        "Me llamaron y les facilité el código y la clave",
+    ],
+)
+def test_golpe_de_quem_se_apresentou_como_outro(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # Senha ou código pedidos sem ser os do cliente, ou negados, não são golpe (REG-17).
         "La app me pidió un código de verificación",
         "O caixa pediu a senha duas vezes",
