@@ -560,6 +560,12 @@ def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto)
         ("Me están robando plata de la cuenta", "fraude"),
         ("Caí num golpe e fizeram um pix", "fraude"),
         ("Estão tirando dinheiro da minha conta", "fraude"),
+        # REG-21: a conta esvaziada.
+        ("Me vaciaron la cuenta", "fraude"),
+        ("Entraron a mi cuenta y la vaciaron", "fraude"),
+        ("Me pidieron el código por WhatsApp, lo di y vaciaron mi cuenta", "fraude"),
+        ("Esvaziaram minha conta", "fraude"),
+        ("Passei o código e limparam minha conta", "fraude"),
     ],
 )
 def test_palavras_comuns_do_cartao_do_atendente_e_da_fraude(texto, intencao):
@@ -939,11 +945,23 @@ def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
         ("Recibí un mensaje raro, no di mis datos, ¿es una estafa?", True),
         ("Me ligaram dizendo ser do banco, não passei nada, era golpe?", True),
         ("Me escribieron del banco y no le di mis datos, ¿era una estafa?", True),  # "no le di"
+        # REG-21: o objeto antes do verbo ("no se la di") e o nada entregue.
+        (
+            "Me llamaron diciendo que eran del banco y me pidieron la clave. "
+            "No se la di, ¿es normal?",
+            True,
+        ),
+        ("Me escribieron por WhatsApp pidiendo el código, pero no se lo di", True),
+        ("Me llegó un SMS pidiendo mis datos; no se los di", True),
+        ("Um suposto atendente pediu o código e eu não informei", True),
         # Termo de vítima não negado: é relato, mesmo com a palavra de prevenção.
         ("Fui vítima de golpe, como me protejo agora?", False),
         ("Me estafaron, transferí 500 dólares", False),
         ("Caí en una estafa y me sacaron dinero", False),
         ("Me robaron la tarjeta", False),
+        # A conta esvaziada é perda, mesmo com a suspeita na mesma mensagem (REG-21).
+        ("Un supuesto asesor me pidió la clave, no se la di, pero igual vaciaron mi cuenta", False),
+        ("Um falso atendente pediu o código, não informei, mas esvaziaram minha conta", False),
     ],
 )
 def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao):
@@ -980,6 +998,25 @@ def test_termo_com_uma_letra_a_mais_no_fim_nao_e_erro_de_digitacao():
     assert not interpretacao._uma_edicao("golpes", "golpe")
     assert interpretacao._uma_edicao("robron", "robaron")
     assert interpretacao._uma_edicao("pesoa", "pessoa")
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "La app me facilita el código de verificación",
+        "El sistema me facilita mi clave temporal",
+        "Había pensado que era del banco, pero no",
+        "Un hombre me ayudó en la sucursal",
+        # As frases do pedido de segredo ou dinheiro não entram no corretor: "pidieran" viraria
+        # "pidieron", e a hipótese, relato.
+        "Si me pidieran la clave, ¿qué hago?",
+    ],
+)
+def test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida(texto):
+    """O corretor não troca "facilita" por "facilite" nem "pensado" por "pensando": as flexões
+    viravam termo de golpe e a mensagem comum bloqueava o cartão."""
+    assert interpretacao.corrigir(texto) == (texto, ())
+    assert ler(texto).intencao != "fraude"
 
 
 def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
@@ -1269,6 +1306,78 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
 @pytest.mark.parametrize(
     "texto",
     [
+        # Quem se apresentou como outro (o resto do ACH-171, REG-12 no 4c62c69): o funcionário do
+        # banco, o parente que pede dinheiro, o agente disfarçado...
+        "Acabo de enviar 2000 pesos por pix a alguien que me aseguró ser mi primo",
+        "Uma pessoa se fazendo passar por atendente do banco me ligou",
+        "Me fizeram uma ligação disfarçada de agente bancário e eu acreditei",
+        # ... quem acreditou que era outro...
+        "Le envié dinero a alguien creyendo que era mi sobrino",
+        "Enviei dinheiro para alguém achando que era meu sobrinho",
+        "Mandei dinheiro para alguém alegando que era meu parente",
+        # ... o agente suposto e o código facilitado.
+        "Un supuesto agente del banco me llamó ayer",
+        "Me llamaron y les facilité el código y la clave",
+    ],
+)
+def test_golpe_de_quem_se_apresentou_como_outro(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "golpe"),
+    [
+        # Apresentar-se como outro é golpe com o parente ou com o pedido depois (ACH-179)...
+        ("Mandé dinero a una persona que se presentó como mi sobrino", True),
+        ("Una persona que se presentó como empleado del banco me pidió la clave", True),
+        ("Me llamó alguien que decía trabajar en este banco y me pidió la clave", True),
+        ("Um homem se apresentou como funcionário do banco e me pediu a senha", True),
+        ("Alguien se presentó como mi sobrino y me pidió plata", True),
+        ("Uma pessoa se apresentou como meu primo e me pediu um pix", True),
+        # ... o dinheiro pedido também conta (REG-28)...
+        ("Um homem se apresentou como funcionário do banco e me pediu um pix", True),
+        ("Un hombre se presentó como empleado del banco y me pidió una transferencia", True),
+        # ... e não é quando o atendente de verdade se apresenta e pede outra coisa (REG-27).
+        ("La señora se presentó como gerente y me pidió que esperara un momento", False),
+        ("Se presentó como asesor y me explicó cómo cambiar la clave", False),
+        ("El asesor se presentó como Juan y me pidió mi número de cliente para ayudarme", False),
+        ("La ejecutiva se presentó como encargada y me pidió el comprobante de la compra", False),
+        ("El operador se presentó como supervisor y me pidió los datos del cargo", False),
+        ("O atendente se apresentou como Carlos e me pediu o número do protocolo", False),
+        ("A gerente se apresentou como responsável e me pediu o comprovante da compra", False),
+    ],
+)
+def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe):
+    assert (ler(texto).intencao == "fraude") is golpe
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).
+        "Tengo un problema con mi tarjeta, alguien la utilizó sin autorización",
+        "Creo que alguien la está usando sin mi permiso",
+        "Hay transacciones que no hice, alguien debió haber usado mi tarjeta",
+        "Mi tarjeta fue utilizada por una persona sin autorización",
+        "Alguien ha accedido a mi cuenta y hace transferencias",
+        "Alguien está entrando en mi cuenta",
+        "Alguien ha estado haciendo pagos con mi tarjeta",
+        "Alguien abrió una cuenta a mi nombre",
+        "Creo que alguien obtuvo los datos de mi tarjeta y la usó",
+        "Acho que alguém conseguiu obter os dados do meu cartão",
+        "Alguém está usando a minha conta",
+        "Acho que alguém pegou meu cartão",
+        "Alguien intentó realizar una compra con mi tarjeta en Miami",
+        "Una persona usó fraudulentamente mi tarjeta",
+    ],
+)
+def test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # Senha ou código pedidos sem ser os do cliente, ou negados, não são golpe (REG-17).
         "La app me pidió un código de verificación",
         "O caixa pediu a senha duas vezes",
@@ -1294,6 +1403,22 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         "Una persona me transfirió el pago del alquiler",
         # ... outra pessoa usando outra coisa, e o plástico que não é o cartão.
         "Uma pessoa está usando o caixa ao meu lado",
+        "Una persona está entrando a la tienda",
+        "Una persona intentó realizar el pago por mí en la caja",
+        "Mi hermana la usó con mi permiso",
+        # A pessoa do próprio banco (auditoria do dev, 02/10).
+        "Una persona del banco abrió una cuenta a mi nombre cuando fui a la sucursal",
+        "Uma pessoa da agência acessou minha conta para me ajudar com o cadastro",
+        # Os termos do #77 em mensagens comuns (ACH-179, REG-24): "de ustedes", o cadastro, o
+        # atendente de verdade que se apresenta e o "fraudulenta" negado.
+        "Recibí un cargo y pensé que era de ustedes, pero no reconozco el comercio",
+        "Vi um débito e achei que era de vocês, mas não reconheço a loja",
+        "Pensando que era de vocês a cobrança, não reclamei antes",
+        "Ya les facilité mis datos, ¿cuándo me llega la tarjeta?",
+        "La señora que me atendió en la sucursal se presentó como gerente y me ayudó mucho",
+        "El chico que me atendió dijo trabajar en el banco hace diez años",
+        "O rapaz que me atendeu disse trabalhar no banco há dez anos",
+        "No creo que el cobro haya sido de manera fraudulenta, solo quiero entenderlo",
         "La bolsa de plástico que perdí no importa, quiero ver mi saldo",
         # A senha pedida sem dizer por quem não separa golpe de rotina: fica fora de escopo, e a
         # conversa oferece o atendente.
@@ -1329,6 +1454,10 @@ def test_pessoa_citada_sem_pedido_nao_e_pedido_de_atendente(texto):
         ("Agente", "humano"),
         ("Un humano por favor", "humano"),
         ("atendente agora", "humano"),
+        # O "por favor" abreviado (REG-01: "asesor pfv" ia ao leitor, que o lia fora de escopo).
+        ("asesor pfv", "humano"),
+        ("um atendente pls", "humano"),
+        ("porfa un asesor", "humano"),
     ],
 )
 def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, intencao):

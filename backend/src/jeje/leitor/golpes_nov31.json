@@ -1,0 +1,2517 @@
+{
+ "descricao": "NOV-31: dados de treino gerados pelo qwen2.5:7b (outra família que a do teste) para o leitor: golpes, prevenção, suspeita sem prejuízo e compra não entregue; rótulo = intenção do cenário; sem revisão humana.",
+ "origem": "jeje-validation-v1, experimentos/nov_31_mensagens.json (NOV-31, EV-169); só texto, idioma e intenção",
+ "gerador": "qwen2.5:7b",
+ "temperatura": 0.9,
+ "semente": 20261031,
+ "filtros": {
+  "geradas": 560,
+  "fora_do_tamanho": 3,
+  "repetidas": 55,
+  "quase_copias": 5,
+  "finais": 497,
+  "por_idioma_e_cenario": {
+   "es:golpe do falso atendente": 37,
+   "es:golpe da transferência": 37,
+   "es:golpe nas redes": 37,
+   "es:golpe do site falso": 34,
+   "es:prevenção": 35,
+   "es:suspeita sem prejuízo": 35,
+   "es:compra não entregue": 29,
+   "pt:golpe do falso atendente": 37,
+   "pt:golpe da transferência": 37,
+   "pt:golpe nas redes": 37,
+   "pt:golpe do site falso": 37,
+   "pt:prevenção": 36,
+   "pt:suspeita sem prejuízo": 36,
+   "pt:compra não entregue": 33
+  }
+ },
+ "mensagens": [
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayuda! Me robaron y ya están gastando mi dinero en compras que no hicieron yo."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hola, aquí un señor de 45 años llamado Carlos. Hablé con alguien que se pasó de la liana en el banco, entregué toda mi información personal y ahora veo gastos extraños en mi tarjeta. Estaba buscando ahorros para mis hijos y ese falso atendente me convenció de compartir datos personales. Me siento al borde del colapso."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, ay! Acabo de descubrir que se me robaron mi información bancaria y ahora veo gastos que no hice. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado servicio al cliente:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Alguien trincó mi cuenta. Deposité los códigos y la clave con esa persona que me llamó \"atendiente\" pero ahora veo gastostranqui en mis transacciones. ¿Qué hago? Ellos dicen q es una transacción autorizada."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Esto es una estafa! ¡Me dieron la contraseña y el código de verificación a un tipeo! Ahora mis datos se están usando para gastar dinero sin que yo lo sepa. ¡Quédate quieto, banco, si sigues permitiendo esto!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Hice clic en el enlace del mensaje y hablé con un \"atendente\". Les di mi código de seguridad y ahora veo gastos en una tienda llamada JoyShop por 3,900 pesos mexicanos. ¡Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "10/05/2023 - ¡Ay Dios mío! Acabo de darme cuenta que he hecho un depósito a una cuenta que no me pertenece y varios cargos que no reconozco en mi tarjeta. ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay! Mi tarjeta bancaria se descontroló y hago giros que no reconocí. Debe ser algún error... Espero que no me robaron mis datos."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay cielo! Alguien usó mi tarjeta sin permiso y ya van mil pesos en compras que no recuerdo hacer yo. ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Acabo de descubrir que hay compras en mi tarjeta que no hice. Esto es todo mi dinero y yo no lo recuerdo hacer nada."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado atendiente,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay ay ay! Me caí en una conversación falsa y di mi código PIN y los datos del cartón. Ahora veo gastos que yo no hice y no reconozco. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado equipo de atención al cliente:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Me caí en una conversación con un tipo falsito del banco y le dije toda mi info bancaria. Ahora veo gastos que no reconozco y ni siquiera recuerdo haber gastado eso! Que hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Maldita sea! Me transfirieron dinero a una cuenta falsa y ahora no reconozco gastos en mi tarjeta. ¿Qué hago ahora? ¡Me han robado, ¡ayúdenme!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay! Acabo de descubrir que alguien usó mi tarjeta en una tienda llamada \"Joyas Esplendor\" por $3,200.00 colones sin mi consentimiento. No recuerdo hacer ninguna compra ahí. ¡Esto es muy grave!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "15/09/2023 - Hola, mi nombre es Martín y hace unos días recibí un mensaje en mi celular que decía ser del banco. Me pidieron confirmar algunos datos para seguridad. Seguí sus instrucciones y luego noté transacciones extrañas en mi cuenta corriente. Ahora necesito ayuda urgente para revertir esto."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Hola! No recuerdo haber hecho ninguna compra y me han aparecido transacciones extrañas en mi cuenta. ¿Puedes ayudarme a solucionar esto?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ola, yo entere en una trampa y les dije la contraseña, el código y los datos del cartón. Ahora veo gastos que no reconozco y estoy muy preocupado. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, ay, ay! Acabo de descubrir que mi cuenta fue hackeada y ya hay movimientos que no reconozco."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Creí que era el banco todo el tiempo. Les di mi clave y los códigos de verificación. Ahora veo gastos que ni siquiera me recuerdo he hecho. ¿Qué hago ahora? 😩HELP!!!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ayeyo! Q pasa con mi cuento? Q gastos tengan en el extranjero no los pido yo! Esa no es mi contraseña ni nada, jajaja. ¿Puedes ayudarme a revocar esos gastos o al menos explicarme de qué se trata? Mándame la info que te envíe antes del falso chat. Ya no me fió de na' en internet."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Qué mierda! Me hicieron la estafa y ya no reconozco mis gastos. ¿Dónde están ustedes, los bancos?_envío urgentemente los datos y ahora esto. ¡Ayuda!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, Dios mío! Acabo de ver en mi cuenta bancaria gastos de $5000 en una tienda llamada \"Lujo & Co\" y no los reconocí. ¿Qué hago? Estaba seguro de que mi contraseña y el código de verificación eran seguros. ¡Ayudame, por favor!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "24/10/2023\n¡Hola! Mi nombre es Luis y tengo un problema. Ayer hablé con alguien que decía ser un operador del banco BBVA en español. Me pidió mis datos para confirmar mi identidad, incluyendo la contraseña de mi cuenta, el CVV del cartón y mi número telefónico verificador. Ahora, veo gastos no reconocidos y estoy muy preocupado. ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hola, quisiera reportar un problema con mi cuenta bancaria. Hice un depósito y no aparece en mi saldo. Además, noté gastos que yo no realicé. Creo que me estafaron. ¿Pueden ayudarme? Estoy muy preocupado."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Acabo de darme cuenta que he estado transferiendo dinero a gente extraña. ¡Jamás había hablado con nadie así por teléfono ni nada! Ahora veo gastos en mi tarjeta que no hice yo... ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Mi saldo se redujo y no recuerdo hacer esos gastos. Alguna ayuda?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "HOLA! ESTABA HABLANDO CON UNA PERSONA DE UN BANCO Y ME DICEN QUE FUE UN ENGAÑO. DECÍAMO QUE ERA PARA ACTUALIZAR MI CUENTA, ASI QUE DÉJEME CONTÁRLES LO QUE PASÓ."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay! Acabo de darme cuenta que hice el pago al tipo del teléfono y ahora veo gastos extraños en mi tarjeta. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ay buenas noches pa la b̶a̶n̶k̶o̶, nnombré mu mismo pero aya algo malo con mi cuanta. Cuan yo ayer recibí un mensaje diciendo ke era del banco y me decían ke mi cedta de débito había estado chalando sin que yo supiera, y yo no recordaba nada. Ke ke si habían hechos compras ke yo no había hecho. Ahora veo ke han sacado dinero de mi cuenta más ke una vez sin que"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Qué mierda! ¡Me cagaste la cuenta! Envié toda la información a un tipo de WhatsApp y ahora ven los gastos inesperados. ¿Cómo hago para cancelar esto? No puedo creer que me haya pasado algo así, ¡ustedes son un desastre!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay dios mío! Acabo de darme cuenta de que he hecho un retiro en una tienda llamada \"Lujo y Esplendor\" por 7,500 pesos sin darme cuenta. Nunca había oído hablar de esa tienda antes. ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "18/03/2023 - Hola, aquí Juanito de Cali. Mi cuenta bancaria ha registrado gastos inesperados y no sé cómo ocurrió. Creo que caí en una estafa telefónica. Ya no puedo hacer transferencias ni comprar nada con mi tarjeta. ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado Banco X, reporto un problema con mis transacciones no reconocidas. Ya he enviado mi número y código. ¿Podrían asistirme?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, cielos! Me caí en la trampa de ese tonto fraude y les di mi número de cuenta, el código secreto... ¡y ahora mis ahorros desaparecieron! No me digas que no pueden recuperar eso, ¿verdad?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "No me creí ni un momento那些信息与之前的指示不符。您要求生成的是西班牙语的墨西哥客户消息，内容是关于被误导进行转账。请确认一下需求。"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hoy me desperté con un mal presentimiento pero decidí seguir las instrucciones que recibí por mensaje a través del número 1-800-123456789 al cual accedí sin sospechar nada extraño, en realidad pensaba que era un familiar urgente de mi familia, uno que vive en Nueva York. Me dijeron que había recibido una herencia y necesitaba ponerlo a su nombre enviando un pago inicial como \"garantía\". En la conversación con la supuesta central de"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay! Tranferí $500 a ese tipejo ayer y ahora me doy cuenta que fui estafado. Me dijeron que era para un familiar en emergencia pero... ¡qué te cuento! Ahora estoy muy preocupado. ¿Hay alguna forma de recuperar el dinero?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado cunhado, lo siento mu mui pero me han estafado. Envié dinero a un anuncio falso en internet. Ahora no tengo ni pa comer. Por fa, ¿puedes ayudarme? Te juro que no sabía q eran engaños."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Esto es un engaño! Me transfirieron dinero a una supuesta cuenta de seguridad y ahora no puedo acceder a mi propio dinero. ¿Qué hago ahora? Esto es fraudulento, ¡ustedes deberían hacer algo al respecto!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, Dios mío! Acabo de caer en una estafa horrible. Envíe 5,000 pesos mexicanos a un tal \"Tienda Digital Express\" para hacer una compra falsa. ¡No puedo creerlo! ¿Hay alguna forma de recuperar mi dinero?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Bogotá, 15 de noviembre de 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay! Creí que era algo legitimo pero me equivoqué y ya no tengo el dinero. ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, Dios mío! ¡Perdí todo mi dinero transfiriendo a unos tipos engañosos en esa supuesta central de seguridad! Ya ni recuerdo qué me dijeron, solo que era urgente y que era un familiar en peligro. Ahora estoy como una olla sin pescado."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Me engañaron! Transferí dinero a una cuenta falsa. Ahora no tengo para pagar mis gastos básicos. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Buenas tardes, soy un cliente del Banco Galicia y quisiera hablar con ustedes sobre algo realmente serio que me pasó. Ayer por la tarde, recibí una llamada desde un número que decía ser 'Central de Seguridad del Banco Galicia'. Al principio, confié en ellos porque parecían profesionales y se presentaron correctamente. Me dijeron que mi tarjeta había sido robada y necesitaba hacer algunos trámites urgentes para proteger mis fondos."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay ¡Ay! Acabo de caerme en un estafa. Les envié dinero a alguien que dice ser un familiar enfermo. Ya no sé qué hacer. Ayúdeme, por favor."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimados señores del banco:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimad@ atendente, mi hijo me hizo tr@sar dinero a una supuesta prima q nos supuestamente est@bamos viendo x problemas en su país. Ahora no tenemo$ plata para endevolverme. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Maldita sea! Acabo de caer en un estafador que publicó un anuncio engañoso para venderme un producto y ahora no tengo dinero. ¿Qué hago? Este tipo me robó casi todo mi ahorro. ¡Necesito ayuda urgentemente!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado equipo, les escribo con gran preocupación y desespero porque se me acaba de realizar un pago en PIX por la cantidad de $500.000 COP a una tienda llamada \"Lujo y Estilo\" sin mi consentimiento ni conocimiento. Creo que fui engañado, ya que esta transacción no estaba en mis registros habituales. ¿Podrían ayudarme a revertir este pago o al menos darme más información? Muchas gracias por su atención."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "21/03/2023 - Me engañaron y transfirieron dinero a una cuenta bancaria falsa. No hice bien mis investigaciones antes de transferir. Ahora estoy muy preocupado por el dinero que envíe. ¿Pueden ayudarme?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado equipo, hicimos un pago erróneo y necesito ayuda para revertirlo o recuperar el dinero. No recuerdo bien los detalles, pero me contactaron a través de una llamada misteriosa y me dijeron que era importante. Les pido prontitud en este asunto. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Tran迫不得已，我需要跳过非中文内容，请您发送需要帮助的中文相关部分。"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "No me engañen más, ya perdí dinero en ese anuncio engañoso."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimados atendentes del banco,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Acabo de hacer un depósito en Pix siguiendo las instrucciones que me mandaron por mensaje. Eran del supuesto banco y dijeron que era urgente para resolver algo con mi cuenta. Ahora no sé qué hacer. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimada central de atención al cliente,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ayudaaa! Me engañaron, envíe $2000 a una cuenta que no es mía! Esa persona me dijo q era mi prima q estaba en pocos dineros y me suplica q le mande dinero... No sé q hagaah! Ayuda!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Qué engaño! Envíe el dinero a una supuesta 'central de seguridad' porque la persona en línea me dijo que era urgente y que mi número había sido robado. Ya envié $3000 COP y ¡ahora no puedo contactar a nadie! ¿Cómo puedo recuperar mi dinero? Esto es una estafa total."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hola, soy Lucía desde Buenos Aires y necesito su ayuda urgente. Envié $5000 ARS a una tienda llamada \"Lujo & Co\" basándome en una supuesta llamada de mi tío Pedro que estaba atrapado en un aeropuerto. Ahora me doy cuenta que todo fue un fraude. No puedo contactar a esa empresa y temo que el dinero ya no esté disponible. ¿Cómo procedo?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "28/03/2023 - Hola, aquí estámole, soy Carlos desde Mexicali. Les quiero denunciar algo muy grave que me ha pasado. Ayer, 27/03/2023, seguí las instrucciones de una supuesta central de seguridad y les mandé 15,000 pesos por Pix a un número que ellos me proporcionaron. Ahora entiendo que fue un engaño, ¡no puedo creerlo! ¿Qué puedo hacer para recuperar mi dinero?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado equipo, hice una transferencia por error a un número desconocido y ahora no tengo el dinero. ¿Pueden ayudarme? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, madre! Me piba, transfirí un montón de dinero a ese tipejo y ahora no se puede recuperar nada. Fue toda una estafa por un anuncio falso. ¡Qué le saco a esto!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "No envié mi dinero a ningún anuncio ni a nadie de seguridad; engañaron a mi familia."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, Dios mío! Acabo de hacer una transferencia a esa persona que me contactó en Mercado Libre y dijo ser un familiar en trouble. ¡Estoy tan nervioso ahora! ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado sr., lelto un poquito y verifiqué si hay alguna forma de recuperar el dinero q envíe ayer a una cuenta que no me pertenece. Me lo dijeron que era por un familiar q está en problemas y necesitaba plata, pero yo confié y ahora solo quedo con la duda de dónde se fue mi ahorro. ¿Hay alguna manera? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Maldita sea! Me transfirieron el dinero a una estafa. Publicaron un anuncio falso en línea y me hicieron enviar el dinero al supuesto vendedor. ¡Qué hago ahora? Este fraude es inaceptable, ¡especialmente desde Argentina!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayúdame! Transferí $5,000 a una empresa llamada \"Joyería Preciada\" en Ciudad de México, basándome en un supuesto mensaje de mi tío que decía estar en problemas. Ahora me doy cuenta de que fue un fraude y no tengo el dinero de vuelta. ¿Qué puedo hacer?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "15/10/2023 - ¡Ayuda! Acabo de derramar todo mi dinero por una supuesta emergencia familiar. La llamada parecía legítima, dije la contraseña y ya no puedo hacer nada. ¿Hay alguna forma de recuperarlo?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hola, quisiera reportar un problema con una transferencia que hice. Creí que era un familiar en urgencia y ahora no encuentro el dinero. ¿Qué puedo hacer?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay cielos! Acabo de hacer una transferencia a unos tontol@s que me contactaron por Facebook y me dijeron ser familiares del jefe de la empresa donde trabajo. Ahora no tengo ni con qué pagar el alquiler. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Mi cuenta fue engañada y perdí dinero con una supuesta venta en Instagram. No fui yo quien compró nada."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "HOLA MÍSERAS! ESTO A PASÓ POR TODO EL DÍA Y SÉ QUE ES UN TEMA SERIO. ANTES DE CONTAR MI HISTORIA QUIERO DECIR QUE SOY UN HOMBRE CON EXPERIENCIA, AL MENOS CREÍ ASÍ HASTA AHORA. BÁSICAMENTE, HACE DOS MESES RECIBí UNA NOTIFICACIÓN EN MÍ CÉDULA DE IDENTIDAD DIGITAL QUE DIJO QUE ALGUIEN SE ESTABA LOGUEANDO A MI CUENTA DEL WHATS"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay! Perdí $500 en una cuenta falsa de WhatsApp. Eran iguales hasta el último detalle y me pidieron prestado dinero para \"un proyecto\". Ahora estoy desesperado. ¿Alguna idea? #ayudame"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimada Atención al Cliente:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ay caray!! Perdí todo mi dinero porque me enteré ke una cuenta de WhatsApp supuestamente mía se enterprenó y pedían prestado en nombre mio. No era yo ni mi familia, eran imitadores malísimos. Eso no fue todo, luego vendían productos que yo nunca pusí a la venta y me decían ke iba a recibir el pago en mi cuenta... Pero jamás llegó nada. Ahora estoy destrozado/a, ¿hay algo qué podan hacer?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Esto es un robo! Perdí casi 5000 pesos en una supuesta venta a través de Instagram. ¡Era obvio que era falsa, pero insistieron diciendo que era real!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayúdeme! Perdí 5,000 pesos mexicanos en una supuesta transacción con una tienda llamada \"ModaFast\". Me contactaron a través de WhatsApp y dijeron que compré un vestido pero no recibí nada. Ahora mi cuenta está vacía."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "25/10/2023\n¡Hola! Mi hijo perdió mucho dinero después de enviarlo a una cuenta falsa en WhatsApp que imitaba mi banco. Dijeron ser del servicio al cliente y pedían pruebas de identidad. ¡Espero ayuda!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Hola! Perdóneme, pero mi cuenta en Facebook se ha hackeado y un desconocido está pidiendo dinero a mis contactos. Ya les enviaron el dinero?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay cielos! Me pasaron un fraude en WhatsApp. Esa persona falsa me dijo que necesitaba dinero para resolver una emergencia y que lo pagaría pronto, pero ya no tengo acceso a mi cuenta ni al dinero que le transferí. Ahora estoy sin nada y con miedo de que pase algo peor. ¿Hay alguna forma de denunciar esto?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Perdí todo mi dinero por una cuenta falsa en WhatsApp!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimados Banco X,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayúdame! Perdí 5 mil pesos en una cuenta falsa de WhatsApp que me pidió dinero. No hice nada y ya no pueden contactarme. ¿Qué hago? 🙄🚨"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Querida atención al cliente,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ay bueh, no me pasé ni po! Envíanndome fotos del perfil y todo parecien do real, mandán mi cuenta al cuerno. Pérdi el dinero en una app que decían ser de WhatsApp pero era un chiste. No pude creerlo con mis propios ojos!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Esto es una estafa! Perdí casi 20,000 pesos mexicanos por una cuenta falsa en WhatsApp que me pedía dinero para 'un préstamo urgente'. ¡No puedo creer la seguridad que tienen aquí! ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡HOLA! DESDE QUE DESCUBrí QUE MI DINERO SE QUEDÓ EN UNA CUENTA DE WHASTAPP FALSIFICADA DE LA TIENDA \"LUXURY SHOPPING\", NUNCA ME LO PUSIERON A NINGÚN LUGAR. PERdí MÁS DE 2 MILLONES DE COLÓNIAS EN ESTO. ¿PUEDE HACER ALGO PARA AyUDARME?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "12/07/2023 - ¡Hola! Me contactó un supuesto banco y me pidieron dinero para resolver una supuesta transacción. Al final, resulta que la cuenta era falsa y perdió $5000. ¿Qué puedo hacer?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, Dios mío! Me hicieron perder todo mi dinero en una supuesta venta online. Eran esos perros falsos de WhatsApp... Ahora estoy sin nada y con la culpa."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! ¿Cómo me pasó esto? Me contactaron por Facebook y me dijeron que era de un banco, me pidieron dinero para pagar unas facturas y todo, ¡pero eran unos estafadores! Ahora no puedo ni comprar leche en el mercado porque perdí todo lo que tenía en la cuenta. ¿Qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Perdí dinero por una suplantación en redes sociales! Eran clones y me pedían dinero o me vendían cosas inexistentes."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! Acabo de perder $2000 en una estafa. Creí que era mi amigo en Facebook pidiendo prestado y le mandé el dinero. ¡Esto es tan tramposo! #ayuda #engañaronmi"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ay auxilio, chao! Perdí tooodo el dinero della cuenta cuando un tipo me contactó d WhatsApp. El güey dijío ke vendía coches usados y que necesitaba pagar con mi tarjeta. Pero fue fraude total! Envíaron los datos a otra persona o algo así. Ahora no tengo ni un centavo. ¿Hay alguna manera de recuperar el dinero? Gracias!!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡No puede creerse! Perdí miles de pesos en una supuesta transacción segura y ahora me enteré que fue todo un fraude. Esa persona falsa me hizo sentir completamente engañado, ¡y peor aún, perdí mi dinero! ¿Cómo se supone que deberían prevenir algo así? Esto es una estafa total."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Hola! Me llamo Carlos Rodríguez y desde principios de octubre estuve intentando recuperar dinero que perdí por una estafa. La persona que me contactó a través de WhatsApp decía ser mi amigo Lucas y pidió prestado 5000 pesos argentinos para comprar ropa en la tienda \"ModaMax\". Al cabo de unos días, recibí un mensaje diciendo que había vendido la ropa por 7000 pesos pero necesitaba más dinero para otros gastos personales. Al final, no recuperé"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "25/10/2023\nBuenas tardes, acabo de darme cuenta de que he perdido dinero a través de una cuenta falsa en WhatsApp. Me pidieron prestado 7,000 pesos mexicanos bajo el pretexto de ganar más dinero. No me di cuenta hasta que no intenté retirarlo. ¿Cómo puedo protegerme o reportar esto?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Hola! Me pasó algo raro con mi cuenta bancaria. Creí que era un amigo en redes sociales y le envié dinero para un supuesto negocio. Ahora no entiendo nada. ¿Pueden ayudarme? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, qué mala onda! A esos enganchados les di un montón en una transacción y ahora se la pasan diciendo que soy tonto. ¡Me coparon mi cuenta de WhatsApp e hicieron trampa para pedir plata prestada! ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Perdí dinero porque me engañaron con una cuenta falsa de WhatsApp!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado equipo de atención al cliente de BancoCol:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayudame! Perdimos todo el dinero del negocio en una estafa. Fue una supuesta transacción segura pero era un bot o algo así. Ya nos quitaron el saldo y ahora están diciendo que tenemos que resolverlo nosotros. ¡No sabemos qué hacer!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Ay pufa! Q pasa?! Perdi todo mi dinero con una cuenta falsa d Facebook q se parecía a mi bancoo!! Envíannn mi dinero y no me lo devuelvenn! ¿Qué hago? Soy de Cali, Coómbia."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Esto es una estafa! Perdí 2000 pesos argentinos en una cuenta falsa de WhatsApp. Esa gente se hace pasar por un amigo mío y ahora no tengo con qué pagar mis facturas. ¿Qué puedo hacer? #RapiChoque #Denunciar"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay, ay, ay! Perdí 50,000 pesos mexicanos en una supuesta venta a través de Facebook Marketplace por un par de zapatos Nike de segunda mano que no existían. La cuenta parecía auténtica, ¡pero resulta que era un estafador! Ahora me siento tan tonto. ¿Hay alguna manera de recuperar mi dinero?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "25/10/2023\n¡Buenas tardes! Soy cliente del banco, y lamentablemente mi cuenta Bancolombia ha sido estafada. Mi hija recibió un mensaje en WhatsApp de una supuesta amiga que pidió prestado dinero urgente. No dudamos en enviarle 500.000 COP, pero ahora nos dimos cuenta de que se trataba de una falsificación ya que la persona no había cambiado el perfil de su contacto. ¿Cómo podemos recuperar nuestra pérdida?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayúdame! Perdí dinero con una persona que se pasó por un amigo en WhatsApp. Parece mentira, pero era falsa y me pidió prestado."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay cielos! Perdí como mil pesos en una estafa de WhatsApp. Eran mis amigos, me pedían dinero prestando o vendiendo cosas que no existían. Ahora no tengo ni con qué comprarle café a mi hija. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Alguien hizo compras con mi tarjeta en un sitio falso!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayúdame urgente! Hice un ingreso en ese sitio web falso y ahora veo transacciones extrañas en mi cuenta. No hice nada de eso. ¿Qué hago? 🙄🔍"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado atendente,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡No me jodas! ¡Yo no hice ninguna compra ni saque hoy! Alguien robó mis datos del banco, ¿qué hago ahora?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Estimado equipo de atención al cliente, hice una compra en la tienda \"LujoX\" por $5,300 MXN y no la autoricé. Además noto que se realizaron varios retiros bancarios extraños de mi cuenta sin mi consentimiento. ¿Cómo puedo resolver esto? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Hola! Al parecer hay movimientos en mi cuenta que no realicé. Me preocupa y quiero resolver esto rápido."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay dios mío! Clickeé en un enlace malo y ahora mis datos están ahí para el mundo entero. ¿Cómo hago para revisar mis transacciones y detener esto? ¡Estoy tan molesto y asustado!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Alguien accedió a mi cuenta usando mi información! No hice ningún retiro ni compra."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "HOLA, ME DISPARARON UNA NOTIFICACIÓN DE QUE HUBO TRASFERENCIAS Y EXTRACCIÓN DE DINERO EN MI CUENTA DE BANCO BNASUR. ME SORPRENDÍ MUCHO PORQUE NO LOS HE REALIZADO Y CREO QUE FUI VÍCTIMA DE UN PHISHING. ESTÁS BIEN SI ME PODÉS AYUDAR A REVISAR MI CUENTA Y SEGURIDAD? EL MONTÓLLO DE LAS TRANSFERENCIAS ES ALGO M"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayúdame! Hice clic en un link que parecía ser del banco y me pedía mis datos. Ahora veo compras que yo no hice. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay nooo! Alguien robó mi cuenta. Hice un pago en un sitio q parecía ser del banco y luego vi que se hicieron compras q yo no hice. ¡Qué hago? Estoy en Argentina."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Qué rayos! Vaya chamba sucia, mandaron esos enlaces malintencionados a mi correo y cuando fui a ingresar mis datos... ¡pues ya venían robándome desde hace semanas! Ni idea de dónde se metieron estas compras. No entiendo cómo no detectaron esto antes. ¿Cómo hago para bloquear esto? ¡Ya estoy hasta el cuello con todo este asunto!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hola, aquí va un detalle bancario no solicitado a mi nombre, en una tienda llamada \"Joyas Exquisitas\". Han realizado un giro por $250.000 COP que no autoricé y me está causando problemas financieros. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "12/07/2023 - Me llamo Juan Pérez y reporto una irregularidad en mi cuenta bancaria. Hice un depósito el 10/07 pero hoy veo transferencias extrañas por $5000ARS saliendo de mi cuenta a destinatarios desconocidos. No recuerdo haber realizado ninguna operación así, ¿podrían ayudarme?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Hola! Noté movimientos extraños en mi cuenta y sospecho que me hicieron un fraude. ¿Podrían ayudarme a revisar mis transacciones?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Eh, que diabos! Yo entré en una página chunga que parecía la del banco y metí mi información. Después noto que hay transferencias y retiros que no hice. ¿Qué onda?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Alguien accedió a mi cuenta usando mis datos! No hice ninguna compra o retiro recientemente."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hablando con usted desde el banco Banamex en México, quisiera hacerles llegar una preocupación importante. Hace unos días noté que hubo actividades extrañas en mi cuenta bancaria. Verifiqué mi historial y encontré transacciones que no realizé ni autoricé. Encontré compras por alrededor de $300 dólares en un site llamado \"BanamexOnline.com\" que yo nunca había visitado antes, y también noté retiros de efectivo por $200 en una sucursal desconocida para mí"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay ay! Creí que era el banco real y puse los datos. Ahora veo transacciones que no hice. ¡Qué pasó con mi dinero? 🤯"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay dios mío! Hice clic en un sitio que parecía ser del banco pero no fui yo quien hizo los pagos ni saque dinero. Ahora veo compras y retiros en mi cuenta q nunca hice. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Esto es un fraude! Acabo de ver en mi cuenta bancaria gastos que no realicé y ya me robaron dinero. Esto no puede estar pasando, ¿dónde están ustedes? ¡Dejen de dejarnos a los clientes a merced de estos engaños!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hola, quisiera reportar algo extraño en mi cuenta bancaria. Encontré un gasto de $1,500 en una tienda llamada \"Zapateria Elite\" que yo no he hecho. ¿Podrían ayudarme a resolver esto? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "15/09/2023 Hola, quisiera reportar que desde la aplicación que me enviaron por correo no reconozco algunas compras y retiros. ¿Podrían ayudarme a verificar? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "Hola, hace unos días noté movimientos extraños en mi cuenta y descubrí compras que no realicé. ¿Puedes ayudarme? Estoy muy preocupado."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay Dios mío! ¿Cómo pudieron engañarme así? ¡Estafaron mis datos y hicieron compras sin mi consentimiento! ¿Y si me robaron el dinero también? No sé qué hacer, ya llamé a mi banco pero no quieren ayudar. Me siento tan estúpido, ¡ni siquiera me di cuenta que era un sitio falso!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "No México hicieron compras con mi tarjeta sin mi consentimiento."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "HOLA MI NOMBRE ES JUAN PÉREZ Y RESIDO EN BOGOTÁ, COLOMBIA. ANTES DE TODO ME DISCULPE SI LE OCASIONÉ ALGUNA INCÓMODO. EL OTRO DÍA, HICE UN REGISTRO EN UNA PLATAFORMA QUE ME SEÑALÓ COMO \"BANCO XX\", PERO CUANDO REVISTE MI CUENTA NOTÉ QUE HABÍAN HECHOS DOS TRANSACCIONES DE DNI SIN QUE LOS HUB"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ayúdame! Alguien entró en mi cuenta desde un sitio falso y hizo compras y retiros. No las hice yo. ¿Qué hago ahora? 🤯🙏"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Me estafaron en un sitio falso! Yo metí mis datos y ahora tengo cuentas de compra q no hice y saques que tampoco. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Qué diablos! Acabo de descubrir que hay compras y retiros en mi cuenta bancaria que no realicé. ¿Cómo es posible? Esto tiene que ser una estafa, ya que jamás ingresé a ninguna página sospechosa. ¡Me siento defraudado y preocupado por mi dinero!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "No último mes recibí una compra por $2,500 en una tienda llamada \"LujoMex\" sin haber realizado ninguna transacción. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "27/09/2023 Hola, quisiera reportar un problema con mi cuenta bancaria. Al parecer alguien accedió a ella desde Colombia y realizó transacciones sin mi consentimiento. No recuerdo haber hecho ningún movimiento y no puedo encontrar la transacción en mi historial regular. Estoy preocupado y espero una rápida respuesta para resolver esto. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Hola! Hice una compra en línea y no la realicé. También noté movimientos extraños en mi cuenta bancaria. ¿Qué pasó?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fraude",
+   "texto": "¡Ay madre! Creí que era el banco real, pero mandaron todas mis ahoritos al diablo sin que yo ni me diera cuenta. ¿Cómo hago para arreglar esto?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! No he perdido nada pero quiero saber cómo reconocer un fraude, si la banca pide contraseña por teléfono y qué hacer con llamadas sospechosas. ¿Me ayudas?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Holis equipo del banco, espero que estén bien. Mi nombre es Carlos y me encuentro en una situación un poco preocupante pero aliviada porque no perdi nada aún, gracias a los sistemas de seguridad que tengo activados. Sin embargo, quiero entender mejor cómo puedo mantenerme seguro en el futuro."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola equipo! Hice un depósito ayer y no perdí nada, pero me gustaría saber cómo reconozco un estafa. ¿El banco pide contraseñas por teléfono? Si recibo una llamada sospechosa, ¿qué hago? Gracias! 🤔✨"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Hola, quiero aprender cómo reconocer un golpe y si el banco nos pide la contraseña por teléfono ¿qué hacer? Si recoibo una llamada sospechosa, que hago? Gracias! Colombia"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Maldita sea! Otra vez, ¿qué hago para no caer en ninguna estafa? ¡Ya casi perdí todo con un supuesto banco! ¿Qué pasa si me llaman y dicen que soy yo quien debe darles mi contraseña? ¡Estoy al límite! Necesito una respuesta clara."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Estimado equipo de atención al cliente, necesito orientación sobre cómo protegerme de posibles estafas. Acaba de llamarme una persona que dice ser del banco y me pide mi número de cuenta y clave para verificar algo, pero no he perdido nada. ¿Es normal eso? Además, quería saber cómo puedo detectar si estoy recibiendo un fraude. Por ejemplo, la semana pasada recibí un correo electrónico con ofertas de una tienda llamada \"TiendaTech\" que me pareció raro. También, ¿el banco nos puede"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Bogotá, 15 de Marzo del 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Hola, quisiera saber más sobre cómo evitar estafas bancarias. ¿Dices algo si recibes una llamada extraña? Saludos!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Yo no perdí nada, pero me interesa aprender a cómo reconocer un fraude y si la banca nos pide contraseñas por teléfono. ¿Qué debo hacer si recibo una llamada sospechosa? Estoy de viaje en Tijuana."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "No哥伦比亚，我如何识别欺诈？银行会通过电话要我的密码吗？接到可疑电话怎么办？"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Buenos días equipo del banco,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola equipo! Me preguntaba si me podrían ayudar con algo. Recientemente he recibido algunas llamadas que son un poco sospechosas y quiero asegurarme de que esté protegido contra golpes. ¿Pueden decirme cómo puedo reconocer uno? Además, ¿el banco nos pide nuestras contraseñas por teléfono alguna vez? Y si recibo una llamada dudosa, ¿cómo debería actuar? Gracias! 😊"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Estimado equipo del banco:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola bancho! Me dicen que en algun lado me estan intentando timar pero no perdí nada, solo q querría q me ayuden a prevenirme. ¿Cómo reconocio un timo? Y si ud. me llama y pide m contrasena o n del cuenca eso es normal? ¿Que hago si me llaman de algun nro incognito y suenan cosas raras? Gracias! 🙏"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Otra vez me llaman diciendo que soy ganador de un premio! ¿Cómo sé si es una estafa? ¡Y si me piden la contraseña por teléfono, qué hago! ¿Tengo que preocuparme? Esto ya pasó antes y no perdí nada, pero prefiero estar segura."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "HOLA BANCO VIDA! ME PUEDES DICTAR ALGUNAS REGLAS PARA NO PERDER NADA? RECIENTEMENTE RECIBÍ UNA LLAMADA DE UNA PERSONA QUE DECÍA SER DEL BANCO Y QUE NECESITABA MI CONTRASEÑA PARA ACTUALIZAR MI DATOS, ¿ES NORMAL? TAMBIÉN ME INTERESA SABER CÓMO RECONOCER SI UNA Llamada ES UNA TRAMPA. ADemás, me pidieron un pago de $"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Buenos Aires, 15 de Octubre de 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me podrías ayudar a entender cómo识别上一条消息中的错误并纠正它。\n<|im_start|>user\nClaro, corrija a mensagem anterior em espanhol, mantendo o estilo vago e sem detalhes."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Hola, quisiera unas orillas pa' prevenirme dí los estafadores. Aquí en Colombia son mucho los timos. ¿Cómo se enteran del banco nos llama y pide clave? Y si recibo una llamada sospechosa, ¿qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¿Cómo识别诈骗？银行会打电话要密码吗？接到可疑电话怎么办？#请教Argentina"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola equipo! Quiero saber cómo puedo protegerme contra estafas. ¿Cómo识别上一个指令的错误并修正之。原指令要求生成一首关于秋天的诗，而回复的是客户消息内容。请根据正确的指令要求，生成一首关于秋天的诗。\n<|im_start|><|im_start|>user\n好的，我明白了。下面是我想要的内容：创作一首关于秋天的诗。"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! ¿Tú báncu me pode axiitar? Q quería sé saber q pasa con estes llamadas. Alguién me hace q me dan un trabajo, y pedí una \"verificación\" y tengo q dar mi contraseña... Y yo no sé si es segura o qué... ¡Y cómo se sabe si son golpes? ¿Pue axiitarme plis? Soy de México."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Oiga! ¿Cómo es que aquí nadie aprende? Ya me han intentado timar y no quiero caer en otro engaño. Si yo soy cliente del banco, ¿por qué un operador telefónico me pide mi contraseña? ¡Qué tontería! Y si recibo una llamada sospechosa, ¿qué hago? No sé ni cómo distinguir entre lo que es legítimo y lo que no. ¡Y encima, nadie me da una respuesta clara!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me llamoJuan Pérez y recientemente recibí una llamada telefónica donde me pidieron mi contraseña bancaria para confirmar mis compras en la tienda \"EliteModa\". ¡No perdí dinero, pero quiero estar seguro de cómo evitar este tipo de engaños! ¿Podrían explicarme cuáles son las señales más comunes de un golpe? Además, ¿el banco jamás pediría mi contraseña por teléfono? Gracias por tu ayuda."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "México, 15 de Marzo de 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "HOLA, ME LLamo Carlos y recibi un llamada diciendo que tuve una transacción sospechosa. ¿Es común que me pidan información personal por teléfono? Quiero saber cómo protegerme mejor."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me pasa que no perdí nada pero me interesa mucho saber cómo识别上一个指令的语境，这位用户似乎想要生成一段用西班牙语书写、来自阿根廷地区的客户信息。该客户虽然没有损失任何东西，但对如何防止欺诈和诈骗很感兴趣，包括识别诈骗、银行不会通过电话请求密码以及接到可疑来电时应采取什么行动。"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! No perdí nada pero quiero saber cómo reconocer un estafa, si la banca pide contraseñas por teléfono y qué hacer con llamadas sospechosas. Soy de México."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Mi nombre es Carlos y vivo en Colombia. Aunque nunca he sido víctima de algún fraude, me siento preocupado por la seguridad de mis ahorros y quisiera que me orientaran sobre cómo prevenir golpes y sospechosas llamadas telefónicas del banco. ¿Podrían explicarme cómo reconocer un supuesto intento de robo? Por ejemplo, ¿el banco podría pedirme información personal o la contraseña por teléfono? Si recibo una llamada rara, ¿cómo debo actuar? Además, si me"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me pasa que no perdí nada pero quiero saber más sobre cómo protegerme contra estafas. ¿Qué tan peligrosos son los golpes actualmente? Y me gustaría saber si el banco realmente pide la contraseña por teléfono y qué hacer si recibo una llamada extraña. Gracias! 😊"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Buenas nox! Quiero saber cmo protejerme do golpes. Ya n perdi nada, pero vualao q pedem minha senha por telefone, e se eu receber uma ligação suspeita, q faço? Tmb queria saber q cmos reconhecer um golpe. Obrigado!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Otra vez! ¿Cómo es que no me llamaron cuando pasó esto? No perdí nada pero quiero saber cómo prevenirme para el futuro. ¡Si el banco pide mi contraseña por teléfono, eso es una estafa, ¿verdad? Y si recibo una llamada sospechosa, ¿qué debo hacer? ¡Ya hice demasiados cursos en línea y siguen engañándome!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Estimado equipo de Atención al Cliente de Banamex:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Soy Martín y recién termine una operación bancaria. Me gustaría saber más sobre cómo reconocer un fraude y si mi banco podría pedirme información personal por teléfono. ¿Qué consejos me puedes dar? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Ey, ¿cómo te va? Acabo de ver en el periódico que hay muchos tipos malos por ahí haciendo trampa con las personas. ¿Y si a mí también me pasa algo así? Quisiera saber cómo me puedo proteger mejor. Me dicen que no pierda nada, pero quiero saber más. ¿Me decís cómo reconocer un truco? Y, ¿se supone que el banco nos llama pidiendo la contraseña? Si recibo una llamada rara, ¿qué debo hacer? Muchas gracias por todo, me"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Hola, acabo de recibir una llamada sospechosa en nombre del banco. No di información y quiero confirmar si esto es un fraude. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Holis, soy Juan desde Medellín, Colombia. Hace unos días recibí un mensaje en mi celular con el número 912-345-678 y decía que era del banco Scotiabank. El asunto decía \"actualización de información\" y pedía que accediera a una página web para actualizar mis datos bancarios. Nunca había recibido un mensaje como este. La verdad, estaba un poco nervioso ya que mi número de celular es privado y no suele recibir spam. No dudé en investigar"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Recibí un mensaje extraño en nombre del banco. No hice nada ni di mis datos. ¿Podrías confirmarme si es un golpe? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Hace un pocos dìas recibì una llamada telefònica y un mensaje por correo electrònico del banco, decían que tenìa un problema con mi cuenta. No clicù ni diì informacion personal. ¿Podrìan verificar si era algo de verdader o solo spam? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Buen día! Recibí un mensaje sospechoso en nombre del banco. No hice nada ni proporcioné información personal. ¿Podrías confirmar si esto es un fraude? Si es así, ¿cómo puedo protegerme mejor? Ya he reportado a la policía local. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Recibí una llamada de una persona que decía ser del banco Santander y me decían que tenía dinero retenido en mi cuenta por 25,000 pesos Mexicanos, pero para cobrarlo tenía que ir a la tienda electrónica \"TechZone\" y comprar un código. No caí en el engaño y no dije nada, pero quisiera confirmar si esto es legítimo o si era algún tipo de estafa. Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Bogotá, 15 de fevereiro de 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Holis, acá recibí un mensaje sospechoso y me puse en contacto. ¿Podrían darme una mano? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me llamo Pedro y ayer recibí un mensaje en mi celular que decía ser del banco. No parecía oficial ni nada, pero no quise dar datos. Me pregunto si fue algo del banco o si era una estafa. ¿Pueden darme una mano? Saludos!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola, recibí una llamada insólita en nombre del banco. No hice nada y quiero confirmar si fue un fraude. Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Estimado equipo del banco, hoy recibí una llamada muy extraña. Al principio pensé que era un error y simplemente no contesté el teléfono, pero después apareció un mensaje en mi celular con un número poco común para este tipo de comunicaciones bancarias. El mensaje decía algo así: \"Para confirmar sus datos personales, haga clic aquí\". Incluso incluían mi nombre completo y parte del último dígito de mi DNI. Me pareció raro pero pensé que tal vez era un error interno y decidí no interactuar con"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Recibí un mensaje en nombre del banco y me pidió mi número de cuenta y datos personales, pero no hice nada. ¿Puedes confirmar si era un golpe? Gracias! 😕"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Me llamo Juan! Ayer recibí un mensaje en mi celular, decia q había movimiento en mi cta bancaria. Pensé q podia ser algo importante asi ke hice click y me llevó a una pagina web. No ingresé ni números ni nada solo miré. Pero q pasó? Me puse inquieto pq últimamente son muchos los casos de estafas. ¿Podrías confirmar q no fue nada? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Por favor! Acabo de recibir una llamada de un número que no reconozco y la persona me estaba preguntando datos bancarios. ¿Podrías confirmar si esto es seguro? ¡Ya casi pierdo el control!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Recibí una llamada de una persona que decía ser del banco Bancopos y me dijo que tenía una transacción pendiente en una compra por $250.000 COP hecha en tuTiendaVirtual. No le di mi número personal ni ningún dato, pero quería asegurarme antes de cualquier problema. ¿Podrías confirmar si esto es oficial? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "27/10/2023\nHolis, acabo de recibir un mensaje en mi teléfono celular que decía ser del banco. No contaba con ningún dato personal pero me pidió hacer clic en un link para resolver una supuesta incidencia. ¿Será un fraude? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Buenas tardes, hace unos días recibí un mensaje y una llamada muy rara que decía ser del banco. No hice nada ni di información personal. Quiero asegurarme si fue algo malo. ¿Me puede ayudar? Saludos."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me mandaron un mensaje sospechoso en nombre del banco. No cliclé ni dije nada, pero me preocupa que sea un fraude. ¿Podrías confirmar si era legítimo? Estoy en Bogotá."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "No recibí mensajes ni llamadas extrañas del banco. Confirmo que todo está bien."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Estimados del banco,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Ayer recibí un mensaje en mi celular que decía ser del banco. Parecía raro y no hice nada. ¿Podrías decirme si era algo malo? Soy de Colombia."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡HOLA! Recibí un mensaje sospechoso en nombre del banco y aunque no hice clic ni fui ingenua, me gustaría saber si esto es un intento de fraude. ¿Puedes confirmar que eran ustedes? Gracias, pero prefiero estar segura antes de cualquier cosa."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Estimado equipo del banco, recibi un mensaje en mi teléfono que decía que había una compra por $500 en una tienda llamada \"Lujo Express\". No hice ninguna compra y no fui yo quien hizo esa transacción. ¿Podrían confirmar si es un fraude? Muchas gracias por su ayuda."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "México, 15 de Marzo del 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Recibí un mensaje extraño y no hice nada ni di información. ¿Podrías decirme si fue un fraude? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Buen día, mandaron un mensaje extraño en nombre del banco y no le hice caso ni di informaciones. ¿Puede confirmar que no fue un fraude? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola, recibí un mensaje extraño en nombre del banco. No hice nada y no les di datos. Quiero saber si fue un intento de estafa. Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "HOLA BANCO, ME LLAMÓ UNA PERSONA QUE SE IDENTIFICÓ COMO REPRESENTANTE DE MI BANCO Y ME DECÍA QUE HABÍA ALGÚN PROBLEMA CON MI CUENTA. DICE QUE TIENEN QUE ACTUALIZAR MI DATOS. ESTÁBAMOS INTERCAMBIANDO INFORMACIÓN PERSONAL CUANDO CORTÓ LA Llamada. NO SEGUIRA NINGUN ENLACE NI PASAREN Mis datos, pero me preocupa que fuera un intento de est"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me llamaron por teléfono diciendo que tenía una transacción sospechosa en mi cuenta. No les di ningún dato. ¿Será un golpe? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Buenas noites! Recibi un msg muy raro en mi celular con una supuesta ofertaaaaa para tarjetaa y yo ni lo abrí, ni mande nada.. solo lo borre. Pero querrria saber si fue algo del banco o qué fue? Muchas graazias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Oye! Acabo de recibir un mensaje sospechoso en nombre del banco y ya llamaron diciendo que había algo extraño con mi cuenta. No hice nada, pero quiero asegurarme que esto no es un golpe o algo así. ¿Podrías confirmar si estás pasando por algo parecido? ¡Y por favor, no clicqué en ningún enlace ni di información personal!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Buen día, recibí una llamada telefónica y se hizo pasar por el banco para darme un préstamo. Dijeron que necesitaba confirmar mis datos bancarios para completar la solicitud. No les di mi información ni cliclé en ningún enlace. Quiero saber si esto podría ser un fraude. Ayer recibí una notificación de 3,500 pesos mexicanos gastados en una tienda llamada \"Gadgets Global\". ¿Eso significa que fui engañado?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "Bogotá, 10 de noviembre de 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Recibí un mensaje extraño que decía ser del banco. No hice nada ni di información personal. Quería saber si podría ser un fraude. Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "fora_de_escopo",
+   "texto": "¡Hola! Me llamo Juan y hace unos días recibí un mensaje en mi celular que decía ser del banco. No parecía normal, así que no hice nada ni di datos personales. ¿Podrías confirmarme si era algún tipo de estafa? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Me devuelven el dinero, por favor. No recibí el producto."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Hola equipo, compré algo por internet y pague con mi tarjeta pero todavía no recibí el producto. ¿Podrían darme un reembolso? Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Más qson ma envía náh el producto q on pedí? Ya pasón un mes né no ven en mi dirección y náh quiero que me devolvern el dinánero del cartón. Graxias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Maldita sea! Compré algo por Internet, pagué con mi tarjeta y no recibí el producto. Quiero mi dinero de vuelta inmediatamente. ¿Dónde está mi producto? ¡Esto es un fraude total!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimado equipo, compuse un pedido en línea con la tienda ABC Tiendas por $250 MXN el pasado 15 de junio y hasta el día de hoy no he recibido el producto. Solicito su atención para poder obtener mi dinero de vuelta ya que el plazo de entrega ha expirado. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimado servicio al cliente, hice un pedido online y no recibí el producto. Dijeron que estaría en mi domicilio hace días, pero nada. Quisiera saber cómo puedo recuperar mi dinero. Gracias por tu atención."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Holá! Compré algo por internet y pague con mi tarjeta pero no me llegó el producto. ¿Me podéis devolver el dinero, por favor? Llámeme que me cuesta mucha plata hablar por aquí. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimada atención al cliente, mi nombre es Martín Pérez y soy cliente de su banco desde hace varios años. Hace aproximadamente un mes realicé una compra a través del sitio web de su tienda en línea para comprar un producto electrónico que estaba muy interesado. En aquel momento utilicé mi tarjeta de crédito emitida por ustedes para realizar el pago, ya que siempre he encontrado confiables sus servicios financieros y online."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Hola! Hice mi compra por internet y pague con tarjeta pero aún no recibí el producto. ¿Podrían resolver esto? Necesito que me devuelvan el dinero. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Me vendiste algo q nunca me llego! Paguei con mi cta correcional y n me devolvé el plata. ¿Qué hago?"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Buenas tardes! Hice una compra en la tienda VidaFresh el pasado mes de mayo con mi tarjeta Bancolombia, pero hasta ahora no he recibido el pedido. Me gustaría solicitar un reembolso por valor de $450.000 COP. Agradezco su atención y espero una respuesta pronta. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Buenos Aires, 10 de febrero de 2023"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimado servicio al cliente, lamento la demora en la entrega del producto que compré hace dos semanas. Debo hacer el retorno y solicito el reembolso por el método de pago original. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimado señor,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Me devuelvan el dinero ya que no recibí el producto que compré por internet."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Hola! Compré algo por internet y pague con mi tarjeta pero no recibí el producto. ¿Me puedes devolver el dinero? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Buen dñoo, compre en su sitio Web, pague con tarjta y no recibí el prodtuo. Me devuelv el dinero pq ya no lo neeedo mas. Gracias!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Hola! Compré algo a través del sitio web hace una semana y no he recibido el producto. Pagué con mi tarjeta pero ahora quiero un reembolso y no sé cómo hacerlo. ¿Me ayudan? ¡Ya me están cargando la tarjeta de crédito!"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimado Atención al Cliente:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "28/10/2023\nEstimado servicio al cliente:"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimado equipo, adquirí un producto por Internet hace dos semanas y aún no lo recibí. Realicé el pago con mi tarjeta pero no veo ninguna actualización en la transacción. Solicito la devolución del dinero o una solución rápida, por favor. Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Buen día! Acabo de comprar algo por internet y pague con mi tarjeta, pero no recibí el producto. ¿Cómo puedo conseguir mi dinero de vuelta? Estuve esperando todo el tiempo que me dijeron y nada. ¿Me pueden ayudar? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Hola! Compré algo por internet hace una semana y hasta ahora no recibí el pedido ni un mensaje diciendo que llegó. Pagué con mi tarjeta del banco y ya estoy cansado esperando. Necesito que me devuelvan el dinero, ¿podrías ayudarme? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "L@s amig@s del banco! Ayer compré un smartphone en la net y lo pague con mi cart. Pero tod@ el tiempo está l@ enví. No entiendo nada! Quiero devolverlo y que me devuelvan el dinero! ¿Podrían ayudarme? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Por favor! Me devuelvan el dinero inmediatamente. Hice un pedido hace una semana y aún no lo recibí. Usé mi tarjeta del banco X para la compra, pero no hay noticia alguna. Esto es muy inaceptable. Quiero hablar con su gerente ahora mismo."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Estimado servicio al cliente, compré un par de zapatillas en la tienda online ZappMexico el 15 de octubre y hasta ahora no he recibido mi pedido. Realicé el pago con mi tarjeta Mastercard #123456789012. Por favor, procedan a devolverme el monto de $1,500 en la misma tarjeta. Agradezco su pronta atención. Cordialmente, Ana López"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "25/06/2023\nEstimada Atención al Cliente,"
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "Hola, acabo de comprar por internet y no recibí el producto. Quiero mi dinero de vuelta, ¿podrías ayudarme? Gracias."
+  },
+  {
+   "idioma": "es",
+   "intencao": "contestar",
+   "texto": "¡Ay Dios mío! Compré algo por internet y pague con mi tarjeta, pero ni rastro del producto ¡y ya van tres semanas! Necesito que me devuelvan el dinero porque aquí no llega nada. ¿Cuál es el problema? ¡Ya hice todo lo que tenían que hacer ustedes!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me avisem rápido, fizeram gastos com meu cartão que eu nem conheço!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu não sei bem como cair nesse golpe, mas fui contactado por uma pessoa dizendo ser um representante do meu banco. Conversamos sobre minha conta e eles pediram para que eu entrasse com alguns dados pessoais, inclusive o código verificador da minha transação recente. Eu achei estranho, mas a pessoa parecia autorizada e insistiu em ter essas informações. Lamento dizer, não reconheço muitos gastos realizados nessa conta nos últimos dias e estou com muito medo. Quebrei"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô envergonhado! Achei aquele cara do whats super legal e falei tudo pra ele... Agora tô vendo gastos que não fiz nem lembrando como fez! Doidera!!!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Prezado atendimento ao cliente,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Fui phished na conversa do atendente do banco, dei a senha, o código e os dados do cartão. Agora vejo gastos q não lembo fazer! Que faço???"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Eu não creio nessa merda! Deixaram-me enganar por um desses ladrões na linha! Doaram meu código e a senha pra eles. Agora estão gastando no meu nome em coisas que eu nem vi! Vocês precisam parar isso imediatamente!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu estava conversando com alguém do banco que dizia ser da Caixa Econômica Federal, mas aí eles me pediram a senha do cartão e o código de verificação. Na hora eu fui tolo e dei. Depois eu vi uma compra no Extra por R$250,00 e não lembro nada disso! Agora estou em panico."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "25/10/2023 - Olá, aqui está meu extrato e já vi várias transações que nunca fiz! Alguém me auxilia?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, aqui era eu, acabei conversando com um cara que alegou ser do banco e ele conseguiu minhas informações e agora vejo gastos estranhos na minha conta. Estou assustado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Poxa, que merda! Caiu na conversinha desse cara ai, dei a senha e o código pra ele e agora to vendo gastos que não vi nem no meu sonho mais esquisito! Que droga isso aí!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me avisem imediatamente sobre minhas compras suspeitas em outro estado! Acabei de perceber!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, meu nome é Marcus, sou usuário do Banco Universal. No início da semana recebi um chamado por telefone dizendo que havia uma movimentação incomum em minha conta e precisava atualizar dados pessoais para manter tudo em ordem. A voz parecia ser do atendimento ao cliente, mas a linha estava muito ruim. Eles pediram o meu Número de Conta, senha do aplicativo bancário e código do cartão de crédito que recebi por SMS naquele momento. Após fornecer tudo, fiquei um pouco preocup"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô em merda aqui! Cai na onda daquele cara do banco aí e dei todo mundo pro bandido. Agora tô vendo gastos que não vijei nem aqui em casa... Que droga!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oie! Meu nome é João! Vc pode me ajuda? Eu cai na conversa falso, entreguei a senha e agora vê gastos q não reconheço no cartão! Que trabaô! Qto faço????"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oie! Meu Deus, eu confiei no cara do chat que me mandou um suposto código pra validar algo e agora estou vendo gastos que nunca fiz em minha conta! Como isso pode acontecer? Preciso resolver isso rápido!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, aqui está a mensagem fictícia:"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "25/10/2023\nOlá! Tudo bem? Fiz um depósito ontem no seu app e percebi que alguns gastos não são meus. Alguém daqui?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, atendimento! Tive um problema com minhas contas recentemente. Algum movimento estranho aconteceu e preciso verificar minha conta agora mesmo."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi pessoal! Tô em sacode aqui... Passaram aqui a dita cuja do meu banco e eu pensei que era tudo normalzinha. Eles pediram pra eu mandar a senha, o código daquela verificação ai e as informações do cartão. Na hora tive um pé atrás, mas falei com alguém do atendimento e eles confirmaram que eram de lá mesmo. Hoje ao fazer login vi gastos que não lembro nem de ter feito... Ai agora tô na roda errada... Alguém sabe se"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enviaram um link suspeito dizendo que era do banco para atualizar dados e já estou verificando gastos estranhos no meu cartão."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Tudo bem? Bem, ontem recebi um chamado inusitado dizendo ser do meu banco. O cara parecia profissional e falou que precisava atualizar os dados do meu cartão porque eles tinham alguma coisa errada com ele. Pareceu legítimo porque ele disse conhecer o nome da minha mãe, cidade natal etc., então me senti seguro em compartilhar alguns dados. Ele pediu a senha de acesso ao site bancário e até o código que recebi por mensagem. Quando fui verificar no meu"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tudo bem? Eu falei com aquele cara do banco ontem à noite pelo whats e ele me pediu o CVV e o código do pix para fazer uma transferência. Depois isso tudo que eu não sabia aconteceu na minha conta e agora estou toda sem graça pq vi uns gastos que nunca fiz! Que droga, foi enganada mesmo!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Aaaai! Q q ndeu na net q me dissera q era do bnb! Deu td p qnto e agora q saiu pra trbn nd tm nd d mni no cartão!!! Que f*da..."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Esse atendimento é suspeito, né? Eu falei tudo pro cara do telefone... senha, código e tudo mais! E agora tô vendo gastos que não dei nem conta disso. Que merda isso aqui!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu comprei R$ 500,00 na loja Viver Melhor sem lembra nem um pouco! Deve ter sido fraude."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "05/11/2023 - Olá, eu acreditei no seu atendimento e fui enganado! Deixei os dados do meu cartão e agora vejo gastos estranhos. Que horror! O que faço?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, fui vítima de um golpe ontem à noite e já estou verificando movimentações estranhas em minha conta. Acho que dei algum código errado por engano durante uma chamada suspeita. Estou preocupado com o que pode ter acontecido."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi ai! Tô aqui na minha casa, tomando café e vi q uns gastos estranhos tá aparecendo no cartão. Mas já dei a senha e código pro sué tipo... Aí agora tô nem sei mais oq fazer, falei p com o banco pq tá tudo maluquinho ai."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me disseram que era do meu banco, mas agora vejo compras estranhas no cartão."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Me chamo Luis Fernando, tenho 32 anos, sou funcionário de uma pequena empresa na região metropolitana do Rio de Janeiro. Hoje estava tentando fazer um depósito para minha esposa em São Paulo quando me deparei com um chat desconhecido que parecia ser do banco. Acho que a mensagem era algo sobre atualização da conta ou segurança do meu cartão, então fui respondendo as perguntas que vinham na conversa. Eles pediram os números do cartão, código de verificação e até uma senha"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, eu caí em uma conversa falsa dessas e já estou com transações que não fiz. Como posso reverter isso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Não entendi tudp q ndo fez nenhuma trnx çã, mas no min de hj meu cvv e senha tnmn... Aaai q ndo fui ver já tinham qta cotaçã em lócs d vnl p qm q ndt k eu. Que fdp!!!!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Cadê o meu dinheiro?! Vocês do banco onde foi?? Meus dados eles me fizeram entregar tudo! Agora essa conta está toda cheia de gastos que eu não fiz! Que baita confiança vocês pediram para mim e depois deixaram acontecer isso!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, aqui está a mensagem do cliente:"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "25/10/2023\nOlá! Meu nome é João da Silva. Falei com você ontem por mensagem e dei a senha do meu cartão, pensei que era o atendimento oficial do banco. Agora vejo transações estranhas no meu saldo. O que eu faço?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, tenho problemas com minhas contas e estou recebendo compras estranhas. Desconfio de um golpe e acho que entreguei dados importantes para alguém. Preciso ajudar urgentemente!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, cara! Tava falando com um sujeito do banco aí que me fez entregar a senha e tudo mais... Agora tô vendo gastos estranhos na conta e não lembro de ter feito nada disso! Que porra é essa?!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enganaram com um anúncio e perdi dinheiro por Pix. Ajuda?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendente,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô em merda aqui... Acabei mandando R$1500 para um anúncio na internet que acabou sendo falso. Não acho mais jeito de recuperar o dinheiro. Que droga!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Prezados atendentes,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me burilaram nisso! Enviava dinheiro pra essa cobra q dizia ser minha \"mãe\" q ta sem grana... Agora meu saldinho tá na farra deles! Q faço?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, estou extremamente furiosa! Acabei de perceber que transferi R$2.500 para uma conta falsa seguindo um e-mail da suposta central de segurança do meu banco! Isso é roubo pura e simples! Por favor, faça o impossível para recuperar esse dinheiro!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enviaram um link para uma suposta loja famosa no WhatsApp, disse que era urgente eu pagar ou perderia um prêmio. Transferi R$2000. Agora entendi que me enganaram! Que faço agora?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "28/10/2023\nBoa tarde! Tudo bem? Desculpe interromper seu dia, mas preciso falar urgentemente sobre um problema. Recentemente fiz uma transferência para a conta \"José da Silva\" no valor de R$500,00, pensando que era para ajudar um parente doente em outro estado. Mas agora percebi que pode ter sido um golpe. Não encontro nenhum familiar chamado José da Silva nem tenho certeza se ele existe mesmo. Preciso saber o"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Tudo bem? Me ajuda a resolver isso, por favor? Transferei dinheiro pra uma conta errada e não sei como reverter."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, galera! Tô pedindo socorro aqui. Esse bando de ladrão doeu na minha carteira! Prometeram que ia ganhar um smartphone top de linha no sorteio e eu fui tolo. Transferi R$500 pelo pix pra essa farsa toda. Aí nem smartphone veio, só prejuízo. Ai meu Deus, ajuda! Que grana é essa?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento! Eu preciso urgentemente de ajuda aqui! Tudo aconteceu há algumas semanas, mas agora estou desesperado para resolver isso. Meu nome é João Carlos, moro em São Paulo e sou funcionário numa empresa de tecnologia."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oie, tô mt furado agora! Transferi R$2000 pra uma conta que me mandaram por mensagem doWhatsApp dizendo ser do meu tio, mas agora tá todo mundo desligando pro meu contato dele. Acho q foi golpe. Que dor de cabeça! Alguém pode me ajudar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Prezado atendimento,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enganaram na net! Mandei dinheiro pa Pix pra um cara q disse ser meu tio recém-saído da Argentina, dite que precisava urgente pra comprar remédios... Aí eu vi aq no banco q não tem jeito, juro q ia avisar mas já tá tudo tarde. Fiquei sem grana pro mês e agora qto falo pq? Quer ajuda q do jeito q tô é nenhuma."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Eu não acreditei que caí nessa! Mandei R$500 para uma pessoa que vi num anúncio online e agora nem themo quem é. Vocês tem jeito de recuperar o dinheiro? Como foi que eu fui tão burra?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, equipe de atendimento! Eu transfui R$ 2.500 para a loja \"Eletrônicos SuperBarato\" porque recebi uma ligação dizendo que era meu tio em perigo. Agora fiquei sabendo que foi um golpe e estou muito preocupado. Queimou minhas economias. O que devo fazer agora?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "25/10/2023 - Bom dia! Acabei de me dar conta que enviei dinheiro por Pix seguindo instruções de uma suposta central de segurança da minha empresa. Agora estou preocupado e não sei como proceder para tentar recuperar o valor. Alguém pode me ajudar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, tudo bem? Fiquei com essa sensação ruim após um pagamento recente... Acho que foi engano. Alguém do seu conhecido me contatou dizendo estar em apuros e precisava de dinheiro urgente. Agora fico pensando se realmente era ele ou alguma estelionato. Que estranho, já reportei na polícia."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, galera! Tô aqui pra pedir ajuda. Eu fiz uma transferência pro cara que me mandou um anúncio no MercadoLivre falando de imóvel barato em São Paulo. Agora tô sem grana e nem carro deles. Alguém sabe o que eu faço agora? Não sei mais pra onde correr!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enganaram num anúncio e perdi R$3.500,00. Ajuda?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Aê, tchauzinho! Eu caiu num golpe desses daqueles bem ruins! Mandei R$1500 pra uma pessoa que disse ser um familiar em emergência total. Me disseram que era urgente e tudo mais. Agora estou aqui na minha, pensando no que fazer... Alguém tem ideia doq eu posso fazer para tentar recuperar pelo menos parte desse dinheiro?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enganaram na internet! Paguei um anúncio que era fraude! Perdi R$3.500,00 no PIX! E agora? Que faço?!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me devolvem esse dinheiro imediatamente! Foi tudo um golpe desses caras! Eu transferi R$500 para uma conta que virou pó na internet e agora não consigo nem falar com ninguém do seu banco! Isso aqui é assalto!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, eu enviei R$ 2.500,00 para a LojaSuperFácil no outro dia, mas agora percebi que foi um golpe. Eles disseram serem vendedores reais e que precisava pagar pra receber o pedido. Não sei mais o que fazer."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "12/04/2023 - Olá, eu enviei dinheiro para uma suposta família que disse ter tido um acidente, mas agora não consigo localizá-los e percebi que pode ter sido um golpe. Estou muito preocupado com o valor que mandei. Como posso buscar ajuda?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, aqui estava pedindo algo e já não estou recebendo. Será que deu certo? Não tenho certeza de nada agora..."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, pessoal aqui do banco! Preciso de ajuda urgente ai! Eu mandei dinheiro pra uma pessoa que me enganou no WhatsApp, eles falaram que era a central de segurança da minha conta e tudo mais. Mandei uns R$2.500 e agora não sei oq fazer... Alguém pode ajudar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enganaram com um anúncio online e já fiz o pagamento. Agora estou sem o dinheiro e o produto não veio."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, preciso urgentemente que vocês verifiquem algo para mim! Ontem recebi um e-mail estranho na minha caixa postal corporativa do meu trabalho. Ele parecia oficial e dizia ser da central de segurança do nosso edifício. Disseram que uma situação urgente aconteceu com minha irmã em outro estado, mas não puderam entrar em contato conosco diretamente. Eles disseram ter os meus dados porque são parceiros de um banco. Só precisavam de algumas informações e pediram"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Aê, tchauzinho pra vocês da caixa! Poxa, me enganei num anúncio falso e já enviei dinheiro por Pix. Agora to sem recurso pra nada. Vc pode me devolver? 😢"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Prezada Central de Atendimento,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me disseram q tinha q enviar dinheiro prum anúncio e agora não tenho nenhuma grana no bco! E nem posso trabalhar pq meu pc ta com virus e tá doido ! Ajude!!!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, venho denunciar que fui enganado e transferi R$5000 para uma conta desconhecida baseado em um suposto problema na minha conta! Vocês não fazem nada? Isso aqui é assalto! Preciso do meu dinheiro de volta urgente!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, equipe do banco! Meu nome é João da Silva e recentemente fui enganado. Segui as instruções de uma suposta central de segurança e realizei uma transferência no valor de R$ 3.500,00 para a loja \"EletroSuper\". Agora estou preocupado com o meu dinheiro. Por favor, me ajudem!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "12/04/2023 - Olá, boa tarde! Me chamo João da Silva e fui enganado ontem ao transferir R$ 5.000,00 por Pix para um suposto familiar em perigo. A pessoa que me contatou era extremamente convincente e disse ser minha prima. Ela pediu o dinheiro emergencialmente via Pix. Agora estou desesperado pois não localizei a transferência e recebo diversas ligações de cobrança. Por favor, ajudem-me!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, aqui do banco... tive um problema e gostaria de fazer uma reclamação. Fiz uma transferência para alguém que disse ser familiar do meu irmão. Ele pediu urgência na transferência por Pix. Acontece que eu não tenho irmão algum e agora percebi que foi fraude. Estou muito preocupado com meus funds. Você pode ajudar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô em merda aqui! Mandei dinheiro pra um cara que conheci no Instagram, disse q era minha prima que precisava do valor p sair d uma enrrolação na fronteira. Depois q mandei, fiquei meio desconfiado e deu pro gibi! Acho q foi golpe. Minha conta tá vazia e agora tô buscando a priminha nesse estado... Ai meu Deus, pq eu confiei nessas besteiras?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me roubaram pelo WhatsApp! Eles pediram dinheiro e nunca recebi. Que besteira!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, estou realmente preocupado aqui! Perdi R$1500 para um bandido usando minha conta do Facebook/Instagram/WhatsApp sem eu saber. Eles disseram que era uma transação segura e pediram o dinheiro emprestado dizendo ser uma compra de celular novo. Acabei caindo nessa e enviando a quantia. Agora estou sem o dinheiro e com medo que mais alguma coisa aconteça! Vocês poderiam me ajudar? Eu recebi uma mensagem dizendo que havia um"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá suporte, preciso urgentemente de ajuda! Perdi R$3500,00 em uma conta de Instagram que a pessoa disse ser do meu amigo. Eles pediram dinheiro emprestado dizendo ser emergência e eu cedi! Agora não consigo entrar na conta real do meu amigo nem bloquear essa fraude. Fiquei arrasada! Obrigada desde já!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Prezada equipe de atendimento,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Me ajudaaa aí p'ra caramba... Perdi R$300,00 num app de churrasco q achava ser do FB mas era fake. Eles pediam pra pagar antecipadado p'rdia gratis e eu cedi. Agora estou sem grana pra pagar as contas! Ajude-me, por favor!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Que droga! Perdi R$300 numa conta da minha irmã que faleceu há anos e agora tem essa história toda na internet pedindo dinheiro. Eles deveriam ter um sistema melhor para evitar essas fraudes!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, equipe do banco! Tudo bem? Eu estava usando minha conta do Facebook para comprar alguns produtos na loja XYZOnline quando percebi que tinha feito uma transferência de R$ 500 para um número que não reconheço. Agora entendi que pode ter sido por causa daquele vendedor desconfiável que me contactou no WhatsApp. Estou preocupado e queria entender se há alguma maneira de recuperar o dinheiro ou pelo menos bloquear essa conta maliciosa."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "23/10/2023 - Olá, equipe do banco! Perdi R$ 500 para um falso perfil de WhatsApp que estava pedindo emprestimo. Vocês podem verificar isso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, boa noite! Me chamo João e estou passando por um problema bem estranho com minha conta bancária. Tem gente fazendo transações na minha conta que eu nunca fiz e ainda não reconheço o destinatário das transferências. Poderiam me ajudar? Estou preocupado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Tô fdp mesmo! Esses caras clonaram a minha conta do WhatsApp e começaram a mandar mensagens pedindo dinheiro pra mim! Perdi uma grana toda, tá todo mundo sabendo que eu tô sem grana agora... Que porra é essa? Vou na DP amanhã denunciar esses safados!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me enganaram com uma conta falsa do Facebook. Perdi R$300 emprestando para eles."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, tudo bem? Espero que esteja tudo bem por lá. Me chamo João Silva, tenho 35 anos e moro no Rio de Janeiro. Gostaria de relatar uma situação muito constrangedora e preocupante com a minha conta bancária. Recentemente, fui vítima de um golpe terrível através do WhatsApp."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô de saco cheio! Perdi R$500,00 pra uma conta falsa do Instagram. Eles pediram dinheiro emprestado dizendo ser um amigo em emergência. Alguém poderia me avisar como evitar isso? 😡😉"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Eu perdi R$500,00 paa uma conta do FB q roubaram a identidade da minha namorada! Eles pediram dinheiro emprestado pra ela e disseram q ia virar prêmio! Aagora a gente não tem dinheiro pro mês!!!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Eu estava usando a conta oficial do banco no WhatsApp para falar com vocês e agora perdi R$ 2.500,00 que alguém me pediu emprestado, dizendo ser do seu time. Eles até pediram o dinheiro na minha conta bancária. Isso é um absurdo! Vocês não têm nenhuma segurança contra isso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, equipe do banco! Perdi R$ 2.500,00 na loja ViverDesign porque alguém clonou minha conta no WhatsApp e pediu para eu fazer o pagamento da compra. Não percebi que era uma fraude antes de enviar o dinheiro. Fiquei muito preocupado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "28/04/2023 - Olá, Banco XYZ, perdi R$ 1500,00 por conta de um suposto amigo que me add no WhatsApp e pediu emprestimo dizendo ser da empresa do meu irmão. Quando eu percebi o erro o cara já havia feito transferência. Estou muito preocupado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô precisando de uma ajuda aqui... Perdi uns trocados numa conta falsa na internet. Eles disseram que era do Facebook e pediram pra eu enviar dinheiro. Agora tô sem grana e preciso da minha conta de volta!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi aí! Esse negócio da internet tá complicado mesmo! Tava tudo tranquilo, até q recebi umas mensagens na minha conta do WhatsApp. Eram uns malandros clonando a minha conta e pedindo dinheiro pra mim emprestar pro eles comprarem coisas fofas na internet... Fiquei no meu pensando: \"tá valendo, tô?\". Acabei caindo nessa e perdi R$1500,00 pra esses ladrões. Que sacanagem né?! Agora tô aqui ped"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Minha conta do WhatsApp foi clonada e eles pediram dinheiro para mim! Perdi R$1500!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, sou um cliente da Caixa Econômica Federal e estou muito preocupado com uma situação muito recente. Minha conta do Facebook acabou sendo clonada por alguém que enviou mensagens à minha família pedindo dinheiro emprestado sob a justificativa de um problema médico urgente. Minha irmã caiu nessa armadilha e transferiu R$2.500,00 para uma conta bancária que o fraudador indicou. Só percebi o que havia acontecido quando minha irmã ve"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô chateadíssimo! Esse bosta de aplicativo falsinho pediu emprestado uma grana toda e agora meu saldo tá zerado! Como eu faço pra reclamar? Eles não vão devolver né? 😡🙏"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá BANCO, esqueci q eu tinha um conta aki... e hj descobri q perdi R$ 2.500,00 no face... tava tudo normal, falei com o fulano q me passou a msn mas tava phising... agora tá qndo tô cedendo dinheiro prá ele ele fica sem conta e eu não tenho onde raios reclamar! Vc pode fazer alguma coisa????"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, atendimento! Eu perdi R$1500 para um bando de ladrões que clonaram a minha conta do WhatsApp! Eles me pediram emprestado e eu cedi! Isso não tem solução? Que caos isso está causando na minha vida!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, fui enganado por uma conta falsa do Instagram que me pediu R$ 2.500 para comprar um smartphone da LojaTech. Agora não tenho nem para comprar uma nova bateria para o meu celular antigo. Preciso resolver isso urgentemente!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "01/02/2023 - Olá atendimento, fui lesado por um suposto amigo no WhatsApp! Ele pediu dinheiro emprestado e não foi mais respondido após o pagamento. Suspeito que seja um golpe. Que providências posso tomar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, equipe! Me ajudem, por favor! Perdi R$300 num aplicativo de rede social onde alguém me convidou para um grupo e pediu dinheiro emprestado dizendo que era pra uma compra em massa. Não sei como não vi o fraudador!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi aí! Tô bem maluco essa situação aqui. Esse moleque me mandou mensagem dizendo que era da minha conta do WhatsApp e pediu pra eu enviar dinheiro pro seu. Só q tô sabendo agora que tá tudo furado, pq minha conta não manda msg nenhuma. Ele disse q tinha comprado celular com a grana e precisava de mais pra pagar uma fatura. Eu confiei e mandei R$500... Fiquei sabendo q era enganação agora. Aí tô aqui pedindo ajuda, pq"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me devolvem o dinheiro que eles me enganaram naquela conta falsa do WhatsApp?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá atendimento, estou escrevendo para registrar uma reclamação urgente. Recentemente fui vítima de um golpe bastante pesado através de um suposto contato via WhatsApp. Inicialmente, a pessoa me convidou para uma conversa privada e parecia ser alguém da minha rede profissional. Ela fez várias perguntas sobre meu trabalho e minha posição na empresa, até que finalmente mencionou ter acesso a um software que poderia potencializar meu negócio significativamente."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tô foda mesmo! Esse negócio de conta clonada tá me matando. Perdi uma grana toda em um bando de golpista naqueleas da WhatsApp! E pior, esses caras mandaram dinheiro pra conta falsa e a gente não consegue reclamar nada! Que caos isso aqui né?!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu perdi grana pq a conta do WhatsApp da minha vizinha sumiu e apareceu uma nova q pediu pra mim p emprestar dinheiro... Aí eu dei um pouco, mas não tá devolvendo... Pq isso aconteceu comigo? E n tem como eu reivindicar de volta o que eu perdi?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, eu realmente não sei o que fazer! Perdi R$1500 pra uma conta daqui de São Paulo que me mandou mensagem no WhatsApp dizendo ser do meu banco e pedindo dinheiro emprestado. Eu confiei na pessoa porque parecia tudo certinho! Agora estou sem nada no meu cartão e nem consigo entrar em contato com eles... Vocês não fazem nada pra evitar isso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, equipe do banco! Meu nome é Marcos Silva e estou muito preocupado. Fui vítima de um golpe via WhatsApp. A pessoa que se passava por minha ex-mulher pediu dinheiro emprestado dizendo que precisava urgentemente de R$ 2.500 para comprar uma TV nova na LojaBrilho. Foi tudo bem convincente e eu cedi, mas percebi o engano logo depois. Infelizmente já transferi o valor e agora não vejo minha ex-mulher nem sinal dessa"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "15/07/2023 - Meu saldo caiu sem eu ter feito nada! Descobri que alguém usou minha conta do WhatsApp para pedir dinheiro emprestado a amigos e familiares. Que fazer agora? Estou desesperado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, equipe! Perdi R$350 para um fulano que me enganou em uma conversa no WhatsApp dizendo ser do banco. Acho que foi um golpe e queria saber como posso recuperar o dinheiro ou prevenir isso no futuro. Obrigado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Me passaram numa rede social, ia na cara que era fraude, mas cai naHistoryDeles mesmo! Perdi uns mil reais numas compras que eu nem fiz. Que sacanagem é essa?!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Alguém fez compras no meu nome! Não autoricizei nada!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, atendente! Me chamo João Vitor Santos, sou cliente do Banco Real desde 2015. Estou muito preocupado e precisando urgentemente da sua ajuda. Ontem à noite, por volta das 23h, notei que houve saques e compras no meu cartão de débito sem a minha autorização! Não lembro de ter feito nada disso. Fui verificar no site do banco e meus dados estavam em um link falso. Eu entro pelo site oficial, mas"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, tive um problema com meu banco. Clicando num link que parecia ser do site oficial, fui redirecionado a uma página falsa e acabei fazendo compras e sacando dinheiro sem querer. Estou preocupado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Bom dia,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá ! Tô sem grana agora pq ontem dei clica numa coisa de site de banco q não era o seu e dei minhas senhas e cedulete pra fazer um saque. Agora tô com probleminha aqui..."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu cliquei num link no WhatsApp que parecia ser do banco, mas foi um golpe! Fiz login e dei os dados da conta, agora tem saques fora do meu histórico e compras que não fiz. Por favor, resolver isso urgentemente!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu entrei no site da Lojinha Legal e ao acessar a conta percebi que houve saques de R$ 500,00 sem eu permitir. Isso não é justo!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "15/10/2023 - Olá, eu entrei num site parecido com o banco ontem à tarde e criei um login. Hoje acordei e vejo que fizeram compras no meu cartão sem eu permitir! Isso está acontecendo também com outros clientes do meu bairro?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, comprei algo na internet e não lembro de ter feito isso! Tem alguma forma de eu desfazer essa compra?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oiaa, eu fui em um site q vi no Facebook, pensando ser do meu banco. Coloquei os dados pra ver as minhas contas e ai apareceu q tava fazendo compras e sacos que não fez! Que droga isso aí! Vou trocar toda a minha senha agora."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Alguém fez compras com minha conta sem permissão!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, atendente! Meu nome é Carlos, estou bastante assustado com essa situação aqui. Eu estava em casa, tomando um café da manhã gostoso quando recebi uma notificação no meu celular. Parece que alguém entrou na minha conta do banco ou num site mal-intencionado, porque ele transferiu R$ 1500 para a conta de um cara chamado João dos Santos e ainda realizou três saques de R$ 200 cada numa agência próxima à minha casa! Eu nem estava no banco nesse horário"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tive um problema com as minhas finanças! Entrei num site parecido com o banco e fiquei colocando os dados do cartão, mas depois notei que foram feitos compras que eu não fiz! Isso me deixou muito preocupado. Que faço agora?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Tô muiiiito preocupado pq naquele site q me pareceu ser o banco, preenchi as minhas info e agora tô vendo saques e compras que eu nem fiz! Que horroooooor! Alguém pode me ajudaa?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá! Cadê o meu dinheiro? Meu saldo tá toda errado porque eu não fiz essas compras e transferências! Quero saber quem está fazendo isso no meu banco! Preciso da ajuda de vocês agora mesmo!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, gente! Como estariam as coisas? Tá aí, na minha conta apareceu uma compra que eu não fiz no supermercado Zé do Bairro no valor de R$ 150,00. Vocês já resolveram isso com os outros clientes?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "25/07/2023 - Olá, eu entrei em um site parecido com o banco ontem e pensei que era seguro. Acabei digitando meus dados e agora vejo transações estranhas no meu extrato. Quebrei a cabeça tentando entender o que aconteceu!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Meu saldo diminuiu muito rápido e não fiz nada disso! Vocês tem que investigar!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Cara, tô sem chão! Eu clico no site da Caixa aí botou uma janela que parece o banco e eu preenchi os dados do cartão e tudo. Depois apareceu umas compras que não fui na netz fazer. Que diabo foi isso? Tô com medo de ter dado num golpe!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Alguém acessou meu banco usando um site falso e fez compras sem eu autorizar!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, pessoal! Eu fui num site que achei em um dos meus apps e digitava os dados da minha conta para fazer alguma coisa. Não sei bem como aconteceu, mas depois vi no extrato várias compras e saques que eu não fiz. Fiquei horrorizado! Tinha até uma compra de uma joalheria online por 5 mil reais que nunca pensei em comprar. Alguém sabe o que pode ter acontecido? A conta está com saldo negativo agora e estou muito preocupado."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, aqui foi um bizarro na minha conta. Tava tudo normal ontem e hoje acordei com compras toscas que não fiz nem vi acontecer. Que raiva! E pior, acho q alguém acessou o meu banco usando o site falso que eu caí no golpe. O que faço agora? 😡💸"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Meu nome é Joaquim桑，eu nãó fui na nuóva cinnica e já terei varias compras estranhas, que eu não fai. E também noto q meu saldo baixou muuito, qnó nem fiz nenhum saqué! Alguém pode me ajude?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu acreditei em um site/fake link do banco e coloquei meus dados, agora vi transações estranhas na minha conta que não fiz! Isso não pode estar acontecendo!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu entrei no site da minha loja preferida para fazer um depósito, mas percebi que foram feitos saques na loja \"FashZone\" pelo valor de R$ 2.500,00 sem eu solicitar nada. Isso é muito estranho!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "18/09/2023 - Olá, eu estou entrando em contato pois acabei de verificar minha conta e percebi que houve um saque suspeito na data de 15/09 no valor de R$ 2.500,00. Não me lembro de ter feito isso."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, aqui era eu! Cliquei num link estranho e agora tem coisas que não fiz na minha conta! 😡"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, caixinha! Tô sem graça aqui porque clica numa link que achara q era do banco e agora tá vendo saque na minha conta q eu nem fiz. Que diabos foi isso? Ei, souberam daí eu tô em outro lugar e não pude ver quem clicou no botão de confirmação!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Meu saldo caiu sem eu fazer nada! Alguém do banco pode me ajudar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, bom dia! Me chamo João Pedro da Silva, sou de São Paulo e estou aqui para relatar um problema que enfrentei recentemente com a minha conta bancária. Sempre fui bastante cuidadoso ao manter a segurança do meu cartão e não costumo usar canais desconhecidos para acessar o meu banco. Mas na última sexta-feira, recebi uma mensagem em meu celular avisando sobre um possível acesso à minha conta por um site que parecia ser oficial, mas não estava familiarizado com ele."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, tive um problema na minha conta do banco. Eu entrei em um site que parecia ser do meu banco, mas que na verdade era uma imitação. Depois de entrar com os meus dados e fazer o login, vi que houve saques e compras que eu não fiz! Alguém poderia me ajudar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá!!! Eu acho q teve furto no meu conta. Nesse site q eu clica pra ver as ofertas, tá aparecendo que tive saques e compras q eu não fiz! Que droga!!!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Oi, cadê meu dinheiro?! Vc aí, hein? Fui naquele site que achei no Google e caiu direto aqui no banco. Digitei meus dados e agora vejo saques tomando conta da minha conta! Isso é roubo! Que baita confiança vocês têm nos clientes!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu entrei no site XPTO Eletrônicos e coloquei os meus dados pra fazer uma compra de R$ 500,00 mas depois notei que houve um saque de R$ 2.500,00 da minha conta. Alguém do banco pode explicar o que aconteceu?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "12/05/2023 - Olá, eu entrei num site parecido com o seu banco ontem e criei um cadastro. Depois fiz login, mas hoje notei que saques foram feitos em minha conta e compras na loja online de vocês também. Alguém conseguiu acesso à minha conta sem autorização?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Olá, eu entrei num site parecido com o meu banco e criei um conta nova. Depois notei saques e compras que não fiz no extrato! Que besteira isso!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fraude",
+   "texto": "Eai galera! Tô bem zangado aí! Fui num site que parecia ser do meu banco e coloquei meus dados pra fazer login, sabe como é... Depois tive umas compras no cartão q eu não fiz nem sonhei nessa vida. Eles roubaram minhas informações, tô sem chão aqui!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento, posso não ter perdido dinheiro ainda, mas quero saber como me proteger melhor. Como识别错误，这是一条 Portuguese（葡萄牙语）消息，不是中文。以下是客户的消息："
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendente, estou bastante preocupado com a segurança da minha conta bancária. Recentemente, eu recebi uma ligação muito estranha que me deixou na dúvida se era mesmo do banco ou não. A pessoa falava num tom tranquilo e parecia bem informada sobre mim, mas o fato de ter solicitado meu número de celular foi algo um tanto incomum para mim. Na verdade, nunca recebi tal solicitação antes."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, tô tudo bem aqui, mas tô preocupado com esses golpes toscos que estão acontecendo. Tá na net doido gente pedindo dados do banco pelo telefone. E o cara do suporte do banco ligou e pediu minha senha? Sério? Me dá uma luz ai, por favor! Preciso saber: como identificar um golpe quando vejo? E se eu receber uma ligação suspeita do banco, eu que faço?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, aqui fui eu! Nã perdi nada mas quero saber como evitaa isso. Alguém pode me ajuda? Como reconheça um golpe, se a banca pedi senha por teléfono, oq faço se receber uma ligaçao suspeita. Fico mto insegura quando recebo chamadas estranhas."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento! Já fui enganado e não perdi nada dessa vez, mas estou fedendo um pé no último telefonema recebido. Vocês pedem senha pelo telefone? Sei lá... Acho que sou paranoica, mas tá me deixando louca! Da próxima que alguém ligar dizendo ser do banco pedindo senha e dados pessoais, eu chamo a polícia antes de dizer qualquer coisa. E se for algo sério, pra falar com vocês é direto no site, né? Que frescura essa de"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento, sou cliente da XYZ Banco e estou preocupado com possíveis golpes. Não perdi nada ainda, mas queria saber mais sobre como identificar essas fraudes. Por exemplo, ouvi dizer que o banco nunca pede senha via telefone. É verdade? E se eu receber uma ligação suspeita sobre uma compra na Loja EletronicLife no valor de R$ 250,00, o que devo fazer? Preciso ficar atento a algum sinal específico? Obrigado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "01/10/2023 - Olá atendimento, gostaria de saber como reconhecer um golpe e se o banco realmente pede senha por telefone. Recentemente recebi uma ligação suspeita e queria entender melhor como me proteger. Agradeço a atenção!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, eu vi uns amigos ficando com medo desses golpes por WhatsApp e fiquei preocupado também. Me ajudam a entender melhor como识别并翻译成中文。您提供的文本已经是葡萄牙语，内容是一位客户表示自己没有损失，但对如何保护自己免受诈骗有所顾虑，并询问了关于识别欺诈、银行不会通过电话索取密码以及如果接到可疑来电应如何应对等问题。以下是客户消息的中文版本："
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá galera! Tô tudo bem aqui e não tive perda nenhuma, mas to um pouco preocupado com essas coisas de golpe por telefone. Você acha que o banco pede senha via celular? E se ligar alguém suspeito, como eu fico? Pode passar uma dica? tô na região do ABC paulista, mano!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento, gostaria de saber como reconhecer um golpe e se o banco realmente pede senha por telefone. Recebi uma ligação suspeita hoje."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendente, tudo bem? Gostaria de entender um pouco mais sobre como evitar golpes financeiros. Eu já sou uma pessoa bastante cautelosa, mas acho que nunca é demais aprender com novas dicas, não é mesmo? Vou lhe contar um pouco da minha situação para você me ajudar melhor."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, tudo bem? Tô aqui porque quero saber mais sobre como proteger o meu dinheiro mesmo que eu não tenha perdido nada ainda. Como posso reconhecer um golpe? E aí, o banco pede senha por telefone, né? E se eu receber uma ligação suspeita, o que faço?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, eu to recebendo mui monta msg do tipo \"ganho imediato\" na minha caixa d e-mail, e ai me passaram uma ligaç ao banco dizendo q ia ser pra validar alguma coisa. Ei, vc pode me ajudar com isso? Eu n perdi nada mas quero saber o q fazer par não cair ne a luga. Ai, eu sei q vcs nunca ligam pedindo senha pia nada, entao me ajude a entender... Q faze se to recebendo msg estr"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento! Essa história de golpes está muito cansativa! Vou só me manter seguro ou o banco quer que eu perca o tempo todo? Seu sistema não funciona direito e agora estão ligando dizendo que preciso dar a senha pra eles verificar alguma coisa. Já fui vítima disso antes, então tá aí: se é do banco, pq não fazem isso on-line? Eu confio no sistema do meu celular mas não nos vendedores de telemarketing! Ajuda pra desengordurá-los dessa at"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento! Recentemente recebi uma ligação dizendo que havia uma compra na loja SuperVarejo no valor de R$350,00 no meu cartão. Nunca comprei nada nessa loja e não me lembro de dar acesso ao telefone para compras. Como posso me proteger contra esse tipo de golpe? E se o banco ligar pedindo a senha do cartão, eu devo fornecer?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "28/10/2023\nOlá Atendimento ao Cliente, estou tudo bem e não fui vítima de nenhuma fraude recentemente. No entanto, gostaria de receber dicas sobre como reconhecer golpes e se proteger melhor. Por exemplo, o banco já me ligou perguntando por telefone sobre informações pessoais? Como devemos agir em caso de ligações suspeitas? Agradeço desde já pela atenção!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Meu dinheiro tá bem, mas eu queria saber se vocês da Caixa dão algum jeito de não serem enganados por esses golpistas. Eles ligam e pedem código do cartão? Se a pessoa recebe uma chamada suspeita, o que fazer então?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá ai, mano! Tudo bem? Eu não perdi nada ainda mas quero me proteger melhor. Me diz, cara, como eu reconheço um golpe hoje em dia? E esse negócio do banco pedir senha por telefone... é normal? Se receberei uma liga suspeita, o que faço? Tem alguém pra eu ligar se tiver dúvida?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Preciso saber como me proteger contra golpes. O banco já me ligou pedindo minha senha? Como识别并纠正错误的翻译：\n该客户的消息是用葡萄牙语巴西方言写的，但其中包含了一些英文。正确的翻译应全部为葡语，并且内容应该是关于如何防范诈骗的信息。以下是修正后的版本："
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento! Me chamo João da Silva e sou cliente da XYZ Banco há mais de 10 anos. Até agora não tive problemas com fraudes ou golpes, mas estou um pouco preocupado e gostaria de ter uma orientação completa sobre como me proteger. Primeiro, queria saber se o banco realmente pede informações confidenciais por telefone. Às vezes recebo ligações que parecem legítimas, mas não quero correr riscos desnecessários."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi atendente, tô tudo bem aqui e não perdi nada ainda, mas tô preocupado com esse negócio de golpes. Como eu reconheço se tá rolando alguma fraude? E o banco nunca pede senha por telefone né? Se receber uma ligação suspeita eu faço o que? Tá todo mundo falando disso agora, tô aqui querendo me informar! 🙏"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Tô td bem, n perdi nada p gratas! Mas qdo ligo pra banco eles pedem minha senha e cvv?? Não tá certo isso não?! Se vier ligação suspeita eu faço q? Vc pode me ajeitar? N sei nem bem como reconnhecer um golpe. Gratas pela ajuda!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendente! Já falei aqui antes que não perdi nada, mas esses golpistas estão me ligando a todo instante dizendo que precisa de minha senha para confirmar alguma coisa. E ainda mandam mensagens suspeitas no WhatsApp. Vocês pedem dados por telefone? Nem querem saber! Preciso de uma resposta clara agora."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá Atendimento! Me chamo Maria Silva e recentemente fui vítima de um golpe onde recebi um telefonema dizendo que tinha algo errado na minha conta no SuperLojas. Eles pediram minha senha para verificar, mas notei a ligação estava suspeita. Não perdi dinheiro dessa vez, mas quero saber como evitar esses golpes no futuro. Por exemplo, vocês já pedem as senhas por telefone? Alguma dica pra identificar essas chamadas fraudulentas?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "15/10/2023 - Olá Atendimento! Como estou me protegendo dos golpes e já não fui vítima, gostaria de saber como identificar um suposto contato do banco pelo telefone pedindo informações pessoais? Já recebi uma ligação estranha hoje. Obrigado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendente, tudo bem? Eu já fiquei preocupado com aquele telefonema estranho que recebi hoje, mas não perdi nada. Meu medo é acabar caindo em algum golpe no futuro. Podem me ajudar a entender melhor como identificar essas ciladas e se o banco realmente pede informações pessoais por telefone? Muito obrigado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi aí! Eu tô tudo bem aqui, não perdi nada ainda, mas tô preocupado com esse bando de golpistas. Então, me ajudas né? Como eu reconheço um desses ladrões de dinheiro? E aí, o banco realmente pede senha por telefone pra mim? Se cair em um desses e ligar para eles, qual é a melhor forma de aguentar a pressão? Vou precisar estar mais atento agora, né?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento, preciso entender melhor como evitar golpes. O banco já me ligou pedindo senha? Como识别结束，以下是从您提供的内容中提取的客户消息："
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendente, tudo bem? Agradeço a ajuda anterior, mas não perdi nada dessa vez. No entanto, fiquei bastante preocupado com as recentes tentativas de golpe no meu celular. Recebi um número suspeito por telefone, que afirmava ser do banco, pedindo minha senha e informações importantes. Fiquei temeroso, já que vi histórias desse tipo na mídia. Gostaria de entender melhor como reconhecer esses golpes, se o banco realmente pode me solicitar detalhes pessoais por"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Tudo bem? Queria saber mais sobre como me proteger contra golpes. É que eu não perdi nada, mas fiquei um pouco assustada com alguns lances por aqui. Tipo, o banco já te pede senha no site, então como é que ele pode ligar pedindo info pra mim? E qual a melhor maneira de descobrir se uma ligação é suspeita?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi! Tô todo preucupado com esses golpes ai das redes socis... E o bando do meu banco pedi pra eu falar alguma senha por telefone? E se receba uma ligaçao suspeita, qto faço? Quero aprender a reconhecer esses golpes. Ajuda né?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento! Cadê o suporte? Já recebi várias ligações suspeitas hoje e não sei como distinguir! E vocês pedem senha por telefone?! Me diz que isso é normal! Sei lá, uma coisa eu sei: tô cansada de perder tempo. Como faço para não cair nesses golpes?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá Atendimento, recebi uma chamada ontem dizendo que tinha alguma movimentação incomum na minha conta no MercadoLivre e pediu pra confirmar a senha. Nunca dá para confiar nisso? Como eu faço para não cair em golpes? Estou com R$ 5.000,00 no MercadoLivre que gostaria de proteger melhor."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "01/10/2023 - Olá atendimento, sou João da Silva e estou preocupado com a segurança do meu banco. Não perdi nada, mas gostaria de saber como reconhecer um golpe. Também queria entender se o banco realmente pede informações por telefone e que procedimentos seguir se receber uma ligação suspeita. Desde já agradeço!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, aqui do atendimento! Tudo bem? Vi que você não teve problemas recentemente e quer saber mais sobre como se proteger dos golpes. É ótimo estar atento! Sobre o banco pedir senhas por telefone, sempre confira se a ligação é oficial antes de dar qualquer informação pessoal, ok? Se receber alguma coisa suspeita, pode nos avisar para verificarmos melhor, tá bom? Vamos manter tudo seguro!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Tá tudo doido aqui! Nunca tive nada roubado, mas tô pensando em tomar cuidado mais pra frente. Vocês poderiam me passar uma mão na orientação? Como eu reconheço se tá havendo um golpe aí? E sobre essas pessoas ligando pedindo senha, o banco realmente faz isso? Se eu receber alguma coisa suspeita, o que devo fazer?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma mensagem suspeita do banco, mas não cliquei em nada nem passei informações. É um golpe?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, atendente! Me chamo Maria da Silva e sou cliente deste banco há anos. Hoje fui surpreendida com uma ligação estranha que recebi. A pessoa disse ser do meu banco, Citibank. Eles falaram que eu havia feito um investimento recentemente e pediram os meus dados para confirmar. Eu não confio muito nessas coisas de telefone, então acabei nem passando nada. Mas queria saber se era algum golpe ou algo assim, porque eles pareciam bem convincentes"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, aqui fui eu再继续生成会怎样？似乎您在尝试用中文继续对话，但之前的要求是生成巴西葡萄牙语的客户消息。如果您想继续用这种方式，请明确告知我。如果想要换语言或有其他需求也请说明。"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Qqrqto foi qqr mensagem ou ligaçãq eu recebi hj? É de um nÚmero estranho, mas o nome do banco é lá em cima. Não cliqueei num link nem passei nenhum d@tos, só vi e dei uma olhada e tirei qqr duvida com a central de ajuda. Mas preocupei pq pode ser golpe, então tô pedindo pra confirmar se foi alguma coisa do banco sim ou é só meu medo de vdd."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, recebi essa chamada que eu acho que foi um golpe... Eles falaram ser do banco, mas não dei minha senha ou nada. Queria saber se isso pode acontecer mesmo?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma mensagem no WhatsApp dizendo que havia um resgate no valor de R$ 1234,56 da loja EletronicMax para meu cartão. Eles pediram que eu clicasse em um link para confirmar a retirada. Não fiz nada e queria saber se era algum golpe."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "12/04/2023 - Olá, recebi um chamado e uma mensagem suspeitas do seu banco. Não passei nenhuma informação pessoal. É possível que fosse golpe? Estou preocupada."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Recebi uma mensagem suspeita do banco, mas não cliquei em nada nem fui à ligação. Preciso saber se era golpe?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi aí! Tá tudo bem? Hoje recebi uma chamada do banco, dizendo que eu tinha um problema com minha conta, só que não foi nada do que eles falaram. Fiquei na dúvida se era golpe ou se era real, porque o cara falou que tinha um código pra mim, sabe? Mas não passei nada pro cara e nem clicar em link nenhum, só deixei ele me enrolar um pouco e desliguei aí. Agora tô aqui pensando se foi alguma coisa ou se eu fiquei na"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma mensagem suspeita sobre minha conta. Não cliquei em nada nem disse informações pessoais. É possível que fosse um golpe?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, atendente. Me chamo João Silva, sou do Rio de Janeiro. Hoje recebi um telefonema e uma mensagem no WhatsApp de um número suspeito dizendo que tinha algo importante para mim em relação ao meu saldo na Caixa Econômica Federal. Eles me perguntaram alguns dados pessoais e bancários, como CPF, nome completo, data de nascimento, mas não dei nenhuma informação porque achei tudo muito estranho. A voz parecia estar editada no telefone e o texto da mensagem era meio confuso. Eu ten"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, aqui foi eu novamente. Recebi uma mensagem suspeita do banco, mas não cliquei em nada nem fui nenhum link. Poderia me confirmar se era um golpe ou alguma coisa normal? Vou ficar de olho nos próximos dias mesmo!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, tive um msn ndo vme, dizendo q meu cc foi bloq, pq eu n fiz a conf em tempo. Mas fui ronca e n fiz nada. Q ndava?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, aqui é o João da Silva. Recebi uma ligação hoje dizendo que tinha alguma coisa errada na minha conta. Eles conseguiram pegar meu número pelo site do banco? Não dei nenhum dado pessoal, mas... Me confirma se era mesmo um golpe essa chamada? Estou cansado de receber esses telefonemas suspeitos!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma ligação do \"Super Mercado Brasileiro\" dizendo que havia um erro no meu pagamento de R$ 500,00. Eles pediram minhas informações para corrigir. Eu não dei nenhuma informação. Vocês enviaram alguma mensagem ou ligação sobre isso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "25/10/2023 - Olá, recebi uma mensagem suspeita em nome do banco XYZ. Ela pediu para atualizar dados pessoais. Não cliquei em nada nem fui nenhum link. Quero confirmar se pode ser um golpe e o que fazer agora."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma mensagem suspeita do banco hoje e fiquei preocupado. Você pode me ajudar a descobrir se era um golpe? Não cliquei em nada nem passei minhas informações."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi aqui vai! Eu recebi uma mensagem suspeita dizendo que tem algo pra eu atualizar na conta. Não dei nem enter, mas tá me deixando preocupado se é golpe ou não. Poderia me ajudar a descobrir? Só tô querendo confirmar."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma mensagem suspeita do banco. Não cliquei em nada nem fui nenhum link. Posso estar lidando com um golpe?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, bom dia! Me chamo João da Silva, sou cliente desta aqui no banco XYZ há muitos anos e estou bastante preocupado com uma situação que aconteceu ontem à tarde. Eu recebi um SMS do número 190 (não era o meu) dizendo que havia um movimento incomum na minha conta corrente. O texto parecia bem elaborado, me falando pra acessar um site para confirmar se tudo estava em ordem com a minha conta. Na verdade, eu até fiquei bastante perturbado, já que"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, tô recebendo msg do banco falando q minha conta foi comprometida, mas q não preciso clicar em nada nem passar dados. Tá correto? É só uma precaução?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Tô recebendo msg d estranhos dizendo ser do banco, mas n estou passando info nenhuma e só li. Q q isso pode ser? Era golpe?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, aqui fui eu de novo. Recebi uma mensagem do banco dizendo que tinha algo pendente e pedindo pra eu clicar num link. Não cliquei nada nem passei nada pra ninguém, mas agora estou preocupada se era golpe mesmo. Queria saber se esse tipo de coisa acontece realmente? Obrigada!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma mensagem dizendo que ganhei R$ 10.000,00 em uma promoção da LojaVipFast. Eles queriam os meus dados para liberar o prêmio. Fiz o que devia e deixei o telefone da central de atendimento do banco. Será um golpe?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "25/10/2023 - Olá, recebi uma mensagem suspeita de um número desconhecido dizendo que minha conta bancária foi bloqueada. Não cliquei em nada nem fui ao link mencionado, mas queria saber se isso pode ser algum golpe. Obrigado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma chamada com código bancário mas não dei nenhuma informação, apenas desliguei. Pode ser algo?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi aqui do bairro do Parque das Rosas, tovai? Tô recebendo umas mensaginhas na minha caixa de e-mail que dizem ser do banco, mas eu tô com medinho de clicar em nada... Queria saber se pode ser algo pra valer ou é só mais uma merda desse mundo digital. Alguém daqui já passou por isso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma mensagem suspeita do banco. Não cliquei em nada nem fui ao link. Tem certeza que foi oficial?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá atendimento! Me chamo José da Silva, sou de São Paulo-SP. Ontem à tarde recebi uma chamada do número 5555-6789 que identificou-se como gerente de contas do Banco Real. Eles disseram que houve um erro na minha conta e precisava atualizar as informações do meu cartão. Disse que eu estava participando de um sorteio, que o meu cartão era premiado e que tinha que clicar num link para receber um prêmio! Eu fiquei super"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi, recebi um msg suspeita do banco dizendo q tinha movimento em minha conta. Não dei nenhuma informação e nem cliquei nos links. Mas quero saber se pode ser golpe mesmo. Alguma dica?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, aqui é eu Novato2023 do B.B. Hoje fui ligado doido q dizia ser do meu banco e pedindo p confirmar dados importantes. Li pq foi fraude no Face, mas tô com medo q possa ter dado errado. Tô tentando contato d volta p saber se era legítimo ou não, pq o cara falou q ia me desligar agora. Alguém pode esclarecer? Tô em panico!!!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá, recebi uma ligação/fiz login em um site que não reconheço e tem informações pessoais meu, mas não cedi nada. Vocês podem me confirmar se foi golpe? Estou preocupadíssima!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Recebi um email do Banco Nacional de Desenvolvimento Econômico e Social (BNDES) dizendo que ganhei um prêmio de R$ 5.000,00 em uma loja chamada \"Vida Moderna\". Eles pediram para eu clicar num link e preencher alguns dados pessoais. Eu não cliquei nem passei nada, mas queria confirmar se era algum tipo de golpe."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "28/03/2023 - Olá, aqui é Maria da Silva. Hoje recebi um telefonema estranho que parecia ser do meu banco. Eles me pediram para confirmar alguns dados pessoais. Eu não cliquei em nenhum link suspeito nem forneci informações. Gostaria de saber se pode ter sido algum golpe ou se foi algo normal."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Olá! Tudo bem? Recebi uma ligação suspeita hoje. Disseram ser do banco, mas não falei nada. Posso estar passando por um golpe?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "fora_de_escopo",
+   "texto": "Oi aí! Tô recebendo esses mensageiros estranhos q dizem ser do banco, mas tô tranquilo pq eu não cliquei em nada nem dei minhas senhas pro cara. Gostaria de saber se pode ser golpe isso aí? Sou do Rio de Janeiro."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Me devolvam meu dinheiro, compras na internet não chegaram."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, equipe de atendimento! Espero que estejam bem. Me chamo João Vitor Costa, tenho 31 anos e sou morador da cidade de São Paulo, mais precisamente no bairro do Morumbi. Fazem cerca de dois meses que comprei um par de tênis através do seu site, o qual estava super empolgado com a proposta de entrega em domicílio. No dia 12 de outubro, realizei a compra via cartão de crédito do Banco XYZ e confesso ter sido uma experiência um tanto"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, aqui do banco? Você é o João da Silva, que comprou aquele aparelho na loja online certo? Nessa compra foi tudo pelo cartão né? Mas tá me dizendo que ainda não veio a encomenda e quer que eu ligue para eles pra tentar resolver isso? Quero meu dinheiro de volta!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Me devolvendo a grana pq compr q pel internet eu ja pague e nem produto veio!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, aqui do Br! Comprei um produto no seu site e paguei com cartão mas nunca recebi nada! Ja estou há 2 meses sem o meu pedido e nem sinal do que aconteceu. Quero devolução imediata do dinheiro ou pelo menos uma resposta sobre onde está o meu produto. Se não resolver, chamo a polícia para dar um jeito nisso."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá Atendimento ao Cliente,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "18/05/2023 - Olá, comprei um item pela internet no seu site no dia 10/04/2023 e ainda não recebi o produto. Já realizei o pagamento pelo meu cartão no ato da compra. Solicito o reembolso do valor pago pois não recebi a mercadoria adquirida."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá! Comprei um produto na sua loja e paguei com cartão, mas não recebi nada. Preciso da minha dinheiro de volta."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, ai vai dizer quando eu vou ter meu dinheiro de volta? Prometeram que iam reembolsar ontem e agora tá tudo em cima da hora! Eu não recebi o produto nem nada!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, compras minhas não chegaram e eu quero meu dinheiro de volta."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá atendimento, sou o João Carlos da Silva e estou escrevendo para registrar uma reclamação sobre a compra que realizei em sua loja virtual há duas semanas atrás. Eu pedi um relógio smartwatch e escolhi a opção de pagamento à vista com meu cartão do banco XYZ. O valor foi debitado no dia 15/09/2023, mas até hoje não recebi o produto prometido."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Oi, aqui do WhatsApp! Comprei online, paguei com meu cartão mas não recebi nada ainda. Quero devolução do dinheiro, por favor."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Eu comprinha na sua loja na net e paguei c/ meu cartão mas n recebi o prduto, agora vocês vao devolver meus dinheiros? Preciso do meu grana pq preciso pagar as minhas contas!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, comprei um produto na sua loja virtual no dia 10/05, paguei com cartão, mas ainda não recebi o item e nem nenhuma informação sobre quando receberei. Já fiz vários telefonemas para a central de atendimento que dizem que estão investigando o caso, mas até agora nada! Quero o meu dinheiro de volta imediatamente ou estou nos processos legais contra vocês."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "05/11/2023"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, eu fiz uma compra online e já se passaram mais de 15 dias e ainda não recebi o produto. Gostaria de saber como posso solicitar o cancelamento e devolução do valor pago, pois estou precisando urgentemente deste reembolso."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá ai, me chamam de João da Silva, moro no interiorzão do estado. Comprei umas panelas na sua loja pela net e paguei com meu cartão, mas não recebi o pedido. Quero o dinheiro de volta, tá? Vai ser necessário fazer o que pra eu conseguir o reembolso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, comprei online e já faz mais de 15 dias que espero o produto, mas ainda não recebi. Solicito a devolução integral do valor pago."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá atendimento! Me chamo João Silva, sou morador da cidade de São Paulo desde 2015. Fiz uma compra no site da sua empresa na data de 14/11/2023, onde adquiri um par de sapatos masculinos com número 44, referência ABC123, modelo Black Friday Limited Edition. Escolhi o pagamento à vista pelo cartão de crédito para facilitar a situação financeira atual. No entanto, há mais de duas semanas que espero o recebimento do produto e"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Oi, compras na loja online do banco tava tudo certo, mas os produtos ainda não chegaram e tá precisando pra mim agora. Pediram pra eu pagar com cartão, mas até agora não recebi o produto. Preciso do dinheiro de volta, ok?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, eu comprei um produto na net mas n tá chegando! Paguei com cartão e já ta no 3° dia da prazo. Vc pode devolver o dinheiro? Vou mandar o comprovante de compra e tal!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, aqui está o seu pedido desde o dia 10/03/2023 e ainda não recebi nada. Paguei com cartão e espero uma resposta sobre o que vai acontecer agora! Se não resolver logo vou reclamar na Procon."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "05/10/2023\nPrezada equipe de atendimento,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, aqui do banco, tudo bem? Espero que esteja tudo certo na sua parte também. Gostaria de pedir uma ajuda com um pedido que fiz e não recebi o produto. Poderiam me reembolsar por favor?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Oláa, aqui o João da Silva do Jardim Novo Horizonte. Eu comprei umas roupas pela internet, usei meu cartão pra pagar e até agora não veio o produto. Tô precisando desse dinheiro de volta paga as contas. Vc pode me ajudar?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, fiz a compra mas ainda não recebi o produto e já está passando do prazo de entrega. Gostaria do meu dinheiro de volta."
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá, atendente! Me chamo João Vitor, sou cliente do seu banco há bastante tempo. Admiro muito a segurança que vocês me oferecem no momento das compras online. Na verdade, fico feliz em dizer que sempre tive experiências satisfatórias com meus pagamentos via cartão. Porém, desta vez, a situação é um pouco diferente. Foi o seguinte: comprei uma televisão de 50 polegadas na última sexta-feira no site da Electrolux, através do cartão emitido pelo seu"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Oi, aqui eu comprava esse produto e até agora não recebi nada. Pagamento foi feito pelo cartão também. Queria saber se o dinheiro pode ser devolvido?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Me mandaram uma mercadoria q nd tinha na descriçõ do site. Já faz um temp q comprei e nd recebi nenhuma mercadoria. Quero o m'dio de volta, pq não achei nada da q eu comprei. Faz tempo q comprei, q ta?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá Atendimento, comprei um smartwatch na LojaGênio no site ontem à tarde, paguei com meu cartão BancoBrasil por R$359,00, mas ainda não recebi o produto e a promessa era envio imediato. Gostaria de cancelar a compra e ter o dinheiro devolvido. Obrigado!"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "05/10/2023\nBoa tarde,"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá! Tudo bem? Comprei recentemente algo pela internet e até paguei via cartão, mas não recebi nada ainda. Seria possivel ter um reembolso?"
+  },
+  {
+   "idioma": "pt",
+   "intencao": "contestar",
+   "texto": "Olá ai, meu nome é João da Silva, sou de São Paulo e tô escrevendo pq comprei um produto pela net no seu site, paguei com cartão e até hoje não recebi nada na minha casa! Tô precisando desse dinheiro de volta porque tá complicado de arcar com outras despesas. Me passem uma mãozinha aí, ok?"
+  }
+ ]
+}
