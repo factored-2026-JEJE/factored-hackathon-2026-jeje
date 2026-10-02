@@ -1000,6 +1000,22 @@ def test_termo_com_uma_letra_a_mais_no_fim_nao_e_erro_de_digitacao():
     assert interpretacao._uma_edicao("pesoa", "pessoa")
 
 
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "La app me facilita el código de verificación",
+        "El sistema me facilita mi clave temporal",
+        "Había pensado que era del banco, pero no",
+        "Un hombre me ayudó en la sucursal",
+    ],
+)
+def test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida(texto):
+    """O corretor não troca "facilita" por "facilite" nem "pensado" por "pensando": as flexões
+    viravam termo de golpe e a mensagem comum bloqueava o cartão."""
+    assert interpretacao.corrigir(texto) == (texto, ())
+    assert ler(texto).intencao != "fraude"
+
+
 def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
     """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe"."""
     texto = "paguei a aula de golfe com o cartão"
