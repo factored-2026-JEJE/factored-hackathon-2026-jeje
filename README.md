@@ -230,7 +230,9 @@ termos compostos, com as duas partes perto e na ordem da história:
 
 A indignação com a tarifa ou com a compra que não chegou ("¡esto es un robo!", "isso é um assalto")
 sozinha não é relato de roubo; o relato que vem junto continua ("¡esto es un robo! alguien usó mi
-tarjeta").
+tarjeta"), e o dinheiro tirado da conta por outros também ("me sacaron plata de la cuenta"). O "que"
+de quem roubou ("alguien que robó mi tarjeta") e o roubo de alguma coisa ("es un robo de identidad")
+não são indignação (REG-39).
 
 A fraude lida pelas regras ou pelo leitor encaminha ao atendente e bloqueia o cartão (POL-HUM-01).
 A exceção é a **guarda de prevenção** (ACH-144, `prevencao`): a pergunta de prevenção ("¿cómo evito
