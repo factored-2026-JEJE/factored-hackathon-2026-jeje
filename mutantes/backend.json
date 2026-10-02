@@ -13006,6 +13006,22 @@
       ]
     },
     {
+      "id": "M-ITP-219",
+      "requisito": "R02",
+      "descricao": "O \"q\" abreviado não vira \"que\" (\"me hicieron creer q era un operador\" deixa de ser golpe)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return \" \".join(\"que\" if p == \"q\" else p for p in re.findall(r\"[a-z0-9]+\", sem_acento))\n",
+          "para": "    return \" \".join(re.findall(r\"[a-z0-9]+\", sem_acento))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_escrito_com_o_q_abreviado",
+        "tests/test_interpretacao.py::test_so_o_q_sozinho_vira_que"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",
