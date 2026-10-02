@@ -123,12 +123,15 @@ describe("com a API (acesso aberto)", () => {
 });
 
 describe("a persona da conversa de verdade", () => {
-  it("prefere a que tem exemplo para contestar, cartão e mais de uma recusa", () => {
+  const exemplo = { valor: "1", moeda: "USD", data: "2025-01-01" };
+  it("prefere a que tem exemplo para contestar; depois, a com mais de uma recusa; depois, cartão", () => {
     const a = persona({ customer_id: "A", transacoes_recusadas: 5 });
-    const b = persona({ customer_id: "B", exemplo: { valor: "1", moeda: "USD", data: "2025-01-01" } });
-    const c = persona({ customer_id: "C", exemplo: { valor: "1", moeda: "USD", data: "2025-01-01" }, cartoes_bloqueaveis: 1 });
+    const b = persona({ customer_id: "B", exemplo });
+    const c = persona({ customer_id: "C", exemplo, cartoes_bloqueaveis: 1 });
+    const d = persona({ customer_id: "D", exemplo, transacoes_recusadas: 2 });
     expect(escolherPersona([a, b, c])?.customer_id).toBe("C");
     expect(escolherPersona([a, b])?.customer_id).toBe("B");
+    expect(escolherPersona([c, d])?.customer_id).toBe("D");
     expect(escolherPersona([])).toBeUndefined();
   });
 });
