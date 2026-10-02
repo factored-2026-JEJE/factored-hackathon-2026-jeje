@@ -1,13 +1,14 @@
 """CLI do leitor (estágio `modelo` da imagem do backend).
 
 python -m jeje.leitor treinar <dir_corpus> <dir_e5> <arquivo_modelo>
-    baixa o corpus e os pesos do e5 fixados, treina e grava o artefato
+    baixa o corpus e os pesos do e5 fixados, treina e grava o artefato, e ao lado dele os
+    exemplos do LLM do "não entendi" (vizinhos.joblib)
 """
 
 import sys
 from pathlib import Path
 
-from jeje.leitor import codificador, corpus, fontes
+from jeje.leitor import codificador, corpus, fontes, vizinhos
 from jeje.leitor.modelo import ModeloLeitor, versao
 
 
@@ -19,10 +20,18 @@ def treinar(dir_corpus: Path, dir_e5: Path, arquivo_modelo: Path) -> ModeloLeito
     lido = corpus.ler(dir_corpus)
     print(f"[leitor] treino {len(lido.treino)}, calibração {len(lido.calibracao)}, "
           f"teste {len(lido.teste)} exemplos", flush=True)  # fmt: skip
-    modelo = ModeloLeitor.treinado(lido, codificador.E5(dir_e5), versao(corpus.arquivos()))
+    codificar = codificador.ComMemoria(codificador.E5(dir_e5))
+    modelo = ModeloLeitor.treinado(lido, codificar, versao(corpus.arquivos()))
     modelo.salvar(arquivo_modelo)
     print(f"[leitor] modelo {modelo.versao[:12]}, temperatura {modelo.temperatura:.3f}, "
           f"teste {modelo.metricas}", flush=True)  # fmt: skip
+    # Exemplos do LLM do "não entendi" (DEV-042): as frases do treino, com os mesmos vetores.
+    exemplos = vizinhos.Vizinhos.dos_exemplos(
+        lido.treino + lido.calibracao, codificar, vizinhos.versao(modelo.versao)
+    )
+    exemplos.salvar(arquivo_modelo.with_name("vizinhos.joblib"))
+    frases = {f"{i}/{c}": len(t) for (i, c), t in sorted(exemplos.textos.items())}
+    print(f"[leitor] exemplos do LLM {exemplos.versao[:12]}: {frases}", flush=True)
     return modelo
 
 

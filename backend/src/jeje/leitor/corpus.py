@@ -94,6 +94,7 @@ class Exemplo:
     fluxo: Fluxo
     idioma: Idioma
     origem: Literal["banking77", "minds14"] = "banking77"
+    intencao: str = ""  # o rótulo do corpus (intenção em inglês), de onde o fluxo veio
 
 
 @dataclass(frozen=True)
@@ -137,7 +138,7 @@ def _banking77(destino: Path, tabelas: Iterable[Tabela]) -> dict[Particao, list[
         saida = []
         for idioma in ("en", "es"):
             saida += [
-                Exemplo(texto, fluxo_do_banking77(intencao), idioma)
+                Exemplo(texto, fluxo_do_banking77(intencao), idioma, intencao=intencao)
                 for (texto, _), intencao in zip(
                     linhas[idioma, particao], intencoes[particao], strict=True
                 )
@@ -145,7 +146,8 @@ def _banking77(destino: Path, tabelas: Iterable[Tabela]) -> dict[Particao, list[
         for texto, rotulo in linhas["pt", particao]:
             if rotulo not in intencao_pt:
                 raise CorpusInvalido(f"rótulo PT desconhecido no {particao}: {rotulo!r}")
-            saida.append(Exemplo(texto, fluxo_do_banking77(intencao_pt[rotulo]), "pt"))
+            intencao = intencao_pt[rotulo]
+            saida.append(Exemplo(texto, fluxo_do_banking77(intencao), "pt", intencao=intencao))
         return saida
 
     return {"treino": exemplos("treino"), "teste": exemplos("teste")}
@@ -167,7 +169,8 @@ def _minds14(destino: Path, fontes: Iterable[tuple[Idioma, Arquivo]]) -> list[Ex
             if f"~{intencao.upper()}/" not in trilha:
                 raise CorpusInvalido(f"MInDS-14 {idioma}: rótulo {intencao} não bate com {trilha}")
             if texto.strip():
-                saida.append(Exemplo(texto.strip(), fluxo_do_minds14(intencao), idioma, "minds14"))
+                fluxo = fluxo_do_minds14(intencao)
+                saida.append(Exemplo(texto.strip(), fluxo, idioma, "minds14", intencao))
     return saida
 
 

@@ -6309,6 +6309,217 @@
       ]
     },
     {
+      "id": "M-LEITOR-50",
+      "requisito": "R06",
+      "descricao": "Frase do BANKING77 em ES/EN sem o rótulo do corpus",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "                Exemplo(texto, fluxo_do_banking77(intencao), idioma, intencao=intencao)",
+          "para": "                Exemplo(texto, fluxo_do_banking77(intencao), idioma)"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_cada_frase_guarda_o_rotulo_do_corpus_de_onde_veio_o_fluxo"
+      ]
+    },
+    {
+      "id": "M-LEITOR-51",
+      "requisito": "R06",
+      "descricao": "Frase do BANKING77 em PT sem o rótulo do corpus",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "            saida.append(Exemplo(texto, fluxo_do_banking77(intencao), \"pt\", intencao=intencao))",
+          "para": "            saida.append(Exemplo(texto, fluxo_do_banking77(intencao), \"pt\"))"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_cada_frase_guarda_o_rotulo_do_corpus_de_onde_veio_o_fluxo"
+      ]
+    },
+    {
+      "id": "M-LEITOR-52",
+      "requisito": "R06",
+      "descricao": "Frase do MInDS-14 sem o rótulo do corpus",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "                saida.append(Exemplo(texto.strip(), fluxo, idioma, \"minds14\", intencao))",
+          "para": "                saida.append(Exemplo(texto.strip(), fluxo, idioma, \"minds14\"))"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_cada_frase_guarda_o_rotulo_do_corpus_de_onde_veio_o_fluxo"
+      ]
+    },
+    {
+      "id": "M-LEITOR-53",
+      "requisito": "R06",
+      "descricao": "Intenção ambígua entra nos exemplos do LLM como fora de escopo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "    if rotulo in AMBIGUAS:\n        return None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_rotulo_das_frases_e_o_pre_registrado_pela_validacao",
+        "tests/test_leitor_vizinhos.py::test_so_frases_do_banking77_em_es_e_pt_sem_as_ambiguas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-54",
+      "requisito": "R06",
+      "descricao": "Frases em inglês entram nos exemplos do LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "            if e.origem != \"banking77\" or e.idioma not in IDIOMAS:\n",
+          "para": "            if e.origem != \"banking77\":\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_so_frases_do_banking77_em_es_e_pt_sem_as_ambiguas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-55",
+      "requisito": "R06",
+      "descricao": "Frases do MInDS-14 entram nos exemplos do LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "            if e.origem != \"banking77\" or e.idioma not in IDIOMAS:\n",
+          "para": "            if e.idioma not in IDIOMAS:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_so_frases_do_banking77_em_es_e_pt_sem_as_ambiguas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-56",
+      "requisito": "R06",
+      "descricao": "Exemplos do LLM: as frases menos parecidas com a mensagem",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "            ordem = np.argsort(-(self.vetores[chave] @ vetor), kind=\"stable\")[:k]",
+          "para": "            ordem = np.argsort(self.vetores[chave] @ vetor, kind=\"stable\")[:k]"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_mais_parecidas_de_cada_intencao_no_idioma_da_mensagem"
+      ]
+    },
+    {
+      "id": "M-LEITOR-57",
+      "requisito": "R06",
+      "descricao": "Exemplos do LLM sempre em espanhol, qualquer que seja o idioma da mensagem",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "            chave = (idioma, lida)\n",
+          "para": "            chave = (\"es\", lida)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_mais_parecidas_de_cada_intencao_no_idioma_da_mensagem"
+      ]
+    },
+    {
+      "id": "M-LEITOR-58",
+      "requisito": "R06",
+      "descricao": "Exemplos do LLM sem alguma intenção passam sem erro claro",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "            if not self.textos.get(chave):\n                raise VizinhosInvalidos(f\"sem frases de {chave[1]} em {chave[0]}\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_sem_frases_de_alguma_intencao_em_algum_idioma_e_erro"
+      ]
+    },
+    {
+      "id": "M-LEITOR-59",
+      "requisito": "R06",
+      "descricao": "Artefato dos exemplos com vetores cortados é aceito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "            if vetores is None or len(vetores) != len(self.textos[chave]):\n",
+          "para": "            if vetores is None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_artefato_ausente_de_outro_formato_ou_incompleto_e_recusado"
+      ]
+    },
+    {
+      "id": "M-LEITOR-60",
+      "requisito": "R06",
+      "descricao": "Artefato dos exemplos de outro formato é lido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "        if not isinstance(conteudo, dict) or conteudo.get(\"formato\") != cls.FORMATO:\n            raise VizinhosInvalidos(f\"formato desconhecido em {caminho}\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_artefato_ausente_de_outro_formato_ou_incompleto_e_recusado"
+      ]
+    },
+    {
+      "id": "M-LEITOR-61",
+      "requisito": "R06",
+      "descricao": "O build codifica de novo frases já codificadas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/codificador.py",
+          "de": "        faltam = [t for t in dict.fromkeys(textos) if t not in self.vistos]",
+          "para": "        faltam = list(textos)"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_com_memoria_cada_texto_e_codificado_uma_vez_so"
+      ]
+    },
+    {
+      "id": "M-LEITOR-62",
+      "requisito": "R06",
+      "descricao": "Versão dos exemplos não muda com o leitor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "        \"leitor\": versao_do_leitor,\n",
+          "para": "        \"leitor\": \"\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_versao_muda_com_o_leitor"
+      ]
+    },
+    {
+      "id": "M-LEITOR-63",
+      "requisito": "R06",
+      "descricao": "Exemplos do LLM montados sem conferir as intenções",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "        vizinhos = cls(textos, {chave: codificar(t) for chave, t in textos.items()}, versao_)\n        vizinhos._conferir()\n",
+          "para": "        vizinhos = cls(textos, {chave: codificar(t) for chave, t in textos.items()}, versao_)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_sem_frases_de_alguma_intencao_em_algum_idioma_e_erro"
+      ]
+    },
+    {
       "id": "M-ITP-28",
       "requisito": "R07",
       "descricao": "Cobrança repetida volta a ser consulta (\"me cobraron dos veces\" responde só o status)",
