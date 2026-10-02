@@ -89,12 +89,16 @@ PALAVRAS_ENTRE = 3
 @dataclass(frozen=True)
 class Perto:
     """Termo composto: um termo de cada grupo, em qualquer ordem, separados por no máximo `entre`
-    palavras, nenhuma delas de `fora` (o que mostra que o objeto é outro)."""
+    palavras, nenhuma delas de `fora` (o que mostra que o objeto é outro). Com o termo do segundo
+    grupo antes do primeiro, também as `antes` palavras anteriores não podem ser de `fora_antes`: em
+    "la compra con mi tarjeta no aparece", o que não aparece é a compra."""
 
     um: tuple[str, ...]
     outro: tuple[str, ...]
     entre: int = PALAVRAS_ENTRE
     fora: tuple[str, ...] = ()
+    antes: int = 0
+    fora_antes: tuple[str, ...] = ()
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -110,8 +114,13 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
         x, y = _padrao(a), _padrao(b)
         for achado in _regex(f"{x}{entre}{y}|{y}{entre}{x}").finditer(limpo):
             meio = achado.group(1) or achado.group(2) or ""
-            if not any(_casa(f, meio) for f in termo.fora):
-                return f"{a}+{b}"
+            if any(_casa(f, meio) for f in termo.fora):
+                continue
+            # group(2) só participa quando o termo do segundo grupo veio antes.
+            antes = " ".join(limpo[: achado.start()].split()[-termo.antes :] if termo.antes else ())
+            if achado.group(2) is not None and any(_casa(f, antes) for f in termo.fora_antes):
+                continue
+            return f"{a}+{b}"
     return None
 
 
@@ -128,6 +137,11 @@ PERDA_DE_MEIO = Perto(
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
     fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
           "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na"),
+    # Com o cartão antes do verbo, o que vem logo antes dele também conta: "la compra con mi
+    # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
+    antes=3,
+    fora_antes=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "moviment*",
+                "debito*", "saldo", "limite"),
 )  # fmt: skip
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.

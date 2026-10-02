@@ -11996,8 +11996,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            if not any(_casa(f, meio) for f in termo.fora):",
-          "para": "            if True:"
+          "de": "            if any(_casa(f, meio) for f in termo.fora):\n                continue\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -12167,6 +12167,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_pergunta_condicional_sobre_uso_por_outra_pessoa_e_prevencao"
+      ]
+    },
+    {
+      "id": "M-ITP-160",
+      "requisito": "R03",
+      "descricao": "A compra com o cartão que não aparece vira perda do cartão (ACH-190)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    antes=3,\n",
+          "para": "    antes=0,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-161",
+      "requisito": "R03",
+      "descricao": "O que vem antes do verbo também desfaz a perda dita com o verbo antes do cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if achado.group(2) is not None and any(_casa(f, antes) for f in termo.fora_antes):\n",
+          "para": "            if any(_casa(f, antes) for f in termo.fora_antes):\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-162",
+      "requisito": "R03",
+      "descricao": "A compra antes do cartão não desfaz a perda (ACH-190)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora_antes=(\"compra*\", \"cargo*\",",
+          "para": "    fora_antes=(\"cargo*\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude"
       ]
     },
     {
