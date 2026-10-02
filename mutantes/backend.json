@@ -5816,8 +5816,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/leitor/corpus.py",
-          "de": "                  teste=b77[\"teste\"])  # fmt: skip",
-          "para": "                  teste=b77[\"teste\"] + _minds14(destino, minds14))  # fmt: skip"
+          "de": "                  teste=b77[\"teste\"], oficial=b77[\"treino\"])  # fmt: skip",
+          "para": "                  teste=b77[\"teste\"] + _minds14(destino, minds14), oficial=b77[\"treino\"])  # fmt: skip"
         }
       ],
       "testes": [
@@ -6310,6 +6310,96 @@
       ]
     },
     {
+      "id": "M-LEITOR-44",
+      "requisito": "R03",
+      "descricao": "Detector da garantia treinado também com o inglês e as ambíguas como fora de escopo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        if e.origem != \"banking77\" or e.idioma not in IDIOMAS:\n",
+          "para": "        if e.origem != \"banking77\":\n"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_treino_so_com_frases_es_e_pt_do_banking77_e_o_rotulo_da_validacao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-45",
+      "requisito": "R03",
+      "descricao": "Detector da garantia sem os golpes gerados (NOV-31)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "                           if k not in validacao) + list(geradas)  # fmt: skip",
+          "para": "                           if k not in validacao)  # fmt: skip"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_garantia_le_golpe_gerado_como_fraude_e_consulta_nao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-46",
+      "requisito": "R03",
+      "descricao": "Detector da garantia sem a temperatura da calibração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        garantia = cls(logistica, temperatura, {}, versao_)",
+          "para": "        garantia = cls(logistica, 1.0, {}, versao_)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_temperatura_ajustada_na_calibracao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-47",
+      "requisito": "R03",
+      "descricao": "Limiar da garantia pelo quantil errado (o escore, não 1 menos ele)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "            garantia.limiares[idioma] = round(1 - quantil(escores.tolist(), ALFA), 4)",
+          "para": "            garantia.limiares[idioma] = round(quantil(escores.tolist(), ALFA), 4)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_limiar_cobre_as_fraudes_da_calibracao_por_idioma"
+      ]
+    },
+    {
+      "id": "M-LEITOR-48",
+      "requisito": "R03",
+      "descricao": "Limiar da garantia sorteado entre todas as posições, ambíguas inclusive",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "    return metade_de_calibracao([k for (_, k), r in rotulos.items() if r is not None])",
+          "para": "    return metade_de_calibracao([k for (_, k) in rotulos])"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_calibracao_so_sorteia_posicoes_de_frases_nao_ambiguas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-49",
+      "requisito": "R03",
+      "descricao": "Artefato da garantia sem o limiar de um idioma é aceito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        if sorted(garantia.limiares) != sorted(IDIOMAS):\n            raise ModeloInvalido(\"garantia sem o limiar de algum idioma\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_artefato_da_garantia_salvo_e_carregado_le_igual"
+      ]
+    },
+    {
       "id": "M-LEITOR-50",
       "requisito": "R06",
       "descricao": "Frase do BANKING77 em ES/EN sem o rótulo do corpus",
@@ -6594,6 +6684,81 @@
       ],
       "testes": [
         "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
+      ]
+    },
+    {
+      "id": "M-LEITOR-69",
+      "requisito": "R03",
+      "descricao": "Temperatura da garantia ajustada no próprio treino, e não na validação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "                               if k in validacao)  # fmt: skip",
+          "para": "                               if k not in validacao)  # fmt: skip"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_temperatura_ajustada_na_calibracao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-70",
+      "requisito": "R03",
+      "descricao": "Partição da validação sem juntar as frases iguais depois de normalizar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "            chave = _normalizada(e.texto)",
+          "para": "            chave = e.texto"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_particao_da_validacao_e_a_pre_registrada"
+      ]
+    },
+    {
+      "id": "M-LEITOR-71",
+      "requisito": "R03",
+      "descricao": "Partição da validação com outra fração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "    oficial: list[Exemplo], fracao: float = 0.15, semente: str = \"20260928\"",
+          "para": "    oficial: list[Exemplo], fracao: float = 0.2, semente: str = \"20260928\""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_particao_da_validacao_e_a_pre_registrada"
+      ]
+    },
+    {
+      "id": "M-LEITOR-72",
+      "requisito": "R03",
+      "descricao": "O corpus não guarda o treino oficial (a garantia treina sem dados)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "                  teste=b77[\"teste\"], oficial=b77[\"treino\"])  # fmt: skip",
+          "para": "                  teste=b77[\"teste\"])  # fmt: skip"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_corpus_guarda_o_treino_oficial_inteiro_na_ordem_do_arquivo"
+      ]
+    },
+    {
+      "id": "M-LEITOR-73",
+      "requisito": "R02",
+      "descricao": "O ruído sem palavra conhecida (\"asdf qwer\", \"kkkkk\") chega ao leitor e é lido como pedido fora de escopo (ACH-122)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if not reconhecivel(texto):\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_mensagem_sem_palavra_conhecida_nao_chega_ao_leitor"
       ]
     },
     {
@@ -10224,7 +10389,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "DINHEIRO_TIRADO = Perto(\n    (\"robando\", \"roubando\", \"tirando\"), (\"plata\", \"dinero\", \"dinheiro\", \"cuenta\", \"conta\")\n)",
+          "de": "DINHEIRO_TIRADO = Perto(\n    (\"robando\", \"roubando\", \"tirando\", \"vaciaron\", \"esvaziaram\", \"limparam\"),\n    (\"plata\", \"dinero\", \"dinheiro\", \"cuenta\", \"conta\"),\n)",
           "para": "DINHEIRO_TIRADO = \"robando\""
         }
       ],
@@ -11411,7 +11576,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    um = [a for a in termo.um if _casa(a, limpo)]\n    outro = [b for b in termo.outro if _casa(b, limpo)]\n    for a, b in product(um, outro):\n",
+          "de": "    um = [a for a in termo.um if _casa(a, limpo)]\n    if not um:\n        return None  # sem nenhum termo do primeiro grupo, o segundo nem é procurado\n    outro = [b for b in termo.outro if _casa(b, limpo)]\n    for a, b in product(um, outro):\n",
           "para": "    for a, b in product(termo.um, termo.outro):\n"
         }
       ],
@@ -11831,8 +11996,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if decisao.regra == \"POL-HUM-01\" and prevencao(self.mensagem):",
-          "para": "            if False:"
+          "de": "        if prevencao(self.mensagem):",
+          "para": "        if False:"
         }
       ],
       "testes": [
@@ -11868,6 +12033,21 @@
       "testes": [
         "tests/test_dados_cli.py::test_recibo_aponta_a_linha_fisica_do_csv_de_origem",
         "tests/test_conversa.py::test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao"
+      ]
+    },
+    {
+      "id": "M-CONV-113",
+      "requisito": "R07",
+      "descricao": "A fraude que só o LLM leu bloqueia o cartão (REG-15)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if pelo_modelo(self.lida):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_fraude_que_so_o_llm_leu_vai_ao_atendente_sem_bloquear_o_cartao"
       ]
     },
     {
@@ -12433,8 +12613,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"se passava por\", \"se fazia passar por\", \"fingia ser\", \"se hacia pasar por\",\n     \"haciendose pasar por\"),",
-          "para": "     ),"
+          "de": "     \"se passava por\", \"se fazia passar por\", \"fingia ser\", \"se hacia pasar por\",\n     \"haciendose pasar por\",\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -12484,6 +12664,286 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_pergunta_hipotetica_ou_de_capacidade"
+      ]
+    },
+    {
+      "id": "M-ITP-190",
+      "requisito": "R07",
+      "descricao": "A suspeita sem prejuízo com \"no se la di\" lida como fraude bloqueia o cartão (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"queria confirmar\",\n    # O objeto antes do verbo (\"no se la di\") e o nada entregue (\"não passei nada\"), do REG-21.\n    \"no se la di\", \"no se lo di\", \"no se las di\", \"no se los di\", \"no la di\", \"no lo di\",\n    \"nunca se la di\", \"nunca se lo di\", \"no se la pase\", \"no se lo pase\", \"nao passei nada\",\n    \"nao informei\", \"nao forneci nada\"\n",
+          "para": "    \"queria confirmar\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-191",
+      "requisito": "R07",
+      "descricao": "A conta esvaziada (\"me vaciaron la cuenta\") não é relato de fraude e não chega ao atendente (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"tirando\", \"vaciaron\", \"esvaziaram\", \"limparam\"",
+          "para": "\"tirando\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-192",
+      "requisito": "R07",
+      "descricao": "A conta esvaziada com a suspeita na mesma mensagem (\"no se la di, pero vaciaron mi cuenta\") não bloqueia o cartão (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"usaram\",\n    # A conta esvaziada (\"no se la di, pero vaciaron mi cuenta\"), do REG-21.\n    \"vaciaron\", \"esvaziaram\", \"limparam\"\n",
+          "para": "    \"usaram\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-193",
+      "requisito": "R02",
+      "descricao": "Quem afirmou ser parente ou se fez passar por funcionário (\"me aseguró ser mi primo\", \"se passando por\") não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"haciendose pasar por\",\n     # Afirmou ser outro (\"me aseguró ser mi primo\"). Apresentar-se ou dizer onde trabalha, não: é\n     # também o atendente de verdade (\"se presentó como gerente y me ayudó mucho\", ACH-179).\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\"),",
+          "para": "     \"haciendose pasar por\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-194",
+      "requisito": "R02",
+      "descricao": "Quem acreditou que era outro (\"creyendo que era mi sobrino\") não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"falou que era\", \"se dizia do\", \"que se dizia\", \"alegando que era\", \"alegando que e\",\n     \"decia era\", \"decia que era\", \"hicieron creer que era\", \"hizo creer que era\",\n     \"fizeram acreditar que era\", \"fez acreditar que era\", \"creyendo que era\", \"achando que era\",\n     \"pensando que era\"),",
+          "para": "     \"falou que era\", \"se dizia do\", \"que se dizia\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-195",
+      "requisito": "R02",
+      "descricao": "O parente e o agente não contam como quem o golpista disse ser (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"asesor\", \"agente\",\n    \"representante\",",
+          "para": "\"asesor\","
+        },
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"mae\", \"madre\", \"parente\", \"pariente\", \"parentes\",\n    \"parientes\",",
+          "para": "\"mae\", \"madre\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-196",
+      "requisito": "R02",
+      "descricao": "O agente suposto não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"agente\"),",
+          "para": "     \"central\", \"atendente\", \"asesor\", \"gerente\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-197",
+      "requisito": "R02",
+      "descricao": "O segredo facilitado (\"les facilité el código\") não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE,",
+          "para": "                SE_APRESENTOU_COMO_PARENTE,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-198",
+      "requisito": "R02",
+      "descricao": "O uso por outra pessoa contado de outros jeitos (\"alguien la utilizó\", \"obtuvo los datos de mi tarjeta\") não é fraude (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la utilizo\", \"la uso\", \"la usaron\", \"la utilizaron\", \"la esta usando\", \"la esta utilizando\",\n     \"la ha utilizado\", \"la ha usado\", \"usado mi\", \"usado meu\", \"usado minha\", \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou a minha\", \"usou o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
+          "para": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-199",
+      "requisito": "R02",
+      "descricao": "\"Usó fraudulentamente mi tarjeta\" não é fraude (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": " \"fraudulentamente\",\n",
+          "para": "\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-200",
+      "requisito": "R02",
+      "descricao": "O pedido que é só a pessoa com o \"por favor\" abreviado (\"asesor pfv\") não é pedido de atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "POR_FAVOR = r\"(?:por favor|porfavor|porfa|pfv|pfvr|pf|pls|plis|plz|please)\"",
+          "para": "POR_FAVOR = r\"(?:por favor)\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-201",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como parente (\"se presentó como mi sobrino\") não é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,",
+          "para": "SEGREDO_FACILITADO, APRESENTOU_E_PEDIU,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-202",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como funcionário e pediu a clave não é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,",
+          "para": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-203",
+      "requisito": "R03",
+      "descricao": "O atendente de verdade que se apresenta e pede o comprovante ou o número de cliente é golpe (REG-27)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
+          "para": "                   \"deposito\", \"prestamo\", \"emprestimo\", \"comprobante\", \"comprovante\", \"numero\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-204",
+      "requisito": "R02",
+      "descricao": "O corretor troca \"facilita\" por \"facilite\" e \"pensado\" por \"pensando\", e a mensagem comum vira golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                    if len(palavra) >= 4 and palavra not in NAO_SAO_ALVO:",
+          "para": "                    if len(palavra) >= 4:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
+      ]
+    },
+    {
+      "id": "M-ITP-205",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como funcionário e pediu dinheiro (\"me pediu um pix\") não é golpe (REG-28)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"senha\", \"senhas\", \"plata\", \"dinero\", \"dinheiro\", \"pix\", \"transferencia\",",
+          "para": "\"senha\", \"senhas\","
+        },
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
+          "para": "                   )"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-206",
+      "requisito": "R02",
+      "descricao": "As frases do pedido de segredo ou dinheiro entram no corretor, e \"pidieran\" vira \"pidieron\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    so_nessa_ordem=True,\n    corrige=False,\n)",
+          "para": "    so_nessa_ordem=True,\n)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
+      ]
+    },
+    {
+      "id": "M-ITP-207",
+      "requisito": "R03",
+      "descricao": "A pessoa do próprio banco (\"uma pessoa da agência acessou minha conta para me ajudar\") vira terceiro e o cartão é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=(\"banco\", \"agencia\", \"sucursal\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
       ]
     },
     {
@@ -12826,8 +13286,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "            vizinhos = self._carregados().mais_parecidos(vetor, lido.idioma)",
-          "para": "            vizinhos = self._carregados().mais_parecidos(vetor, \"es\")"
+          "de": "        vizinhos = self._carregados().mais_parecidos(vetor, idioma)",
+          "para": "        vizinhos = self._carregados().mais_parecidos(vetor, \"es\")"
         }
       ],
       "testes": [
@@ -12841,8 +13301,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "            vizinhos = self._carregados().mais_parecidos(vetor, lido.idioma)",
-          "para": "            vizinhos = self._carregados().mais_parecidos(-vetor, lido.idioma)"
+          "de": "        vizinhos = self._carregados().mais_parecidos(vetor, idioma)",
+          "para": "        vizinhos = self._carregados().mais_parecidos(-vetor, idioma)"
         }
       ],
       "testes": [
@@ -12856,8 +13316,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, \"modelo\"))",
-          "para": "        lida = replace(lido, sinais=(*lido.sinais, \"modelo\"))"
+          "de": "        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))",
+          "para": "        lida = replace(lido, sinais=(*lido.sinais, SINAL_DO_MODELO))"
         }
       ],
       "testes": [
@@ -12871,8 +13331,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "            return Leitura(lido, fallback, self.ollama.chamada(inicio, uso))",
-          "para": "            return Leitura(lido, fallback)"
+          "de": "            return Leitura(lido, fallback, self.ollama.chamada(inicio, uso), vetor)",
+          "para": "            return Leitura(lido, fallback, vetor=vetor)"
         }
       ],
       "testes": [
@@ -12937,6 +13397,217 @@
       ],
       "testes": [
         "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
+      ]
+    },
+    {
+      "id": "M-GAR-01",
+      "requisito": "R03",
+      "descricao": "Garantia dispara abaixo do limiar do detector",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if p < limiar:\n            return Decisao(p, limiar)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_detector_abaixo_do_limiar_nao_muda_a_leitura"
+      ]
+    },
+    {
+      "id": "M-GAR-02",
+      "requisito": "R03",
+      "descricao": "Prevenção sem vítima não segura a garantia (o LLM é chamado para quem pede dicas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if so_prevencao(texto):\n            return Decisao(p, limiar, prevencao=True)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_prevencao_sem_vitima_segura_antes_do_llm"
+      ]
+    },
+    {
+      "id": "M-GAR-03",
+      "requisito": "R03",
+      "descricao": "Garantia dispara sem a confirmação do LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        return self.detector and not self.prevencao and self.llm in ENCAMINHAM",
+          "para": "        return self.detector and not self.prevencao"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_llm_que_le_outra_coisa_nao_dispara_mas_deixa_o_rastro",
+        "tests/test_garantia_conversa.py::test_llm_que_falha_nao_dispara_a_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-04",
+      "requisito": "R03",
+      "descricao": "Falha do LLM na garantia apaga o rastro do detector",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        except Exception as erro:\n            log.warning(\"garantia sem o modelo",
+          "para": "        except ValueError as erro:\n            log.warning(\"garantia sem o modelo"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_llm_que_falha_nao_dispara_a_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-05",
+      "requisito": "R03",
+      "descricao": "Fraude e atendente lidos pela cascata passam de novo pela garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if lida.intencao in ENCAMINHAM or controle(lida) or",
+          "para": "        if controle(lida) or"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-06",
+      "requisito": "R03",
+      "descricao": "Sim, não e escolhas passam pela garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "ENCAMINHAM or controle(lida) or leitura",
+          "para": "ENCAMINHAM or leitura"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-07",
+      "requisito": "R03",
+      "descricao": "A leitura do LLM na cascata não é reaproveitada (duas chamadas)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        lido = lida.intencao if leitura.fonte.startswith(\"ollama:\") else None",
+          "para": "        lido = None"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_a_leitura_do_llm_na_cascata_e_reaproveitada"
+      ]
+    },
+    {
+      "id": "M-GAR-08",
+      "requisito": "R03",
+      "descricao": "A garantia bloqueia o cartão na conversa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if pela_garantia(self.lida):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_na_conversa_a_garantia_encaminha_sem_bloquear_o_cartao"
+      ]
+    },
+    {
+      "id": "M-GAR-09",
+      "requisito": "R03",
+      "descricao": "O rastro que segue conta como disparo da garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "    return any(s.startswith(prefixo) and s.endswith(\":dispara\") for s in lida.sinais)",
+          "para": "    return any(s.startswith(prefixo) for s in lida.sinais)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_llm_que_le_outra_coisa_nao_dispara_mas_deixa_o_rastro"
+      ]
+    },
+    {
+      "id": "M-GAR-10",
+      "requisito": "R03",
+      "descricao": "GARANTIA_DE_FRAUDE ignorada: a garantia liga sempre com o LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        if llm is None or not settings.garantia_de_fraude:",
+          "para": "        if llm is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_api_liga_a_garantia_so_com_o_llm_e_a_flag"
+      ]
+    },
+    {
+      "id": "M-GAR-11",
+      "requisito": "R03",
+      "descricao": "A garantia liga sem o LLM (NOV-39)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        if llm is None or not settings.garantia_de_fraude:",
+          "para": "        if not settings.garantia_de_fraude:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_api_liga_a_garantia_so_com_o_llm_e_a_flag"
+      ]
+    },
+    {
+      "id": "M-GAR-12",
+      "requisito": "R03",
+      "descricao": "Falha na carga do detector não é lembrada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "            if self._pronto is None and self._falha is None:",
+          "para": "            if self._pronto is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_detector_indisponivel_segue_a_cascata_e_a_falha_e_lembrada"
+      ]
+    },
+    {
+      "id": "M-GAR-13",
+      "requisito": "R03",
+      "descricao": "Sinal de vítima não desfaz a prevenção na garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "    return _tem(limpo, PREVENCAO) and not _tem(limpo, VITIMA)",
+          "para": "    return _tem(limpo, PREVENCAO)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_prevencao_sem_vitima_segura_antes_do_llm"
+      ]
+    },
+    {
+      "id": "M-GAR-14",
+      "requisito": "R06",
+      "descricao": "O ruído sem palavra conhecida (\"kkkkk\") passa pela garantia e pode ser encaminhado como fraude (ACH-122)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": " or controle(lida) or leitura.fonte == SEM_PALAVRA_CONHECIDA:",
+          "para": " or controle(lida):"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
       ]
     },
     {

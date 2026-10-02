@@ -15,7 +15,7 @@ com as três línguas de cada frase juntas (a tradução nunca fica do outro lad
 import csv
 import random
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
@@ -102,6 +102,9 @@ class Corpus:
     treino: list[Exemplo]  # BANKING77 (80% das frases) + MInDS-14 inteiro
     calibracao: list[Exemplo]  # BANKING77, 20% das frases do treino oficial, nas três línguas
     teste: list[Exemplo]  # BANKING77, teste oficial
+    # BANKING77, o treino oficial inteiro na ordem do arquivo (en, es, pt): a garantia de fraude
+    # refaz nele a divisão pré-registrada da validação (jeje.leitor.garantia).
+    oficial: list[Exemplo] = field(default_factory=list)
 
 
 def _linhas(destino: Path, tabela: Tabela) -> list[tuple[str, str]]:
@@ -195,4 +198,4 @@ def ler(destino: Path, banking77=BANKING77, minds14=MINDS14) -> Corpus:
     b77 = _banking77(destino, banking77)
     treino, calibracao = separar_calibracao(b77["treino"])
     return Corpus(treino=treino + _minds14(destino, minds14), calibracao=calibracao,
-                  teste=b77["teste"])  # fmt: skip
+                  teste=b77["teste"], oficial=b77["treino"])  # fmt: skip

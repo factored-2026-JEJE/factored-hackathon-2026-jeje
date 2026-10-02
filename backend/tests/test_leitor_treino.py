@@ -190,6 +190,13 @@ def test_espanhol_herda_a_intencao_do_ingles_pela_posicao(tmp_path):
     }
 
 
+def test_corpus_guarda_o_treino_oficial_inteiro_na_ordem_do_arquivo(tmp_path):
+    """A garantia de fraude refaz nele a divisão da validação, pela posição de cada frase."""
+    oficial = [(e.idioma, e.texto) for e in lido(tmp_path).oficial]
+    assert oficial == ([("en", a) for a, *_ in ALINHADO] + [("es", c) for _, _, c, *_ in ALINHADO]
+                       + [("pt", e) for *_, e, _ in ALINHADO])  # fmt: skip
+
+
 def test_cada_frase_guarda_o_rotulo_do_corpus_de_onde_veio_o_fluxo(tmp_path):
     """Os exemplos do LLM do "não entendi" (DEV-042) usam o rótulo do corpus, não o fluxo."""
     lidos = lido(tmp_path, pt_teste_extra=[("pix recusado", "pagamento_recusado")])

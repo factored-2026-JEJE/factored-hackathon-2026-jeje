@@ -14,11 +14,12 @@ import threading
 import time
 import urllib.request
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import Decimal
 from typing import Literal, get_args
 
+import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from jeje import eventos
@@ -27,6 +28,9 @@ from jeje.interpretacao import Interpretacao, interpretar
 from jeje.mensagens import IDIOMAS, Idioma, Status
 
 log = logging.getLogger("jeje.modelo")
+
+# O sinal da intenção que o modelo leu (o modo modelo e o LLM do "não entendi"), no trace do turno.
+SINAL_DO_MODELO = "modelo"
 
 # O modelo não pede bloqueio nem desbloqueio de cartão (PRD-007): efeito sobre o cartão só com o
 # pedido lido pelas regras; cartão perdido ou roubado, para o modelo, é relato de fraude.
@@ -87,10 +91,29 @@ class Leitura:
     lida: Interpretacao
     fonte: str  # "regras", "ollama:<modelo>" ou "regras (fallback: <motivo>)"
     chamada: Chamada | None = None  # só quando o modelo foi chamado
+    # O vetor do e5 da mensagem, quando o leitor o calculou: a garantia de fraude o reaproveita.
+    vetor: np.ndarray | None = field(default=None, compare=False, repr=False)
+
+
+# O sinal que a garantia de fraude (DEV-046, jeje.garantia_fraude) põe na leitura quando o detector
+# dispara: "garantia:p=0.73:limiar=0.58:llm=fraude:dispara" ou "...:segue".
+SINAL_DA_GARANTIA = "garantia"
+
+
+def pela_garantia(lida: Interpretacao) -> bool:
+    """A leitura virou fraude pela garantia, e não pelo relato: encaminha sem bloquear."""
+    prefixo = f"{SINAL_DA_GARANTIA}:"
+    return any(s.startswith(prefixo) and s.endswith(":dispara") for s in lida.sinais)
 
 
 def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitura:
     return Leitura(interpretar(texto, idioma_anterior, referencia), "regras")
+
+
+def pelo_modelo(lida: Interpretacao) -> bool:
+    """A intenção veio do modelo (o modo modelo ou o LLM do "não entendi"), não das regras nem do
+    leitor."""
+    return SINAL_DO_MODELO in lida.sinais
 
 
 def entendida(lida: Interpretacao) -> bool:
@@ -139,7 +162,7 @@ class Ollama:
             idioma=saida.idioma,
             intencao=saida.intencao,
             status=saida.status,
-            sinais=("modelo",),
+            sinais=(SINAL_DO_MODELO,),
         )
         return Leitura(lida, f"ollama:{self.modelo}", self.chamada(inicio, uso))
 
@@ -231,11 +254,20 @@ def configurado(settings: Settings) -> Interpretador:
                 ),
                 settings.leitor_vizinhos,
             )
-        return interpretacao_leitor.Leitor(
+        leitor = interpretacao_leitor.Leitor(
             interpretacao_leitor.dos_arquivos(settings.leitor_modelo, settings.leitor_e5),
             settings.leitor_limite,
             llm,
         )
+        if llm is None or not settings.garantia_de_fraude:
+            return leitor
+        # Sem o LLM a garantia não liga (NOV-39): ela só existe no modo leitor_modelo.
+        from jeje import garantia_fraude
+        from jeje.leitor.garantia import Garantia
+
+        caminho = settings.leitor_garantia
+        garantia = garantia_fraude.GarantiaDeFraude(lambda: Garantia.carregar(caminho), llm)
+        return garantia_fraude.ComGarantia(leitor, garantia)
     if settings.interpretador == "ollama":
         return Ollama(
             settings.ollama_url,

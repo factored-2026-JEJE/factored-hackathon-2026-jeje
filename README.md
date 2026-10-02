@@ -300,6 +300,10 @@ validação, com bloquear e desbloquear entre as intenções (NOV-27) e o golpe 
   mensagem usa o vetor que o leitor já calculou, sem outro modelo na imagem;
 - ele só diz a intenção (esquema forçado, temperatura 0, semente fixa, sem raciocínio). Língua,
   pistas, sim/não e sinais continuam das regras, e a política decide o que fazer;
+- a fraude que só ele leu vai ao atendente (POL-HUM-01) sem bloquear o cartão, com "possível fraude
+  lida pelo modelo; nada bloqueado" no caso: ele também lê fraude na suspeita sem prejuízo, no cartão
+  retido pelo caixa eletrônico e na tarifa (REG-15 da validação). O bloqueio automático fica com a
+  fraude que as regras ou o leitor leem;
 - saída fora do esquema, lentidão (`OLLAMA_TIMEOUT_S`) ou Ollama fora do ar: a frase segue não
   entendida, como antes, com o motivo no trace (`regras (fallback: …)`); o turno lido pelo LLM
   registra `ollama:qwen3:4b`, a latência e os tokens.
@@ -311,12 +315,33 @@ e5, na mesma metade de avaliação do teste do BANKING77 e com os rótulos da va
 para 85,3% (es) e de 72,0% para 85,8% (pt), sem mais ação indevida (0,3% e 0,4%), com o LLM em 12% e
 17% das mensagens e ~0,6 s nesses turnos (p50, `qwen3:4b` na GPU da máquina da publicação).
 
+### Garantia de encaminhamento da fraude (padrão)
+
+Com `GARANTIA_DE_FRAUDE: "true"` (no modo `leitor_modelo`), a mensagem que a cascata não leu como
+fraude nem como pedido de atendente, e que não é controle da conversa nem ruído, passa pelos três
+passos da V3 do NOV-33 da validação (DEV-046, `backend/src/jeje/garantia_fraude.py`):
+
+1. um detector próprio sobre o vetor do e5 que o leitor já calculou (regressão logística treinada
+   no build com o BANKING77 ES/PT e os golpes gerados do NOV-31, temperatura e limiar conformal
+   por idioma na divisão pré-registrada da validação: 0,5719 em ES e 0,4501 em PT) dispara;
+2. a pergunta de prevenção sem vítima segura a mensagem;
+3. o LLM do "não entendi" confirma, lendo fraude ou pedido de atendente.
+
+Passando os três, a conversa encaminha ao atendente (POL-HUM-01) como possível fraude, **sem
+bloquear o cartão**, com o sinal da garantia (`garantia:p=…:limiar=…:llm=…:dispara`) no trace e no
+caso. Sem o LLM, ou com ele falhando, a garantia não dispara. Medido pela validação na branch (REG-22
+e REG-22b): a fraude que chega ao atendente vai de 65,1% para 89,9% (golpes da gemma, ES) e de 59,6%
+para 87,7% (PT), de 73,7% para 91,5% e de 75,8% para 88,3% no NOV-30, sem nenhum bloqueio a mais;
+quem só pergunta é encaminhado um pouco mais (perguntas dos trios, +4,9 e +5,9 p.p.). O passo a
+passo da decisão sai em `ComGarantia.decidir(texto, idioma)`.
+
 ### Modelo local no lugar do leitor (Ollama, opcional)
 
 `INTERPRETADOR: "ollama"` troca o leitor por um modelo local (Ollama do host, `qwen2.5:7b`) no
 mesmo papel: só classifica o que as regras não entendem, e diz a língua, a intenção e o status
-citado. Quando é chamado, pode ler fraude ou pedido de atendente (o turno encaminha), mas nunca
-confirma nem escolhe transação, e a política decide o que fazer. Cumprimento e agradecimento não
+citado. Quando é chamado, pode ler fraude ou pedido de atendente (o turno encaminha; a fraude que
+só ele leu, sem bloquear o cartão), mas nunca confirma nem escolhe transação, e a política decide o
+que fazer. Cumprimento e agradecimento não
 viram pedido de atendente, e perguntar pelo estorno é consulta, não contestação (ACH-102). A API
 pede a carga do modelo ao iniciar (log `modelo pronto` ou `modelo indisponivel`) e o mantém
 carregado (`OLLAMA_KEEP_ALIVE`); qualquer falha — modelo fora do ar, lento, resposta fora do
@@ -441,10 +466,10 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
   em até 280 caracteres, as falas do cliente no pedido em curso que trazem algo novo ao atendente:
   o pedido, cada pista (valor, data, status, comércio) e o pedido de atendente. A escolha é por
   cobertura desses campos, na ordem em que foram ditas, e a fala sem fato fica de fora (DEV-036).
-- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~3 ms de CPU por
-  mensagem (p50 de 2,8 ms e p95 de 4,9 ms nas 6.568 mensagens do teste do BANKING77 es/pt, da
-  validação e do portunhol, com a máquina carregada; eram ~100 ms antes de cada expressão ser
-  compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
+- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~1,3 ms de CPU por
+  mensagem (p50 de 1,3 ms e p95 de 3,7 ms nas 14.124 mensagens dos conjuntos da validação, desde
+  que o termo composto deixou de procurar o segundo grupo sem o primeiro; eram 2,8 ms antes disso
+  e ~100 ms antes de cada expressão ser compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
 - Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor):
   um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez (ACH-107), aguenta 8
