@@ -308,13 +308,17 @@ DINHEIRO_TIRADO = Perto(
 # Golpe de engenharia social (ACH-142): alguém se passou pelo banco, por um funcionário ou por um
 # parente; o cliente entregou a senha, o código ou os dados; o site ou o link era falso; a conta, o
 # número ou o WhatsApp foram tomados; o dinheiro foi para um golpista.
+# Os parentes de quem o golpista se faz passar ("se presentó como mi sobrino").
+PARENTES = (
+    "primo", "prima", "primos", "tio", "tia", "sobrinho", "sobrinha", "sobrinhos", "sobrino",
+    "sobrina", "sobrinos", "hermano", "hermana", "irmao", "irma", "cunhado", "cunhada", "cunado",
+    "familiar", "filho", "filha", "hijo", "hija", "mae", "madre", "parente", "pariente", "parentes",
+    "parientes",
+)  # fmt: skip
 QUEM_ELE_DISSE_SER = (
     "banco", "bancaria", "agencia", "oficina", "funcionario*", "empleado*", "suporte", "soporte",
-    "central", "gerente", "primo", "prima", "tio", "tia", "sobrinho", "sobrinha", "sobrino",
-    "sobrina", "hermano", "hermana", "irmao", "irma", "cunhado", "cunhada", "cunado", "familiar",
-    "filho", "filha", "hijo", "hija", "mae", "madre", "amigo", "amiga",
-    "atendente", "operador", "asesor", "parente", "pariente", "agente", "representante", "primos",
-    "sobrinos", "sobrinhos", "parentes", "parientes",
+    "central", "gerente", *PARENTES, "amigo", "amiga", "atendente", "operador", "asesor", "agente",
+    "representante",
 )  # fmt: skip
 SE_PASSOU_POR = Perto(
     ("dijo ser", "dijeron ser", "dice ser", "diciendo ser", "decia ser", "se decia", "dizendo ser",
@@ -332,6 +336,25 @@ SE_PASSOU_POR = Perto(
     entre=2,
     # Só o verbo e depois o papel: "o atendente falou que era só esperar" é o atendente de
     # verdade (ACH-173, REG-18).
+    so_nessa_ordem=True,
+)  # fmt: skip
+# Apresentar-se como outro só é golpe com o parente ou com o pedido depois: o atendente de verdade
+# também se apresenta ("se presentó como gerente y me ayudó mucho", ACH-179).
+APRESENTOU = (
+    "se presento como", "se presentaron como", "se apresentou como", "se apresentaram como",
+)  # fmt: skip
+SE_APRESENTOU_COMO_PARENTE = Perto(APRESENTOU, PARENTES, entre=1, so_nessa_ordem=True)
+# "Se presentó como empleado del banco y me pidió la clave", "decía trabajar en este banco y me
+# pidió la seguridad de mi cuenta".
+APRESENTOU_E_PEDIU = Perto(
+    (*APRESENTOU, "decia trabajar", "dijo trabajar", "dizia trabalhar", "disse trabalhar"),
+    ("me pidio la", "me pidio mi", "me pidio el", "me pidio los", "me pidio mis", "me pidieron la",
+     "me pidieron mi", "me pidieron el", "me pidieron los", "me pidieron mis", "me solicito la",
+     "me solicito mi", "me solicito los", "me solicito mis", "me pediu a", "me pediu o",
+     "me pediu minha", "me pediu meu", "me pediu meus", "me pediram a", "me pediram o",
+     "me pediram minha", "me pediram meu", "me pediram meus", "me solicitou a", "me solicitou o",
+     "me solicitou minha", "me solicitou meus"),
+    entre=5,
     so_nessa_ordem=True,
 )  # fmt: skip
 # "Disse que era" é comum fora do golpe ("o vendedor disse que era problema do banco"): só com
@@ -509,7 +532,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # Golpe de engenharia social (ACH-142).
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
                 SITE_FALSO,
-                SEGREDO_FACILITADO,
+                SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",

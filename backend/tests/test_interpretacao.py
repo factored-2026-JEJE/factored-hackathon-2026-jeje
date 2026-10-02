@@ -1289,6 +1289,23 @@ def test_golpe_de_quem_se_apresentou_como_outro(texto):
 
 
 @pytest.mark.parametrize(
+    ("texto", "golpe"),
+    [
+        # Apresentar-se como outro é golpe com o parente ou com o pedido depois (ACH-179)...
+        ("Mandé dinero a una persona que se presentó como mi sobrino", True),
+        ("Una persona que se presentó como empleado del banco me pidió la clave", True),
+        ("Me llamó alguien que decía trabajar en este banco y me pidió la clave", True),
+        ("Um homem se apresentou como funcionário do banco e me pediu a senha", True),
+        # ... e não é quando o atendente de verdade se apresenta e pede outra coisa.
+        ("La señora se presentó como gerente y me pidió que esperara un momento", False),
+        ("Se presentó como asesor y me explicó cómo cambiar la clave", False),
+    ],
+)
+def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe):
+    assert (ler(texto).intencao == "fraude") is golpe
+
+
+@pytest.mark.parametrize(
     "texto",
     [
         # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).
