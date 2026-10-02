@@ -352,19 +352,32 @@ APRESENTOU = (
     "se presento como", "se presentaron como", "se apresentou como", "se apresentaram como",
 )  # fmt: skip
 SE_APRESENTOU_COMO_PARENTE = Perto(APRESENTOU, PARENTES, entre=1, so_nessa_ordem=True)
+
+
 # "Se presentó como empleado del banco y me pidió la clave", "decía trabajar en este banco y me
 # pidió la clave": só com o segredo ou o dinheiro pedidos, a lista do REG-28 da validação; o
 # atendente de verdade também se apresenta e pede o comprovante, o protocolo ou o número de cliente
 # (REG-27). As frases não entram no corretor: são muitas, e as palavras delas, comuns.
-PEDIDO_DE_SEGREDO_OU_DINHEIRO = tuple(
-    " ".join(p for p in (verbo, artigo, objeto) if p)
-    for verbo in ("me pidio", "me pidieron", "me solicito", "me pediu", "me pediram",
-                  "me solicitou")
-    for artigo in ("", "la", "el", "los", "las", "mi", "mis", "su", "a", "o", "os", "as", "minha",
-                   "meu", "meus", "minhas", "una", "un", "uma", "um")
-    for objeto in ("clave", "claves", "contrasena", "codigo", "codigos", "pin", "token", "cvv",
-                   "senha", "senhas", "plata", "dinero", "dinheiro", "pix", "transferencia",
-                   "deposito", "prestamo", "emprestimo")
+def _pedidos(
+    verbos: tuple[str, ...], artigos: tuple[str, ...], objetos: tuple[str, ...]
+) -> tuple[str, ...]:
+    """Cada pedido: o verbo, o artigo ou o possessivo (opcional) e o objeto ("me pidió la
+    clave")."""
+    return tuple(
+        " ".join(p for p in (verbo, artigo, objeto) if p)
+        for verbo in verbos
+        for artigo in artigos
+        for objeto in objetos
+    )
+
+
+PEDIDO_DE_SEGREDO_OU_DINHEIRO = _pedidos(
+    ("me pidio", "me pidieron", "me solicito", "me pediu", "me pediram", "me solicitou"),
+    ("", "la", "el", "los", "las", "mi", "mis", "su", "a", "o", "os", "as", "minha", "meu",
+     "meus", "minhas", "una", "un", "uma", "um"),
+    ("clave", "claves", "contrasena", "codigo", "codigos", "pin", "token", "cvv",
+     "senha", "senhas", "plata", "dinero", "dinheiro", "pix", "transferencia",
+     "deposito", "prestamo", "emprestimo"),
 )  # fmt: skip
 APRESENTOU_E_PEDIU = Perto(
     (*APRESENTOU, "decia trabajar", "dijo trabajar", "dizia trabalhar", "disse trabalhar"),
@@ -396,6 +409,35 @@ DISSE_QUE_ERA = Perto(
     depois=2,
     fora_depois=("el problema", "o problema", "la culpa", "a culpa", "el error", "o erro", "el que",
                  "la que", "quien", "quem"),
+)  # fmt: skip
+# Quem disse ser do banco e, a até 8 palavras, pediu o segredo, os dados ou o dinheiro, ou tomou o
+# cartão, é golpe mesmo com a loja antes ("en el cajero me dijo que era del banco y me cambió la
+# tarjeta", "me llamaron diciendo que era del banco quien hablaba y me pidieron el código"): o D1
+# do REG-38 da validação, que devolve os golpes que o fora do DISSE_QUE_ERA tirava (REG-37). O fora
+# fica para a atribuição sem ação (ACH-195). As frases não entram no corretor.
+DISSE_DO_BANCO_E_AGIU = Perto(
+    ("dijo que era del banco", "dijo era del banco", "dijeron que era del banco",
+     "diciendo que era del banco", "dijo ser del banco", "decia ser del banco",
+     "dijo que era de la sucursal", "dijo que era del soporte", "disse que era do banco",
+     "disseram que era do banco", "dizendo que era do banco", "disse ser do banco",
+     "dizia ser do banco", "falou que era do banco", "falando que era do banco",
+     "disse que era da agencia", "disse que era do suporte"),
+    (*_pedidos(
+        ("me pidio", "me pidieron", "me solicito", "me pediu", "me pediram", "me solicitou",
+         "pidio", "pidieron", "pediu", "pediram", "solicito", "solicitou"),
+        ("", "la", "el", "los", "las", "mi", "mis", "su", "a", "o", "os", "as", "minha", "meu",
+         "meus", "minhas"),
+        ("clave", "contrasena", "codigo", "pin", "token", "cvv", "senha", "datos", "dados", "plata",
+         "dinero", "dinheiro", "pix", "transferencia"),
+    ),
+     # O cartão tomado.
+     "se llevo mi tarjeta", "se llevo la tarjeta", "se llevaron mi tarjeta", "me cambio la tarjeta",
+     "cambio mi tarjeta", "cambio la tarjeta", "pegou meu cartao", "pegou o cartao",
+     "levou meu cartao", "levou o cartao", "trocou o cartao", "trocou meu cartao",
+     "trocaram o cartao"),
+    entre=8,
+    so_nessa_ordem=True,
+    corrige=False,
 )  # fmt: skip
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
@@ -632,7 +674,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
-                "sitio equivocado", "pagina errada", "pagina equivocada", "link errado")),
+                "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
+                DISSE_DO_BANCO_E_AGIU)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,

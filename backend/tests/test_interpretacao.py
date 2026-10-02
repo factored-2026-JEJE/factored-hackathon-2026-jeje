@@ -1495,6 +1495,9 @@ def test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude(texto, anterio
         ("Pensé que era el banco el que me cobró la comisión", "es"),
         ("A loja disse que era do banco o problema", "pt"),
         ("Na loja disseram que era do banco e que eu devia ligar para a central", "pt"),
+        # A loja que pede outra coisa (REG-38 da validação).
+        ("En la tienda me dijeron que era del banco y me pidieron otra tarjeta", "es"),
+        ("A loja disse que era do banco e pediu para eu ligar na central", "pt"),
     ],
 )
 def test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe(texto, anterior):
@@ -1514,6 +1517,22 @@ def test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe(texto, anterior):
     ],
 )
 def test_quem_disse_que_era_do_banco_fora_da_loja_continua_golpe(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # Os golpes do REG-37 da validação, que o fora da loja tirava de fraude.
+        ("En el cajero me dijo que era del banco y me cambió la tarjeta", "es"),
+        ("Un hombre en la tienda dijo que era del banco y se llevó mi tarjeta", "es"),
+        ("En el mercado me dijo que era del banco y me pidió la clave", "es"),
+        ("Me llamaron diciendo que era del banco quien hablaba y me pidieron el código", "es"),
+        ("No posto um homem disse que era do banco e pegou meu cartão", "pt"),
+        ("Disseram que era do banco quem estava ligando e pediram a senha", "pt"),
+    ],
+)
+def test_quem_disse_ser_do_banco_e_pediu_ou_tomou_o_cartao_e_golpe_mesmo_na_loja(texto, anterior):
     assert ler(texto, anterior).intencao == "fraude"
 
 
