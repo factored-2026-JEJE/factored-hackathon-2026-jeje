@@ -12765,8 +12765,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, \"modelo\"))",
-          "para": "        lida = replace(lido, sinais=(*lido.sinais, \"modelo\"))"
+          "de": "        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))",
+          "para": "        lida = replace(lido, sinais=(*lido.sinais, SINAL_DO_MODELO))"
         }
       ],
       "testes": [
