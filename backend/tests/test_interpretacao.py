@@ -1440,6 +1440,25 @@ def test_golpe_contado_no_passado_e_o_roubaron_do_portunhol(texto):
 
 
 @pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Me hicieron creer q era un operador y me pidieron la clave", "es"),
+        ("Me llamaron diciendo q era del banco y me pidieron el código", "es"),
+        ("Disseram q era a central do banco e pediram minha senha", "pt"),
+    ],
+)
+def test_golpe_escrito_com_o_q_abreviado(texto, anterior):
+    """O "q" sozinho é o "que" da escrita de chat: os termos com "que" casam também nele."""
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+def test_so_o_q_sozinho_vira_que():
+    assert interpretacao.normalizar("Q era? Quiero el QR, ¿q tal?") == (
+        "que era quiero el qr que tal"
+    )
+
+
+@pytest.mark.parametrize(
     "texto",
     [
         # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).
