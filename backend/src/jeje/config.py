@@ -60,10 +60,11 @@ class Settings(BaseSettings):
     janela_desbloqueio_dias: int = Field(gt=0)
     # Validade da proposta de pré-caso até a confirmação do cliente, em minutos.
     proposta_ttl_minutos: int = Field(gt=0)
-    # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"
-    # (modelo local); os dois só quando as regras não entendem, e segurança e confirmação continuam
-    # das regras.
-    interpretador: Literal["regras", "leitor", "ollama"]
+    # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local), "leitor_modelo"
+    # (o leitor e, no que ele não decide, o LLM local com exemplos, DEV-042) ou "ollama" (modelo
+    # local); todos só quando as regras não entendem, e segurança e confirmação continuam das
+    # regras.
+    interpretador: Literal["regras", "leitor", "leitor_modelo", "ollama"]
     # Leitor e5 (usados só com INTERPRETADOR=leitor): artefato treinado e pesos do e5, gerados no
     # build da imagem (estágio `modelo`), e a confiança mínima para ele decidir (ACH-028).
     leitor_modelo: Path
@@ -72,6 +73,10 @@ class Settings(BaseSettings):
     # chamada das rotas /intencao; sem ele, as rotas respondem 503.
     intencao_modelo: Path
     leitor_limite: float = Field(gt=0, le=1)
+    # LLM do "não entendi" (usados só com INTERPRETADOR=leitor_modelo): o modelo no Ollama (mesmos
+    # servidor e tempos do modo ollama) e os exemplos gerados no build ao lado do leitor.
+    nao_entendi_modelo: str
+    leitor_vizinhos: Path
     # "Qual transação" (DEV-037): ranking com conjunto conformal, calibrado no arquivo versionado
     # do pacote, ou o filtro exato de antes.
     resolvedor_de_transacao: Literal["ranking", "filtro"]

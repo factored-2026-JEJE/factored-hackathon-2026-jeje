@@ -41,8 +41,9 @@ x-app-env: &app-env
   # Bloqueio simulado de cartão (PRD-007, decidido por Jader em 29/09): reversível por N dias.
   JANELA_DESBLOQUEIO_DIAS: "7"
   PROPOSTA_TTL_MINUTOS: "10"
-  # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local) ou "ollama"
-  # (modelo local), os dois consultados só quando as regras não entendem (interpretacao_leitor.py,
+  # Leitura da mensagem: "regras" (sem modelo), "leitor" (classificador e5 local), "leitor_modelo"
+  # (o leitor e, no que ele não decide, o LLM local com exemplos) ou "ollama" (modelo local), todos
+  # consultados só quando as regras não entendem (interpretacao_leitor.py, nao_entendi.py,
   # interpretacao_modelo.py). Regras aqui (testes, carga, migrações); a API da stack de
   # demonstração liga o leitor (serviço api).
   INTERPRETADOR: "regras"
@@ -54,6 +55,10 @@ x-app-env: &app-env
   # com o leitor no make avaliar-leitor (PRD-009).
   INTENCAO_MODELO: /opt/modelos/intencao.joblib
   LEITOR_LIMITE: "0.8"
+  # LLM do "não entendi" (INTERPRETADOR=leitor_modelo, DEV-042, PRD-010): o modelo medido pela
+  # validação no NOV-19 e os exemplos do BANKING77 gerados no build com o leitor.
+  NAO_ENTENDI_MODELO: qwen3:4b
+  LEITOR_VIZINHOS: /opt/modelos/vizinhos.joblib
   # "Qual transação" (DEV-037): "ranking" (as transações do cliente ordenadas pelas pistas, com
   # conjunto conformal calibrado em backend/src/jeje/qual_transacao.json) ou "filtro" (o exato).
   RESOLVEDOR_DE_TRANSACAO: "ranking"
