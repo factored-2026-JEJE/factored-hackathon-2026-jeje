@@ -4728,8 +4728,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"falar com uma pessoa\", \"una persona\", \"uma pessoa\",",
-          "para": "\"falar com uma pessoa\","
+          "de": "\"operador\", \"persona\", \"pessoa\", \"alguien\",",
+          "para": "\"operador\", \"alguien\","
         }
       ],
       "testes": [
@@ -4804,8 +4804,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"operador\", PEDIDO_DE_CARGO,",
-          "para": "\"operador\","
+          "de": "\"alguem\", \"gerente\", \"ejecutivo\", \"supervisor\"),",
+          "para": "\"alguem\"),"
         }
       ],
       "testes": [
@@ -4865,8 +4865,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"operador\", PEDIDO_DE_CARGO,",
-          "para": "\"operador\", \"gerente\", PEDIDO_DE_CARGO,"
+          "de": "    (\"humano\", (PEDIDO_DE_PESSOA, \"persona real\", \"pessoa de verdade\", SEM_ROBO)),",
+          "para": "    (\"humano\", (PEDIDO_DE_PESSOA, \"persona real\", \"pessoa de verdade\", SEM_ROBO, \"gerente\")),"
         }
       ],
       "testes": [
@@ -9875,8 +9875,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"alguien\", \"alguem\", SEM_ROBO)),",
-          "para": "                \"alguien\", \"alguem\")),"
+          "de": "\"pessoa de verdade\", SEM_ROBO)),",
+          "para": "\"pessoa de verdade\")),"
         }
       ],
       "testes": [
@@ -11728,6 +11728,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-150",
+      "requisito": "R07",
+      "descricao": "A mensagem que é só a pessoa (\"Agente\") deixa de ser pedido de atendente (ACH-159)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if intencao == \"humano\" and SO_A_PESSOA.match(limpo):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-151",
+      "requisito": "R07",
+      "descricao": "A pessoa citada sem pedido volta a ser pedido de atendente (\"una persona me cobró de más\"; ACH-159)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"humano\", (PEDIDO_DE_PESSOA, \"persona real\", \"pessoa de verdade\", SEM_ROBO)),",
+          "para": "    (\"humano\", (PEDIDO_DE_PESSOA, \"persona real\", \"pessoa de verdade\", SEM_ROBO, \"persona\", \"pessoa\", \"atendente\", \"agente\")),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_citada_sem_pedido_nao_e_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-152",
+      "requisito": "R07",
+      "descricao": "\"Chama\" e \"coloca\" não pedem atendente (\"Chama um gerente\"; ACH-159)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"contatar\", \"chama\",\n     \"chame\", \"chamar\", \"coloca\", \"coloque\", \"colocar\", \"atienda\", \"atenda\"),",
+          "para": "\"contatar\",\n     \"atienda\", \"atenda\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente"
       ]
     },
     {
