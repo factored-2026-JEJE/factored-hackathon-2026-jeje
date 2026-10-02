@@ -132,9 +132,10 @@ PERDA_DE_MEIO = Perto(
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
 PEDIDO_DE_PESSOA = Perto(
-    ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "passa",
-     "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar", "chama",
-     "chame", "chamar", "coloca", "coloque", "colocar", "atienda", "atenda"),
+    ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "pasas", "pasa",
+     "passa", "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar",
+     "contacto", "contato", "conect*", "chama", "chame", "chamar", "coloca", "coloque", "colocar",
+     "atienda", "atenda", "dame", "deme", "llamame", "llame", "liga", "ligue", "poe", "ponme"),
     ("agente", "asesor", "atendente", "humano", "operador", "persona", "pessoa", "alguien",
      "alguem", "gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
