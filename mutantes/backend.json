@@ -12778,12 +12778,12 @@
     {
       "id": "M-ITP-203",
       "requisito": "R03",
-      "descricao": "O atendente de verdade que se apresenta e pede para esperar é golpe (ACH-179)",
+      "descricao": "O atendente de verdade que se apresenta e pede o comprovante ou o número de cliente é golpe (REG-27)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"me pidio la\", \"me pidio mi\",",
-          "para": "    (\"me pidio\", \"me pidio la\", \"me pidio mi\","
+          "de": "    (\"pidio la clave\", \"pidio mi clave\",",
+          "para": "    (\"pidio mi\", \"pidio el\", \"pediu o\", \"pidio la clave\", \"pidio mi clave\","
         }
       ],
       "testes": [

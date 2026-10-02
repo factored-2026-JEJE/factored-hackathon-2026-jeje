@@ -1296,9 +1296,16 @@ def test_golpe_de_quem_se_apresentou_como_outro(texto):
         ("Una persona que se presentó como empleado del banco me pidió la clave", True),
         ("Me llamó alguien que decía trabajar en este banco y me pidió la clave", True),
         ("Um homem se apresentou como funcionário do banco e me pediu a senha", True),
-        # ... e não é quando o atendente de verdade se apresenta e pede outra coisa.
+        ("Alguien se presentó como mi sobrino y me pidió plata", True),
+        ("Uma pessoa se apresentou como meu primo e me pediu um pix", True),
+        # ... e não é quando o atendente de verdade se apresenta e pede outra coisa (REG-27).
         ("La señora se presentó como gerente y me pidió que esperara un momento", False),
         ("Se presentó como asesor y me explicó cómo cambiar la clave", False),
+        ("El asesor se presentó como Juan y me pidió mi número de cliente para ayudarme", False),
+        ("La ejecutiva se presentó como encargada y me pidió el comprobante de la compra", False),
+        ("El operador se presentó como supervisor y me pidió los datos del cargo", False),
+        ("O atendente se apresentou como Carlos e me pediu o número do protocolo", False),
+        ("A gerente se apresentou como responsável e me pediu o comprovante da compra", False),
     ],
 )
 def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe):

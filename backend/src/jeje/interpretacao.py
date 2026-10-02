@@ -345,15 +345,18 @@ APRESENTOU = (
 )  # fmt: skip
 SE_APRESENTOU_COMO_PARENTE = Perto(APRESENTOU, PARENTES, entre=1, so_nessa_ordem=True)
 # "Se presentó como empleado del banco y me pidió la clave", "decía trabajar en este banco y me
-# pidió la seguridad de mi cuenta".
+# pidió la clave": só com o segredo pedido; o atendente de verdade também se apresenta e pede o
+# comprovante, o protocolo ou o número de cliente (REG-27).
 APRESENTOU_E_PEDIU = Perto(
     (*APRESENTOU, "decia trabajar", "dijo trabajar", "dizia trabalhar", "disse trabalhar"),
-    ("me pidio la", "me pidio mi", "me pidio el", "me pidio los", "me pidio mis", "me pidieron la",
-     "me pidieron mi", "me pidieron el", "me pidieron los", "me pidieron mis", "me solicito la",
-     "me solicito mi", "me solicito los", "me solicito mis", "me pediu a", "me pediu o",
-     "me pediu minha", "me pediu meu", "me pediu meus", "me pediram a", "me pediram o",
-     "me pediram minha", "me pediram meu", "me pediram meus", "me solicitou a", "me solicitou o",
-     "me solicitou minha", "me solicitou meus"),
+    ("pidio la clave", "pidio mi clave", "pidio la contrasena", "pidio mi contrasena",
+     "pidio el codigo", "pidio mi codigo", "pidio el pin", "pidio mi pin", "pidio el token",
+     "pidio mi token", "pidieron la clave", "pidieron mi clave", "pidieron la contrasena",
+     "pidieron el codigo", "pidieron el pin", "pidieron el token", "solicito la clave",
+     "solicito mi clave", "solicito el codigo", "pediu a senha", "pediu minha senha",
+     "pediu o codigo", "pediu meu codigo", "pediu o pin", "pediu o token", "pediram a senha",
+     "pediram minha senha", "pediram o codigo", "pediram o token", "solicitou a senha",
+     "solicitou minha senha", "solicitou o codigo"),
     entre=5,
     so_nessa_ordem=True,
 )  # fmt: skip
