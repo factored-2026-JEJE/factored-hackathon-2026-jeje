@@ -1541,6 +1541,21 @@
       ]
     },
     {
+      "id": "M-WEB-115",
+      "requisito": "R07",
+      "descricao": "A escolha sem garantia aparece como escolhida com garantia estatística (DEV-037a)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "    return escolhida\n      ? `escolhida com garantia estatística de ${NIVEL_DA_GARANTIA}: o conjunto conformal ficou só com ela (${detalhe})`\n      : `sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (${detalhe})`;",
+          "para": "    return escolhida\n      ? `sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (${detalhe})`\n      : `escolhida com garantia estatística de ${NIVEL_DA_GARANTIA}: o conjunto conformal ficou só com ela (${detalhe})`;"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta diz como a transação foi achada (DEV-071): o ranking escolheu"
+      ]
+    },
+    {
       "id": "M-WEB-111",
       "requisito": "R09",
       "descricao": "As opções ordenadas pelo ranking aparecem como escolhidas com garantia",
