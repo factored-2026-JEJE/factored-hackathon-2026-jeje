@@ -13039,11 +13039,11 @@
     {
       "id": "M-ITP-239",
       "requisito": "R02",
-      "descricao": "A negação dentro da oração com \"que\" também sai (\"quiero asegurarme de que no fue un fraude\" deixa de ser relato)",
+      "descricao": "A negação em qualquer ponto da mensagem sai: a do golpista citada pela vítima (\"me juró: no es una estafa\") deixa de ser relato",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    r\"(?<![a-z0-9])(?<!que )(?:no|nao|nunca) ",
+          "de": "    r\"^(?:no|nao|nunca) ",
           "para": "    r\"(?<![a-z0-9])(?:no|nao|nunca) "
         }
       ],

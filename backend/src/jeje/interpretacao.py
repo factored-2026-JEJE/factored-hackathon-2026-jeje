@@ -599,11 +599,12 @@ INDIGNACAO = re.compile(
     r"(?:un |um )?(?:robo|roubo|asalto|assalto)(?![a-z0-9])(?! d[eoa]\b)"
 )
 # A fraude negada pelo cliente ("no fue un fraude, yo hice la compra", "não é golpe, só quero
-# entender essa cobrança") também não é relato. Só com o verbo logo depois da negação ("caí no
-# golpe" é o "no" do português) e fora da oração com "que" ("quiero asegurarme de que no fue un
-# fraude", "achei que não era golpe" seguem relato).
+# entender essa cobrança") também não é relato. Só no começo da mensagem, onde o cliente nega: a
+# negação do golpista citada pela vítima ("me juró: no es una estafa") e a da oração com "que"
+# ("quiero asegurarme de que no fue un fraude") seguem relato (REG-42 da validação). E só com o
+# verbo logo depois da negação: "no golpe do pix" é o "no" do português.
 FRAUDE_NEGADA = re.compile(
-    r"(?<![a-z0-9])(?<!que )(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|"
+    r"^(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|"
     r"creo que es|acho que seja|acho que foi|acho que e) (?:un |um |una |uma )?"
     r"(?:fraude|golpe|estafa|robo|roubo)(?![a-z0-9])"
 )
