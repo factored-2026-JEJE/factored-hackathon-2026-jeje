@@ -11822,6 +11822,66 @@
       ]
     },
     {
+      "id": "M-ITP-156",
+      "requisito": "R03",
+      "descricao": "Relato de que outra pessoa usou ou roubou não é fraude (regressão do #57)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                TERCEIRO_USOU, CARTAO_SE_ROUBOU,\n",
+          "para": "                CARTAO_SE_ROUBOU,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-157",
+      "requisito": "R03",
+      "descricao": "\"Mi tarjeta se robó\" não é fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                TERCEIRO_USOU, CARTAO_SE_ROUBOU,\n",
+          "para": "                TERCEIRO_USOU,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-158",
+      "requisito": "R03",
+      "descricao": "A pergunta no presente (\"si alguien usa mi tarjeta\") vira relato de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"uso\", \"usaba\", \"usaron\",",
+          "para": "    (\"usa\", \"uso\", \"usaba\", \"usaron\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_outra_pessoa_sem_uso_nem_roubo_nao_e_relato_de_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-159",
+      "requisito": "R03",
+      "descricao": "A pergunta condicional (\"qué hago si alguien usó\") bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"que hago si\", \"que debo hacer si\", \"que hacer si\", \"o que fazer se\", \"o que faco se\",\n    \"o que devo fazer se\", \"como se si\", \"como sei se\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_condicional_sobre_uso_por_outra_pessoa_e_prevencao"
+      ]
+    },
+    {
       "id": "M-LLM-25",
       "requisito": "R02",
       "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",
