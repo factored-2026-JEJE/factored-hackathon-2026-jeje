@@ -226,7 +226,10 @@ termos compostos, com as duas partes perto e na ordem da história:
 - outra pessoa que usou o cartão ou entrou na conta ("alguien utilizó mi tarjeta"), salvo a pessoa
   do próprio banco ou do suporte ("alguien del soporte entró a mi cuenta para restablecer la
   contraseña", ACH-194), e quem ligou ou disse ser do banco e tirou o dinheiro (ACH-192, REG-33);
-- a conta esvaziada ("me vaciaron la cuenta").
+- a conta esvaziada ("me vaciaron la cuenta");
+- a perda do cartão, também o cartão que não se achou ("no encontré mi tarjeta"); quem achou o cartão
+  e quer reativá-lo pede o desbloqueio ("encontré la tarjeta que perdí, ¿cómo la reactivo?",
+  ACH-198).
 
 A indignação com a tarifa ou com a compra que não chegou ("¡esto es un robo!", "isso é um assalto")
 sozinha não é relato de roubo; o relato que vem junto continua ("¡esto es un robo! alguien usó mi
