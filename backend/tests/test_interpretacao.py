@@ -939,6 +939,15 @@ def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
         ("Recibí un mensaje raro, no di mis datos, ¿es una estafa?", True),
         ("Me ligaram dizendo ser do banco, não passei nada, era golpe?", True),
         ("Me escribieron del banco y no le di mis datos, ¿era una estafa?", True),  # "no le di"
+        # REG-21: o objeto antes do verbo ("no se la di") e o nada entregue.
+        (
+            "Me llamaron diciendo que eran del banco y me pidieron la clave. "
+            "No se la di, ¿es normal?",
+            True,
+        ),
+        ("Me escribieron por WhatsApp pidiendo el código, pero no se lo di", True),
+        ("Me llegó un SMS pidiendo mis datos; no se los di", True),
+        ("Um suposto atendente pediu o código e eu não informei", True),
         # Termo de vítima não negado: é relato, mesmo com a palavra de prevenção.
         ("Fui vítima de golpe, como me protejo agora?", False),
         ("Me estafaron, transferí 500 dólares", False),

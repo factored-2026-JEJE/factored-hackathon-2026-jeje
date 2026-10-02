@@ -12396,6 +12396,21 @@
       ]
     },
     {
+      "id": "M-ITP-190",
+      "requisito": "R07",
+      "descricao": "A suspeita sem prejuízo com \"no se la di\" lida como fraude bloqueia o cartão (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"queria confirmar\",\n    # O objeto antes do verbo (\"no se la di\") e o nada entregue (\"não passei nada\"), do REG-21.\n    \"no se la di\", \"no se lo di\", \"no se las di\", \"no se los di\", \"no la di\", \"no lo di\",\n    \"nunca se la di\", \"nunca se lo di\", \"no se la pase\", \"no se lo pase\", \"nao passei nada\",\n    \"nao informei\", \"nao forneci nada\"\n",
+          "para": "    \"queria confirmar\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",
