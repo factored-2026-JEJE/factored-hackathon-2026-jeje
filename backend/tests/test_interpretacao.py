@@ -1459,6 +1459,36 @@ def test_so_o_q_sozinho_vira_que():
 
 
 @pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Me rechazaron la compra y en la tienda me dijeron que era del banco", "es"),
+        ("El comercio me dijo que era el banco el que no autorizaba", "es"),
+        ("Pensé que era el banco el que me cobró la comisión", "es"),
+        ("A loja disse que era do banco o problema", "pt"),
+        ("Na loja disseram que era do banco e que eu devia ligar para a central", "pt"),
+    ],
+)
+def test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe(texto, anterior):
+    """A loja que diz que o problema é do banco, ou quem achou que a cobrança era do banco, não
+    conta um golpe, e o cartão não é bloqueado (ACH-195)."""
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # A loja longe do verbo: quem diz ser do banco é a pessoa.
+        ("En la tienda una señora me dijo que era del banco y me pidió mis datos", "es"),
+        ("Me llamaron diciendo que era del banco y me pidieron el código", "es"),
+        # A Caixa é banco, não loja.
+        ("Ligaram da Caixa dizendo que era do banco e pediram a senha", "pt"),
+    ],
+)
+def test_quem_disse_que_era_do_banco_fora_da_loja_continua_golpe(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
     "texto",
     [
         # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).
