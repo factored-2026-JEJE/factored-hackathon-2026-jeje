@@ -466,10 +466,10 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
   em até 280 caracteres, as falas do cliente no pedido em curso que trazem algo novo ao atendente:
   o pedido, cada pista (valor, data, status, comércio) e o pedido de atendente. A escolha é por
   cobertura desses campos, na ordem em que foram ditas, e a fala sem fato fica de fora (DEV-036).
-- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~3 ms de CPU por
-  mensagem (p50 de 2,8 ms e p95 de 4,9 ms nas 6.568 mensagens do teste do BANKING77 es/pt, da
-  validação e do portunhol, com a máquina carregada; eram ~100 ms antes de cada expressão ser
-  compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
+- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~1,3 ms de CPU por
+  mensagem (p50 de 1,3 ms e p95 de 3,7 ms nas 14.124 mensagens dos conjuntos da validação, desde
+  que o termo composto deixou de procurar o segundo grupo sem o primeiro; eram 2,8 ms antes disso
+  e ~100 ms antes de cada expressão ser compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
 - Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor):
   um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez (ACH-107), aguenta 8
