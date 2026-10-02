@@ -1465,6 +1465,9 @@ def test_so_o_q_sozinho_vira_que():
         ("No es fraude, solo quiero saber por qué me rechazaron la compra", "es"),
         ("Não foi fraude, fui eu que comprei, por que recusaram?", "pt"),
         ("Não é golpe, só quero entender essa cobrança", "pt"),
+        # Depois do cumprimento (REG-44 da validação).
+        ("Hola, no es fraude, solo quiero saber por qué me rechazaron la compra", "es"),
+        ("Boa tarde, não foi golpe, só quero entender a cobrança", "pt"),
     ],
 )
 def test_a_fraude_negada_pelo_cliente_nao_e_relato(texto, anterior):
@@ -1481,6 +1484,8 @@ def test_a_fraude_negada_pelo_cliente_nao_e_relato(texto, anterior):
         # A negação do golpista citada pela vítima (REG-42 da validação).
         ("Me juró: no es una estafa. Le transferí 500 dólares", "es"),
         ("El asesor me dijo 'no es fraude' y me pidió la clave", "es"),
+        # A negação do golpista citada no começo, com o verbo de fala depois (REG-44).
+        ('"Não é golpe", ele falou, e eu fiz o pix', "pt"),
         # O "no" do português não é negação.
         ("No golpe do pix que sofri, perdi dois mil reais", "pt"),
         ("No fue un robo, perdí la tarjeta en el bus", "es"),
