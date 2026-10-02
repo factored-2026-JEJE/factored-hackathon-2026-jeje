@@ -307,12 +307,12 @@ test.each<[string, ResultadoDoTurno, string]>([
   [
     "o ranking escolheu",
     pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.987, possiveis: 2 }),
-    "escolhida pelo ranking com garantia (probabilidade 0,99; 2 possíveis; calibração 764ce683d347)",
+    "escolhida com garantia estatística de 95%: o conjunto conformal ficou só com ela (probabilidade 0,99; 2 possíveis; calibração 764ce683d347)",
   ],
   [
     "o ranking só ordenou as opções",
     pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.6, possiveis: 3 }, null),
-    "possíveis ordenadas pelo ranking (probabilidade 0,60; 3 possíveis; calibração 764ce683d347)",
+    "sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (probabilidade 0,60; 3 possíveis; calibração 764ce683d347)",
   ],
   ["o filtro exato achou", pelo({ resolvedor: "filtro", calibracao: null, probabilidade: null, possiveis: null }), "pelo filtro exato"],
 ])("por que esta resposta diz como a transação foi achada (DEV-071): %s", async (_caso, corpo, esperado) => {

@@ -65,13 +65,20 @@ function origem(r: NonNullable<ResultadoDoTurno["recibo"]>): string {
   return `${r.transaction_id}: ${r.arquivo}, linha ${r.linha}${versao}`;
 }
 
-// Como a transação do turno foi achada (DEV-071): pelo ranking, a probabilidade da escolhida, quantas
-// podiam ser e a versão da calibração; com as opções na tela, o ranking só as ordenou.
+// O nível da garantia da escolha pelo ranking (DEV-037): 1 - alfa, com o alfa da calibração
+// versionada (backend/src/jeje/qual_transacao.json, alfa = 0,05), cuja versão aparece ao lado.
+const NIVEL_DA_GARANTIA = "95%";
+
+// Como a transação do turno foi achada (DEV-071, DEV-037a): pelo ranking com garantia estatística, a
+// escolhida, o nível, a probabilidade, quantas podiam ser e a versão da calibração; sem a garantia,
+// o assistente mostrou as possíveis em vez de propor uma.
 function comoAchou(r: NonNullable<ResultadoDoTurno["resolucao"]>, escolhida: boolean): string {
   if (r.resolvedor === "ranking") {
     const p = r.probabilidade === null ? "" : `probabilidade ${r.probabilidade.toFixed(2).replace(".", ",")}; `;
     const detalhe = `${p}${r.possiveis ?? "?"} possíveis; calibração ${r.calibracao ?? "?"}`;
-    return escolhida ? `escolhida pelo ranking com garantia (${detalhe})` : `possíveis ordenadas pelo ranking (${detalhe})`;
+    return escolhida
+      ? `escolhida com garantia estatística de ${NIVEL_DA_GARANTIA}: o conjunto conformal ficou só com ela (${detalhe})`
+      : `sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (${detalhe})`;
   }
   const como = { filtro: "pelo filtro exato", escolha: "escolhida pelo cliente na lista", foco: "a que já estava em curso" };
   return como[r.resolvedor];
