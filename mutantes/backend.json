@@ -12828,16 +12828,16 @@
     {
       "id": "M-ITP-206",
       "requisito": "R02",
-      "descricao": "As frases do pedido de segredo ou dinheiro entram no corretor, e \"pidieran\" vira \"pidieron\"",
+      "descricao": "As frases do pedido de segredo ou dinheiro entram no léxico do corretor",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    so_nessa_ordem=True,\n    corrige=False,\n)",
-          "para": "    so_nessa_ordem=True,\n)"
+          "de": "    entre=5,\n    so_nessa_ordem=True,\n    corrige=False,\n)",
+          "para": "    entre=5,\n    so_nessa_ordem=True,\n)"
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
+        "tests/test_interpretacao.py::test_frases_do_pedido_de_segredo_ou_dinheiro_ficam_fora_do_corretor"
       ]
     },
     {
@@ -12898,6 +12898,21 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-212",
+      "requisito": "R02",
+      "descricao": "A pessoa \"supuestamente del banco\" que acessou a conta não é golpe (REG-32, o custo do #83)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                PESSOA_SUPOSTAMENTE,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_supostamente_do_banco_e_golpe"
       ]
     },
     {
