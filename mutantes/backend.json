@@ -6310,6 +6310,96 @@
       ]
     },
     {
+      "id": "M-LEITOR-44",
+      "requisito": "R03",
+      "descricao": "Detector da garantia treinado também com o inglês e as ambíguas como fora de escopo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        if e.origem != \"banking77\" or e.idioma not in IDIOMAS:\n",
+          "para": "        if e.origem != \"banking77\":\n"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_treino_so_com_frases_es_e_pt_do_banking77_e_o_rotulo_da_validacao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-45",
+      "requisito": "R03",
+      "descricao": "Detector da garantia sem os golpes gerados (NOV-31)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        treino = do_corpus(corpus.treino) + list(geradas)",
+          "para": "        treino = do_corpus(corpus.treino)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_garantia_le_golpe_gerado_como_fraude_e_consulta_nao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-46",
+      "requisito": "R03",
+      "descricao": "Detector da garantia sem a temperatura da calibração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        garantia = cls(logistica, temperatura, {}, versao_)",
+          "para": "        garantia = cls(logistica, 1.0, {}, versao_)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_temperatura_ajustada_na_calibracao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-47",
+      "requisito": "R03",
+      "descricao": "Limiar da garantia pelo quantil errado (o escore, não 1 menos ele)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "            garantia.limiares[idioma] = round(1 - quantil(escores.tolist(), ALFA), 4)",
+          "para": "            garantia.limiares[idioma] = round(quantil(escores.tolist(), ALFA), 4)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_limiar_cobre_as_fraudes_da_calibracao_por_idioma"
+      ]
+    },
+    {
+      "id": "M-LEITOR-48",
+      "requisito": "R03",
+      "descricao": "Limiar da garantia sorteado entre todas as posições, ambíguas inclusive",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "    return metade_de_calibracao([k for (_, k), r in rotulos.items() if r is not None])",
+          "para": "    return metade_de_calibracao([k for (_, k) in rotulos])"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_calibracao_so_sorteia_posicoes_de_frases_nao_ambiguas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-49",
+      "requisito": "R03",
+      "descricao": "Artefato da garantia sem o limiar de um idioma é aceito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        if sorted(garantia.limiares) != sorted(IDIOMAS):\n            raise ModeloInvalido(\"garantia sem o limiar de algum idioma\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_artefato_da_garantia_salvo_e_carregado_le_igual"
+      ]
+    },
+    {
       "id": "M-LEITOR-50",
       "requisito": "R06",
       "descricao": "Frase do BANKING77 em ES/EN sem o rótulo do corpus",
