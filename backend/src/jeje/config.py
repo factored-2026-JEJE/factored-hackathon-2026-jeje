@@ -77,6 +77,10 @@ class Settings(BaseSettings):
     # servidor e tempos do modo ollama) e os exemplos gerados no build ao lado do leitor.
     nao_entendi_modelo: str
     leitor_vizinhos: Path
+    # Garantia de encaminhamento da fraude (DEV-046, só com INTERPRETADOR=leitor_modelo): ligada ou
+    # não, e o detector gerado no build ao lado do leitor.
+    garantia_de_fraude: bool
+    leitor_garantia: Path
     # "Qual transação" (DEV-037): ranking com conjunto conformal, calibrado no arquivo versionado
     # do pacote, ou o filtro exato de antes.
     resolvedor_de_transacao: Literal["ranking", "filtro"]

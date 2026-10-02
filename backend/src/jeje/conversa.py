@@ -44,7 +44,7 @@ from jeje.interpretacao import (
     interpretar,
     prevencao,
 )
-from jeje.interpretacao_modelo import Interpretador, Leitura, pelas_regras
+from jeje.interpretacao_modelo import Interpretador, Leitura, pela_garantia, pelas_regras
 from jeje.mensagens import (
     ESTADO,
     ESTADO_DO_CASO,
@@ -258,6 +258,10 @@ class _Turno:
             if decisao.regra == "POL-HUM-01" and prevencao(self.mensagem):
                 # Prevenção ou suspeita sem perda (ACH-144): vai ao atendente, sem bloquear.
                 self._anotar("bloquear_cartao", "prevenção ou suspeita sem perda; nada bloqueado")
+                return self._encaminhar(decisao, self._em_foco())
+            if decisao.regra == "POL-HUM-01" and pela_garantia(self.lida):
+                # Possível fraude pela garantia (DEV-046), não um relato: sem bloquear.
+                self._anotar("bloquear_cartao", "possível fraude pela garantia; nada bloqueado")
                 return self._encaminhar(decisao, self._em_foco())
             if decisao.regra == "POL-HUM-01":
                 # O relato de fraude também bloqueia o cartão, pelo dispositivo da sessão.

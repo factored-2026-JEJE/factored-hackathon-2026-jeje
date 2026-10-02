@@ -92,6 +92,17 @@ class Leitura:
     vetor: np.ndarray | None = field(default=None, compare=False, repr=False)
 
 
+# O sinal que a garantia de fraude (DEV-046, jeje.garantia_fraude) põe na leitura quando o detector
+# dispara: "garantia:p=0.73:limiar=0.58:llm=fraude:dispara" ou "...:segue".
+SINAL_DA_GARANTIA = "garantia"
+
+
+def pela_garantia(lida: Interpretacao) -> bool:
+    """A leitura virou fraude pela garantia, e não pelo relato: encaminha sem bloquear."""
+    prefixo = f"{SINAL_DA_GARANTIA}:"
+    return any(s.startswith(prefixo) and s.endswith(":dispara") for s in lida.sinais)
+
+
 def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitura:
     return Leitura(interpretar(texto, idioma_anterior, referencia), "regras")
 
@@ -234,11 +245,20 @@ def configurado(settings: Settings) -> Interpretador:
                 ),
                 settings.leitor_vizinhos,
             )
-        return interpretacao_leitor.Leitor(
+        leitor = interpretacao_leitor.Leitor(
             interpretacao_leitor.dos_arquivos(settings.leitor_modelo, settings.leitor_e5),
             settings.leitor_limite,
             llm,
         )
+        if llm is None or not settings.garantia_de_fraude:
+            return leitor
+        # Sem o LLM a garantia não liga (NOV-39): ela só existe no modo leitor_modelo.
+        from jeje import garantia_fraude
+        from jeje.leitor.garantia import Garantia
+
+        caminho = settings.leitor_garantia
+        garantia = garantia_fraude.GarantiaDeFraude(lambda: Garantia.carregar(caminho), llm)
+        return garantia_fraude.ComGarantia(leitor, garantia)
     if settings.interpretador == "ollama":
         return Ollama(
             settings.ollama_url,
