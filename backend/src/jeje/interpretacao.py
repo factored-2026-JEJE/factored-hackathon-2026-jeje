@@ -279,11 +279,15 @@ QUEM_ELE_DISSE_SER = (
     "central", "gerente", "primo", "prima", "tio", "tia", "sobrinho", "sobrinha", "sobrino",
     "sobrina", "hermano", "hermana", "irmao", "irma", "cunhado", "cunhada", "cunado", "familiar",
     "filho", "filha", "hijo", "hija", "mae", "madre", "amigo", "amiga",
+    "atendente", "operador", "asesor",
 )  # fmt: skip
 SE_PASSOU_POR = Perto(
     ("dijo ser", "dijeron ser", "dice ser", "diciendo ser", "decia ser", "se decia", "dizendo ser",
      "dizia ser", "disse ser", "alegando ser", "alegando serem", "se hizo pasar por",
-     "se fez passar por", "se passou por", "fingiu ser", "fingindo ser", "fingiendo ser"),
+     "se fez passar por", "se passou por", "fingiu ser", "fingindo ser", "fingiendo ser",
+     # Golpe contado como história (ACH-171, REG-12 no 1c11b16).
+     "se passava por", "se fazia passar por", "fingia ser", "se hacia pasar por",
+     "haciendose pasar por"),
     QUEM_ELE_DISSE_SER,
     entre=2,
 )  # fmt: skip
@@ -292,7 +296,8 @@ SE_PASSOU_POR = Perto(
 DISSE_QUE_ERA = Perto(
     ("dijo que era", "dijo era", "dijeron que era", "diciendo que era", "diciendo que eran",
      "disse que era", "disseram que era", "dizendo que era", "dizendo que e", "acreditei que era",
-     "crei que era", "crei yo era", "achei que era", "pense que era"),
+     "crei que era", "crei yo era", "achei que era", "pense que era", "falando que era",
+     "falou que era", "se dizia do", "que se dizia"),
     QUEM_ELE_DISSE_SER,
     entre=1,
 )  # fmt: skip
@@ -304,7 +309,9 @@ FALSO_ATENDENTE = Perto(
 )  # fmt: skip
 SENHA_ENTREGUE = Perto(
     ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
-     "diera"),
+     "diera",
+     # A senha ou o código obtidos ou pedidos por outra pessoa (ACH-171).
+     "conseguiu", "consiguio", "pediu", "pidio", "pidieron", "pediram", "roubou", "robo"),
     ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
     entre=2,
 )  # fmt: skip

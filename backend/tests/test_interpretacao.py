@@ -1079,6 +1079,13 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
         "alguém se passou por mim e fez um pix",
         "um estranho acessou minha conta",
         "Mi tarjeta se robó anoche",
+        # Golpe contado como história; a senha não faz virar fora de escopo (ACH-171, REG-12).
+        "Alguém me ligou falando que era do banco e conseguiu minha senha",
+        "Recebi uma ligação de alguém que se passava por um atendente do banco",
+        "Un señor haciéndose pasar por el banco me pidió la clave",
+        "Me llamó alguien que se hacía pasar por el banco y consiguió mi clave",
+        "Um homem conseguiu minha senha pelo telefone",
+        "Me pidieron la clave por WhatsApp",
         "Meu cartão se roubou ontem",
         # O leitor lia com confiança como contestação (ACH-182, LLM-01): agora as regras leem antes.
         "Alguien anda gastando con mi plástico en tiendas donde nunca he puesto un pie",
@@ -1135,6 +1142,8 @@ def test_pergunta_condicional_sobre_uso_por_outra_pessoa_e_prevencao(texto, perg
         "¿Qué pasa si alguien usa mi tarjeta?",
         "Quero que uma pessoa veja meu caso",
         "alguien del banco me llamó ayer",
+        "Esqueci minha senha do aplicativo",
+        "¿Cómo cambio mi clave?",
     ],
 )
 def test_outra_pessoa_sem_uso_nem_roubo_nao_e_relato_de_fraude(texto):
