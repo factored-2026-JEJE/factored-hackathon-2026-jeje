@@ -93,7 +93,8 @@ class Perto:
     """Termo composto: um termo de cada grupo, em qualquer ordem, separados por no máximo `entre`
     palavras, nenhuma delas de `fora` (o que mostra que o objeto é outro). Com o termo do segundo
     grupo antes do primeiro, também as `antes` palavras anteriores não podem ser de `fora_antes`: em
-    "la compra con mi tarjeta no aparece", o que não aparece é a compra."""
+    "la compra con mi tarjeta no aparece", o que não aparece é a compra. No termo só nessa ordem,
+    elas valem antes do par: em "en la tienda me dijeron que era del banco", quem fala é a loja."""
 
     um: tuple[str, ...]
     outro: tuple[str, ...]
@@ -132,7 +133,8 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
             # O segundo grupo só participa quando o termo do segundo grupo veio antes.
             invertido = len(grupos) == 2 and grupos[1] is not None
             antes = " ".join(limpo[: achado.start()].split()[-termo.antes :] if termo.antes else ())
-            if invertido and any(_casa(f, antes) for f in termo.fora_antes):
+            antes_conta = invertido or termo.so_nessa_ordem
+            if antes_conta and any(_casa(f, antes) for f in termo.fora_antes):
                 continue
             if termo.negavel and _negado(limpo[: achado.start()]):
                 continue
@@ -372,7 +374,10 @@ APRESENTOU_E_PEDIU = Perto(
     corrige=False,
 )
 # "Disse que era" é comum fora do golpe ("o vendedor disse que era problema do banco"): só com
-# quem ele disse ser logo depois.
+# quem ele disse ser logo depois. A loja, o comércio ou o vendedor logo antes, ou o problema e a
+# culpa logo depois, são a atribuição do problema ao banco, não o golpe ("me rechazaron la compra y
+# en la tienda me dijeron que era del banco", "a loja disse que era do banco o problema", "pensé que
+# era el banco el que me cobró", ACH-195).
 DISSE_QUE_ERA = Perto(
     ("dijo que era", "dijo era", "dijeron que era", "diciendo que era", "diciendo que eran",
      "disse que era", "disseram que era", "dizendo que era", "dizendo que e", "acreditei que era",
@@ -384,6 +389,13 @@ DISSE_QUE_ERA = Perto(
     QUEM_ELE_DISSE_SER,
     entre=1,
     so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)
+    antes=3,
+    fora_antes=("tienda", "loja", "comercio", "establecimiento", "estabelecimento", "supermercado",
+                "mercado", "farmacia", "restaurante", "gasolinera", "posto", "lojista", "vendedor",
+                "vendedora", "cajero", "cajera"),
+    depois=2,
+    fora_depois=("el problema", "o problema", "la culpa", "a culpa", "el error", "o erro", "el que",
+                 "la que", "quien", "quem"),
 )  # fmt: skip
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),

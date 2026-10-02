@@ -12357,8 +12357,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    antes=3,\n",
-          "para": "    antes=0,\n"
+          "de": "    antes=3,\n    fora_antes=(\"compra*\",",
+          "para": "    antes=0,\n    fora_antes=(\"compra*\","
         }
       ],
       "testes": [
@@ -12372,8 +12372,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            if invertido and any(_casa(f, antes) for f in termo.fora_antes):\n",
-          "para": "            if any(_casa(f, antes) for f in termo.fora_antes):\n"
+          "de": "            antes_conta = invertido or termo.so_nessa_ordem\n",
+          "para": "            antes_conta = True\n"
         }
       ],
       "testes": [
@@ -13019,6 +13019,66 @@
       "testes": [
         "tests/test_interpretacao.py::test_golpe_escrito_com_o_q_abreviado",
         "tests/test_interpretacao.py::test_so_o_q_sozinho_vira_que"
+      ]
+    },
+    {
+      "id": "M-ITP-220",
+      "requisito": "R02",
+      "descricao": "A loja logo antes do \"disse que era\" não desfaz o golpe (\"en la tienda me dijeron que era del banco\" bloqueia o cartão, ACH-195)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    antes=3,\n    fora_antes=(\"tienda\",",
+          "para": "    antes=0,\n    fora_antes=(\"tienda\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-221",
+      "requisito": "R02",
+      "descricao": "O problema ou o \"el que\" logo depois do \"disse que era\" não desfaz o golpe (\"pensé que era el banco el que me cobró\" bloqueia o cartão, ACH-195)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=2,\n    fora_depois=(\"el problema\",",
+          "para": "    depois=0,\n    fora_depois=(\"el problema\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-222",
+      "requisito": "R02",
+      "descricao": "No termo só nessa ordem, as palavras antes do par não contam (a loja que fala volta a ser golpe, ACH-195)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            antes_conta = invertido or termo.so_nessa_ordem\n",
+          "para": "            antes_conta = invertido\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-223",
+      "requisito": "R02",
+      "descricao": "A Caixa entre as lojas: \"ligaram da Caixa dizendo que era do banco\" deixa de ser golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"lojista\", \"vendedor\",\n",
+          "para": "\"lojista\", \"caixa\", \"vendedor\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_disse_que_era_do_banco_fora_da_loja_continua_golpe"
       ]
     },
     {
