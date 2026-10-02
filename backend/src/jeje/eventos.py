@@ -49,11 +49,12 @@ def registrar(conexao: Connection, e: Evento) -> None:
         text(
             "INSERT INTO app.eventos (tipo, conversa_id, numero, intencao, regra, acao, efeito,"
             " fontes, erro, latencia_ms, interpretacao, modelo_latencia_ms, modelo_tokens_entrada,"
-            " modelo_tokens_saida, requisicao, resolvedor, calibracao, probabilidade, possiveis)"
+            " modelo_tokens_saida, requisicao, resolvedor, calibracao, probabilidade, possiveis,"
+            " versao_dos_dados)"
             " VALUES (:tipo, :conversa, :numero, :intencao, :regra, :acao, :efeito,"
             " CAST(:fontes AS jsonb), :erro, :latencia, :interpretacao, :modelo_ms,"
             " :tokens_entrada, :tokens_saida, :requisicao, :resolvedor, :calibracao,"
-            " :probabilidade, :possiveis)"
+            " :probabilidade, :possiveis, (SELECT version FROM meta.dataset_version))"
         ),
         {
             "tipo": e.tipo,
