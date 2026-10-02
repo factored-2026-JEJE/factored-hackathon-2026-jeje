@@ -13022,6 +13022,51 @@
       ]
     },
     {
+      "id": "M-ITP-224",
+      "requisito": "R02",
+      "descricao": "A indignação (\"¡es un robo! me cobraron la comisión\") volta a ser relato de roubo e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        lido = INDIGNACAO.sub(\" \", limpo) if intencao == \"fraude\" else limpo\n",
+          "para": "        lido = limpo\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo"
+      ]
+    },
+    {
+      "id": "M-ITP-225",
+      "requisito": "R02",
+      "descricao": "O roubo contado (\"sufrí un robo\", \"hubo un robo\") também passa por indignação e deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que) ",
+          "para": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que|sufri|hubo) "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-226",
+      "requisito": "R02",
+      "descricao": "O golpe no particípio (\"me han estafado\") não é fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"estafado\", \"estafada\", \"estafados\", \"estafadas\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
       "id": "M-ITP-220",
       "requisito": "R02",
       "descricao": "A loja logo antes do \"disse que era\" não desfaz o golpe (\"en la tienda me dijeron que era del banco\" bloqueia o cartão, ACH-195)",
