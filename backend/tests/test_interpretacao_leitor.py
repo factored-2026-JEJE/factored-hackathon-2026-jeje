@@ -83,6 +83,18 @@ def test_recusa_da_transacao_proposta_e_das_regras_e_nao_chega_ao_leitor(texto):
     assert modelo.lidos == [] and cargas == []
 
 
+@pytest.mark.parametrize("texto", ["asdf qwer", "aaaa bbb ccc", "kkkkk", "???", "👍"])
+def test_mensagem_sem_palavra_conhecida_nao_chega_ao_leitor(texto):
+    """ACH-122 (EV-147): o leitor lia o ruído como pedido fora de escopo com 0,89 a 0,99, e a
+    conversa recusava no primeiro turno. Sem nenhuma palavra do vocabulário, a mensagem segue não
+    entendida, sem carregar nem chamar o leitor."""
+    ler, modelo, cargas = leitor(fluxo="fora_de_escopo", confianca=0.99)
+    leitura = ler(texto, "es", REFERENCIA)
+    assert leitura.lida.intencao == "desconhecida"
+    assert leitura.fonte == "regras (sem palavra conhecida)"
+    assert modelo.lidos == [] and cargas == []
+
+
 def test_leitor_confiante_preenche_intencao_e_status_pelo_fluxo():
     ler, modelo, _ = leitor(fluxo="explicar_estorno", confianca=0.93)
     leitura = ler(VAGA, "pt", REFERENCIA)

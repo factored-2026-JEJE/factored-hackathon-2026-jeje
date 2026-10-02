@@ -194,11 +194,13 @@ PEDIDO_DE_PESSOA = Perto(
     ("agente", "asesor", "atendente", "humano", "operador", "persona", "pessoa", "alguien",
      "alguem", "gerente", "ejecutivo", "supervisor"),
 )  # fmt: skip
-# A mensagem que é só a pessoa ("Agente", "un humano por favor") continua sendo pedido.
+# A mensagem que é só a pessoa ("Agente", "un humano por favor", "asesor pfv") continua sendo
+# pedido, também com o "por favor" abreviado.
+POR_FAVOR = r"(?:por favor|porfavor|porfa|pfv|pfvr|pf|pls|plis|plz|please)"
 SO_A_PESSOA = re.compile(
-    r"^(?:(?:un|una|um|uma|el|la|o|a|por favor|ya|ahora|agora|ja) )*"
+    rf"^(?:(?:un|una|um|uma|el|la|o|a|{POR_FAVOR}|ya|ahora|agora|ja) )*"
     r"(?:agente|asesor|atendente|humano|operador|persona|pessoa|gerente|supervisor)"
-    r"(?: (?:por favor|ya|ahora|agora|ja))*$"
+    rf"(?: (?:{POR_FAVOR}|ya|ahora|agora|ja))*$"
 )
 # Cobrança repetida é contestação quando o verbo de cobrar (ou de aparecer no extrato) está perto:
 # "me cobraron dos veces", "a Streaming Plus me cobrou 2x"; "intenté dos veces y me rechazaron"
@@ -306,12 +308,17 @@ DINHEIRO_TIRADO = Perto(
 # Golpe de engenharia social (ACH-142): alguém se passou pelo banco, por um funcionário ou por um
 # parente; o cliente entregou a senha, o código ou os dados; o site ou o link era falso; a conta, o
 # número ou o WhatsApp foram tomados; o dinheiro foi para um golpista.
+# Os parentes de quem o golpista se faz passar ("se presentó como mi sobrino").
+PARENTES = (
+    "primo", "prima", "primos", "tio", "tia", "sobrinho", "sobrinha", "sobrinhos", "sobrino",
+    "sobrina", "sobrinos", "hermano", "hermana", "irmao", "irma", "cunhado", "cunhada", "cunado",
+    "familiar", "filho", "filha", "hijo", "hija", "mae", "madre", "parente", "pariente", "parentes",
+    "parientes",
+)  # fmt: skip
 QUEM_ELE_DISSE_SER = (
     "banco", "bancaria", "agencia", "oficina", "funcionario*", "empleado*", "suporte", "soporte",
-    "central", "gerente", "primo", "prima", "tio", "tia", "sobrinho", "sobrinha", "sobrino",
-    "sobrina", "hermano", "hermana", "irmao", "irma", "cunhado", "cunhada", "cunado", "familiar",
-    "filho", "filha", "hijo", "hija", "mae", "madre", "amigo", "amiga",
-    "atendente", "operador", "asesor",
+    "central", "gerente", *PARENTES, "amigo", "amiga", "atendente", "operador", "asesor", "agente",
+    "representante",
 )  # fmt: skip
 SE_PASSOU_POR = Perto(
     ("dijo ser", "dijeron ser", "dice ser", "diciendo ser", "decia ser", "se decia", "dizendo ser",
@@ -319,11 +326,35 @@ SE_PASSOU_POR = Perto(
      "se fez passar por", "se passou por", "fingiu ser", "fingindo ser", "fingiendo ser",
      # Golpe contado como história (ACH-171, REG-12 no 1c11b16).
      "se passava por", "se fazia passar por", "fingia ser", "se hacia pasar por",
-     "haciendose pasar por"),
+     "haciendose pasar por",
+     # Afirmou ser outro ("me aseguró ser mi primo"). Apresentar-se ou dizer onde trabalha, não: é
+     # também o atendente de verdade ("se presentó como gerente y me ayudó mucho", ACH-179).
+     "afirma ser", "afirmo ser", "afirmando ser", "aseguro ser", "asegurando ser",
+     "se fazendo passar por", "fazendo se passar por", "se passando por", "se passava como",
+     "disfrazado de", "disfrazada de", "disfarcado de", "disfarcada de"),
     QUEM_ELE_DISSE_SER,
     entre=2,
     # Só o verbo e depois o papel: "o atendente falou que era só esperar" é o atendente de
     # verdade (ACH-173, REG-18).
+    so_nessa_ordem=True,
+)  # fmt: skip
+# Apresentar-se como outro só é golpe com o parente ou com o pedido depois: o atendente de verdade
+# também se apresenta ("se presentó como gerente y me ayudó mucho", ACH-179).
+APRESENTOU = (
+    "se presento como", "se presentaron como", "se apresentou como", "se apresentaram como",
+)  # fmt: skip
+SE_APRESENTOU_COMO_PARENTE = Perto(APRESENTOU, PARENTES, entre=1, so_nessa_ordem=True)
+# "Se presentó como empleado del banco y me pidió la clave", "decía trabajar en este banco y me
+# pidió la seguridad de mi cuenta".
+APRESENTOU_E_PEDIU = Perto(
+    (*APRESENTOU, "decia trabajar", "dijo trabajar", "dizia trabalhar", "disse trabalhar"),
+    ("me pidio la", "me pidio mi", "me pidio el", "me pidio los", "me pidio mis", "me pidieron la",
+     "me pidieron mi", "me pidieron el", "me pidieron los", "me pidieron mis", "me solicito la",
+     "me solicito mi", "me solicito los", "me solicito mis", "me pediu a", "me pediu o",
+     "me pediu minha", "me pediu meu", "me pediu meus", "me pediram a", "me pediram o",
+     "me pediram minha", "me pediram meu", "me pediram meus", "me solicitou a", "me solicitou o",
+     "me solicitou minha", "me solicitou meus"),
+    entre=5,
     so_nessa_ordem=True,
 )  # fmt: skip
 # "Disse que era" é comum fora do golpe ("o vendedor disse que era problema do banco"): só com
@@ -332,7 +363,10 @@ DISSE_QUE_ERA = Perto(
     ("dijo que era", "dijo era", "dijeron que era", "diciendo que era", "diciendo que eran",
      "disse que era", "disseram que era", "dizendo que era", "dizendo que e", "acreditei que era",
      "crei que era", "crei yo era", "achei que era", "pense que era", "falando que era",
-     "falou que era", "se dizia do", "que se dizia"),
+     "falou que era", "se dizia do", "que se dizia", "alegando que era", "alegando que e",
+     "decia era", "decia que era", "hicieron creer que era", "hizo creer que era",
+     "fizeram acreditar que era", "fez acreditar que era", "creyendo que era", "achando que era",
+     "pensando que era"),
     QUEM_ELE_DISSE_SER,
     entre=1,
     so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)
@@ -340,7 +374,7 @@ DISSE_QUE_ERA = Perto(
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
     ("vendedor", "corretor", "funcionario", "operador", "empleado", "ligacao", "llamada",
-     "central", "atendente", "asesor", "gerente"),
+     "central", "atendente", "asesor", "gerente", "agente"),
     entre=1,
 )  # fmt: skip
 SENHA_ENTREGUE = Perto(
@@ -349,6 +383,12 @@ SENHA_ENTREGUE = Perto(
     ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
     entre=2,
 )  # fmt: skip
+# "Facilité" só com o segredo: "ya les facilité mis datos" é o cadastro (ACH-179).
+SEGREDO_FACILITADO = Perto(
+    ("facilite", "facilitei"),
+    tuple(c for c in SENHA_ENTREGUE.outro if c not in ("datos", "dados")),
+    entre=2,
+)
 # A senha, o código ou os dados do cliente obtidos ou roubados por outra pessoa ("conseguiu minha
 # senha", "robaron mi clave", ACH-171): só com o possessivo e sem negação. Pedida não basta: o
 # caixa, o app e o caixa eletrônico também pedem ("o caixa pediu a senha", "el cajero me pidió mi
@@ -405,7 +445,28 @@ TERCEIRO_USOU = Perto(
      "usando minha", "usando meus", "utilizou meu", "utilizou minha", "gastando com o meu",
      "gastando com meu", "gastando com a minha", "gastando com minha", "gastou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
-     "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou"),
+     "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou",
+     # Contado de outros jeitos ("alguien la utilizó sin autorización", "alguien obtuvo los datos
+     # de mi tarjeta", "alguém está usando a minha conta"), sempre com o que é do cliente (o resto
+     # do ACH-171, REG-12 no 4c62c69).
+     "la utilizo", "la uso", "la usaron", "la utilizaron", "la esta usando", "la esta utilizando",
+     "la ha utilizado", "la ha usado", "usado mi", "usado meu", "usado minha", "uso la misma",
+     "usando a minha", "usando o meu", "usou a minha", "usou o meu", "usou um cartao meu",
+     "usou o mesmo cartao", "sido utilizada por", "sido usada por", "fue utilizada por",
+     "fue usada por", "foi usado por", "foi usada por", "foi utilizado por", "foi utilizada por",
+     "ha accedido a mi cuenta", "accedieron a mi cuenta", "acessaram minha conta",
+     "tenido acceso a mi", "entrando en mi cuenta", "entrando a mi cuenta",
+     "entrando na minha conta", "haciendo pagos con mi", "haciendo compras con mi",
+     "fazendo compras com meu", "fazendo compras no meu", "fazendo pagamentos com meu",
+     "obtuvo los datos", "obtuvo los detalles", "obteve os dados", "obteve os detalhes",
+     "consiguio los datos", "conseguiu os dados", "conseguido la informacion",
+     "conseguido as informacoes", "conseguiu obter os dados", "conseguiu obter meus dados",
+     "abrio una cuenta a mi nombre", "abriu uma conta no meu nome", "abriu uma conta em meu nome",
+     "intento realizar una compra", "intento realizar una transaccion",
+     "tentou realizar uma compra", "tentou realizar uma operacao", "tentou realizar uma transacao",
+     "intento cobrar con mi", "tentou cobrar com meu", "se ha hecho pasar", "pegou meu cartao",
+     "pegou meus cartoes", "pegou minha carteira", "forjou o meu", "forjou meu", "rouba o meu",
+     "rouba meu"),
 )  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
@@ -465,12 +526,13 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
                 # a leitura continua a de hoje.
                 "es fraudulent*", "e fraudulent*", "son fraudulent*", "sao fraudulent*",
-                "fue fraudulent*", "foi fraudulent*",
+                "fue fraudulent*", "foi fraudulent*", "fraudulentamente",
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
                 # Golpe de engenharia social (ACH-142).
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
                 SITE_FALSO,
+                SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
@@ -841,6 +903,12 @@ VOCABULARIO: dict[str, int] = {
 }
 INTENCOES_CORRIGIDAS = frozenset({"contestar", "fraude", "bloquear", "desbloquear", "humano"})
 MINIMO_PARA_CORRIGIR = 6
+
+
+def reconhecivel(texto: str) -> bool:
+    """Alguma palavra da mensagem está no vocabulário. Sem nenhuma ("asdf qwer", "kkkk", "👍"), é
+    ruído: o leitor o lia como pedido fora de escopo com confiança (ACH-122, DEV-020s)."""
+    return any(palavra in VOCABULARIO for palavra in normalizar(texto).split())
 
 
 def _palavras_do_termo(termo: str | Perto) -> Iterator[str]:
