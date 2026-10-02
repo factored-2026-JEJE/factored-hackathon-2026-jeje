@@ -275,9 +275,12 @@ def test_exemplos_ausentes_nao_chamam_o_llm_e_a_falha_e_lembrada(tmp_path, caplo
 
 
 def com_leitor_modelo(settings, tmp_path, url):
+    """A cascata com o LLM, sem a garantia de fraude (que tem o próprio teste de montagem, em
+    test_garantia_conversa): o compose a liga para todos os serviços."""
     return settings.model_copy(
         update={
             "interpretador": "leitor_modelo",
+            "garantia_de_fraude": False,
             "leitor_modelo": tmp_path / "leitor.joblib",
             "leitor_e5": tmp_path / "e5",
             "leitor_limite": 0.7,
