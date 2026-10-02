@@ -12516,6 +12516,36 @@
       ]
     },
     {
+      "id": "M-ITP-183",
+      "requisito": "R03",
+      "descricao": "\"Olvidé mi tarjeta en casa\" vira perda e bloqueia o cartão (sem olhar depois do par)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=3,\n",
+          "para": "    depois=0,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-184",
+      "requisito": "R03",
+      "descricao": "A janela depois do par alcança outra oração (\"perdi meu cartão e não aparece no aplicativo\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=3,\n",
+          "para": "    depois=6,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_seguida_de_outra_oracao_continua_perda"
+      ]
+    },
+    {
       "id": "M-ITP-185",
       "requisito": "R03",
       "descricao": "A fatura ou o extrato do cartão viram perda do cartão",
@@ -12524,6 +12554,21 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).\n          \"fatura\", \"factura\", \"extrato\", \"extracto\", \"resumen\", \"opcion\", \"opcao\", \"boleto\",\n          \"comprovante\", \"comprobante\"),",
           "para": "          ),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-186",
+      "requisito": "R03",
+      "descricao": "O termo composto ignora as palavras depois do par",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            if any(_casa(f, seguinte) for f in termo.fora_depois):\n                continue\n",
+          "para": ""
         }
       ],
       "testes": [
