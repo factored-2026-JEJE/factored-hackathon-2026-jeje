@@ -1461,6 +1461,38 @@ def test_so_o_q_sozinho_vira_que():
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("No fue un fraude, yo hice la compra pero me la rechazaron", "es"),
+        ("No es fraude, solo quiero saber por qué me rechazaron la compra", "es"),
+        ("Não foi fraude, fui eu que comprei, por que recusaram?", "pt"),
+        ("Não é golpe, só quero entender essa cobrança", "pt"),
+    ],
+)
+def test_a_fraude_negada_pelo_cliente_nao_e_relato(texto, anterior):
+    """Quem diz que não foi fraude pergunta pela compra: o cartão não é bloqueado."""
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # A negação dentro da oração com "que" é a dúvida ou a crença de quem caiu no golpe.
+        ("Quiero asegurarme de que no fue un fraude", "es"),
+        ("Achei que não era golpe e passei a senha", "pt"),
+        # A negação do golpista citada pela vítima (REG-42 da validação).
+        ("Me juró: no es una estafa. Le transferí 500 dólares", "es"),
+        ("El asesor me dijo 'no es fraude' y me pidió la clave", "es"),
+        # O "no" do português não é negação.
+        ("No golpe do pix que sofri, perdi dois mil reais", "pt"),
+        ("No fue un robo, perdí la tarjeta en el bus", "es"),
+    ],
+)
+def test_a_negacao_que_nao_e_do_cliente_segue_relato(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("No encontré mi tarjeta", "es"),
         ("Todavía no encontré mi tarjeta, ¿qué hago?", "es"),
         ("Não encontrei meu cartão em lugar nenhum", "pt"),
