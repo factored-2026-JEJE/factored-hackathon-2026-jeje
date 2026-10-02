@@ -12946,6 +12946,21 @@
       ]
     },
     {
+      "id": "M-ITP-215",
+      "requisito": "R02",
+      "descricao": "O golpe contado no passado (\"me estafó\") e o \"roubaron\" não são fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"me estafo\", \"nos estafo\", \"la estafo\", \"roubaron\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_contado_no_passado_e_o_roubaron_do_portunhol"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",

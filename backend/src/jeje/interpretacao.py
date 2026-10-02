@@ -576,6 +576,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "fue fraudulent*", "foi fraudulent*", "fraudulentamente",
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
+                # O golpe contado no passado e o "roubaron" do portunhol (EV-230 da validação).
+                "me estafo", "nos estafo", "la estafo", "roubaron",
                 # Golpe de engenharia social (ACH-142).
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
                 SITE_FALSO,
