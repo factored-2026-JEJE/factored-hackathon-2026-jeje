@@ -12372,8 +12372,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"se passava por\", \"se fazia passar por\", \"fingia ser\", \"se hacia pasar por\",\n     \"haciendose pasar por\"),",
-          "para": "     ),"
+          "de": "     \"se passava por\", \"se fazia passar por\", \"fingia ser\", \"se hacia pasar por\",\n     \"haciendose pasar por\",\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -12453,6 +12453,111 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-193",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como funcionário do banco ou como parente (\"se presentó como\", \"me aseguró ser\") não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"haciendose pasar por\",\n     # Apresentou-se como outro (\"se presentó como empleado del banco\", \"me aseguró ser mi primo\").\n     \"se presento como\", \"se presentaron como\",\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\", \"decia trabajar\",\n     \"dijo trabajar\", \"dizia trabalhar\", \"disse trabalhar\"),",
+          "para": "     \"haciendose pasar por\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-194",
+      "requisito": "R02",
+      "descricao": "Quem acreditou que era outro (\"creyendo que era mi sobrino\") não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"falou que era\", \"se dizia do\", \"que se dizia\", \"alegando que era\", \"alegando que e\",\n     \"decia era\", \"decia que era\", \"hicieron creer que era\", \"hizo creer que era\",\n     \"fizeram acreditar que era\", \"fez acreditar que era\", \"creyendo que era\", \"achando que era\",\n     \"pensando que era\"),",
+          "para": "     \"falou que era\", \"se dizia do\", \"que se dizia\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-195",
+      "requisito": "R02",
+      "descricao": "O parente, o agente e \"vocês\" não contam como quem o golpista disse ser (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"atendente\", \"operador\", \"asesor\", \"parente\", \"pariente\", \"agente\", \"representante\", \"primos\",\n    \"sobrinos\", \"sobrinhos\", \"parentes\", \"parientes\", \"ustedes\", \"voces\",",
+          "para": "    \"atendente\", \"operador\", \"asesor\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-196",
+      "requisito": "R02",
+      "descricao": "O agente suposto não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"agente\"),",
+          "para": "     \"central\", \"atendente\", \"asesor\", \"gerente\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-197",
+      "requisito": "R02",
+      "descricao": "O código facilitado (\"les facilité el código\") não é golpe (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"diera\", \"facilite\", \"facilitei\"),",
+          "para": "     \"diera\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
+      ]
+    },
+    {
+      "id": "M-ITP-198",
+      "requisito": "R02",
+      "descricao": "O uso por outra pessoa contado de outros jeitos (\"alguien la utilizó\", \"obtuvo los datos de mi tarjeta\") não é fraude (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la utilizo\", \"la uso\", \"la usaron\", \"la utilizaron\", \"la esta usando\", \"la esta utilizando\",\n     \"la ha utilizado\", \"la ha usado\", \"usado mi\", \"usado meu\", \"usado minha\", \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou a minha\", \"usou o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
+          "para": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-199",
+      "requisito": "R02",
+      "descricao": "\"Usó fraudulentamente mi tarjeta\" não é fraude (ACH-171)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": " \"fraudulentamente\", \"de manera fraudulenta\",\n                \"de forma fraudulenta\",",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude"
       ]
     },
     {
