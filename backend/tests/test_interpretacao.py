@@ -1272,13 +1272,9 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
     [
         # Quem se apresentou como outro (o resto do ACH-171, REG-12 no 4c62c69): o funcionário do
         # banco, o parente que pede dinheiro, o agente disfarçado...
-        "Me llamó alguien que se presentó como empleado del banco y me pidió mis datos",
-        "Mandé dinero a una persona que se presentó como mi sobrino",
         "Acabo de enviar 2000 pesos por pix a alguien que me aseguró ser mi primo",
         "Uma pessoa se fazendo passar por atendente do banco me ligou",
         "Me fizeram uma ligação disfarçada de agente bancário e eu acreditei",
-        "Me llamó alguien que decía trabajar en este banco y me pidió la clave",
-        "Uma pessoa ligou, disse que era vocês e pediu 500 reais",
         # ... quem acreditou que era outro...
         "Le envié dinero a alguien creyendo que era mi sobrino",
         "Enviei dinheiro para alguém achando que era meu sobrinho",
@@ -1290,6 +1286,23 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
 )
 def test_golpe_de_quem_se_apresentou_como_outro(texto):
     assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "golpe"),
+    [
+        # Apresentar-se como outro é golpe com o parente ou com o pedido depois (ACH-179)...
+        ("Mandé dinero a una persona que se presentó como mi sobrino", True),
+        ("Una persona que se presentó como empleado del banco me pidió la clave", True),
+        ("Me llamó alguien que decía trabajar en este banco y me pidió la clave", True),
+        ("Um homem se apresentou como funcionário do banco e me pediu a senha", True),
+        # ... e não é quando o atendente de verdade se apresenta e pede outra coisa.
+        ("La señora se presentó como gerente y me pidió que esperara un momento", False),
+        ("Se presentó como asesor y me explicó cómo cambiar la clave", False),
+    ],
+)
+def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe):
+    assert (ler(texto).intencao == "fraude") is golpe
 
 
 @pytest.mark.parametrize(
@@ -1347,6 +1360,16 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         "Una persona está entrando a la tienda",
         "Una persona intentó realizar el pago por mí en la caja",
         "Mi hermana la usó con mi permiso",
+        # Os termos do #77 em mensagens comuns (ACH-179, REG-24): "de ustedes", o cadastro, o
+        # atendente de verdade que se apresenta e o "fraudulenta" negado.
+        "Recibí un cargo y pensé que era de ustedes, pero no reconozco el comercio",
+        "Vi um débito e achei que era de vocês, mas não reconheço a loja",
+        "Pensando que era de vocês a cobrança, não reclamei antes",
+        "Ya les facilité mis datos, ¿cuándo me llega la tarjeta?",
+        "La señora que me atendió en la sucursal se presentó como gerente y me ayudó mucho",
+        "El chico que me atendió dijo trabajar en el banco hace diez años",
+        "O rapaz que me atendeu disse trabalhar no banco há dez anos",
+        "No creo que el cobro haya sido de manera fraudulenta, solo quiero entenderlo",
         "La bolsa de plástico que perdí no importa, quiero ver mi saldo",
         # A senha pedida sem dizer por quem não separa golpe de rotina: fica fora de escopo, e a
         # conversa oferece o atendente.
