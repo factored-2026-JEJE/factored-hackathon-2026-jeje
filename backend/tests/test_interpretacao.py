@@ -1175,6 +1175,22 @@ def test_flexoes_de_evitar_e_cuidar_sao_prevencao(texto, pergunta):
 @pytest.mark.parametrize(
     ("texto", "pergunta"),
     [
+        # A hipótese de perda é pergunta: lida como fraude (pelo leitor), vai ao atendente sem
+        # bloquear (REG-20). Com vítima, continua relato.
+        ("En caso de perder la tarjeta, ¿cómo la bloqueo?", True),
+        ("Caso eu perca o cartão, o que faço?", True),
+        ("¿Qué pasa si pierdo la tarjeta?", True),
+        ("O que acontece se eu perder o cartão?", True),
+        ("Perdí la tarjeta, en caso de que la usen ¿qué hago?", False),
+    ],
+)
+def test_hipotese_de_perda_e_prevencao(texto, pergunta):
+    assert interpretacao.prevencao(texto) is pergunta
+
+
+@pytest.mark.parametrize(
+    ("texto", "pergunta"),
+    [
         # A pergunta condicional sobre o uso por outra pessoa vai ao atendente sem bloquear (P3);
         # o relato seguido de pergunta, ou a pergunta com vítima, continua bloqueando.
         ("¿Qué hago si alguien usó mi tarjeta?", True),
