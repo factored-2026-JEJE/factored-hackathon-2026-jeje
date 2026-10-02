@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   abrirSessao,
   type Dispositivo,
-  type ExemploDeContestacao,
   type Idioma,
   listarPersonas,
   meusPreCasos,
@@ -15,6 +14,7 @@ import {
   type Transacao,
 } from "./api/cliente";
 import { Conversa } from "./Conversa";
+import { frasesDoExemplo, quantiaDoCliente } from "./frasesDoCliente";
 
 const CHAVE_SESSAO = "jeje.sessao";
 
@@ -36,17 +36,6 @@ const valor = (t: Transacao) =>
 
 const quando = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-
-// O exemplo do guia (DEV-073): uma compra contestável da própria persona, com valor e dia que só ela
-// tem, na frase que o cliente digitaria em cada língua.
-function frasesDoExemplo(e: ExemploDeContestacao): [string, string] {
-  const quantia = quantiaDoCliente(e.valor);
-  const [, mes, dia] = e.data.split("-");
-  return [
-    `No reconozco el cobro de ${quantia} del ${dia}/${mes}`,
-    `Não reconheço a cobrança de ${quantia} do dia ${dia}/${mes}`,
-  ];
-}
 
 type Sessao = { token: string; cliente: Persona; dispositivo: Dispositivo };
 
@@ -96,12 +85,6 @@ function MeusPreCasos({ token, versao }: { token: string; versao: number }) {
       </ul>
     </section>
   );
-}
-
-// O valor como o cliente escreveria: milhar em ponto e decimal em vírgula ("1.234,56").
-function quantiaDoCliente(valor: string): string {
-  const [inteiro = "0", centavos = "00"] = Number(valor).toFixed(2).split(".");
-  return `${inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${centavos}`;
 }
 
 // "Perguntar sobre esta" (PRD-006): as pistas da linha como o cliente escreveria (valor, data
