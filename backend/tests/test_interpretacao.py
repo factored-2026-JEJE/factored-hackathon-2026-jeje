@@ -1191,6 +1191,23 @@ def test_hipotese_de_perda_e_prevencao(texto, pergunta):
 @pytest.mark.parametrize(
     ("texto", "pergunta"),
     [
+        # A lista Q2 do REG-20: hipótese ou capacidade, e não pedido de agora.
+        ("¿Cómo bloqueo la tarjeta si la pierdo?", True),
+        ("Quero saber se dá para bloquear o cartão pelo app", True),
+        ("¿Se puede bloquear la tarjeta por aquí?", True),
+        ("É possível bloquear o cartão pelo chat?", True),
+        ("Como funciona o bloqueio do cartão?", True),
+        ("Quiero bloquear mi tarjeta", False),
+        ("Bloqueia meu cartão agora", False),
+    ],
+)
+def test_pergunta_hipotetica_ou_de_capacidade(texto, pergunta):
+    assert interpretacao.hipotese_ou_capacidade(texto) is pergunta
+
+
+@pytest.mark.parametrize(
+    ("texto", "pergunta"),
+    [
         # A pergunta condicional sobre o uso por outra pessoa vai ao atendente sem bloquear (P3);
         # o relato seguido de pergunta, ou a pergunta com vítima, continua bloqueando.
         ("¿Qué hago si alguien usó mi tarjeta?", True),

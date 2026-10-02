@@ -1098,6 +1098,22 @@ def _vitima(limpo: str) -> bool:
     return False
 
 
+# Pergunta hipotética ou de capacidade sobre bloquear ("¿cómo bloqueo la tarjeta si la pierdo?",
+# "dá para bloquear pelo app?"): a lista Q2 do REG-20 da validação. O pedido assim não bloqueia
+# na hora; a conversa confirma antes (POL-BLQ-07).
+HIPOTESE_OU_CAPACIDADE = (
+    "si la pierdo", "si lo pierdo", "si pierdo", "en caso de", "em caso de", "caso eu",
+    "se eu perder", "quero saber se", "quiero saber si", "se puede", "e possivel", "da para",
+    "que pasa si", "o que acontece se", "como funciona",
+)  # fmt: skip
+
+
+def hipotese_ou_capacidade(texto: str) -> bool:
+    """A mensagem pergunta pela hipótese ou pela capacidade, e não pede agora."""
+    limpo = normalizar(texto)
+    return any(_casa(t, limpo) for t in HIPOTESE_OU_CAPACIDADE)
+
+
 def prevencao(texto: str) -> bool:
     """Pergunta de prevenção ou suspeita sem perda, sem vítima: a fraude lida assim vai ao
     atendente sem bloquear o cartão (P3 do NOV-35)."""
