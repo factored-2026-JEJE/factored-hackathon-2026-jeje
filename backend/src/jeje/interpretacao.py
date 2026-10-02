@@ -1055,7 +1055,10 @@ PREVENCAO = (
     # As flexões de "evitar" e "cuidar" ("¿cómo evito caer en una estafa?"), medidas no REG-16.
     "evito", "evita", "evitas", "evite", "evitamos", "evitarlo", "evitarla", "evitalo", "evitala",
     "como no caer", "para no caer", "para nao cair", "como nao cair", "cuidarme", "cuidarse",
-    "como me cuido", "me cuidar", "me previno", "como me previno", "prevengo"
+    "como me cuido", "me cuidar", "me previno", "como me previno", "prevengo",
+    # A hipótese de perda ("en caso de perder la tarjeta, ¿cómo la bloqueo?"), do REG-20.
+    "en caso de", "em caso de", "caso eu", "si la pierdo", "si lo pierdo", "si pierdo",
+    "se eu perder", "se eu perdesse", "que pasa si", "o que acontece se"
 )  # fmt: skip
 SUSPEITA_SEM_PERDA = (
     "no di", "no le di", "no les di", "nao dei", "nao passei", "no pase", "no entregue",
