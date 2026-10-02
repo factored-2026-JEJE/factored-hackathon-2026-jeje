@@ -6,13 +6,17 @@ treinada nas frases ES e PT do BANKING77 com o rótulo da validação (ambíguas
 do LLM) e nas 497 mensagens de golpe que a validação gerou no NOV-31, com a temperatura ajustada na
 calibração. O limiar é por idioma: 1 menos o quantil conformal (alfa = 10%) de 1 - p(fraude) nas
 fraudes da metade de calibração do teste do BANKING77, sorteada entre as posições de frases não
-ambíguas, como no NOV-33. Os passos 2 e 3 (sinais de prevenção e o LLM confirmando) ficam na
-conversa (jeje.garantia_fraude).
+ambíguas, como no NOV-33. Treino e temperatura seguem a divisão pré-registrada da validação (o
+"BANKING77 de treino" e o "de validação" da especificação da V3), refeita sobre o treino oficial.
+Os passos 2 e 3 (sinais de prevenção e o LLM confirmando) ficam na conversa (jeje.garantia_fraude).
 """
 
 import hashlib
 import json
 import math
+import re
+import unicodedata
+from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -50,6 +54,58 @@ def do_corpus(exemplos: Iterable[Exemplo]) -> list[Mensagem]:
         if (lida := vizinhos.intencao(e.intencao)) is not None:
             saida.append(Mensagem(e.texto, lida, e.idioma))
     return saida
+
+
+def _normalizada(texto: str) -> str:
+    """A normalização com que a validação junta frases iguais (validacao/corpora.py)."""
+    return re.sub(r"\s+", " ", unicodedata.normalize("NFKC", texto).lower()).strip(" .?!¿¡")
+
+
+def particao_da_validacao(
+    oficial: list[Exemplo], fracao: float = 0.15, semente: str = "20260928"
+) -> set[int]:
+    """As posições do treino oficial do BANKING77 que a validação separou para ajustar a
+    temperatura (rotulos.split_de_validacao, pré-registrada): as três línguas da mesma posição e as
+    frases iguais depois de normalizar ficam no mesmo grupo; em cada intenção (a do inglês), os
+    grupos em ordem de sha256(semente:grupo) até completar a fração das linhas."""
+    linhas = {i: [e for e in oficial if e.idioma == i] for i in ("en", "es", "pt")}
+    pai = list(range(len(linhas["en"])))
+
+    def raiz(k: int) -> int:
+        while pai[k] != k:
+            pai[k] = pai[pai[k]]
+            k = pai[k]
+        return k
+
+    for exemplos in linhas.values():
+        primeiro: dict[str, int] = {}
+        for k, e in enumerate(exemplos):
+            chave = _normalizada(e.texto)
+            if chave in primeiro:
+                pai[raiz(k)] = raiz(primeiro[chave])
+            else:
+                primeiro[chave] = k
+    grupos = [raiz(k) for k in range(len(pai))]
+    intencao_do_grupo, linhas_do_grupo = {}, defaultdict(list)
+    for k, grupo in enumerate(grupos):
+        linhas_do_grupo[grupo].append(k)
+        intencao_do_grupo.setdefault(grupo, linhas["en"][k].intencao)
+    por_intencao = defaultdict(list)
+    for grupo, intencao in intencao_do_grupo.items():
+        por_intencao[intencao].append(grupo)
+    validacao: set[int] = set()
+    for lista in por_intencao.values():
+        alvo, somadas = fracao * sum(len(linhas_do_grupo[g]) for g in lista), 0
+
+        def ordem(g: int) -> str:
+            return hashlib.sha256(f"{semente}:{g}".encode()).hexdigest()
+
+        for grupo in sorted(lista, key=ordem):
+            if somadas >= alvo:
+                break
+            validacao.update(linhas_do_grupo[grupo])
+            somadas += len(linhas_do_grupo[grupo])
+    return validacao
 
 
 def golpes(caminho: Path = GOLPES) -> list[Mensagem]:
@@ -99,13 +155,17 @@ class Garantia:
         versao_: str,
         geradas: Sequence[Mensagem],
     ) -> "Garantia":
-        treino = do_corpus(corpus.treino) + list(geradas)
+        validacao = particao_da_validacao(corpus.oficial)
+        por_idioma = {i: [e for e in corpus.oficial if e.idioma == i] for i in IDIOMAS}
+        treino = do_corpus(e for i in IDIOMAS for k, e in enumerate(por_idioma[i])
+                           if k not in validacao) + list(geradas)  # fmt: skip
         logistica = LogisticRegression(**PARAMETROS).fit(
             codificar([m.texto for m in treino]), [m.intencao for m in treino]
         )
         if sorted(logistica.classes_) != sorted(CLASSES):
             raise ModeloInvalido(f"treino da garantia sem as classes {sorted(CLASSES)}")
-        calibracao = do_corpus(corpus.calibracao)
+        calibracao = do_corpus(e for i in IDIOMAS for k, e in enumerate(por_idioma[i])
+                               if k in validacao)  # fmt: skip
         z = logistica.decision_function(codificar([m.texto for m in calibracao]))
         alvo = np.array([list(logistica.classes_).index(m.intencao) for m in calibracao])
 

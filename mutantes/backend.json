@@ -5816,8 +5816,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/leitor/corpus.py",
-          "de": "                  teste=b77[\"teste\"])  # fmt: skip",
-          "para": "                  teste=b77[\"teste\"] + _minds14(destino, minds14))  # fmt: skip"
+          "de": "                  teste=b77[\"teste\"], oficial=b77[\"treino\"])  # fmt: skip",
+          "para": "                  teste=b77[\"teste\"] + _minds14(destino, minds14), oficial=b77[\"treino\"])  # fmt: skip"
         }
       ],
       "testes": [
@@ -6331,8 +6331,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/leitor/garantia.py",
-          "de": "        treino = do_corpus(corpus.treino) + list(geradas)",
-          "para": "        treino = do_corpus(corpus.treino)"
+          "de": "                           if k not in validacao) + list(geradas)  # fmt: skip",
+          "para": "                           if k not in validacao)  # fmt: skip"
         }
       ],
       "testes": [
@@ -6684,6 +6684,66 @@
       ],
       "testes": [
         "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
+      ]
+    },
+    {
+      "id": "M-LEITOR-69",
+      "requisito": "R03",
+      "descricao": "Temperatura da garantia ajustada no próprio treino, e não na validação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "                               if k in validacao)  # fmt: skip",
+          "para": "                               if k not in validacao)  # fmt: skip"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_temperatura_ajustada_na_calibracao"
+      ]
+    },
+    {
+      "id": "M-LEITOR-70",
+      "requisito": "R03",
+      "descricao": "Partição da validação sem juntar as frases iguais depois de normalizar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "            chave = _normalizada(e.texto)",
+          "para": "            chave = e.texto"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_particao_da_validacao_e_a_pre_registrada"
+      ]
+    },
+    {
+      "id": "M-LEITOR-71",
+      "requisito": "R03",
+      "descricao": "Partição da validação com outra fração",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "    oficial: list[Exemplo], fracao: float = 0.15, semente: str = \"20260928\"",
+          "para": "    oficial: list[Exemplo], fracao: float = 0.2, semente: str = \"20260928\""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_particao_da_validacao_e_a_pre_registrada"
+      ]
+    },
+    {
+      "id": "M-LEITOR-72",
+      "requisito": "R03",
+      "descricao": "O corpus não guarda o treino oficial (a garantia treina sem dados)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/corpus.py",
+          "de": "                  teste=b77[\"teste\"], oficial=b77[\"treino\"])  # fmt: skip",
+          "para": "                  teste=b77[\"teste\"])  # fmt: skip"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_treino.py::test_corpus_guarda_o_treino_oficial_inteiro_na_ordem_do_arquivo"
       ]
     },
     {
