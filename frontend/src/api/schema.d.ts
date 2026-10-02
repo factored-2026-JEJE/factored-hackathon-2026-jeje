@@ -967,6 +967,21 @@ export interface components {
             dataset: components["schemas"]["DatasetInfo"] | null;
         };
         /**
+         * Recibo
+         * @description De onde veio o fato citado (DEV-044): o arquivo e a linha do CSV de origem e a versão dos
+         *     dados, para conferir a resposta contra a base.
+         */
+        Recibo: {
+            /** Transaction Id */
+            transaction_id: string;
+            /** Arquivo */
+            arquivo: string;
+            /** Linha */
+            linha: number;
+            /** Versao Dos Dados */
+            versao_dos_dados: string | null;
+        };
+        /**
          * ResolucaoDoTurno
          * @description Como a transação do turno foi achada (DEV-071).
          */
@@ -1055,6 +1070,7 @@ export interface components {
             /** Fontes */
             fontes: string[];
             resolucao: components["schemas"]["ResolucaoDoTurno"] | null;
+            recibo: components["schemas"]["Recibo"] | null;
         };
         /** ReviewRegistrada */
         ReviewRegistrada: {

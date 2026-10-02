@@ -17,6 +17,7 @@ from conftest import (
     curar_tudo,
     dizer,
     raw_transacao,
+    registrar_dataset,
     servidor_http,
 )
 from sqlalchemy import text
@@ -1174,3 +1175,25 @@ def test_conversa_de_antes_do_deploy_leva_a_primeira_mensagem_e_a_de_agora(cenar
         dizer(http, auth, conversa, "Quiero hablar con una persona")
     [registro] = handoffs(cenario)
     assert registro["pedido"] == "No reconozco un cobro de 45,90 Quiero hablar con una persona"
+
+
+def test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao(cenario):
+    """DEV-044: o "Por que esta resposta?" mostra de onde veio o fato: o arquivo e a linha do CSV
+    de origem da transação citada e a versão dos dados. Resposta sem transação não traz recibo."""
+    registrar_dataset(cenario, version="versao-do-teste", source="fixture")
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        sem = dizer(http, auth, conversa, "Hola")
+        com = dizer(http, auth, conversa, "No reconozco el cobro de 45,90 en Streaming Plus")
+    with conexao(cenario) as con:
+        arquivo, linha = con.execute(
+            text(
+                "SELECT _arquivo, _linha FROM curated.transactions WHERE transaction_id = 'TRX-A1'"
+            )
+        ).one()
+    assert sem["recibo"] is None
+    assert com["recibo"] == {
+        "transaction_id": "TRX-A1", "arquivo": arquivo, "linha": linha,
+        "versao_dos_dados": "versao-do-teste",
+    }  # fmt: skip

@@ -2264,6 +2264,42 @@
         ],
         "title": "Readiness"
       },
+      "Recibo": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "arquivo": {
+            "type": "string",
+            "title": "Arquivo"
+          },
+          "linha": {
+            "type": "integer",
+            "title": "Linha"
+          },
+          "versao_dos_dados": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versao Dos Dados"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "arquivo",
+          "linha",
+          "versao_dos_dados"
+        ],
+        "title": "Recibo",
+        "description": "De onde veio o fato citado (DEV-044): o arquivo e a linha do CSV de origem e a versão dos\ndados, para conferir a resposta contra a base."
+      },
       "ResolucaoDoTurno": {
         "properties": {
           "resolvedor": {
@@ -2517,6 +2553,16 @@
                 "type": "null"
               }
             ]
+          },
+          "recibo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Recibo"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -2539,7 +2585,8 @@
           "interpretacao",
           "efeito",
           "fontes",
-          "resolucao"
+          "resolucao",
+          "recibo"
         ],
         "title": "ResultadoDoTurno",
         "description": "O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."
