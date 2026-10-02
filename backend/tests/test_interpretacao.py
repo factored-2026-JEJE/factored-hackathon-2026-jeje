@@ -1002,6 +1002,16 @@ def test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem():
         "Meu cartão desapareceu",
         "Meu cartão caiu e não acho",
         "Esqueci o cartão no táxi",
+        # Com o cartão antes do verbo e nada antes dele que mostre outro objeto (ACH-190).
+        "Mi tarjeta no aparece por ningún lado",
+        "Hace dos días que mi tarjeta no aparece",
+        # Com o verbo antes do cartão, o que vem antes do verbo não conta.
+        "Hice una compra y perdí la tarjeta",
+        # O cartão antes do verbo, com o tipo do cartão ou "se me cayó" no meio (EV-199).
+        "Mi tarjeta de crédito se me perdió",
+        "Mi tarjeta se me cayó y no aparece",
+        "Meu cartão de crédito caiu e não acho",
+        "Mi tarjeta de débito se me cayó en la calle",
     ],
 )
 def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
@@ -1026,6 +1036,16 @@ def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
         ("Ya no tengo saldo en la tarjeta", "desconhecida"),
         ("perdi o prazo do cartão", "desconhecida"),
         ("En la tarjeta la compra no aparece", "consultar"),  # o cartão antes do verbo
+        # O cartão antes do verbo, mas como complemento da compra ou do cargo (ACH-190).
+        ("La compra con mi tarjeta no aparece", "consultar"),
+        ("El cargo de mi tarjeta no aparece en el resumen", "consultar"),
+        ("El pago con la tarjeta no aparece", "consultar"),
+        ("A compra no meu cartão, não acho no extrato", "consultar"),
+        # Os mesmos, com o tipo do cartão.
+        ("La compra con mi tarjeta de crédito no aparece", "consultar"),
+        ("Não acho a compra no cartão de crédito", "consultar"),
+        ("Esqueci a senha do cartão de débito", "fora_de_escopo"),
+        ("Se me cayó la app cuando pagaba con la tarjeta", "desconhecida"),
     ],
 )
 def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
@@ -1126,6 +1146,8 @@ def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, inte
         ("Uma pessoa me cobrou a mais na loja.", "contestar"),
         ("Me cobraron 20 dólares de más", "contestar"),
         ("O mercado me cobrou a mais", "contestar"),
+        ("Cobraram mais caro do que o anunciado", "contestar"),
+        ("Me cobraron más caro que el precio de la vitrina", "contestar"),
         # Sem o verbo de cobrar, "mais" e "más" continuam consulta.
         ("Qual é a cobrança mais recente?", "consultar"),
         ("¿Cuál es el cobro más reciente?", "consultar"),
@@ -1133,6 +1155,19 @@ def test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente(texto, inte
 )
 def test_cobranca_a_mais_e_contestacao(texto, intencao):
     assert ler(texto).intencao == intencao
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # A cobrança a mais negada não é contestação (sondagem da validação no 0d811eb).
+        "No me cobraron de más, solo quería saber el saldo",
+        "Não me cobraram a mais, só quero saber o saldo",
+        "Nunca me cobraron de más aquí",
+    ],
+)
+def test_cobranca_a_mais_negada_nao_e_contestacao(texto):
+    assert ler(texto).intencao != "contestar"
 
 
 @pytest.mark.parametrize(

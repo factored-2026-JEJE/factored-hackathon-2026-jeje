@@ -89,12 +89,17 @@ PALAVRAS_ENTRE = 3
 @dataclass(frozen=True)
 class Perto:
     """Termo composto: um termo de cada grupo, em qualquer ordem, separados por no máximo `entre`
-    palavras, nenhuma delas de `fora` (o que mostra que o objeto é outro)."""
+    palavras, nenhuma delas de `fora` (o que mostra que o objeto é outro). Com o termo do segundo
+    grupo antes do primeiro, também as `antes` palavras anteriores não podem ser de `fora_antes`: em
+    "la compra con mi tarjeta no aparece", o que não aparece é a compra."""
 
     um: tuple[str, ...]
     outro: tuple[str, ...]
     entre: int = PALAVRAS_ENTRE
     fora: tuple[str, ...] = ()
+    antes: int = 0
+    fora_antes: tuple[str, ...] = ()
+    negavel: bool = False  # negado logo antes ("no me cobraron de más"), não casa
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -110,9 +115,25 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
         x, y = _padrao(a), _padrao(b)
         for achado in _regex(f"{x}{entre}{y}|{y}{entre}{x}").finditer(limpo):
             meio = achado.group(1) or achado.group(2) or ""
-            if not any(_casa(f, meio) for f in termo.fora):
-                return f"{a}+{b}"
+            if any(_casa(f, meio) for f in termo.fora):
+                continue
+            # group(2) só participa quando o termo do segundo grupo veio antes.
+            antes = " ".join(limpo[: achado.start()].split()[-termo.antes :] if termo.antes else ())
+            if achado.group(2) is not None and any(_casa(f, antes) for f in termo.fora_antes):
+                continue
+            if termo.negavel and _negado(limpo[: achado.start()]):
+                continue
+            return f"{a}+{b}"
     return None
+
+
+def _negado(antes: str) -> bool:
+    """A palavra logo antes do termo, pulando um pronome ("no me cobraron", "não me roubaram"), é
+    uma negação."""
+    palavras = antes.split()
+    if palavras and palavras[-1] in PRONOMES_DA_VITIMA:
+        palavras = palavras[:-1]
+    return bool(palavras) and palavras[-1] in NEGA_A_VITIMA
 
 
 # Perda ou extravio só é relato de fraude com cartão, carteira ou celular perto: "perdí la
@@ -122,12 +143,20 @@ PERDA_DE_MEIO = Perto(
      # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
      "quitaron", "hurt*", "no hallo", "no puedo encontrar", "ya no tengo", "olvid*",
      "no aparece", "furt*", "levaram", "nao acho", "nao consigo achar", "nao tenho mais",
-     "desaparec*", "esqueci*"),
-    ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular"),
+     "desaparec*", "esqueci*",
+     # O cartão antes do verbo, com "se me cayó" ou o tipo do cartão no meio (PERDA-01, EV-199).
+     "se me cayo"),
+    ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular",
+     "tarjeta de credito", "tarjeta de debito", "cartao de credito", "cartao de debito"),
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
     fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
           "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na"),
+    # Com o cartão antes do verbo, o que vem logo antes dele também conta: "la compra con mi
+    # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
+    antes=3,
+    fora_antes=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "moviment*",
+                "debito*", "saldo", "limite"),
 )  # fmt: skip
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
@@ -155,11 +184,13 @@ COBRANCA_REPETIDA = Perto(
      "repetid*"),
 )  # fmt: skip
 # Cobrança a mais é contestação: "me cobraron de más", "a loja me cobrou a mais" (ACH-159). Só com
-# o verbo de cobrar: "a cobrança mais recente" e "el cobro más reciente" continuam consulta.
+# o verbo de cobrar: "a cobrança mais recente" e "el cobro más reciente" continuam consulta. Negada
+# ("no me cobraron de más, solo quería saber el saldo") não é contestação.
 COBRANCA_A_MAIS = Perto(
     ("cobraron", "cobro", "cobran", "cobra", "cobrou", "cobraram", "cobram", "cobrado", "cobrada"),
-    ("de mas", "demas", "a mais", "de mais"),
+    ("de mas", "demas", "a mais", "de mais", "mas caro", "mais caro"),
     entre=2,
+    negavel=True,
 )  # fmt: skip
 # Pedido de contestação com substantivo perto da transação ("una contestación a esta compra", "abrir
 # un reclamo por la compra", "uma reclamação da cobrança"): sobrava só "compra", e a conversa
@@ -994,10 +1025,7 @@ def _vitima(limpo: str) -> bool:
     """Algum termo de vítima sem negação logo antes (ou antes do pronome que o precede)."""
     for termo in VITIMA:
         for achado in _regex(_padrao(termo)).finditer(limpo):
-            antes = limpo[: achado.start()].split()
-            if antes and antes[-1] in PRONOMES_DA_VITIMA:
-                antes = antes[:-1]
-            if not (antes and antes[-1] in NEGA_A_VITIMA):
+            if not _negado(limpo[: achado.start()]):
                 return True
     return False
 
