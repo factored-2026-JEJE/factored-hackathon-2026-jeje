@@ -1019,6 +1019,51 @@ def test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida(texto):
     assert ler(texto).intencao != "fraude"
 
 
+@pytest.mark.parametrize(
+    ("digitada", "termo", "erro"),
+    [
+        # A forma do erro de digitação (REG-30): a letra que falta, a tecla vizinha ou a troca que
+        # soa igual, a letra repetida e as vizinhas invertidas...
+        ("robron", "robaron", True),
+        ("tarjta", "tarjeta", True),
+        ("atendete", "atendente", True),
+        ("roubarm", "roubaram", True),
+        ("cobranza", "cobranca", True),
+        ("reconosco", "reconozco", True),
+        ("bloquaer", "bloquear", True),
+        # ... e a palavra de verdade a uma edição, com outra forma (ACH-191).
+        ("mirando", "tirando", False),
+        ("probando", "robando", False),
+        ("tratar", "travar", False),
+        ("fallos", "falsos", False),
+        ("pensado", "pensando", False),
+    ],
+)
+def test_so_a_forma_de_erro_de_digitacao_e_corrigida(digitada, termo, erro):
+    assert interpretacao._forma_de_erro(digitada, termo) is erro
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # As frases comuns do REG-29 que o corretor transformava em ação (ACH-191).
+        "Estaba mirando mi cuenta y vi el depósito",
+        "Estoy probando mi cuenta nueva",
+        "Tem algum problema rolando com a minha conta?",
+        "La página del banco tuvo fallos ayer",
+        "O site do banco teve falhas hoje",
+        "Preciso tratar do cartão adicional da minha esposa",
+        "Quiero tratar mi tarjeta adicional",
+        "Tô pirando, cadê o dinheiro do salário?",
+        "Cuando revisan mi identificación, ¿cuáles son los pasos involucrados?",
+        # Uma só candidata antes da forma: "desbloqueei" não vira "desbloqueie".
+        "Já desbloqueei meu cartão pelo app",
+    ],
+)
+def test_frase_comum_nao_e_corrigida_para_termo_de_acao(texto):
+    assert interpretacao.corrigir(texto) == (texto, ())
+
+
 def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
     """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe"."""
     texto = "paguei a aula de golfe com o cartão"
