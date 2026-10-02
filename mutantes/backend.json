@@ -12627,7 +12627,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"haciendose pasar por\",\n     # Afirmou ser outro (\"me aseguró ser mi primo\"). Apresentar-se ou dizer onde trabalha, não: é\n     # também o atendente de verdade (\"se presentó como gerente y me ayudó mucho\", ACH-179).\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\"),",
+          "de": "     \"haciendose pasar por\",\n     # Afirmou ser outro (\"me aseguró ser mi primo\"). Apresentar-se ou dizer onde trabalha, não: é\n     # também o atendente de verdade (\"se presentó como gerente y me ayudó mucho\", ACH-179).\n     \"afirma ser\", \"afirmo ser\", \"afirmando ser\", \"aseguro ser\", \"asegurando ser\",\n     \"se fazendo passar por\", \"fazendo se passar por\", \"se passando por\", \"se passava como\",\n     \"se dizendo\", \"se diciendo\",\n     \"disfrazado de\", \"disfrazada de\", \"disfarcado de\", \"disfarcada de\"),",
           "para": "     \"haciendose pasar por\"),"
         }
       ],
@@ -12677,8 +12677,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"agente\"),",
-          "para": "     \"central\", \"atendente\", \"asesor\", \"gerente\"),"
+          "de": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"agente\", \"soporte\", \"suporte\", \"tecnico\",\n     \"atendimento\"),",
+          "para": "     \"central\", \"atendente\", \"asesor\", \"gerente\", \"soporte\", \"suporte\", \"tecnico\",\n     \"atendimento\"),"
         }
       ],
       "testes": [
@@ -12847,7 +12847,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    fora=(\"banco\", \"agencia\", \"sucursal\"),\n",
+          "de": "    fora=(\"banco\", \"agencia\", \"sucursal\", \"soporte\", \"suporte\", \"atendimento\", \"atencion\"),\n",
           "para": ""
         }
       ],
@@ -12918,31 +12918,31 @@
     {
       "id": "M-ITP-213",
       "requisito": "R02",
-      "descricao": "O terceiro que entrou na conta e tirou o dinheiro não é golpe (ACH-192)",
+      "descricao": "Quem ligou do banco e tirou o dinheiro não é golpe (ACH-192)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                TERCEIRO_ENTROU_NA_CONTA,\n",
+          "de": "                DO_BANCO_E_TIROU,\n",
           "para": ""
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_terceiro_que_entrou_na_conta_e_golpe"
+        "tests/test_interpretacao.py::test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe"
       ]
     },
     {
       "id": "M-ITP-214",
       "requisito": "R03",
-      "descricao": "Quem entrou na conta para ajudar (\"para ayudarme con la app\") é golpe",
+      "descricao": "O aviso do banco (\"me llamaron del banco para avisarme que mi hijo sacó plata\") é golpe",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    fora_depois=(\"ayudar\", \"ayudarme\", \"ajudar\", \"me ajudar\", \"revisar\", \"configurar\"),\n",
+          "de": "    fora=(\"avisarme\", \"avisar\", \"avisando\", \"avisaron\", \"avisou\", \"avisaram\", \"informarme\"),\n",
           "para": ""
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_terceiro_que_entrou_na_conta_e_golpe"
+        "tests/test_interpretacao.py::test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe"
       ]
     },
     {
@@ -12958,6 +12958,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_golpe_contado_no_passado_e_o_roubaron_do_portunhol"
+      ]
+    },
+    {
+      "id": "M-ITP-216",
+      "requisito": "R03",
+      "descricao": "O suporte que entrou na conta a pedido (\"alguien del soporte entró a mi cuenta para restablecer la contraseña\") é golpe (ACH-194)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"sucursal\", \"soporte\", \"suporte\", \"atendimento\", \"atencion\"),",
+          "para": "\"sucursal\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-217",
+      "requisito": "R02",
+      "descricao": "O falso suporte (\"alguém do falso suporte acessou minha conta\") não é golpe (ACH-194)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"gerente\", \"agente\", \"soporte\", \"suporte\", \"tecnico\",\n     \"atendimento\"),",
+          "para": "\"gerente\", \"agente\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_supostamente_do_banco_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-218",
+      "requisito": "R02",
+      "descricao": "Quem se disse do suporte (\"uma pessoa se dizendo do suporte acessou minha conta\") não é golpe (ACH-194)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"se dizendo\", \"se diciendo\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_de_quem_se_apresentou_como_outro"
       ]
     },
     {

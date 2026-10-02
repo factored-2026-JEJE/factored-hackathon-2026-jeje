@@ -1345,6 +1345,7 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
         # banco, o parente que pede dinheiro, o agente disfarçado...
         "Acabo de enviar 2000 pesos por pix a alguien que me aseguró ser mi primo",
         "Uma pessoa se fazendo passar por atendente do banco me ligou",
+        "Uma pessoa se dizendo do suporte acessou minha conta e fez um pix",
         "Me fizeram uma ligação disfarçada de agente bancário e eu acreditei",
         # ... quem acreditou que era outro...
         "Le envié dinero a alguien creyendo que era mi sobrino",
@@ -1391,6 +1392,9 @@ def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe
     [
         # A pessoa "supuestamente del banco" é o falso atendente (REG-32, S2; o custo do #83)...
         ("Una persona supuestamente del banco accedió a mi cuenta sin permiso", True),
+        # O falso suporte é o falso atendente (ACH-194, F1X do REG-35).
+        ("Alguém do falso suporte acessou minha conta e transferiu meu dinheiro", True),
+        ("Alguien del supuesto soporte entró a mi cuenta y compró en línea", True),
         ("Uma pessoa supostamente do banco acessou minha conta sem eu saber", True),
         # ... e o banco "supuestamente" sem a pessoa, não.
         ("Supuestamente el banco me iba a llamar hoy y nada", False),
@@ -1404,25 +1408,25 @@ def test_pessoa_supostamente_do_banco_e_golpe(texto, golpe):
 @pytest.mark.parametrize(
     ("texto", "golpe"),
     [
-        # Um terceiro que entrou na conta (ACH-192)...
+        # Quem ligou ou disse ser do banco e tirou o dinheiro (ACH-192, a A3 do REG-33)...
         ("Una mujer que llamó del banco entró a mi cuenta y sacó plata", True),
         ("Um homem que ligou do banco entrou na minha conta e tirou dinheiro", True),
-        ("El estafador entró a mi cuenta y transfirió todo", True),
-        # ... e não o banco, o filho com permissão nem quem entrou para ajudar (REG-32, REG-33).
+        # ... e não o banco, o filho com permissão, o aviso do banco nem a pessoa do banco que
+        # entrou para outra coisa (REG-32, REG-33 e REG-34).
         ("El banco entró a mi cuenta y sacó la comisión mensual", False),
         ("Mi hijo entró a mi cuenta con mi permiso y sacó plata para la escuela", False),
-        (
-            "Minha filha acessou minha conta e transferiu o dinheiro da mesada, como combinado",
-            False,
-        ),
-        ("Una persona de la sucursal entró a mi cuenta para ayudarme con la app", False),
         (
             "Me llamaron del banco para avisarme que mi hijo sacó plata con su tarjeta adicional",
             False,
         ),
+        ("Ligaram do banco e tiraram minhas dúvidas sobre o cartão", False),
+        ("Un señor del banco entró a mi cuenta para verificar mi identidad", False),
+        ("Uma pessoa da agência entrou na minha conta e mostrou o extrato", False),
+        ("Una persona de la sucursal accedió a mi cuenta y me mostró los movimientos", False),
+        ("Um senhor do banco acessou minha conta para conferir o cadastro", False),
     ],
 )
-def test_terceiro_que_entrou_na_conta_e_golpe(texto, golpe):
+def test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe(texto, golpe):
     assert (ler(texto).intencao == "fraude") is golpe
 
 
@@ -1493,6 +1497,10 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         # A pessoa do próprio banco (auditoria do dev, 02/10).
         "Una persona del banco abrió una cuenta a mi nombre cuando fui a la sucursal",
         "Uma pessoa da agência acessou minha conta para me ajudar com o cadastro",
+        # O suporte que entrou na conta a pedido (ACH-194, REG-35).
+        "Alguien del soporte entró a mi cuenta para restablecer la contraseña",
+        "Alguém do suporte acessou minha conta para trocar a senha que eu pedi",
+        "Alguém do atendimento acessou minha conta para corrigir meu cadastro",
         # Os termos do #77 em mensagens comuns (ACH-179, REG-24): "de ustedes", o cadastro, o
         # atendente de verdade que se apresenta e o "fraudulenta" negado.
         "Recibí un cargo y pensé que era de ustedes, pero no reconozco el comercio",
