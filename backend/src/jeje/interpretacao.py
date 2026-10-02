@@ -334,6 +334,7 @@ SE_PASSOU_POR = Perto(
      # também o atendente de verdade ("se presentó como gerente y me ayudó mucho", ACH-179).
      "afirma ser", "afirmo ser", "afirmando ser", "aseguro ser", "asegurando ser",
      "se fazendo passar por", "fazendo se passar por", "se passando por", "se passava como",
+     "se dizendo", "se diciendo",
      "disfrazado de", "disfrazada de", "disfarcado de", "disfarcada de"),
     QUEM_ELE_DISSE_SER,
     entre=2,
@@ -385,7 +386,8 @@ DISSE_QUE_ERA = Perto(
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
     ("vendedor", "corretor", "funcionario", "operador", "empleado", "ligacao", "llamada",
-     "central", "atendente", "asesor", "gerente", "agente"),
+     "central", "atendente", "asesor", "gerente", "agente", "soporte", "suporte", "tecnico",
+     "atendimento"),
     entre=1,
 )  # fmt: skip
 # "Una persona supuestamente del banco accedió a mi cuenta": a pessoa logo antes do
@@ -494,9 +496,10 @@ TERCEIRO_USOU = Perto(
      "intento cobrar con mi", "tentou cobrar com meu", "se ha hecho pasar", "pegou meu cartao",
      "pegou meus cartoes", "pegou minha carteira", "forjou o meu", "forjou meu", "rouba o meu",
      "rouba meu"),
-    # A pessoa do próprio banco ("una persona del banco abrió una cuenta a mi nombre cuando fui a la
-    # sucursal", "uma pessoa da agência acessou minha conta para me ajudar") não é terceiro.
-    fora=("banco", "agencia", "sucursal"),
+    # A pessoa do próprio banco ou do suporte ("una persona del banco abrió una cuenta a mi nombre
+    # cuando fui a la sucursal", "alguien del soporte entró a mi cuenta para restablecer la
+    # contraseña", ACH-194) não é terceiro.
+    fora=("banco", "agencia", "sucursal", "soporte", "suporte", "atendimento", "atencion"),
 )  # fmt: skip
 # Quem ligou ou disse ser do banco e, a até 6 palavras, tirou o dinheiro ("una mujer que llamó del
 # banco entró a mi cuenta y sacó plata", ACH-192): a A3 do REG-33 da validação. "Entrou na conta"
