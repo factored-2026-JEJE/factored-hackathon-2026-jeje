@@ -215,7 +215,9 @@ termos compostos, com as duas partes perto e na ordem da história:
 
 - quem se fez passar por outro: o verbo e depois o papel ("decía ser del banco", "se passou por
   funcionário", "creyendo que era mi sobrino"), nunca o papel antes do verbo ("o atendente falou que
-  era só esperar", ACH-173); e o "supuesto" ou "falso" gerente, atendente ou suporte;
+  era só esperar", ACH-173) nem a loja que diz que o problema é do banco ("me rechazaron la compra y
+  en la tienda me dijeron que era del banco", ACH-195); e o "supuesto" ou "falso" gerente, atendente
+  ou suporte;
 - quem se apresentou como parente, ou como funcionário e pediu a senha, o código ou o dinheiro ("se
   presentó como empleado del banco y me pidió la clave", a lista do REG-28 da validação): o
   atendente de verdade também se apresenta (ACH-179);
