@@ -1295,6 +1295,30 @@ def test_golpe_de_quem_se_apresentou_como_outro(texto):
 @pytest.mark.parametrize(
     "texto",
     [
+        # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).
+        "Tengo un problema con mi tarjeta, alguien la utilizó sin autorización",
+        "Creo que alguien la está usando sin mi permiso",
+        "Hay transacciones que no hice, alguien debió haber usado mi tarjeta",
+        "Mi tarjeta fue utilizada por una persona sin autorización",
+        "Alguien ha accedido a mi cuenta y hace transferencias",
+        "Alguien está entrando en mi cuenta",
+        "Alguien ha estado haciendo pagos con mi tarjeta",
+        "Alguien abrió una cuenta a mi nombre",
+        "Creo que alguien obtuvo los datos de mi tarjeta y la usó",
+        "Acho que alguém conseguiu obter os dados do meu cartão",
+        "Alguém está usando a minha conta",
+        "Acho que alguém pegou meu cartão",
+        "Alguien intentó realizar una compra con mi tarjeta en Miami",
+        "Una persona usó fraudulentamente mi tarjeta",
+    ],
+)
+def test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # Senha ou código pedidos sem ser os do cliente, ou negados, não são golpe (REG-17).
         "La app me pidió un código de verificación",
         "O caixa pediu a senha duas vezes",
@@ -1320,6 +1344,9 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         "Una persona me transfirió el pago del alquiler",
         # ... outra pessoa usando outra coisa, e o plástico que não é o cartão.
         "Uma pessoa está usando o caixa ao meu lado",
+        "Una persona está entrando a la tienda",
+        "Una persona intentó realizar el pago por mí en la caja",
+        "Mi hermana la usó con mi permiso",
         "La bolsa de plástico que perdí no importa, quiero ver mi saldo",
         # A senha pedida sem dizer por quem não separa golpe de rotina: fica fora de escopo, e a
         # conversa oferece o atendente.
