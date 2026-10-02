@@ -11861,7 +11861,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            if not (antes and antes[-1] in NEGA_A_VITIMA):",
+          "de": "            if not _negado(limpo[: achado.start()]):",
           "para": "            if True:"
         }
       ],
@@ -11876,7 +11876,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            if antes and antes[-1] in PRONOMES_DA_VITIMA:\n                antes = antes[:-1]\n",
+          "de": "    if palavras and palavras[-1] in PRONOMES_DA_VITIMA:\n        palavras = palavras[:-1]\n",
           "para": ""
         }
       ],
@@ -12242,6 +12242,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-165",
+      "requisito": "R03",
+      "descricao": "Cobrança a mais negada vira contestação (\"no me cobraron de más\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    negavel=True,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_a_mais_negada_nao_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-166",
+      "requisito": "R03",
+      "descricao": "\"Cobraram mais caro\" não é contestação",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"de mas\", \"demas\", \"a mais\", \"de mais\", \"mas caro\", \"mais caro\"),",
+          "para": "    (\"de mas\", \"demas\", \"a mais\", \"de mais\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cobranca_a_mais_e_contestacao"
       ]
     },
     {
