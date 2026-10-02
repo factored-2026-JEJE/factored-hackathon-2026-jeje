@@ -1461,6 +1461,33 @@ def test_so_o_q_sozinho_vira_que():
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("Encontré mi tarjeta pero alguien ya la había usado", "es"),
+        ("Cuando la recuperé, alguien ya la había utilizado en dos tiendas", "es"),
+        ("Alguém tinha usado o meu cartão antes de eu bloquear", "pt"),
+    ],
+)
+def test_o_uso_por_outro_contado_no_mais_que_perfeito_e_fraude(texto, anterior):
+    """O achado com o uso por outro é golpe, e não o pedido de desbloqueio (ACH-199)."""
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # Os ataques da validação: o pensar e a pergunta antes, e o objeto que não é o cartão.
+        ("Pensé que alguien la había usado, pero era un cargo mío", "es"),
+        ("Mi hija me preguntó si alguien la había usado, pero no, todo está bien", "es"),
+        ("Uma pessoa perguntou se eu tinha usado meu cupom", "pt"),
+        ("Mi hijo la había usado con mi permiso", "es"),
+    ],
+)
+def test_o_mais_que_perfeito_pensado_perguntado_ou_de_outra_coisa_nao_e_fraude(texto, anterior):
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("No fue un fraude, yo hice la compra pero me la rechazaron", "es"),
         ("No es fraude, solo quiero saber por qué me rechazaron la compra", "es"),
         ("Não foi fraude, fui eu que comprei, por que recusaram?", "pt"),

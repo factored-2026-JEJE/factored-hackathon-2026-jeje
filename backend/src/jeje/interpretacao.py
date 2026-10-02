@@ -667,6 +667,23 @@ DINHEIRO_SACADO = Perto(
                  "anualidad", "anuidade", "mensalidade", "impuesto", "imposto"),
     corrige=False,
 )  # fmt: skip
+# O uso por outro contado no mais-que-perfeito ("encontré mi tarjeta pero alguien ya la había
+# usado", ACH-199), num termo só nessa ordem: em PT, com o cartão ou a conta do cliente ("uma pessoa
+# perguntou se eu tinha usado meu cupom" não é relato); o pensar ou a pergunta logo antes desfazem o
+# par ("pensé que alguien la había usado, pero era un cargo mío", "mi hija me preguntó si alguien la
+# había usado"). As palavras não entram no corretor.
+ALGUEM_TINHA_USADO = Perto(
+    TERCEIRO_USOU.um,
+    ("la habia usado", "la habian usado", "la habia utilizado", "la habian utilizado",
+     "tinha usado meu cartao", "tinha usado o meu cartao", "tinham usado meu cartao",
+     "tinham usado o meu cartao", "havia usado meu cartao", "havia usado o meu cartao",
+     "tinha usado minha conta", "tinha usado a minha conta"),
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=("pense", "pensaba", "crei", "creia", "pregunto", "pregunte", "preguntaron", "si",
+                "pensei", "pensava", "achei", "achava", "perguntou", "perguntei", "se"),
+    corrige=False,
+)  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -745,7 +762,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
                 "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
-                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),
+                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
