@@ -14,11 +14,12 @@ import threading
 import time
 import urllib.request
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import Decimal
 from typing import Literal, get_args
 
+import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from jeje import eventos
@@ -87,6 +88,8 @@ class Leitura:
     lida: Interpretacao
     fonte: str  # "regras", "ollama:<modelo>" ou "regras (fallback: <motivo>)"
     chamada: Chamada | None = None  # só quando o modelo foi chamado
+    # O vetor do e5 da mensagem, quando o leitor o calculou: a garantia de fraude o reaproveita.
+    vetor: np.ndarray | None = field(default=None, compare=False, repr=False)
 
 
 def pelas_regras(texto: str, idioma_anterior: Idioma, referencia: date) -> Leitura:

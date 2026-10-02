@@ -24,6 +24,8 @@ from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
+import numpy as np
+
 from jeje import eventos
 from jeje.interpretacao import Interpretacao, interpretar
 from jeje.interpretacao_modelo import Chamada, Leitura, entendida
@@ -125,7 +127,12 @@ class Leitor:
             # Terminaria em "não entendi": antes, o LLM com os exemplos (DEV-042).
             return self.nao_entendi(lido, texto, vetores[0], inicio)
         fonte = f"leitor:e5@{modelo.versao[:12]}" if decidiu else "regras (leitor abaixo do limite)"
-        return Leitura(lido, fonte, self._chamada(inicio))
+        return Leitura(lido, fonte, self._chamada(inicio), vetores[0])
+
+    def vetor(self, texto: str) -> np.ndarray:
+        """O vetor do e5 de uma mensagem que as regras entenderam (a garantia de fraude o usa)."""
+        _, codificar = self._carregado()
+        return codificar([texto])[0]
 
     @staticmethod
     def _chamada(inicio: float) -> Chamada:
