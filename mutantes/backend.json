@@ -12918,31 +12918,31 @@
     {
       "id": "M-ITP-213",
       "requisito": "R02",
-      "descricao": "O terceiro que entrou na conta e tirou o dinheiro não é golpe (ACH-192)",
+      "descricao": "Quem ligou do banco e tirou o dinheiro não é golpe (ACH-192)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                TERCEIRO_ENTROU_NA_CONTA,\n",
+          "de": "                DO_BANCO_E_TIROU,\n",
           "para": ""
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_terceiro_que_entrou_na_conta_e_golpe"
+        "tests/test_interpretacao.py::test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe"
       ]
     },
     {
       "id": "M-ITP-214",
       "requisito": "R03",
-      "descricao": "Quem entrou na conta para ajudar (\"para ayudarme con la app\") é golpe",
+      "descricao": "O aviso do banco (\"me llamaron del banco para avisarme que mi hijo sacó plata\") é golpe",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    fora_depois=(\"ayudar\", \"ayudarme\", \"ajudar\", \"me ajudar\", \"revisar\", \"configurar\"),\n",
+          "de": "    fora=(\"avisarme\", \"avisar\", \"avisando\", \"avisaron\", \"avisou\", \"avisaram\", \"informarme\"),\n",
           "para": ""
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_terceiro_que_entrou_na_conta_e_golpe"
+        "tests/test_interpretacao.py::test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe"
       ]
     },
     {

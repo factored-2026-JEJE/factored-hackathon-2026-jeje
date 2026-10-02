@@ -498,21 +498,35 @@ TERCEIRO_USOU = Perto(
     # sucursal", "uma pessoa da agência acessou minha conta para me ajudar") não é terceiro.
     fora=("banco", "agencia", "sucursal"),
 )  # fmt: skip
-# Um terceiro que entrou na conta ("una mujer que llamó del banco entró a mi cuenta y sacó plata",
-# ACH-192): o sujeito é outra pessoa, e não o banco, o filho ou a filha com permissão; quem entrou
-# para ajudar ("para ayudarme con la app") não conta. As palavras não entram no corretor.
-TERCEIRO_ENTROU_NA_CONTA = Perto(
-    (*TERCEIRO_USOU.um, "un hombre", "una mujer", "um homem", "uma mulher", "un senor",
-     "una senora", "um senhor", "uma senhora", "un tipo", "um cara", "el estafador", "o golpista",
-     "el ladron", "o ladrao"),
-    ("entro a mi cuenta", "entro en mi cuenta", "entraron a mi cuenta", "entraron en mi cuenta",
-     "accedio a mi cuenta", "accedieron a mi cuenta", "entrou na minha conta",
-     "entraram na minha conta", "acessou minha conta", "acessou a minha conta",
-     "acessaram minha conta", "acessaram a minha conta"),
-    entre=5,
+# Quem ligou ou disse ser do banco e, a até 6 palavras, tirou o dinheiro ("una mujer que llamó del
+# banco entró a mi cuenta y sacó plata", ACH-192): a A3 do REG-33 da validação. "Entrou na conta"
+# sozinho não basta, porque a pessoa do banco também entra para mostrar o extrato ou conferir o
+# cadastro (REG-34). O aviso do banco no meio ("me llamaron del banco para avisarme que mi hijo sacó
+# plata") não é golpe. As palavras não entram no corretor.
+DO_BANCO_E_TIROU = Perto(
+    ("llamo del banco", "llamaron del banco", "llamo de la sucursal", "llamaron de la sucursal",
+     "dijo ser del banco", "dijeron ser del banco", "decia ser del banco", "decian ser del banco",
+     "dijo ser de la sucursal", "decia ser de la sucursal", "se presento del banco",
+     "se presentaron del banco", "dijo que era del banco", "dijeron que eran del banco",
+     "supuestamente del banco", "ligou do banco", "ligaram do banco", "ligou da agencia",
+     "ligaram da agencia", "disse ser do banco", "disseram ser do banco", "dizia ser do banco",
+     "diziam ser do banco", "disse ser da agencia", "se dizendo do banco", "se dizendo da agencia",
+     "dizendo ser do banco", "dizendo ser da agencia", "disse que era do banco",
+     "falou que era do banco", "supostamente do banco"),
+    ("saco plata", "saco dinero", "saco mi plata", "saco mi dinero", "saco la plata",
+     "saco el dinero", "saco todo", "sacaron plata", "sacaron dinero", "sacaron mi plata",
+     "sacaron mi dinero", "robo", "robaron", "transfirio mi", "transfirio la plata",
+     "transfirio el dinero", "transfirieron mi", "hizo compras", "hizo una compra",
+     "hicieron compras", "vacio mi cuenta", "vaciaron mi cuenta", "retiro plata", "retiro dinero",
+     "retiraron plata", "retiraron dinero", "tirou dinheiro", "tirou o dinheiro",
+     "tirou meu dinheiro", "tiraram dinheiro", "tiraram o dinheiro", "tiraram meu dinheiro",
+     "sacou dinheiro", "sacou o dinheiro", "sacaram", "roubou", "roubaram", "transferiu meu",
+     "transferiu o dinheiro", "transferiram", "fez compras", "fez uma compra", "fizeram compras",
+     "esvaziou minha conta", "esvaziaram", "limpou minha conta", "levou meu dinheiro",
+     "levaram meu dinheiro", "fez um pix", "fizeram um pix"),
+    entre=6,
     so_nessa_ordem=True,
-    depois=3,
-    fora_depois=("ayudar", "ayudarme", "ajudar", "me ajudar", "revisar", "configurar"),
+    fora=("avisarme", "avisar", "avisando", "avisaron", "avisou", "avisaram", "informarme"),
     corrige=False,
 )  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
@@ -585,7 +599,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 PESSOA_SUPOSTAMENTE,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
-                TERCEIRO_ENTROU_NA_CONTA,
+                DO_BANCO_E_TIROU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
