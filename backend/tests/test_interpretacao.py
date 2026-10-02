@@ -1057,6 +1057,23 @@ def test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude(texto):
 
 
 @pytest.mark.parametrize(
+    ("texto", "pergunta"),
+    [
+        # A pergunta condicional sobre o uso por outra pessoa vai ao atendente sem bloquear (P3);
+        # o relato seguido de pergunta, ou a pergunta com vítima, continua bloqueando.
+        ("¿Qué hago si alguien usó mi tarjeta?", True),
+        ("O que fazer se alguém usou meu cartão?", True),
+        ("¿Cómo sé si alguien está usando mi tarjeta?", True),
+        ("alguien usó mi tarjeta, ¿qué hago?", False),
+        ("¿Qué hago si me robaron la tarjeta?", False),
+    ],
+)
+def test_pergunta_condicional_sobre_uso_por_outra_pessoa_e_prevencao(texto, pergunta):
+    assert ler(texto).intencao == "fraude"
+    assert interpretacao.prevencao(texto) is pergunta
+
+
+@pytest.mark.parametrize(
     "texto",
     [
         # A mesma pessoa sem verbo de uso, roubo ou saque, ou o verbo no presente (pergunta).

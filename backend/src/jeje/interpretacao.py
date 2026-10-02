@@ -956,7 +956,10 @@ PREVENCAO = (
     "seria una estafa", "era una estafa", "sera una estafa", "es fraude", "e fraude", "era fraude",
     "es un fraude", "e um golpe", "era um golpe", "sera um golpe", "es legitimo", "es legitima",
     "e legitimo", "e legitima", "es real", "e real", "es verdadero", "es verdadera",
-    "e verdadeiro", "e verdadeira"
+    "e verdadeiro", "e verdadeira",
+    # A pergunta condicional ("¿qué hago si alguien usó mi tarjeta?"): sem vítima, é pergunta.
+    "que hago si", "que debo hacer si", "que hacer si", "o que fazer se", "o que faco se",
+    "o que devo fazer se", "como se si", "como sei se"
 )  # fmt: skip
 SUSPEITA_SEM_PERDA = (
     "no di", "no le di", "no les di", "nao dei", "nao passei", "no pase", "no entregue",

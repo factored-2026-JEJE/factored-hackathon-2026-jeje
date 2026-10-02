@@ -11867,6 +11867,21 @@
       ]
     },
     {
+      "id": "M-ITP-159",
+      "requisito": "R03",
+      "descricao": "A pergunta condicional (\"qué hago si alguien usó\") bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"que hago si\", \"que debo hacer si\", \"que hacer si\", \"o que fazer se\", \"o que faco se\",\n    \"o que devo fazer se\", \"como se si\", \"como sei se\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_condicional_sobre_uso_por_outra_pessoa_e_prevencao"
+      ]
+    },
+    {
       "id": "M-LLM-25",
       "requisito": "R02",
       "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",
