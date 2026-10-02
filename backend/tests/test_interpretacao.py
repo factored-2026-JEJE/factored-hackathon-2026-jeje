@@ -1002,6 +1002,11 @@ def test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem():
         "Meu cartão desapareceu",
         "Meu cartão caiu e não acho",
         "Esqueci o cartão no táxi",
+        # Com o cartão antes do verbo e nada antes dele que mostre outro objeto (ACH-190).
+        "Mi tarjeta no aparece por ningún lado",
+        "Hace dos días que mi tarjeta no aparece",
+        # Com o verbo antes do cartão, o que vem antes do verbo não conta.
+        "Hice una compra y perdí la tarjeta",
     ],
 )
 def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
@@ -1026,6 +1031,11 @@ def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
         ("Ya no tengo saldo en la tarjeta", "desconhecida"),
         ("perdi o prazo do cartão", "desconhecida"),
         ("En la tarjeta la compra no aparece", "consultar"),  # o cartão antes do verbo
+        # O cartão antes do verbo, mas como complemento da compra ou do cargo (ACH-190).
+        ("La compra con mi tarjeta no aparece", "consultar"),
+        ("El cargo de mi tarjeta no aparece en el resumen", "consultar"),
+        ("El pago con la tarjeta no aparece", "consultar"),
+        ("A compra no meu cartão, não acho no extrato", "consultar"),
     ],
 )
 def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
