@@ -22,7 +22,9 @@ const RESPOSTAS: Record<Idioma, { sim: string; nao: string; confirmar: string }>
 // "Por que esta resposta?" (DEV-031): o que a API disse do turno. No turno reaberto pelo
 // histórico, só a regra e a ação.
 type Motivo = Pick<ResultadoDoTurno, "regra" | "acao"> &
-  Partial<Pick<ResultadoDoTurno, "descricao" | "efeito" | "fontes" | "interpretacao" | "resolucao" | "transaction_id">>;
+  Partial<
+    Pick<ResultadoDoTurno, "descricao" | "efeito" | "fontes" | "interpretacao" | "resolucao" | "recibo" | "transaction_id">
+  >;
 
 type Fala = { id: number; autor: "cliente" | "assistente"; texto: string; motivo?: Motivo };
 
@@ -53,8 +55,15 @@ const motivoDo = (t: ResultadoDoTurno): Motivo => ({
   fontes: t.fontes,
   interpretacao: t.interpretacao,
   resolucao: t.resolucao,
+  recibo: t.recibo,
   transaction_id: t.transaction_id,
 });
+
+// De onde veio o fato (DEV-044): o arquivo e a linha do CSV de origem e a versão dos dados.
+function origem(r: NonNullable<ResultadoDoTurno["recibo"]>): string {
+  const versao = r.versao_dos_dados ? `, dados ${r.versao_dos_dados.slice(0, 12)}` : "";
+  return `${r.transaction_id}: ${r.arquivo}, linha ${r.linha}${versao}`;
+}
 
 // Como a transação do turno foi achada (DEV-071): pelo ranking, a probabilidade da escolhida, quantas
 // podiam ser e a versão da calibração; com as opções na tela, o ranking só as ordenou.
@@ -100,6 +109,12 @@ function PorQue({ motivo }: { motivo: Motivo }) {
           <>
             <dt>Transação</dt>
             <dd>{comoAchou(motivo.resolucao, Boolean(motivo.transaction_id))}</dd>
+          </>
+        )}
+        {motivo.recibo && (
+          <>
+            <dt>Origem</dt>
+            <dd>{origem(motivo.recibo)}</dd>
           </>
         )}
       </dl>

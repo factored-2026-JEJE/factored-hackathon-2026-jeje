@@ -1586,6 +1586,21 @@
       ]
     },
     {
+      "id": "M-WEB-114",
+      "requisito": "R09",
+      "descricao": "O Por que esta resposta? esconde a origem do fato (DEV-044)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "        {motivo.recibo && (",
+          "para": "        {false && motivo.recibo && ("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta mostra de onde veio o fato: arquivo, linha e versão dos dados (DEV-044)"
+      ]
+    },
+    {
       "id": "M-WEB-107",
       "requisito": "R08",
       "descricao": "A lista das personas não diz quantas contestáveis cada uma tem",

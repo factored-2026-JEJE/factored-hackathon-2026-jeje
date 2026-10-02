@@ -7896,8 +7896,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes), rastro\n",
-          "para": "        conversa_id, numero, lida.idioma, lida.intencao, saida, (), rastro\n"
+          "de": "tuple(atual.fontes), rastro, origem",
+          "para": "(), rastro, origem"
         }
       ],
       "testes": [
@@ -11473,6 +11473,36 @@
       ],
       "testes": [
         "tests/test_bloqueio_conversa.py::test_quem_pergunta_como_evitar_fraude_vai_ao_atendente_sem_bloquear"
+      ]
+    },
+    {
+      "id": "M-CONV-111",
+      "requisito": "R09",
+      "descricao": "A resposta que cita transação não traz o recibo da origem (DEV-044)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        else consultas.origem_da_transacao(conexao, customer_id, saida.transaction_id)",
+          "para": "        else None"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao"
+      ]
+    },
+    {
+      "id": "M-CONV-112",
+      "requisito": "R09",
+      "descricao": "O recibo aponta a linha errada do CSV de origem (DEV-044)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/consultas.py",
+          "de": "\"SELECT transaction_id, _arquivo, _linha, (SELECT version FROM meta.dataset_version)\"",
+          "para": "\"SELECT transaction_id, _arquivo, _linha + 1, (SELECT version FROM meta.dataset_version)\""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao"
       ]
     },
     {

@@ -6,6 +6,7 @@ consulta (nenhum dado, erro ou tempo diferente revela a existência).
 """
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated
@@ -73,6 +74,31 @@ def transacao_do_cliente(
         .first()
     )
     return None if linha is None else Transacao(**linha)
+
+
+@dataclass(frozen=True)
+class Origem:
+    """De onde veio a transação citada (DEV-044): o arquivo e a linha do CSV de origem, gravados na
+    curada pela carga, e a versão dos dados em vigor."""
+
+    transaction_id: str
+    arquivo: str
+    linha: int
+    versao_dos_dados: str | None
+
+
+def origem_da_transacao(
+    conexao: Connection, customer_id: str, transaction_id: str
+) -> Origem | None:
+    linha = conexao.execute(
+        text(
+            "SELECT transaction_id, _arquivo, _linha, (SELECT version FROM meta.dataset_version)"
+            " FROM curated.transactions"
+            " WHERE customer_id = :cliente AND transaction_id = :transacao"
+        ),
+        {"cliente": customer_id, "transacao": transaction_id},
+    ).first()
+    return None if linha is None else Origem(*linha)
 
 
 COLUNAS_DOS_FATOS = (
