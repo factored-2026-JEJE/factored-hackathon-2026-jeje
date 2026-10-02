@@ -714,7 +714,7 @@ def _status(limpo: str) -> str | None:
 # O corretor do NOV-24 da validação: a palavra desconhecida com 6 letras ou mais que está a uma
 # edição (Damerau-Levenshtein) de uma única palavra dos termos de contestar, fraude, bloquear,
 # desbloquear ou humano conta como essa palavra. Palavra com 2 ou mais ocorrências no vocabulário
-# (o BANKING77 de treino ES/PT, `python -m jeje.leitor.palavras`) nunca é trocada, e a que aparece
+# (o BANKING77 de treino ES/PT, `python -m jeje.palavras`) nunca é trocada, e a que aparece
 # nele ao menos uma vez não vira termo de fraude ("probado" não vira "robado").
 VOCABULARIO_DO_ARQUIVO = Path(__file__).with_name("palavras_conhecidas.txt")
 VOCABULARIO: dict[str, int] = {

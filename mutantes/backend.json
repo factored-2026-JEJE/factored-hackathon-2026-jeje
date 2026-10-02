@@ -6284,7 +6284,7 @@
       "descricao": "O vocabulário do corretor conta também o teste do BANKING77 (DEV-060)",
       "trocas": [
         {
-          "arquivo": "src/jeje/leitor/palavras.py",
+          "arquivo": "src/jeje/palavras.py",
           "de": "t.idioma in (\"es\", \"pt\") and t.particao == \"treino\"",
           "para": "t.idioma in (\"es\", \"pt\")"
         }
@@ -6299,7 +6299,7 @@
       "descricao": "O vocabulário do corretor conta também o inglês (DEV-060)",
       "trocas": [
         {
-          "arquivo": "src/jeje/leitor/palavras.py",
+          "arquivo": "src/jeje/palavras.py",
           "de": "t.idioma in (\"es\", \"pt\") and t.particao == \"treino\"",
           "para": "t.particao == \"treino\""
         }
