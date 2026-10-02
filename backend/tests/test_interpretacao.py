@@ -549,6 +549,8 @@ def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto)
         ("Quiero congelar mi tarjeta", "bloquear"),
         ("Quero travar o cartão", "bloquear"),
         ("Trava meu cartão, por favor", "bloquear"),
+        ("Trava o cartão, por favor", "bloquear"),
+        ("Congela la tarjeta de débito", "bloquear"),
         ("Reactiva mi tarjeta", "desbloquear"),
         ("Ya apareció mi tarjeta, quiero usarla", "desbloquear"),
         ("Quero reativar o cartão", "desbloquear"),
@@ -574,6 +576,12 @@ def test_palavras_comuns_do_cartao_do_atendente_e_da_fraude(texto, intencao):
         "Quiero activar mi tarjeta nueva",  # ativar o cartão novo não é desbloqueio
         "Apareció un cobro en mi tarjeta que no reconozco",
         "Encontré un pago con tarjeta no autorizado",  # o cartão não é o achado
+        # "Trava" e "congela" descrevendo o cartão ou o app (auditoria do dev, 02/10).
+        "Meu cartão trava na maquininha",
+        "Mi tarjeta se congela cuando pago con el celular",
+        "A trava do cartão foi ativada sozinha",
+        "O aplicativo trava quando abro o cartão",
+        "Por que o cartão trava em compras online?",
     ],
 )
 def test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio(texto):

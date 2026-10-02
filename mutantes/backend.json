@@ -10103,7 +10103,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"congelar\", \"congela\", \"congele\", \"congelen\",",
+          "de": "\"congelar\", \"congele\", \"congelen\",",
           "para": "\"congelem_\","
         }
       ],
@@ -12573,6 +12573,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-187",
+      "requisito": "R03",
+      "descricao": "\"Meu cartão trava na maquininha\" pede bloqueio e o cartão é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"congelem\", \"congelarla\", \"congelala\", \"travar\", \"trave\", \"travem\",",
+          "para": "\"congelem\", \"congelarla\", \"congelala\", \"travar\", \"trava\", \"trave\", \"travem\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-188",
+      "requisito": "R03",
+      "descricao": "\"Mi tarjeta se congela cuando pago\" pede bloqueio e o cartão é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"congela mi\", \"congela la\", \"congela el\", \"congela esta\", \"congela esa\"),",
+          "para": "     \"congela\", \"congela mi\", \"congela la\", \"congela el\", \"congela esta\", \"congela esa\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_estado_negacao_e_cartao_novo_nao_viram_pedido_de_bloqueio"
       ]
     },
     {
