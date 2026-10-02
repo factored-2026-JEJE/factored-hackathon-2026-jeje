@@ -7288,8 +7288,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\")",
-          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"cuenta\", \"conta\")"
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\")",
+          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\", \"cuenta\", \"conta\")"
         }
       ],
       "testes": [
@@ -12272,6 +12272,66 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_cobranca_a_mais_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-167",
+      "requisito": "R03",
+      "descricao": "\"Plástico\" não é cartão: \"congelen mi plástico\" não bloqueia (ACH-182)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\")",
+          "para": "CARTAO = (\"tarjeta*\", \"cartao\", \"cartoes\")"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_girias_e_plurais_que_o_leitor_lia_errado_sao_das_regras"
+      ]
+    },
+    {
+      "id": "M-ITP-168",
+      "requisito": "R03",
+      "descricao": "Quem anda gastando com o cartão de outro não é fraude (ACH-182)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"utilizando\", \"gastando\", \"gastaron\",",
+          "para": "\"utilizando\", \"gastaron\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-169",
+      "requisito": "R03",
+      "descricao": "\"Pásenme con un ser humano\" não é pedido de atendente (ACH-182)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"pasenme\", \"pasen\", \"passem\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_girias_e_plurais_que_o_leitor_lia_errado_sao_das_regras"
+      ]
+    },
+    {
+      "id": "M-ITP-170",
+      "requisito": "R03",
+      "descricao": "\"Perdí mi plástico\" não é perda do cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"tarjeta*\", \"cartao\", \"cartoes\", \"plastico*\", \"cartera\",",
+          "para": "    (\"tarjeta*\", \"cartao\", \"cartoes\", \"cartera\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude"
       ]
     },
     {
