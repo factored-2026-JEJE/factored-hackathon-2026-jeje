@@ -1428,6 +1428,15 @@ def test_terceiro_que_entrou_na_conta_e_golpe(texto, golpe):
 
 @pytest.mark.parametrize(
     "texto",
+    ["Me estafó un tipo por whatsapp y le mandé plata", "Roubaron meu cartão ontem à noite"],
+)
+def test_golpe_contado_no_passado_e_o_roubaron_do_portunhol(texto):
+    """Os golpes que a V2b do corretor deixou de consertar ("estafó", "roubaron", EV-230)."""
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
     [
         # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).
         "Tengo un problema con mi tarjeta, alguien la utilizó sin autorización",
