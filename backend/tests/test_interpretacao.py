@@ -1389,6 +1389,9 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         "Una persona está entrando a la tienda",
         "Una persona intentó realizar el pago por mí en la caja",
         "Mi hermana la usó con mi permiso",
+        # A pessoa do próprio banco (auditoria do dev, 02/10).
+        "Una persona del banco abrió una cuenta a mi nombre cuando fui a la sucursal",
+        "Uma pessoa da agência acessou minha conta para me ajudar com o cadastro",
         # Os termos do #77 em mensagens comuns (ACH-179, REG-24): "de ustedes", o cadastro, o
         # atendente de verdade que se apresenta e o "fraudulenta" negado.
         "Recibí un cargo y pensé que era de ustedes, pero no reconozco el comercio",
