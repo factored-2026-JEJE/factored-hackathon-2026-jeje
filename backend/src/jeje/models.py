@@ -246,6 +246,8 @@ class Evento(Base):
     calibracao: Mapped[str | None] = mapped_column(Text, nullable=True)
     probabilidade: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     possiveis: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # A versão dos dados em vigor quando o evento aconteceu (DEV-044): sobrevive à recarga.
+    versao_dos_dados: Mapped[str | None] = mapped_column(Text, nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

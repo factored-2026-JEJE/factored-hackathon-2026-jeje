@@ -11821,6 +11821,21 @@
       ]
     },
     {
+      "id": "M-EVT-10",
+      "requisito": "R09",
+      "descricao": "O evento não guarda a versão dos dados (depois de uma recarga, não se sabe de qual versão saiu a resposta; DEV-044)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" :probabilidade, :possiveis, (SELECT version FROM meta.dataset_version))\"",
+          "para": "\" :probabilidade, :possiveis, NULL)\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_evento_guarda_a_versao_dos_dados_em_vigor_e_o_antigo_nao_muda"
+      ]
+    },
+    {
       "id": "M-MIG-17",
       "requisito": "R06",
       "descricao": "A 0023 não desfaz as colunas do resolvedor (o downgrade deixa o schema diferente)",
