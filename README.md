@@ -125,13 +125,15 @@ Os números vêm de dois testes, e cada um vale para as suas frases:
   pedidos com pista, contra 58% do filtro exato sozinho. Outros 15% viram botões (com o número
   solto, a possível vira opção) e 5% a pergunta pelo campo. Pede dados de novo em 0,04%, contra
   40%. Nos históricos densos (10 clientes juntos), 72% contra 53%.
-- **Teste independente da validação** (REG-07, outro gerador de frases, antes da proteção do
-  ACH-143): 71% direto contra 38% do filtro exato, com 0,4% de proposta errada, também com outro
-  número antes do valor desde o DEV-063 (EV-166).
+- **Teste independente da validação** (QT-01, outro gerador de frases, no `d9dfad0`): 72,2% (es)
+  e 71,7% (pt) direto, contra 38,5% do filtro exato, com 0% de proposta errada; o conjunto cobre a
+  certa em 99,7% das vezes.
+- **Limite** (QT-04): quando a transação descrita não está entre as do cliente, a conversa ainda
+  propõe outra direto em 9,2% (es) e 8,9% (pt) dos pedidos (antes da regra R2, 28%). A proposta só
+  vira pré-caso com o "sim" do cliente sobre a transação mostrada.
 
-A garantia do conjunto vale para frases como as da calibração. Com as da validação, ele cobriu a
-certa em 88% das vezes em que o ranking decidiu; no resto, a conversa mostrou as possíveis em vez
-de propor. `RESOLVEDOR_DE_TRANSACAO: "filtro"` no `compose.yaml` volta ao filtro exato.
+A garantia do conjunto vale para frases como as da calibração. `RESOLVEDOR_DE_TRANSACAO: "filtro"`
+no `compose.yaml` volta ao filtro exato.
 
 Atalhos sob a conversa mandam frases prontas (consultar, contestar, status do pedido, bloquear
 cartão e pedir um atendente), e "Perguntar sobre esta", em cada linha das transações, manda à
