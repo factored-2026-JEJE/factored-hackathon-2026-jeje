@@ -1461,6 +1461,35 @@ def test_so_o_q_sozinho_vira_que():
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("No fue un fraude, yo hice la compra pero me la rechazaron", "es"),
+        ("No es fraude, solo quiero saber por qué me rechazaron la compra", "es"),
+        ("Não foi fraude, fui eu que comprei, por que recusaram?", "pt"),
+        ("Não é golpe, só quero entender essa cobrança", "pt"),
+    ],
+)
+def test_a_fraude_negada_pelo_cliente_nao_e_relato(texto, anterior):
+    """Quem diz que não foi fraude pergunta pela compra: o cartão não é bloqueado."""
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # A negação dentro da oração com "que" é a dúvida ou a crença de quem caiu no golpe.
+        ("Quiero asegurarme de que no fue un fraude", "es"),
+        ("Achei que não era golpe e passei a senha", "pt"),
+        # O "no" do português não é negação.
+        ("Acho que caí no golpe agora, mandei um pix", "pt"),
+        ("No fue un robo, perdí la tarjeta en el bus", "es"),
+    ],
+)
+def test_a_negacao_que_nao_e_do_cliente_segue_relato(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("¡Es un robo! Me cobraron 3 dólares de comisión", "es"),
         ("¡Esto es un robo! Pagué el pedido hace dos semanas y nunca llegó", "es"),
         ("Isso é um assalto, a tarifa subiu de novo", "pt"),
