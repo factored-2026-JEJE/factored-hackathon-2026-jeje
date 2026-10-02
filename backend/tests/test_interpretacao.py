@@ -1120,6 +1120,22 @@ def test_girias_e_plurais_que_o_leitor_lia_errado_sao_das_regras(texto, intencao
 @pytest.mark.parametrize(
     ("texto", "pergunta"),
     [
+        # As flexões de "evitar" e "cuidar" também são pergunta de prevenção (REG-16); com vítima,
+        # continua sendo relato.
+        ("¿Cómo evito caer en una estafa?", True),
+        ("Como evito cair em golpe?", True),
+        ("¿Cómo me cuido de una estafa por WhatsApp?", True),
+        ("Me robaron la tarjeta, ¿cómo evito que la usen?", False),
+    ],
+)
+def test_flexoes_de_evitar_e_cuidar_sao_prevencao(texto, pergunta):
+    assert ler(texto).intencao == "fraude"
+    assert interpretacao.prevencao(texto) is pergunta
+
+
+@pytest.mark.parametrize(
+    ("texto", "pergunta"),
+    [
         # A pergunta condicional sobre o uso por outra pessoa vai ao atendente sem bloquear (P3);
         # o relato seguido de pergunta, ou a pergunta com vítima, continua bloqueando.
         ("¿Qué hago si alguien usó mi tarjeta?", True),
