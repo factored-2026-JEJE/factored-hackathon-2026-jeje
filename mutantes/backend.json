@@ -12841,6 +12841,21 @@
       ]
     },
     {
+      "id": "M-ITP-207",
+      "requisito": "R03",
+      "descricao": "A pessoa do próprio banco (\"uma pessoa da agência acessou minha conta para me ajudar\") vira terceiro e o cartão é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=(\"banco\", \"agencia\", \"sucursal\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",
