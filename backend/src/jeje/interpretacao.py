@@ -146,7 +146,7 @@ PERDA_DE_MEIO = Perto(
      "desaparec*", "esqueci*",
      # O cartão antes do verbo, com "se me cayó" ou o tipo do cartão no meio (PERDA-01, EV-199).
      "se me cayo"),
-    ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular",
+    ("tarjeta*", "cartao", "cartoes", "plastico*", "cartera", "carteira", "billetera", "celular",
      "tarjeta de credito", "tarjeta de debito", "cartao de credito", "cartao de debito"),
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
@@ -162,6 +162,7 @@ PERDA_DE_MEIO = Perto(
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
 PEDIDO_DE_PESSOA = Perto(
     ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "pasas", "pasa",
+     "pasenme", "pasen", "passem",
      "passa", "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar",
      "contacto", "contato", "conect*", "chama", "chame", "chamar", "coloca", "coloque", "colocar",
      "atienda", "atenda", "dame", "deme", "llamame", "llame", "liga", "ligue", "poe", "ponme"),
@@ -240,7 +241,7 @@ RECUSA_DE_HUMANO = re.compile(
 # Pedido de bloqueio ou desbloqueio de cartão (PRD-007): verbo de pedido (infinitivo, imperativo,
 # "¿cómo bloqueo…?", "el bloqueo") perto de cartão. "¿Por qué bloquearon mi tarjeta?" e "meu cartão
 # foi bloqueado?" não pedem nada; roubo e perda já são relato de fraude, que também bloqueia.
-CARTAO = ("tarjeta*", "cartao", "cartoes")
+CARTAO = ("tarjeta*", "cartao", "cartoes", "plastico*")  # "plástico": o cartão na gíria (ACH-182)
 # Congelar e travar também pedem bloqueio (ACH-140), nas formas de pedido: "mi tarjeta está
 # congelada" e "o cartão travou na maquininha" contam o estado, não pedem nada.
 PEDIDO_DE_BLOQUEIO = Perto(
@@ -338,10 +339,10 @@ PEDIDO_DE_DINHEIRO = Perto(
 TERCEIRO_USOU = Perto(
     ("alguien", "alguem", "una persona", "uma pessoa", "otra persona", "outra pessoa",
      "un desconocido", "um desconhecido", "un extrano", "um estranho"),
-    ("uso", "usaba", "usaron", "esta usando", "estan usando", "utilizo", "esta utilizando", "robo",
+    ("uso", "usaba", "usaron", "usando", "utilizo", "utilizando", "gastando", "gastaron", "robo",
      "hizo pagos", "hizo compras", "hizo un pago", "hizo una compra", "hizo un retiro", "compro",
      "saco", "retiro", "transfirio", "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
-     "usou", "usava", "usaram", "estao usando", "utilizou", "roubou",
+     "usou", "usava", "usaram", "gastou", "utilizou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
      "comprou", "sacou", "transferiu", "tirou", "se passou", "acessou", "entrou na minha conta",
      "clonou"),
@@ -805,9 +806,10 @@ LEXICO_DE_INTENCAO = _lexico()
 
 
 def _uma_edicao(a: str, b: str) -> bool:
-    """A uma edição: uma letra trocada, uma a mais ou a menos, ou duas vizinhas invertidas. O plural
-    do termo não conta ("golpes" não vira "golpe", REG-14)."""
-    if a == b or a in (b + "s", b + "es") or abs(len(a) - len(b)) > 1:
+    """A uma edição: uma letra trocada, uma a mais ou a menos, ou duas vizinhas invertidas. O termo
+    com uma letra a mais no fim é outra palavra, não erro: "golpes" não vira "golpe" (REG-14), nem
+    "pessoal" vira "pessoa" (ACH-172)."""
+    if a == b or a[:-1] == b or abs(len(a) - len(b)) > 1:
         return False
     if len(a) == len(b):
         dif = [i for i, (x, y) in enumerate(zip(a, b, strict=True)) if x != y]
