@@ -382,7 +382,9 @@ export function Conversa({
           ))}
         </div>
       )}
-      {(situacao.estado === "confirmando" || situacao.estado === "confirmando_desbloqueio") && (
+      {(situacao.estado === "confirmando" ||
+        situacao.estado === "confirmando_desbloqueio" ||
+        situacao.estado === "confirmando_bloqueio") && (
         <div role="group" aria-label="Confirmação" className="acoes">
           <button type="button" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>
             {rapidas.confirmar}
