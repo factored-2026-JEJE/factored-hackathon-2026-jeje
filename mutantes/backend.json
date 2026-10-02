@@ -12101,12 +12101,13 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    if a == b or a in (b + \"s\", b + \"es\") or abs(len(a) - len(b)) > 1:",
+          "de": "    if a == b or a[:-1] == b or abs(len(a) - len(b)) > 1:",
           "para": "    if a == b or abs(len(a) - len(b)) > 1:"
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_plural_de_termo_nao_e_corrigido_para_o_termo"
+        "tests/test_interpretacao.py::test_plural_de_termo_nao_e_corrigido_para_o_termo",
+        "tests/test_interpretacao.py::test_termo_com_uma_letra_a_mais_no_fim_nao_e_erro_de_digitacao"
       ]
     },
     {
