@@ -300,6 +300,10 @@ validação, com bloquear e desbloquear entre as intenções (NOV-27) e o golpe 
   mensagem usa o vetor que o leitor já calculou, sem outro modelo na imagem;
 - ele só diz a intenção (esquema forçado, temperatura 0, semente fixa, sem raciocínio). Língua,
   pistas, sim/não e sinais continuam das regras, e a política decide o que fazer;
+- a fraude que só ele leu vai ao atendente (POL-HUM-01) sem bloquear o cartão, com "possível fraude
+  lida pelo modelo; nada bloqueado" no caso: ele também lê fraude na suspeita sem prejuízo, no cartão
+  retido pelo caixa eletrônico e na tarifa (REG-15 da validação). O bloqueio automático fica com a
+  fraude que as regras ou o leitor leem;
 - saída fora do esquema, lentidão (`OLLAMA_TIMEOUT_S`) ou Ollama fora do ar: a frase segue não
   entendida, como antes, com o motivo no trace (`regras (fallback: …)`); o turno lido pelo LLM
   registra `ollama:qwen3:4b`, a latência e os tokens.
@@ -315,8 +319,9 @@ para 85,3% (es) e de 72,0% para 85,8% (pt), sem mais ação indevida (0,3% e 0,4
 
 `INTERPRETADOR: "ollama"` troca o leitor por um modelo local (Ollama do host, `qwen2.5:7b`) no
 mesmo papel: só classifica o que as regras não entendem, e diz a língua, a intenção e o status
-citado. Quando é chamado, pode ler fraude ou pedido de atendente (o turno encaminha), mas nunca
-confirma nem escolhe transação, e a política decide o que fazer. Cumprimento e agradecimento não
+citado. Quando é chamado, pode ler fraude ou pedido de atendente (o turno encaminha; a fraude que
+só ele leu, sem bloquear o cartão), mas nunca confirma nem escolhe transação, e a política decide o
+que fazer. Cumprimento e agradecimento não
 viram pedido de atendente, e perguntar pelo estorno é consulta, não contestação (ACH-102). A API
 pede a carga do modelo ao iniciar (log `modelo pronto` ou `modelo indisponivel`) e o mantém
 carregado (`OLLAMA_KEEP_ALIVE`); qualquer falha — modelo fora do ar, lento, resposta fora do

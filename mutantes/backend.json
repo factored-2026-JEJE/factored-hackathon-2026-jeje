@@ -11755,8 +11755,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if decisao.regra == \"POL-HUM-01\" and prevencao(self.mensagem):",
-          "para": "            if False:"
+          "de": "        if prevencao(self.mensagem):",
+          "para": "        if False:"
         }
       ],
       "testes": [
@@ -11792,6 +11792,21 @@
       "testes": [
         "tests/test_dados_cli.py::test_recibo_aponta_a_linha_fisica_do_csv_de_origem",
         "tests/test_conversa.py::test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao"
+      ]
+    },
+    {
+      "id": "M-CONV-113",
+      "requisito": "R07",
+      "descricao": "A fraude que só o LLM leu bloqueia o cartão (REG-15)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if pelo_modelo(self.lida):",
+          "para": "        if False:"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_fraude_que_so_o_llm_leu_vai_ao_atendente_sem_bloquear_o_cartao"
       ]
     },
     {
@@ -12810,8 +12825,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/nao_entendi.py",
-          "de": "        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, \"modelo\"))",
-          "para": "        lida = replace(lido, sinais=(*lido.sinais, \"modelo\"))"
+          "de": "        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))",
+          "para": "        lida = replace(lido, sinais=(*lido.sinais, SINAL_DO_MODELO))"
         }
       ],
       "testes": [
