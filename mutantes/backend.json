@@ -12162,7 +12162,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    \"que hago si\", \"que debo hacer si\", \"que hacer si\", \"o que fazer se\", \"o que faco se\",\n    \"o que devo fazer se\", \"como se si\", \"como sei se\"\n",
+          "de": "    \"que hago si\", \"que debo hacer si\", \"que hacer si\", \"o que fazer se\", \"o que faco se\",\n    \"o que devo fazer se\", \"como se si\", \"como sei se\",\n",
           "para": ""
         }
       ],
