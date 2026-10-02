@@ -616,6 +616,24 @@ INDIGNACAO = re.compile(
     r"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e) "
     r"(?:un |um )?(?:robo|roubo|asalto|assalto)(?![a-z0-9])(?! d[eoa]\b)"
 )
+# A fraude negada pelo cliente ("no fue un fraude, yo hice la compra", "não é golpe, só quero
+# entender essa cobrança") também não é relato. Só no começo da mensagem, onde o cliente nega: a
+# negação do golpista citada pela vítima ("me juró: no es una estafa") e a da oração com "que"
+# ("quiero asegurarme de que no fue un fraude") seguem relato (REG-42 da validação). E só com o
+# verbo logo depois da negação: "no golpe do pix" é o "no" do português.
+FRAUDE_NEGADA = re.compile(
+    r"^(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|"
+    r"creo que es|acho que seja|acho que foi|acho que e) (?:un |um |una |uma )?"
+    r"(?:fraude|golpe|estafa|robo|roubo)(?![a-z0-9])"
+)
+
+
+def _sem_o_que_nao_e_relato(limpo: str) -> str:
+    """O texto lido para a fraude: sem a indignação nem a fraude negada, com os espaços juntados
+    (o `Perto` conta palavras com um espaço só)."""
+    return " ".join(FRAUDE_NEGADA.sub(" ", INDIGNACAO.sub(" ", limpo)).split())
+
+
 # O dinheiro tirado da conta por outros ("¡esto es un robo! me sacaron plata de la cuenta", "que
 # roubo! tiraram dinheiro da minha conta sem eu saber"), sem a tarifa logo depois ("me sacaron plata
 # de la cuenta por la comisión"): o C do REG-39 da validação, para os relatos que só a indignação
@@ -1215,7 +1233,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
             continue
         if intencao == "bloquear" and BLOQUEIO_CONTADO.search(texto.casefold()):
             continue
-        lido = " ".join(INDIGNACAO.sub(" ", limpo).split()) if intencao == "fraude" else limpo
+        lido = _sem_o_que_nao_e_relato(limpo) if intencao == "fraude" else limpo
         casados = tuple(sinal for t in termos if (sinal := _casou(t, lido)))
         if intencao == "humano" and SO_A_PESSOA.match(limpo):
             casados = (*casados, "so_a_pessoa")
