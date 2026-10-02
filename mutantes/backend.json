@@ -6597,6 +6597,21 @@
       ]
     },
     {
+      "id": "M-LEITOR-73",
+      "requisito": "R02",
+      "descricao": "O ruído sem palavra conhecida (\"asdf qwer\", \"kkkkk\") chega ao leitor e é lido como pedido fora de escopo (ACH-122)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if not reconhecivel(texto):\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_leitor.py::test_mensagem_sem_palavra_conhecida_nao_chega_ao_leitor"
+      ]
+    },
+    {
       "id": "M-ITP-28",
       "requisito": "R07",
       "descricao": "Cobrança repetida volta a ser consulta (\"me cobraron dos veces\" responde só o status)",

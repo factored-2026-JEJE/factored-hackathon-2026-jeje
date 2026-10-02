@@ -877,6 +877,12 @@ INTENCOES_CORRIGIDAS = frozenset({"contestar", "fraude", "bloquear", "desbloquea
 MINIMO_PARA_CORRIGIR = 6
 
 
+def reconhecivel(texto: str) -> bool:
+    """Alguma palavra da mensagem está no vocabulário. Sem nenhuma ("asdf qwer", "kkkk", "👍"), é
+    ruído: o leitor o lia como pedido fora de escopo com confiança (ACH-122, DEV-020s)."""
+    return any(palavra in VOCABULARIO for palavra in normalizar(texto).split())
+
+
 def _palavras_do_termo(termo: str | Perto) -> Iterator[str]:
     if isinstance(termo, Perto):
         for parte in (*termo.um, *termo.outro):
