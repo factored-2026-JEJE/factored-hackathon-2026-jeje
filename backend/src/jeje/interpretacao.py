@@ -297,9 +297,11 @@ CARTAO_ACHADO = Perto(
     ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"), CARTAO, entre=1
 )
 # Dinheiro sendo tirado da conta é relato de fraude (ACH-140); "¿por qué me estás robando con
-# las comisiones?" sem o dinheiro ou a conta perto, não.
+# las comisiones?" sem o dinheiro ou a conta perto, não. A conta esvaziada ("me vaciaron la
+# cuenta", "esvaziaram minha conta") também é (REG-21).
 DINHEIRO_TIRADO = Perto(
-    ("robando", "roubando", "tirando"), ("plata", "dinero", "dinheiro", "cuenta", "conta")
+    ("robando", "roubando", "tirando", "vaciaron", "esvaziaram", "limparam"),
+    ("plata", "dinero", "dinheiro", "cuenta", "conta"),
 )
 # Golpe de engenharia social (ACH-142): alguém se passou pelo banco, por um funcionário ou por um
 # parente; o cliente entregou a senha, o código ou os dados; o site ou o link era falso; a conta, o
@@ -1066,7 +1068,11 @@ SUSPEITA_SEM_PERDA = (
     "no respondi", "nao respondi", "no cai", "nao cai", "no perdi", "nao perdi", "sin perder",
     "sem perder", "no paso nada", "nao aconteceu nada", "por las dudas", "por via das duvidas",
     "solo para confirmar", "so para confirmar", "quiero confirmar", "quero confirmar",
-    "queria confirmar"
+    "queria confirmar",
+    # O objeto antes do verbo ("no se la di") e o nada entregue ("não passei nada"), do REG-21.
+    "no se la di", "no se lo di", "no se las di", "no se los di", "no la di", "no lo di",
+    "nunca se la di", "nunca se lo di", "no se la pase", "no se lo pase", "nao passei nada",
+    "nao informei", "nao forneci nada"
 )  # fmt: skip
 VITIMA = (
     "cai", "me aplicaron", "sofri", "sufri", "me estafaron", "estafaron", "fui vitima",
@@ -1079,7 +1085,9 @@ VITIMA = (
     "desaparecio", "desapareceu", "se llevaron", "levaram", "no reconozco", "nao reconheco",
     "que no hice", "que nao fiz", "sin autorizar", "sem autorizacao", "no autorice",
     "nao autorizei", "me enganaron", "me enganaram", "fui enganado", "fui enganada", "usaron",
-    "usaram"
+    "usaram",
+    # A conta esvaziada ("no se la di, pero vaciaron mi cuenta"), do REG-21.
+    "vaciaron", "esvaziaram", "limparam"
 )  # fmt: skip
 NEGA_A_VITIMA = (
     "no", "nao", "nunca", "ni", "nem", "jamas", "jamais"

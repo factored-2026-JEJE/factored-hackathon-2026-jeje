@@ -560,6 +560,12 @@ def test_pergunta_estado_negacao_ou_sem_cartao_nao_sao_pedido_de_bloqueio(texto)
         ("Me están robando plata de la cuenta", "fraude"),
         ("Caí num golpe e fizeram um pix", "fraude"),
         ("Estão tirando dinheiro da minha conta", "fraude"),
+        # REG-21: a conta esvaziada.
+        ("Me vaciaron la cuenta", "fraude"),
+        ("Entraron a mi cuenta y la vaciaron", "fraude"),
+        ("Me pidieron el código por WhatsApp, lo di y vaciaron mi cuenta", "fraude"),
+        ("Esvaziaram minha conta", "fraude"),
+        ("Passei o código e limparam minha conta", "fraude"),
     ],
 )
 def test_palavras_comuns_do_cartao_do_atendente_e_da_fraude(texto, intencao):
@@ -939,11 +945,23 @@ def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
         ("Recibí un mensaje raro, no di mis datos, ¿es una estafa?", True),
         ("Me ligaram dizendo ser do banco, não passei nada, era golpe?", True),
         ("Me escribieron del banco y no le di mis datos, ¿era una estafa?", True),  # "no le di"
+        # REG-21: o objeto antes do verbo ("no se la di") e o nada entregue.
+        (
+            "Me llamaron diciendo que eran del banco y me pidieron la clave. "
+            "No se la di, ¿es normal?",
+            True,
+        ),
+        ("Me escribieron por WhatsApp pidiendo el código, pero no se lo di", True),
+        ("Me llegó un SMS pidiendo mis datos; no se los di", True),
+        ("Um suposto atendente pediu o código e eu não informei", True),
         # Termo de vítima não negado: é relato, mesmo com a palavra de prevenção.
         ("Fui vítima de golpe, como me protejo agora?", False),
         ("Me estafaron, transferí 500 dólares", False),
         ("Caí en una estafa y me sacaron dinero", False),
         ("Me robaron la tarjeta", False),
+        # A conta esvaziada é perda, mesmo com a suspeita na mesma mensagem (REG-21).
+        ("Un supuesto asesor me pidió la clave, no se la di, pero igual vaciaron mi cuenta", False),
+        ("Um falso atendente pediu o código, não informei, mas esvaziaram minha conta", False),
     ],
 )
 def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao):

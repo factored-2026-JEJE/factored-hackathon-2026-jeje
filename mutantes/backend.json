@@ -10148,7 +10148,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "DINHEIRO_TIRADO = Perto(\n    (\"robando\", \"roubando\", \"tirando\"), (\"plata\", \"dinero\", \"dinheiro\", \"cuenta\", \"conta\")\n)",
+          "de": "DINHEIRO_TIRADO = Perto(\n    (\"robando\", \"roubando\", \"tirando\", \"vaciaron\", \"esvaziaram\", \"limparam\"),\n    (\"plata\", \"dinero\", \"dinheiro\", \"cuenta\", \"conta\"),\n)",
           "para": "DINHEIRO_TIRADO = \"robando\""
         }
       ],
@@ -12393,6 +12393,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_hipotese_de_perda_e_prevencao"
+      ]
+    },
+    {
+      "id": "M-ITP-190",
+      "requisito": "R07",
+      "descricao": "A suspeita sem prejuízo com \"no se la di\" lida como fraude bloqueia o cartão (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"queria confirmar\",\n    # O objeto antes do verbo (\"no se la di\") e o nada entregue (\"não passei nada\"), do REG-21.\n    \"no se la di\", \"no se lo di\", \"no se las di\", \"no se los di\", \"no la di\", \"no lo di\",\n    \"nunca se la di\", \"nunca se lo di\", \"no se la pase\", \"no se lo pase\", \"nao passei nada\",\n    \"nao informei\", \"nao forneci nada\"\n",
+          "para": "    \"queria confirmar\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-191",
+      "requisito": "R07",
+      "descricao": "A conta esvaziada (\"me vaciaron la cuenta\") não é relato de fraude e não chega ao atendente (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"tirando\", \"vaciaron\", \"esvaziaram\", \"limparam\"",
+          "para": "\"tirando\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavras_comuns_do_cartao_do_atendente_e_da_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-192",
+      "requisito": "R07",
+      "descricao": "A conta esvaziada com a suspeita na mesma mensagem (\"no se la di, pero vaciaron mi cuenta\") não bloqueia o cartão (REG-21)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"usaram\",\n    # A conta esvaziada (\"no se la di, pero vaciaron mi cuenta\"), do REG-21.\n    \"vaciaron\", \"esvaziaram\", \"limparam\"\n",
+          "para": "    \"usaram\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
       ]
     },
     {
