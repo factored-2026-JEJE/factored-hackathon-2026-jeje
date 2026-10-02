@@ -1085,7 +1085,7 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
         "Un señor haciéndose pasar por el banco me pidió la clave",
         "Me llamó alguien que se hacía pasar por el banco y consiguió mi clave",
         "Um homem conseguiu minha senha pelo telefone",
-        "Me pidieron la clave por WhatsApp",
+        "Me pidieron mi clave por WhatsApp",
         "Meu cartão se roubou ontem",
         # O leitor lia com confiança como contestação (ACH-182, LLM-01): agora as regras leem antes.
         "Alguien anda gastando con mi plástico en tiendas donde nunca he puesto un pie",
@@ -1163,6 +1163,48 @@ def test_pergunta_condicional_sobre_uso_por_outra_pessoa_e_prevencao(texto, perg
     ],
 )
 def test_outra_pessoa_sem_uso_nem_roubo_nao_e_relato_de_fraude(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # O papel antes do verbo é quem atendeu de verdade, não golpe (ACH-173, REG-18).
+        "Liguei e o atendente falou que era só esperar 24 horas",
+        "El asesor dijo que era un error del sistema y que me devolverían el dinero",
+        "O operador falou que era normal demorar o estorno",
+        "Meu filho falou que era para eu perguntar aqui qual é o limite do cartão",
+        "O gerente disse que era um erro e que iam corrigir",
+    ],
+)
+def test_o_que_o_atendente_de_verdade_disse_nao_e_golpe(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Com o verbo antes do papel, continua golpe.
+        "Um falso atendente falou que era do banco",
+        "Me llamó un hombre que dijo que era del banco",
+        "Recebi uma ligação de alguém que se passava por um atendente do banco",
+    ],
+)
+def test_verbo_e_depois_o_papel_continua_golpe(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Senha ou código pedidos sem ser os do cliente, ou negados, não são golpe (REG-17).
+        "La app me pidió un código de verificación",
+        "O caixa pediu a senha duas vezes",
+        "Minha mãe não conseguiu trocar a senha",
+        "Ele não conseguiu minha senha, eu desliguei antes",
+    ],
+)
+def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
     assert ler(texto).intencao != "fraude"
 
 
