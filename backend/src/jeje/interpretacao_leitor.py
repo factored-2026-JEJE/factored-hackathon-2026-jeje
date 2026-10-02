@@ -104,7 +104,8 @@ class Leitor:
         inicio = time.perf_counter()
         try:
             modelo, codificar = self._carregado()
-            (lida,) = modelo.ler([texto], codificar)
+            vetores = codificar([texto])
+            (lida,) = modelo.ler_vetores(vetores)
         except Exception as erro:
             # Fronteira do modelo: qualquer falha ao ler vale a leitura das regras.
             return Leitura(

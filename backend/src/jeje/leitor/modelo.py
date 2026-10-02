@@ -74,7 +74,11 @@ class ModeloLeitor:
         return _softmax(self.logistica.decision_function(vetores) / self.temperatura)
 
     def ler(self, textos: Sequence[str], codificar: codificador.Codificador) -> list[Leitura]:
-        p = self.probabilidades(codificar(list(textos)))
+        return self.ler_vetores(codificar(list(textos)))
+
+    def ler_vetores(self, vetores: np.ndarray) -> list[Leitura]:
+        """A leitura de mensagens já codificadas pelo e5 (a conversa reaproveita o vetor)."""
+        p = self.probabilidades(vetores)
         melhores = p.argmax(axis=1)
         return [Leitura(self.fluxos[k], round(float(p[i, k]), 4)) for i, k in enumerate(melhores)]
 
