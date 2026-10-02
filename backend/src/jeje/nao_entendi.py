@@ -22,7 +22,7 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from jeje.interpretacao import Interpretacao
-from jeje.interpretacao_modelo import Leitura, Ollama
+from jeje.interpretacao_modelo import SINAL_DO_MODELO, Leitura, Ollama
 from jeje.leitor.vizinhos import Vizinhos
 from jeje.mensagens import Idioma
 
@@ -164,6 +164,6 @@ class NaoEntendi:
             )
             fallback = f"regras (fallback: {type(erro).__name__})"
             return Leitura(lido, fallback, self.ollama.chamada(inicio, uso), vetor)
-        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, "modelo"))
+        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))
         fonte = f"ollama:{self.ollama.modelo}"
         return Leitura(lida, fonte, self.ollama.chamada(inicio, uso), vetor)

@@ -101,6 +101,10 @@ class Perto:
     fora_antes: tuple[str, ...] = ()
     negavel: bool = False  # negado logo antes ("no me cobraron de más"), não casa
     so_nessa_ordem: bool = False  # só o termo do primeiro grupo e depois o do segundo
+    # Nas `depois` palavras depois do par, um termo de `fora_depois` mostra que o objeto está
+    # seguro ou é outro: "olvidé mi tarjeta en casa", "la tarjeta no aparece en la app".
+    depois: int = 0
+    fora_depois: tuple[str, ...] = ()
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -127,6 +131,9 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
                 continue
             if termo.negavel and _negado(limpo[: achado.start()]):
                 continue
+            seguinte = " ".join(limpo[achado.end() :].split()[: termo.depois])
+            if any(_casa(f, seguinte) for f in termo.fora_depois):
+                continue
             return f"{a}+{b}"
     return None
 
@@ -142,6 +149,10 @@ def _negado(antes: str) -> bool:
 
 # Perda ou extravio só é relato de fraude com cartão, carteira ou celular perto: "perdí la
 # conexión" e "no encuentro la compra en mi tarjeta" continuam consulta (ACH-101).
+# "Plástico" é o cartão na gíria (ACH-182), mas só com determinante: "congelen mi plástico" é o
+# cartão; "la bolsa de plástico" não.
+PLASTICO = ("mi plastico", "meu plastico", "el plastico", "o plastico", "su plastico",
+            "seu plastico", "mis plasticos", "meus plasticos")  # fmt: skip
 PERDA_DE_MEIO = Perto(
     ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*",
      # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
@@ -150,17 +161,27 @@ PERDA_DE_MEIO = Perto(
      "desaparec*", "esqueci*",
      # O cartão antes do verbo, com "se me cayó" ou o tipo do cartão no meio (PERDA-01, EV-199).
      "se me cayo"),
-    ("tarjeta*", "cartao", "cartoes", "plastico*", "cartera", "carteira", "billetera", "celular",
+    ("tarjeta*", "cartao", "cartoes", *PLASTICO, "cartera", "carteira", "billetera", "celular",
      "tarjeta de credito", "tarjeta de debito", "cartao de credito", "cartao de debito"),
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
     fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
-          "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na"),
+          "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na",
+          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).
+          "fatura", "factura", "extrato", "extracto", "resumen", "opcion", "opcao", "boleto",
+          "comprovante", "comprobante"),
     # Com o cartão antes do verbo, o que vem logo antes dele também conta: "la compra con mi
     # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
     antes=3,
     fora_antes=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "moviment*",
                 "debito*", "saldo", "limite"),
+    # Logo depois do par: o cartão em casa ou a tela do app não são perda (auditoria do dev,
+    # 02/10). Só 3 palavras: mais longe, já é outra oração ("perdi meu cartão e não aparece no
+    # aplicativo a opção de bloquear" é perda).
+    depois=3,
+    fora_depois=("en casa", "em casa", "en mi casa", "na minha casa", "en la app", "en el app",
+                 "na app", "no app", "en la aplicacion", "no aplicativo", "na aplicacao",
+                 "en la lista", "de la lista", "na lista", "da lista", "en la pantalla", "na tela"),
 )  # fmt: skip
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
@@ -245,14 +266,19 @@ RECUSA_DE_HUMANO = re.compile(
 # Pedido de bloqueio ou desbloqueio de cartão (PRD-007): verbo de pedido (infinitivo, imperativo,
 # "¿cómo bloqueo…?", "el bloqueo") perto de cartão. "¿Por qué bloquearon mi tarjeta?" e "meu cartão
 # foi bloqueado?" não pedem nada; roubo e perda já são relato de fraude, que também bloqueia.
-CARTAO = ("tarjeta*", "cartao", "cartoes", "plastico*")  # "plástico": o cartão na gíria (ACH-182)
+CARTAO = ("tarjeta*", "cartao", "cartoes", *PLASTICO)
 # Congelar e travar também pedem bloqueio (ACH-140), nas formas de pedido: "mi tarjeta está
 # congelada" e "o cartão travou na maquininha" contam o estado, não pedem nada.
 PEDIDO_DE_BLOQUEIO = Perto(
     ("bloquear", "bloquearla", "bloquearlo", "bloquea", "bloquee", "bloqueen", "bloqueela",
      "bloqueala", "bloqueenla", "bloqueia", "bloqueie", "bloqueiem", "como bloqueo",
-     "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congela", "congele", "congelen",
-     "congelem", "congelarla", "congelala", "travar", "trava", "trave", "travem"),
+     "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congele", "congelen",
+     "congelem", "congelarla", "congelala", "travar", "trave", "travem",
+     # "Trava" e "congela" também descrevem o cartão ("meu cartão trava na maquininha", "o
+     # aplicativo trava quando abro o cartão", "a trava do cartão"): só são pedido seguidos do
+     # cartão de quem pede (auditoria do dev, 02/10).
+     "trava meu", "trava minha", "trava o", "trava a", "trava esse", "trava este",
+     "congela mi", "congela la", "congela el", "congela esta", "congela esa"),
     CARTAO,
 )  # fmt: skip
 # Reativar, achar o cartão e liberar de novo também pedem desbloqueio (ACH-140); ativar um cartão
@@ -271,9 +297,11 @@ CARTAO_ACHADO = Perto(
     ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"), CARTAO, entre=1
 )
 # Dinheiro sendo tirado da conta é relato de fraude (ACH-140); "¿por qué me estás robando con
-# las comisiones?" sem o dinheiro ou a conta perto, não.
+# las comisiones?" sem o dinheiro ou a conta perto, não. A conta esvaziada ("me vaciaron la
+# cuenta", "esvaziaram minha conta") também é (REG-21).
 DINHEIRO_TIRADO = Perto(
-    ("robando", "roubando", "tirando"), ("plata", "dinero", "dinheiro", "cuenta", "conta")
+    ("robando", "roubando", "tirando", "vaciaron", "esvaziaram", "limparam"),
+    ("plata", "dinero", "dinheiro", "cuenta", "conta"),
 )
 # Golpe de engenharia social (ACH-142): alguém se passou pelo banco, por um funcionário ou por um
 # parente; o cliente entregou a senha, o código ou os dados; o site ou o link era falso; a conta, o
@@ -321,16 +349,18 @@ SENHA_ENTREGUE = Perto(
     ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
     entre=2,
 )  # fmt: skip
-# A senha, o código ou os dados do cliente obtidos ou pedidos por outra pessoa ("conseguiu minha
-# senha", "me pidieron mi clave", ACH-171): só com o possessivo e sem negação. "La app me pidió un
-# código de verificación", "o caixa pediu a senha duas vezes" e "não conseguiu trocar a senha" não
-# são golpe (REG-17).
+# A senha, o código ou os dados do cliente obtidos ou roubados por outra pessoa ("conseguiu minha
+# senha", "robaron mi clave", ACH-171): só com o possessivo e sem negação. Pedida não basta: o
+# caixa, o app e o caixa eletrônico também pedem ("o caixa pediu a senha", "el cajero me pidió mi
+# pin", REG-17); e o meio de uso legítimo desfaz ("o sistema conseguiu recuperar minha senha").
 SENHA_OBTIDA = Perto(
-    ("conseguiu", "consiguio", "consiguieron", "conseguiram", "pediu", "pidio", "pidieron",
-     "pediram", "roubou", "robo", "roubaram", "robaron"),
+    ("conseguiu", "consiguio", "consiguieron", "conseguiram", "roubou", "robo", "roubaram",
+     "robaron"),
     ("minha senha", "mi clave", "mi contrasena", "meu codigo", "mi codigo", "meus dados",
      "mis datos", "meu pin", "mi pin", "meu token", "mi token"),
     entre=1,
+    fora=("recuperar", "trocar", "mudar", "alterar", "cambiar", "validar", "confirmar",
+          "redefinir", "restablecer", "cadastrar", "registrar", "desbloquear"),
     negavel=True,
 )  # fmt: skip
 SITE_FALSO = Perto(
@@ -364,13 +394,18 @@ PEDIDO_DE_DINHEIRO = Perto(
 TERCEIRO_USOU = Perto(
     ("alguien", "alguem", "una persona", "uma pessoa", "otra persona", "outra pessoa",
      "un desconocido", "um desconhecido", "un extrano", "um estranho"),
-    ("uso", "usaba", "usaron", "usando", "utilizo", "utilizando", "gastando", "gastaron", "robo",
-     "hizo pagos", "hizo compras", "hizo un pago", "hizo una compra", "hizo un retiro", "compro",
-     "saco", "retiro", "transfirio", "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
-     "usou", "usava", "usaram", "gastou", "utilizou", "roubou",
+    # Usar e gastar só com o que é do cliente ("usando mi tarjeta", "gastando com o meu
+    # plástico"): "uma pessoa está usando o caixa" não é relato. Transferir fica fora: "alguém
+    # transferiu dinheiro para mim" é dinheiro recebido.
+    ("uso mi", "usaba mi", "usaron mi", "usando mi", "usando mis", "utilizo mi", "utilizando mi",
+     "gastando con mi", "gastando en mi", "gastaron", "robo", "hizo pagos", "hizo compras",
+     "hizo un pago", "hizo una compra", "hizo un retiro", "compro", "saco", "retiro",
+     "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
+     "usou meu", "usou minha", "usava meu", "usaram meu", "usaram minha", "usando meu",
+     "usando minha", "usando meus", "utilizou meu", "utilizou minha", "gastando com o meu",
+     "gastando com meu", "gastando com a minha", "gastando com minha", "gastou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
-     "comprou", "sacou", "transferiu", "tirou", "se passou", "acessou", "entrou na minha conta",
-     "clonou"),
+     "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou"),
 )  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
@@ -1022,7 +1057,10 @@ PREVENCAO = (
     # As flexões de "evitar" e "cuidar" ("¿cómo evito caer en una estafa?"), medidas no REG-16.
     "evito", "evita", "evitas", "evite", "evitamos", "evitarlo", "evitarla", "evitalo", "evitala",
     "como no caer", "para no caer", "para nao cair", "como nao cair", "cuidarme", "cuidarse",
-    "como me cuido", "me cuidar", "me previno", "como me previno", "prevengo"
+    "como me cuido", "me cuidar", "me previno", "como me previno", "prevengo",
+    # A hipótese de perda ("en caso de perder la tarjeta, ¿cómo la bloqueo?"), do REG-20.
+    "en caso de", "em caso de", "caso eu", "si la pierdo", "si lo pierdo", "si pierdo",
+    "se eu perder", "se eu perdesse", "que pasa si", "o que acontece se"
 )  # fmt: skip
 SUSPEITA_SEM_PERDA = (
     "no di", "no le di", "no les di", "nao dei", "nao passei", "no pase", "no entregue",
@@ -1030,7 +1068,11 @@ SUSPEITA_SEM_PERDA = (
     "no respondi", "nao respondi", "no cai", "nao cai", "no perdi", "nao perdi", "sin perder",
     "sem perder", "no paso nada", "nao aconteceu nada", "por las dudas", "por via das duvidas",
     "solo para confirmar", "so para confirmar", "quiero confirmar", "quero confirmar",
-    "queria confirmar"
+    "queria confirmar",
+    # O objeto antes do verbo ("no se la di") e o nada entregue ("não passei nada"), do REG-21.
+    "no se la di", "no se lo di", "no se las di", "no se los di", "no la di", "no lo di",
+    "nunca se la di", "nunca se lo di", "no se la pase", "no se lo pase", "nao passei nada",
+    "nao informei", "nao forneci nada"
 )  # fmt: skip
 VITIMA = (
     "cai", "me aplicaron", "sofri", "sufri", "me estafaron", "estafaron", "fui vitima",
@@ -1043,7 +1085,9 @@ VITIMA = (
     "desaparecio", "desapareceu", "se llevaron", "levaram", "no reconozco", "nao reconheco",
     "que no hice", "que nao fiz", "sin autorizar", "sem autorizacao", "no autorice",
     "nao autorizei", "me enganaron", "me enganaram", "fui enganado", "fui enganada", "usaron",
-    "usaram"
+    "usaram",
+    # A conta esvaziada ("no se la di, pero vaciaron mi cuenta"), do REG-21.
+    "vaciaron", "esvaziaram", "limparam"
 )  # fmt: skip
 NEGA_A_VITIMA = (
     "no", "nao", "nunca", "ni", "nem", "jamas", "jamais"

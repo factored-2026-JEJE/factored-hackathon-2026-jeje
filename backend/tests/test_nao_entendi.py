@@ -15,6 +15,7 @@ from datetime import date
 import pytest
 from conftest import abrir_conversa, autenticar, cliente, conexao, dizer
 from sqlalchemy import text
+from test_bloqueio_conversa import bloqueios, cenario, entrar, handoffs  # noqa: F401 (fixture)
 from test_interpretacao_modelo import USO, ollama_falso
 from test_leitor_treino import codificar
 from test_leitor_vizinhos import CORPUS
@@ -317,3 +318,32 @@ def test_na_conversa_o_llm_so_le_e_o_turno_registra_quem_leu(cenario_conversa, e
             )
         ).all()
     assert tuple(evento) == ("ollama:qwen3-teste", True, USO["prompt_eval_count"])
+
+
+def test_fraude_que_so_o_llm_leu_vai_ao_atendente_sem_bloquear_o_cartao(
+    cenario,  # noqa: F811
+    exemplos,
+):
+    """REG-15 no 968b338: o LLM também lê fraude na suspeita sem prejuízo, no cartão retido pelo
+    caixa eletrônico e na tarifa. A fraude que só ele leu vai ao atendente pela POL-HUM-01, sem
+    bloquear o cartão e com o motivo no caso; a lida pelas regras continua bloqueando."""
+    retido = "El cajero automático se quedó con mi tarjeta"
+    assert interpretar(retido, "es", REFERENCIA).intencao == "desconhecida"
+    with ollama_falso(resposta("fraude")) as (url, pedidos), cliente(cenario) as http:
+        http.app.state.interpretador = cascata(url, exemplos)
+        auth = entrar(http, "CLI-B", "cadastrado")
+        turno = dizer(http, auth, abrir_conversa(http, auth, "es"), retido)
+        assert (len(pedidos), turno["regra"], turno["acao"], turno["estado"]) == (
+            1, "POL-HUM-01", "humano", "com_humano"
+        )  # fmt: skip
+        assert (turno["bloqueio"], bloqueios(cenario)) == (None, [])
+        roubo = dizer(http, auth, abrir_conversa(http, auth, "es"), "me robaron la tarjeta")
+    assert len(pedidos) == 1  # as regras leram o roubo: o LLM não foi chamado
+    assert roubo["bloqueio"] is not None and len(bloqueios(cenario)) == 1
+    llm, regras = handoffs(cenario)
+    nada = {
+        "acao": "bloquear_cartao",
+        "resultado": "possível fraude lida pelo modelo; nada bloqueado",
+    }
+    assert (llm["pedido"], nada in llm["acoes"]) == (retido, True)
+    assert nada not in regras["acoes"]
