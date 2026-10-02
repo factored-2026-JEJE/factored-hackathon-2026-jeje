@@ -11493,15 +11493,16 @@
     {
       "id": "M-CONV-112",
       "requisito": "R09",
-      "descricao": "O recibo aponta a linha errada do CSV de origem (DEV-044)",
+      "descricao": "O recibo conta a linha sem o cabeçalho e aponta a transação vizinha (ACH-180)",
       "trocas": [
         {
           "arquivo": "src/jeje/consultas.py",
-          "de": "\"SELECT transaction_id, _arquivo, _linha, (SELECT version FROM meta.dataset_version)\"",
-          "para": "\"SELECT transaction_id, _arquivo, _linha + 1, (SELECT version FROM meta.dataset_version)\""
+          "de": "\"SELECT transaction_id, _arquivo, _linha + 1,\"",
+          "para": "\"SELECT transaction_id, _arquivo, _linha,\""
         }
       ],
       "testes": [
+        "tests/test_dados_cli.py::test_recibo_aponta_a_linha_fisica_do_csv_de_origem",
         "tests/test_conversa.py::test_resposta_que_cita_transacao_traz_o_recibo_com_a_origem_e_a_versao"
       ]
     },
