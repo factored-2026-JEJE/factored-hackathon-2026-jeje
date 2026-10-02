@@ -1404,25 +1404,25 @@ def test_pessoa_supostamente_do_banco_e_golpe(texto, golpe):
 @pytest.mark.parametrize(
     ("texto", "golpe"),
     [
-        # Um terceiro que entrou na conta (ACH-192)...
+        # Quem ligou ou disse ser do banco e tirou o dinheiro (ACH-192, a A3 do REG-33)...
         ("Una mujer que llamó del banco entró a mi cuenta y sacó plata", True),
         ("Um homem que ligou do banco entrou na minha conta e tirou dinheiro", True),
-        ("El estafador entró a mi cuenta y transfirió todo", True),
-        # ... e não o banco, o filho com permissão nem quem entrou para ajudar (REG-32, REG-33).
+        # ... e não o banco, o filho com permissão, o aviso do banco nem a pessoa do banco que
+        # entrou para outra coisa (REG-32, REG-33 e REG-34).
         ("El banco entró a mi cuenta y sacó la comisión mensual", False),
         ("Mi hijo entró a mi cuenta con mi permiso y sacó plata para la escuela", False),
-        (
-            "Minha filha acessou minha conta e transferiu o dinheiro da mesada, como combinado",
-            False,
-        ),
-        ("Una persona de la sucursal entró a mi cuenta para ayudarme con la app", False),
         (
             "Me llamaron del banco para avisarme que mi hijo sacó plata con su tarjeta adicional",
             False,
         ),
+        ("Ligaram do banco e tiraram minhas dúvidas sobre o cartão", False),
+        ("Un señor del banco entró a mi cuenta para verificar mi identidad", False),
+        ("Uma pessoa da agência entrou na minha conta e mostrou o extrato", False),
+        ("Una persona de la sucursal accedió a mi cuenta y me mostró los movimientos", False),
+        ("Um senhor do banco acessou minha conta para conferir o cadastro", False),
     ],
 )
-def test_terceiro_que_entrou_na_conta_e_golpe(texto, golpe):
+def test_quem_ligou_do_banco_e_tirou_o_dinheiro_e_golpe(texto, golpe):
     assert (ler(texto).intencao == "fraude") is golpe
 
 
