@@ -235,9 +235,10 @@ A indignação com a tarifa ou com a compra que não chegou ("¡esto es un robo!
 sozinha não é relato de roubo; o relato que vem junto continua ("¡esto es un robo! alguien usó mi
 tarjeta"), e o dinheiro tirado da conta por outros também ("me sacaron plata de la cuenta"). O "que"
 de quem roubou ("alguien que robó mi tarjeta") e o roubo de alguma coisa ("es un robo de identidad")
-não são indignação (REG-39). A fraude negada pelo cliente no começo da mensagem ("no fue un fraude, yo
-hice la compra pero me la rechazaron") também não é relato; a negação do golpista citada pela vítima
-("me juró: no es una estafa") segue golpe (REG-42).
+não são indignação (REG-39). A fraude negada pelo cliente no começo da mensagem, também depois do
+cumprimento ("no fue un fraude, yo hice la compra pero me la rechazaron", "hola, no es fraude…"),
+também não é relato; a negação do golpista citada pela vítima segue golpe, no meio ("me juró: no es
+una estafa") ou no começo com a fala depois ("'não é golpe', ele falou"; REG-42 e REG-44).
 
 A fraude lida pelas regras ou pelo leitor encaminha ao atendente e bloqueia o cartão (POL-HUM-01).
 A exceção é a **guarda de prevenção** (ACH-144, `prevencao`): a pergunta de prevenção ("¿cómo evito
