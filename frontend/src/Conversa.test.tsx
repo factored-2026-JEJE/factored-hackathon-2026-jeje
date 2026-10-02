@@ -32,6 +32,7 @@ function turno(parcial: Partial<ResultadoDoTurno>): ResultadoDoTurno {
     efeito: null,
     fontes: [],
     resolucao: null,
+    recibo: null,
     ...parcial,
   };
 }
@@ -322,6 +323,17 @@ test.each<[string, ResultadoDoTurno, string]>([
   if (!resposta) throw new Error("resposta fora da lista");
   await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
   expect(within(resposta).getByText(esperado)).toBeVisible();
+});
+
+test("por que esta resposta mostra de onde veio o fato: arquivo, linha e versão dos dados (DEV-044)", async () => {
+  const recibo = { transaction_id: "TRX-1", arquivo: "transactions/day=10/part-0.csv", linha: 7, versao_dos_dados: "abc123def456789" };
+  servidor([{ status: 200, corpo: turno({ recibo }) }]);
+  montar();
+  await abrirEPedir();
+  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
+  if (!resposta) throw new Error("resposta fora da lista");
+  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
+  expect(within(resposta).getByText("TRX-1: transactions/day=10/part-0.csv, linha 7, dados abc123def456")).toBeVisible();
 });
 
 test("turno reaberto pelo histórico mostra só a regra e a ação", async () => {

@@ -3,7 +3,7 @@ latência medida, erro registrado mesmo quando o turno é desfeito — e nada de
 
 import json
 
-from conftest import abrir_conversa, autenticar, cliente, conexao, dizer
+from conftest import abrir_conversa, autenticar, cliente, conexao, dizer, registrar_dataset
 from sqlalchemy import text
 
 PEDIDO = "Me llamo Rocío y no reconozco el cobro de 45,90 en Streaming Plus"
@@ -119,3 +119,24 @@ def test_evento_guarda_o_id_da_requisicao_que_liga_resposta_log_e_trace(cenario_
         ids = list(con.execute(text("SELECT requisicao FROM app.eventos ORDER BY id")).scalars())
     assert informado.headers["X-Request-ID"] == "auditoria-123"
     assert ids == ["auditoria-123", gerado.headers["X-Request-ID"]]
+
+
+def test_evento_guarda_a_versao_dos_dados_em_vigor_e_o_antigo_nao_muda(cenario_conversa):
+    """DEV-044: cada evento grava a versão dos dados da hora em que aconteceu; depois de uma recarga
+    (outra versão em meta.dataset_version), o evento do turno antigo continua com a sua."""
+    registrar_dataset(cenario_conversa, version="versao-antiga", source="fixture")
+    with cliente(cenario_conversa) as http:
+        auth = autenticar(http, "CLI-A")
+        dizer(http, auth, abrir_conversa(http, auth, "es"), "¿Por qué rechazaron mi compra?")
+        with conexao(cenario_conversa) as con:
+            con.execute(text("UPDATE meta.dataset_version SET version = 'versao-nova'"))
+        dizer(http, auth, abrir_conversa(http, auth, "es"), "¿Por qué rechazaron mi compra?")
+    with conexao(cenario_conversa) as con:
+        versoes = (
+            con.execute(
+                text("SELECT versao_dos_dados FROM app.eventos WHERE tipo = 'turno' ORDER BY id")
+            )
+            .scalars()
+            .all()
+        )
+    assert versoes == ["versao-antiga", "versao-nova"]

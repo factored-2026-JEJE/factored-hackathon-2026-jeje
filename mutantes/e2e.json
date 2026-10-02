@@ -106,8 +106,8 @@
       "trocas": [
         {
           "arquivo": "frontend/src/StatusDoSistema.tsx",
-          "de": "dataset.version.slice(0, 12)",
-          "para": "dataset.version.slice(0, 8)"
+          "de": "`versão ${dataset.version.slice(0, 12)} (${dataset.source})",
+          "para": "`versão ${dataset.version.slice(0, 8)} (${dataset.source})"
         }
       ],
       "testes": [

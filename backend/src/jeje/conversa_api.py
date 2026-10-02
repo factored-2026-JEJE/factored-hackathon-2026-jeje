@@ -62,6 +62,16 @@ class ResolucaoDoTurno(BaseModel):
     possiveis: int | None = Field(description="Quantas transações podiam ser a descrita")
 
 
+class Recibo(BaseModel):
+    """De onde veio o fato citado (DEV-044): o arquivo e a linha do CSV de origem e a versão dos
+    dados, para conferir a resposta contra a base."""
+
+    transaction_id: str
+    arquivo: str
+    linha: int
+    versao_dos_dados: str | None
+
+
 class ResultadoDoTurno(BaseModel):
     """O que o turno fez: regra aplicada, efeito verificado e a resposta ao cliente."""
 
@@ -86,6 +96,7 @@ class ResultadoDoTurno(BaseModel):
     efeito: str | None
     fontes: list[str]
     resolucao: ResolucaoDoTurno | None
+    recibo: Recibo | None
 
 
 class TurnoRegistrado(BaseModel):
@@ -195,6 +206,7 @@ def enviar_mensagem(
         efeito=resultado.efeito,
         fontes=list(resultado.fontes),
         resolucao=None if (r := resultado.resolucao) is None else ResolucaoDoTurno(**asdict(r)),
+        recibo=None if (o := resultado.origem) is None else Recibo(**asdict(o)),
     )
 
 
