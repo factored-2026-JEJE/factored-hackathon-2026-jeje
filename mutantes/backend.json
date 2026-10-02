@@ -13311,8 +13311,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/garantia_fraude.py",
-          "de": "        if lida.intencao in ENCAMINHAM or controle(lida):",
-          "para": "        if controle(lida):"
+          "de": "        if lida.intencao in ENCAMINHAM or controle(lida) or",
+          "para": "        if controle(lida) or"
         }
       ],
       "testes": [
@@ -13326,8 +13326,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/garantia_fraude.py",
-          "de": "        if lida.intencao in ENCAMINHAM or controle(lida):",
-          "para": "        if lida.intencao in ENCAMINHAM:"
+          "de": "ENCAMINHAM or controle(lida) or leitura",
+          "para": "ENCAMINHAM or leitura"
         }
       ],
       "testes": [
@@ -13437,6 +13437,21 @@
       ],
       "testes": [
         "tests/test_garantia_conversa.py::test_prevencao_sem_vitima_segura_antes_do_llm"
+      ]
+    },
+    {
+      "id": "M-GAR-14",
+      "requisito": "R06",
+      "descricao": "O ruído sem palavra conhecida (\"kkkkk\") passa pela garantia e pode ser encaminhado como fraude (ACH-122)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": " or controle(lida) or leitura.fonte == SEM_PALAVRA_CONHECIDA:",
+          "para": " or controle(lida):"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
       ]
     },
     {

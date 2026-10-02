@@ -30,7 +30,7 @@ import numpy as np
 
 from jeje import eventos
 from jeje.interpretacao import Interpretacao, normalizar
-from jeje.interpretacao_leitor import Leitor
+from jeje.interpretacao_leitor import SEM_PALAVRA_CONHECIDA, Leitor
 from jeje.interpretacao_modelo import SINAL_DA_GARANTIA, Chamada, Leitura
 from jeje.leitor.garantia import Garantia
 from jeje.mensagens import Idioma
@@ -161,8 +161,8 @@ class ComGarantia:
     def __call__(self, texto: str, idioma_anterior: Idioma, referencia: date) -> Leitura:
         leitura = self.leitor(texto, idioma_anterior, referencia)
         lida = leitura.lida
-        if lida.intencao in ENCAMINHAM or controle(lida):
-            return leitura
+        if lida.intencao in ENCAMINHAM or controle(lida) or leitura.fonte == SEM_PALAVRA_CONHECIDA:
+            return leitura  # o ruído também não chega à garantia (ACH-122)
         inicio, uso = time.perf_counter(), {}
         lido = lida.intencao if leitura.fonte.startswith("ollama:") else None
         try:
