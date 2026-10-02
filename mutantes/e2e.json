@@ -502,8 +502,7 @@
         }
       ],
       "testes": [
-        "celular.spec.ts > Pixel 7 > a página cabe na tela e o Enviar recebe o toque",
-        "celular.spec.ts > iPhone 13 > a página cabe na tela e o Enviar recebe o toque"
+        "celular.spec.ts > a página cabe na tela e o Enviar recebe o toque"
       ]
     }
   ]
