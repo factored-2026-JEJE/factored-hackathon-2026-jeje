@@ -1065,6 +1065,21 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
 @pytest.mark.parametrize(
     "texto",
     [
+        # O cartão seguro, a tela do app, a fatura ou o extrato do cartão não são perda
+        # (auditoria do dev, 02/10): bloqueariam o cartão.
+        "Esqueci a fatura do cartão em casa",
+        "Não acho o extrato do cartão no app",
+        "Esqueci a fatura do cartão",
+        "No encuentro el resumen de la tarjeta",
+    ],
+)
+def test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # Outra pessoa usou, roubou, sacou ou pediu dinheiro: relato de fraude, que até o #57 ia ao
         # atendente pelos termos soltos de humano (REG-12 no d9dfad0).
         "alguien utilizó mi tarjeta sin mi permiso",

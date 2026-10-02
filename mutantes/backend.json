@@ -12516,6 +12516,21 @@
       ]
     },
     {
+      "id": "M-ITP-185",
+      "requisito": "R03",
+      "descricao": "A fatura ou o extrato do cartão viram perda do cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).\n          \"fatura\", \"factura\", \"extrato\", \"extracto\", \"resumen\", \"opcion\", \"opcao\", \"boleto\",\n          \"comprovante\", \"comprobante\"),",
+          "para": "          ),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_cartao_seguro_ou_outro_objeto_do_cartao_nao_e_perda"
+      ]
+    },
+    {
       "id": "M-LLM-25",
       "requisito": "R02",
       "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",
