@@ -5891,8 +5891,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/leitor/modelo.py",
-          "de": "        p = self.probabilidades(codificar(list(textos)))\n",
-          "para": "        p = _softmax(self.logistica.decision_function(codificar(list(textos))))\n"
+          "de": "        p = self.probabilidades(vetores)\n",
+          "para": "        p = _softmax(self.logistica.decision_function(vetores))\n"
         }
       ],
       "testes": [
