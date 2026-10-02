@@ -138,6 +138,7 @@ class ResultadoDoTurno:
     saida: Saida
     fontes: tuple[str, ...] = ()  # de onde vieram os fatos e onde houve escrita (trace)
     resolucao: RastroDaResolucao | None = None
+    origem: consultas.Origem | None = None  # o recibo da transação citada (DEV-044)
 
     @property
     def resposta(self) -> str:
@@ -1325,8 +1326,13 @@ def turno(
     saida = atual.executar()
     # A transação do turno sem resolução neste turno é a que já estava em curso (DEV-071).
     rastro = atual.resolucao or (RastroDaResolucao("foco") if saida.transaction_id else None)
+    origem = (
+        None
+        if saida.transaction_id is None
+        else consultas.origem_da_transacao(conexao, customer_id, saida.transaction_id)
+    )
     resultado = ResultadoDoTurno(
-        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes), rastro
+        conversa_id, numero, lida.idioma, lida.intencao, saida, tuple(atual.fontes), rastro, origem
     )
     conexao.execute(
         text(

@@ -388,8 +388,8 @@
       "trocas": [
         {
           "arquivo": "src/StatusDoSistema.tsx",
-          "de": "dataset.version.slice(0, 12)",
-          "para": "dataset.source.slice(0, 12)"
+          "de": "`versão ${dataset.version.slice(0, 12)} (${dataset.source})",
+          "para": "`versão ${dataset.source.slice(0, 12)} (${dataset.source})"
         }
       ],
       "testes": [
@@ -1583,6 +1583,21 @@
       ],
       "testes": [
         "src/StatusDoSistema.test.tsx > mostra a versão nova recusada pela carga e que a anterior segue valendo (ACH-112)"
+      ]
+    },
+    {
+      "id": "M-WEB-114",
+      "requisito": "R09",
+      "descricao": "O Por que esta resposta? esconde a origem do fato (DEV-044)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "        {motivo.recibo && (",
+          "para": "        {false && motivo.recibo && ("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta mostra de onde veio o fato: arquivo, linha e versão dos dados (DEV-044)"
       ]
     },
     {
