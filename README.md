@@ -207,6 +207,42 @@ encerradas (a tela oferece uma nova), as propostas de pré-caso pendentes vencem
 (volte ao acesso de teste). Conversas com atendente, encaminhamentos e pré-casos continuam como
 registro. Mesma versão já carregada: nada muda.
 
+## Fraude e golpe nas regras
+
+As regras leem primeiro, e o relato de fraude é delas (`backend/src/jeje/interpretacao.py`): a
+palavra ("fraude", "me estafaron", "me robaron", "clonaron") ou o golpe de engenharia social, por
+termos compostos, com as duas partes perto e na ordem da história:
+
+- quem se fez passar por outro: o verbo e depois o papel ("decía ser del banco", "se passou por
+  funcionário", "creyendo que era mi sobrino"), nunca o papel antes do verbo ("o atendente falou que
+  era só esperar", ACH-173); e o "supuesto" ou "falso" gerente, atendente ou suporte;
+- quem se apresentou como parente, ou como funcionário e pediu a senha, o código ou o dinheiro ("se
+  presentó como empleado del banco y me pidió la clave", a lista do REG-28 da validação): o
+  atendente de verdade também se apresenta (ACH-179);
+- o segredo entregue ("le di el código", "passei a senha");
+- outra pessoa que usou o cartão ou entrou na conta ("alguien utilizó mi tarjeta"), salvo a pessoa
+  do próprio banco ou do suporte ("alguien del soporte entró a mi cuenta para restablecer la
+  contraseña", ACH-194), e quem ligou ou disse ser do banco e tirou o dinheiro (ACH-192, REG-33);
+- a conta esvaziada ("me vaciaron la cuenta").
+
+A fraude lida pelas regras ou pelo leitor encaminha ao atendente e bloqueia o cartão (POL-HUM-01).
+A exceção é a **guarda de prevenção** (ACH-144, `prevencao`): a pergunta de prevenção ("¿cómo evito
+caer en una estafa?", "quais cuidados para não cair em golpe?") e a suspeita sem perda ("me llamó un
+supuesto gerente pidiendo la clave, no se la di") vão ao atendente sem bloquear, com "prevenção ou
+suspeita sem perda; nada bloqueado" no caso. Um termo de vítima não negado desfaz a guarda: com ",
+pero vaciaron mi cuenta" no fim, a mesma suspeita bloqueia.
+
+Erro de digitação (DEV-060): a palavra de 6 letras ou mais que o vocabulário não conhece (menos de
+2 ocorrências no BANKING77 de treino ES/PT), a uma edição de exatamente um termo de contestar,
+fraude, bloquear, desbloquear ou humano, e com a forma de um erro de digitação, vira esse termo. As
+formas são a tecla vizinha no teclado, a troca que soa igual (s/z, s/c, z/c, b/v), a letra que
+falta, a letra repetida ou duas vizinhas trocadas. A troca fica nos sinais do turno
+(`digitacao:robron→robaron`). Palavra conhecida não vira termo de fraude, e os termos compostos de
+palavras comuns ficam fora do corretor. O "q" sozinho da escrita de chat é lido como "que" ("me
+hicieron creer q era un operador"). Medido pela validação (REG-29, EV-232): nenhuma das 44 frases
+comuns públicas nem das 32 seladas muda de leitura com o corretor; nos conjuntos com erro, o ganho é
+de 3,2 p.p. em ES e 2,0 em PT, e o EXP-007 fica em 100%.
+
 ## Leitor de intenção (e5)
 
 A API lê em cascata: as regras leem primeiro, e só as frases que elas não entendem vão para o leitor
