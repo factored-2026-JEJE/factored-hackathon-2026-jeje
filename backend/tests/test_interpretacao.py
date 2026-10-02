@@ -964,6 +964,15 @@ def test_erro_de_digitacao_na_palavra_de_intencao(texto, intencao):
     assert ler(texto).intencao == intencao
 
 
+def test_termo_com_uma_letra_a_mais_no_fim_nao_e_erro_de_digitacao():
+    """"pessoal" não é "pessoa" digitado errado (ACH-172), nem "golpes" é "golpe" (REG-14)."""
+    assert not interpretacao._uma_edicao("pessoal", "pessoa")
+    assert not interpretacao._uma_edicao("personal", "persona")
+    assert not interpretacao._uma_edicao("golpes", "golpe")
+    assert interpretacao._uma_edicao("robron", "robaron")
+    assert interpretacao._uma_edicao("pesoa", "pessoa")
+
+
 def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
     """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe"."""
     texto = "paguei a aula de golfe com o cartão"
@@ -1091,6 +1100,9 @@ def test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude(texto):
         ("Bloqueen mi plástico, por favor", "bloquear"),
         ("Pásenme con un ser humano, este chat no me sirve", "humano"),
         ("Me passem para um atendente", "humano"),
+        # O termo com uma letra a mais no fim é outra palavra, não erro de digitação (ACH-172).
+        ("Preciso do meu cartão pessoal", "desconhecida"),
+        ("Necesito mi tarjeta personal", "desconhecida"),
     ],
 )
 def test_girias_e_plurais_que_o_leitor_lia_errado_sao_das_regras(texto, intencao):
