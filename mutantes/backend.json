@@ -11755,8 +11755,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "            if decisao.regra == \"POL-HUM-01\" and prevencao(self.mensagem):",
-          "para": "            if False:"
+          "de": "        if prevencao(self.mensagem):",
+          "para": "        if False:"
         }
       ],
       "testes": [

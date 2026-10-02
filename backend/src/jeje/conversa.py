@@ -255,9 +255,8 @@ class _Turno:
         if decisao is not None and decisao.acao == "humano":
             # Segurança e pedido de atendente valem em qualquer etapa.
             self._anotar("interpretar", f"{decisao.regra}: {', '.join(self.lida.sinais)}")
-            if decisao.regra == "POL-HUM-01" and prevencao(self.mensagem):
-                # Prevenção ou suspeita sem perda (ACH-144): vai ao atendente, sem bloquear.
-                self._anotar("bloquear_cartao", "prevenção ou suspeita sem perda; nada bloqueado")
+            if decisao.regra == "POL-HUM-01" and (motivo := self._fraude_sem_bloqueio()):
+                self._anotar("bloquear_cartao", f"{motivo}; nada bloqueado")
                 return self._encaminhar(decisao, self._em_foco())
             if decisao.regra == "POL-HUM-01":
                 # O relato de fraude também bloqueia o cartão, pelo dispositivo da sessão.
@@ -841,6 +840,12 @@ class _Turno:
         return Saida(
             decisao.regra, "bloquear_cartao", (feito, desfazer), "livre", {}, bloqueio=novo
         )
+
+    def _fraude_sem_bloqueio(self) -> str | None:
+        """Por que a fraude vai ao atendente sem bloquear o cartão, se for o caso."""
+        if prevencao(self.mensagem):
+            return "prevenção ou suspeita sem perda"  # ACH-144
+        return None
 
     def _relato_de_fraude(self, decisao: politica.Decisao) -> Saida:
         """Relato de fraude (POL-HUM-01): encaminha sempre, na hora. Bloqueia no mesmo turno o
