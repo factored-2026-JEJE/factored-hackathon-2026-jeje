@@ -1007,6 +1007,9 @@ def test_termo_com_uma_letra_a_mais_no_fim_nao_e_erro_de_digitacao():
         "El sistema me facilita mi clave temporal",
         "Había pensado que era del banco, pero no",
         "Un hombre me ayudó en la sucursal",
+        # As frases do pedido de segredo ou dinheiro não entram no corretor: "pidieran" viraria
+        # "pidieron", e a hipótese, relato.
+        "Si me pidieran la clave, ¿qué hago?",
     ],
 )
 def test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida(texto):
@@ -1314,6 +1317,9 @@ def test_golpe_de_quem_se_apresentou_como_outro(texto):
         ("Um homem se apresentou como funcionário do banco e me pediu a senha", True),
         ("Alguien se presentó como mi sobrino y me pidió plata", True),
         ("Uma pessoa se apresentou como meu primo e me pediu um pix", True),
+        # ... o dinheiro pedido também conta (REG-28)...
+        ("Um homem se apresentou como funcionário do banco e me pediu um pix", True),
+        ("Un hombre se presentó como empleado del banco y me pidió una transferencia", True),
         # ... e não é quando o atendente de verdade se apresenta e pede outra coisa (REG-27).
         ("La señora se presentó como gerente y me pidió que esperara un momento", False),
         ("Se presentó como asesor y me explicó cómo cambiar la clave", False),
