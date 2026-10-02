@@ -214,14 +214,27 @@ def carregar_em_segundo_plano(interpretador: Interpretador, timeout_s: float):
 
 
 def configurado(settings: Settings) -> Interpretador:
-    """O interpretador escolhido no compose (INTERPRETADOR): só regras, ou cascata com o leitor ou
-    com o Ollama."""
-    if settings.interpretador == "leitor":
-        from jeje import interpretacao_leitor  # importa este módulo: só depois dele carregado
+    """O interpretador escolhido no compose (INTERPRETADOR): só regras, cascata com o leitor (e,
+    em leitor_modelo, o LLM do "não entendi" depois dele) ou cascata com o Ollama."""
+    if settings.interpretador in ("leitor", "leitor_modelo"):
+        # Importam este módulo: só depois dele carregado.
+        from jeje import interpretacao_leitor, nao_entendi
 
+        llm = None
+        if settings.interpretador == "leitor_modelo":
+            llm = nao_entendi.NaoEntendi(
+                Ollama(
+                    settings.ollama_url,
+                    settings.nao_entendi_modelo,
+                    settings.ollama_timeout_s,
+                    settings.ollama_keep_alive,
+                ),
+                settings.leitor_vizinhos,
+            )
         return interpretacao_leitor.Leitor(
             interpretacao_leitor.dos_arquivos(settings.leitor_modelo, settings.leitor_e5),
             settings.leitor_limite,
+            llm,
         )
     if settings.interpretador == "ollama":
         return Ollama(

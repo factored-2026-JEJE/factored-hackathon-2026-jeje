@@ -6118,12 +6118,13 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "    if settings.interpretador == \"leitor\":\n",
+          "de": "    if settings.interpretador in (\"leitor\", \"leitor_modelo\"):\n",
           "para": "    if settings.interpretador == \"nenhum\":\n"
         }
       ],
       "testes": [
-        "tests/test_interpretacao_leitor.py::test_api_com_leitor_pede_a_carga_ao_iniciar_e_sobe_mesmo_sem_ele"
+        "tests/test_interpretacao_leitor.py::test_api_com_leitor_pede_a_carga_ao_iniciar_e_sobe_mesmo_sem_ele",
+        "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
       ]
     },
     {
@@ -6517,6 +6518,82 @@
       ],
       "testes": [
         "tests/test_leitor_vizinhos.py::test_sem_frases_de_alguma_intencao_em_algum_idioma_e_erro"
+      ]
+    },
+    {
+      "id": "M-LEITOR-64",
+      "requisito": "R06",
+      "descricao": "O LLM nunca é chamado: a mensagem termina em não entendi",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if not decidiu and self.nao_entendi is not None:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_abaixo_do_limite_o_llm_le_com_as_frases_mais_parecidas_do_idioma",
+        "tests/test_nao_entendi.py::test_na_conversa_o_llm_so_le_e_o_turno_registra_quem_leu"
+      ]
+    },
+    {
+      "id": "M-LEITOR-65",
+      "requisito": "R06",
+      "descricao": "O LLM é chamado também no que o leitor decide",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if not decidiu and self.nao_entendi is not None:\n",
+          "para": "        if self.nao_entendi is not None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_que_o_leitor_decide_nao_chega_ao_llm"
+      ]
+    },
+    {
+      "id": "M-LEITOR-66",
+      "requisito": "R06",
+      "descricao": "O início da API não carrega o LLM do não entendi (pela cascata)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_leitor.py",
+          "de": "        if self.nao_entendi is not None:\n            self.nao_entendi.carregar(timeout_s)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
+      ]
+    },
+    {
+      "id": "M-LEITOR-67",
+      "requisito": "R06",
+      "descricao": "INTERPRETADOR=leitor_modelo vira só o leitor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        if settings.interpretador == \"leitor_modelo\":\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
+      ]
+    },
+    {
+      "id": "M-LEITOR-68",
+      "requisito": "R06",
+      "descricao": "O LLM do não entendi usa o modelo do modo ollama",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "                    settings.nao_entendi_modelo,\n",
+          "para": "                    settings.ollama_modelo,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
       ]
     },
     {
@@ -12105,6 +12182,219 @@
       ],
       "testes": [
         "tests/test_interpretacao_leitor.py::test_recusa_da_transacao_proposta_e_das_regras_e_nao_chega_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-LLM-26",
+      "requisito": "R06",
+      "descricao": "Prompt do não entendi sem as frases mais parecidas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "        f\"- {frase} → {intencao}\" for intencao, frases in vizinhos.items() for frase in frases\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_prompt_e_o_da_validacao_com_os_vizinhos_e_as_frases_fixas"
+      ]
+    },
+    {
+      "id": "M-LLM-27",
+      "requisito": "R06",
+      "descricao": "Frases fixas do prompt sempre em português",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    linhas += [f\"- {frase} → {intencao}\" for frase, intencao in FIXOS[idioma]]",
+          "para": "    linhas += [f\"- {frase} → {intencao}\" for frase, intencao in FIXOS[\"pt\"]]"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_prompt_e_o_da_validacao_com_os_vizinhos_e_as_frases_fixas",
+        "tests/test_nao_entendi.py::test_mensagem_em_espanhol_tem_exemplos_em_espanhol"
+      ]
+    },
+    {
+      "id": "M-LLM-28",
+      "requisito": "R06",
+      "descricao": "Golpe fora da definição de fraude do LLM (o AL8 no lugar do AL9)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    \"um débito, ou que foi cobrado em dobro. fraude: cartão perdido, roubado, clonado ou usado \"\n    \"por outra pessoa, ou golpe: o cliente foi enganado por alguém que se passou pelo banco, por \"\n    \"um parente ou por um vendedor e fez pix ou transferência, passou senha ou código, ou clicou \"\n    \"em link falso, e depois viu movimentações que não fez. humano: pede para falar com uma \"\n",
+          "para": "    \"um débito, ou que foi cobrado em dobro. fraude: cartão perdido, roubado, clonado ou usado \"\n    \"por outra pessoa. humano: pede para falar com uma \"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_prompt_e_o_da_validacao_com_os_vizinhos_e_as_frases_fixas"
+      ]
+    },
+    {
+      "id": "M-LLM-29",
+      "requisito": "R06",
+      "descricao": "LLM sem bloquear e desbloquear entre as intenções (o AL6)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    \"bloquear\",\n    \"desbloquear\",\n]",
+          "para": "]"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_esquema_e_opcoes_sao_os_medidos_pela_validacao",
+        "tests/test_nao_entendi.py::test_o_llm_diz_a_intencao_inclusive_bloqueio_desbloqueio_e_atendente"
+      ]
+    },
+    {
+      "id": "M-LLM-30",
+      "requisito": "R06",
+      "descricao": "LLM sem a semente e o limite de tokens medidos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "OPCOES = {\"temperature\": 0, \"seed\": 42, \"num_predict\": 32}",
+          "para": "OPCOES = {\"temperature\": 0}"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_esquema_e_opcoes_sao_os_medidos_pela_validacao",
+        "tests/test_nao_entendi.py::test_abaixo_do_limite_o_llm_le_com_as_frases_mais_parecidas_do_idioma"
+      ]
+    },
+    {
+      "id": "M-LLM-31",
+      "requisito": "R06",
+      "descricao": "Saída do LLM com campo a mais é aceita",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    model_config = ConfigDict(extra=\"forbid\")\n\n    intencao: IntencaoDoLLM",
+          "para": "    intencao: IntencaoDoLLM"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_saida_fora_do_esquema_deixa_a_mensagem_nao_entendida"
+      ]
+    },
+    {
+      "id": "M-LLM-32",
+      "requisito": "R06",
+      "descricao": "Exemplos do LLM sempre em espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "            vizinhos = self._carregados().mais_parecidos(vetor, lido.idioma)",
+          "para": "            vizinhos = self._carregados().mais_parecidos(vetor, \"es\")"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_abaixo_do_limite_o_llm_le_com_as_frases_mais_parecidas_do_idioma"
+      ]
+    },
+    {
+      "id": "M-LLM-33",
+      "requisito": "R06",
+      "descricao": "Exemplos do LLM: as frases menos parecidas com a mensagem",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "            vizinhos = self._carregados().mais_parecidos(vetor, lido.idioma)",
+          "para": "            vizinhos = self._carregados().mais_parecidos(-vetor, lido.idioma)"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_abaixo_do_limite_o_llm_le_com_as_frases_mais_parecidas_do_idioma"
+      ]
+    },
+    {
+      "id": "M-LLM-34",
+      "requisito": "R06",
+      "descricao": "A intenção lida pelo LLM é ignorada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "        lida = replace(lido, intencao=saida.intencao, sinais=(*lido.sinais, \"modelo\"))",
+          "para": "        lida = replace(lido, sinais=(*lido.sinais, \"modelo\"))"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_abaixo_do_limite_o_llm_le_com_as_frases_mais_parecidas_do_idioma"
+      ]
+    },
+    {
+      "id": "M-LLM-35",
+      "requisito": "R09",
+      "descricao": "Chamada ao LLM que caiu no fallback não é contada",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "            return Leitura(lido, fallback, self.ollama.chamada(inicio, uso))",
+          "para": "            return Leitura(lido, fallback)"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_saida_fora_do_esquema_deixa_a_mensagem_nao_entendida"
+      ]
+    },
+    {
+      "id": "M-LLM-36",
+      "requisito": "R06",
+      "descricao": "LLM lento ou fora do ar derruba o turno",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "        except Exception as erro:\n            # Só a classe do erro",
+          "para": "        except ValueError as erro:\n            # Só a classe do erro"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_llm_lento_ou_com_erro_deixa_a_mensagem_nao_entendida"
+      ]
+    },
+    {
+      "id": "M-LLM-37",
+      "requisito": "R06",
+      "descricao": "Falha na carga dos exemplos não é lembrada (tenta a cada mensagem)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "            if self._vizinhos is None and self._falha is None:",
+          "para": "            if self._vizinhos is None:"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_exemplos_ausentes_nao_chamam_o_llm_e_a_falha_e_lembrada"
+      ]
+    },
+    {
+      "id": "M-LLM-38",
+      "requisito": "R06",
+      "descricao": "Fallback do LLM sem aviso no log",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "            log.warning(\n                \"modelo nao usado; seguem as regras modelo=%s erro=%s\",",
+          "para": "            log.debug(\n                \"modelo nao usado; seguem as regras modelo=%s erro=%s\","
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_saida_fora_do_esquema_deixa_a_mensagem_nao_entendida"
+      ]
+    },
+    {
+      "id": "M-LLM-39",
+      "requisito": "R06",
+      "descricao": "O início da API não carrega o LLM do não entendi",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "        self.ollama.carregar(timeout_s)\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar"
       ]
     },
     {
