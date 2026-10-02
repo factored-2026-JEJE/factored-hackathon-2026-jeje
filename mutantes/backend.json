@@ -7871,6 +7871,36 @@
       ]
     },
     {
+      "id": "M-POL-52",
+      "requisito": "R03",
+      "descricao": "Pergunta hipotética sobre bloquear bloqueia na hora (REG-20)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear"
+      ]
+    },
+    {
+      "id": "M-POL-53",
+      "requisito": "R03",
+      "descricao": "A pergunta sem cartão bloqueável pede confirmação em vez de só informar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if quantos_bloqueaveis == 0:\n        return Decisao(\"POL-BLQ-03\", \"responder\", \"nenhum cartão ativo para bloquear\")\n    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n",
+          "para": "    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n    if quantos_bloqueaveis == 0:\n        return Decisao(\"POL-BLQ-03\", \"responder\", \"nenhum cartão ativo para bloquear\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear"
+      ]
+    },
+    {
       "id": "M-PRE-16",
       "requisito": "R03",
       "descricao": "A avaliação não passa o \"hoje\" dos dados: a janela nunca vale pela API",
@@ -12393,6 +12423,21 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_hipotese_de_perda_e_prevencao"
+      ]
+    },
+    {
+      "id": "M-ITP-190",
+      "requisito": "R03",
+      "descricao": "Nenhuma pergunta é hipotética ou de capacidade",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return any(_casa(t, limpo) for t in HIPOTESE_OU_CAPACIDADE)",
+          "para": "    return False"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_hipotetica_ou_de_capacidade"
       ]
     },
     {
