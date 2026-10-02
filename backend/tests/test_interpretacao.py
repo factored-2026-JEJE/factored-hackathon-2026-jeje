@@ -1007,6 +1007,11 @@ def test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem():
         "Hace dos días que mi tarjeta no aparece",
         # Com o verbo antes do cartão, o que vem antes do verbo não conta.
         "Hice una compra y perdí la tarjeta",
+        # O cartão antes do verbo, com o tipo do cartão ou "se me cayó" no meio (EV-199).
+        "Mi tarjeta de crédito se me perdió",
+        "Mi tarjeta se me cayó y no aparece",
+        "Meu cartão de crédito caiu e não acho",
+        "Mi tarjeta de débito se me cayó en la calle",
     ],
 )
 def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
@@ -1036,6 +1041,11 @@ def test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude(texto):
         ("El cargo de mi tarjeta no aparece en el resumen", "consultar"),
         ("El pago con la tarjeta no aparece", "consultar"),
         ("A compra no meu cartão, não acho no extrato", "consultar"),
+        # Os mesmos, com o tipo do cartão.
+        ("La compra con mi tarjeta de crédito no aparece", "consultar"),
+        ("Não acho a compra no cartão de crédito", "consultar"),
+        ("Esqueci a senha do cartão de débito", "fora_de_escopo"),
+        ("Se me cayó la app cuando pagaba con la tarjeta", "desconhecida"),
     ],
 )
 def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):

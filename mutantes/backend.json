@@ -11981,8 +11981,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"furt*\", \"levaram\", \"nao acho\", \"nao consigo achar\", \"nao tenho mais\",\n     \"desaparec*\", \"esqueci*\"),",
-          "para": "),"
+          "de": "\"furt*\", \"levaram\", \"nao acho\", \"nao consigo achar\", \"nao tenho mais\",\n     \"desaparec*\", \"esqueci*\",",
+          "para": ""
         }
       ],
       "testes": [
@@ -12212,6 +12212,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-163",
+      "requisito": "R03",
+      "descricao": "\"Mi tarjeta se me cayó y no aparece\" não é perda (EV-199)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"se me cayo\"),\n",
+          "para": "     ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-164",
+      "requisito": "R03",
+      "descricao": "O cartão de crédito antes do verbo não é perda (EV-199)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"tarjeta de credito\", \"tarjeta de debito\", \"cartao de credito\", \"cartao de debito\"),\n",
+          "para": "     ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_perda_ou_roubo_do_cartao_dito_de_outras_formas_e_fraude"
       ]
     },
     {

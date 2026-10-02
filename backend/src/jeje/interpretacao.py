@@ -131,8 +131,11 @@ PERDA_DE_MEIO = Perto(
      # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
      "quitaron", "hurt*", "no hallo", "no puedo encontrar", "ya no tengo", "olvid*",
      "no aparece", "furt*", "levaram", "nao acho", "nao consigo achar", "nao tenho mais",
-     "desaparec*", "esqueci*"),
-    ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular"),
+     "desaparec*", "esqueci*",
+     # O cartão antes do verbo, com "se me cayó" ou o tipo do cartão no meio (PERDA-01, EV-199).
+     "se me cayo"),
+    ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera", "celular",
+     "tarjeta de credito", "tarjeta de debito", "cartao de credito", "cartao de debito"),
     # Entre o verbo e o cartão, o objeto é outro: "esqueci a senha do cartão", "la compra no
     # aparece en la tarjeta", "não tenho mais limite no cartão" não são perda.
     fora=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "senha", "clave",
