@@ -1402,6 +1402,40 @@ def test_pessoa_supostamente_do_banco_e_golpe(texto, golpe):
 
 
 @pytest.mark.parametrize(
+    ("texto", "golpe"),
+    [
+        # Um terceiro que entrou na conta (ACH-192)...
+        ("Una mujer que llamó del banco entró a mi cuenta y sacó plata", True),
+        ("Um homem que ligou do banco entrou na minha conta e tirou dinheiro", True),
+        ("El estafador entró a mi cuenta y transfirió todo", True),
+        # ... e não o banco, o filho com permissão nem quem entrou para ajudar (REG-32, REG-33).
+        ("El banco entró a mi cuenta y sacó la comisión mensual", False),
+        ("Mi hijo entró a mi cuenta con mi permiso y sacó plata para la escuela", False),
+        (
+            "Minha filha acessou minha conta e transferiu o dinheiro da mesada, como combinado",
+            False,
+        ),
+        ("Una persona de la sucursal entró a mi cuenta para ayudarme con la app", False),
+        (
+            "Me llamaron del banco para avisarme que mi hijo sacó plata con su tarjeta adicional",
+            False,
+        ),
+    ],
+)
+def test_terceiro_que_entrou_na_conta_e_golpe(texto, golpe):
+    assert (ler(texto).intencao == "fraude") is golpe
+
+
+@pytest.mark.parametrize(
+    "texto",
+    ["Me estafó un tipo por whatsapp y le mandé plata", "Roubaron meu cartão ontem à noite"],
+)
+def test_golpe_contado_no_passado_e_o_roubaron_do_portunhol(texto):
+    """Os golpes que a V2b do corretor deixou de consertar ("estafó", "roubaron", EV-230)."""
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
     "texto",
     [
         # O uso por outra pessoa contado de outros jeitos (o resto do ACH-171, REG-12 no 4c62c69).

@@ -12916,6 +12916,51 @@
       ]
     },
     {
+      "id": "M-ITP-213",
+      "requisito": "R02",
+      "descricao": "O terceiro que entrou na conta e tirou o dinheiro não é golpe (ACH-192)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                TERCEIRO_ENTROU_NA_CONTA,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_terceiro_que_entrou_na_conta_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-214",
+      "requisito": "R03",
+      "descricao": "Quem entrou na conta para ajudar (\"para ayudarme con la app\") é golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora_depois=(\"ayudar\", \"ayudarme\", \"ajudar\", \"me ajudar\", \"revisar\", \"configurar\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_terceiro_que_entrou_na_conta_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-215",
+      "requisito": "R02",
+      "descricao": "O golpe contado no passado (\"me estafó\") e o \"roubaron\" não são fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"me estafo\", \"nos estafo\", \"la estafo\", \"roubaron\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_golpe_contado_no_passado_e_o_roubaron_do_portunhol"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",
@@ -13057,8 +13102,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    depois=3,\n",
-          "para": "    depois=0,\n"
+          "de": "    # aplicativo a opção de bloquear\" é perda).\n    depois=3,\n",
+          "para": "    # aplicativo a opção de bloquear\" é perda).\n    depois=0,\n"
         }
       ],
       "testes": [
@@ -13072,8 +13117,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    depois=3,\n",
-          "para": "    depois=6,\n"
+          "de": "    # aplicativo a opção de bloquear\" é perda).\n    depois=3,\n",
+          "para": "    # aplicativo a opção de bloquear\" é perda).\n    depois=6,\n"
         }
       ],
       "testes": [
