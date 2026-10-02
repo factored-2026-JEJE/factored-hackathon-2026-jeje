@@ -12507,8 +12507,13 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    \"atendente\", \"operador\", \"asesor\", \"parente\", \"pariente\", \"agente\", \"representante\", \"primos\",\n    \"sobrinos\", \"sobrinhos\", \"parentes\", \"parientes\",",
-          "para": "    \"atendente\", \"operador\", \"asesor\","
+          "de": "\"asesor\", \"agente\",\n    \"representante\",",
+          "para": "\"asesor\","
+        },
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"mae\", \"madre\", \"parente\", \"pariente\", \"parentes\",\n    \"parientes\",",
+          "para": "\"mae\", \"madre\","
         }
       ],
       "testes": [
@@ -12537,8 +12542,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                SEGREDO_FACILITADO,\n",
-          "para": ""
+          "de": "                SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE,",
+          "para": "                SE_APRESENTOU_COMO_PARENTE,"
         }
       ],
       "testes": [
@@ -12588,6 +12593,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_pessoa_com_verbo_de_pedido_ou_sozinha_e_pedido_de_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-201",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como parente (\"se presentó como mi sobrino\") não é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,",
+          "para": "SEGREDO_FACILITADO, APRESENTOU_E_PEDIU,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-202",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como funcionário e pediu a clave não é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,",
+          "para": "SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE,"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-203",
+      "requisito": "R03",
+      "descricao": "O atendente de verdade que se apresenta e pede para esperar é golpe (ACH-179)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"me pidio la\", \"me pidio mi\",",
+          "para": "    (\"me pidio\", \"me pidio la\", \"me pidio mi\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
       ]
     },
     {
