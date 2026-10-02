@@ -478,6 +478,9 @@ TERCEIRO_USOU = Perto(
      "intento cobrar con mi", "tentou cobrar com meu", "se ha hecho pasar", "pegou meu cartao",
      "pegou meus cartoes", "pegou minha carteira", "forjou o meu", "forjou meu", "rouba o meu",
      "rouba meu"),
+    # A pessoa do próprio banco ("una persona del banco abrió una cuenta a mi nombre cuando fui a la
+    # sucursal", "uma pessoa da agência acessou minha conta para me ajudar") não é terceiro.
+    fora=("banco", "agencia", "sucursal"),
 )  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
