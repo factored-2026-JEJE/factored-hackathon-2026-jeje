@@ -1461,6 +1461,35 @@ def test_so_o_q_sozinho_vira_que():
 @pytest.mark.parametrize(
     ("texto", "anterior"),
     [
+        ("¡Es un robo! Me cobraron 3 dólares de comisión", "es"),
+        ("¡Esto es un robo! Pagué el pedido hace dos semanas y nunca llegó", "es"),
+        ("Que roubo, me cobraram tarifa de novo", "pt"),
+        ("Isso é um assalto, a tarifa subiu de novo", "pt"),
+    ],
+)
+def test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo(texto, anterior):
+    """A indignação ("¡esto es un robo!") sozinha não é relato: o cartão de quem reclama da tarifa
+    ou da compra que não chegou não é bloqueado."""
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Sufrí un robo y se llevaron mi tarjeta", "es"),
+        ("Hubo un robo en mi casa y se llevaron mi tarjeta", "es"),
+        ("¡Esto es un robo! Alguien usó mi tarjeta en otra ciudad", "es"),
+        ("Fui vítima de um roubo, levaram meu cartão", "pt"),
+        ("Me han estafado con una transferencia y no recupero el dinero", "es"),
+    ],
+)
+def test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
         ("Me rechazaron la compra y en la tienda me dijeron que era del banco", "es"),
         ("El comercio me dijo que era el banco el que no autorizaba", "es"),
         ("Pensé que era el banco el que me cobró la comisión", "es"),
