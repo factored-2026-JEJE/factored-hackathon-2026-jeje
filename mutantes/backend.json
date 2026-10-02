@@ -11500,7 +11500,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    um = [a for a in termo.um if _casa(a, limpo)]\n    outro = [b for b in termo.outro if _casa(b, limpo)]\n    for a, b in product(um, outro):\n",
+          "de": "    um = [a for a in termo.um if _casa(a, limpo)]\n    if not um:\n        return None  # sem nenhum termo do primeiro grupo, o segundo nem é procurado\n    outro = [b for b in termo.outro if _casa(b, limpo)]\n    for a, b in product(um, outro):\n",
           "para": "    for a, b in product(termo.um, termo.outro):\n"
         }
       ],
@@ -12782,8 +12782,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"pidio la clave\", \"pidio mi clave\",",
-          "para": "    (\"pidio mi\", \"pidio el\", \"pediu o\", \"pidio la clave\", \"pidio mi clave\","
+          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
+          "para": "                   \"deposito\", \"prestamo\", \"emprestimo\", \"comprobante\", \"comprovante\", \"numero\")"
         }
       ],
       "testes": [
@@ -12799,6 +12799,41 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "                    if len(palavra) >= 4 and palavra not in NAO_SAO_ALVO:",
           "para": "                    if len(palavra) >= 4:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
+      ]
+    },
+    {
+      "id": "M-ITP-205",
+      "requisito": "R02",
+      "descricao": "Quem se apresentou como funcionário e pediu dinheiro (\"me pediu um pix\") não é golpe (REG-28)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"senha\", \"senhas\", \"plata\", \"dinero\", \"dinheiro\", \"pix\", \"transferencia\",",
+          "para": "\"senha\", \"senhas\","
+        },
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
+          "para": "                   )"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido"
+      ]
+    },
+    {
+      "id": "M-ITP-206",
+      "requisito": "R02",
+      "descricao": "As frases do pedido de segredo ou dinheiro entram no corretor, e \"pidieran\" vira \"pidieron\"",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    so_nessa_ordem=True,\n    corrige=False,\n)",
+          "para": "    so_nessa_ordem=True,\n)"
         }
       ],
       "testes": [

@@ -105,6 +105,7 @@ class Perto:
     # seguro ou é outro: "olvidé mi tarjeta en casa", "la tarjeta no aparece en la app".
     depois: int = 0
     fora_depois: tuple[str, ...] = ()
+    corrige: bool = True  # as palavras dos grupos são alvo do corretor de digitação
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -115,6 +116,8 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
         return termo if _casa(termo, limpo) else None
     entre = rf"((?: [a-z0-9]+){{0,{termo.entre}}}) "
     um = [a for a in termo.um if _casa(a, limpo)]
+    if not um:
+        return None  # sem nenhum termo do primeiro grupo, o segundo nem é procurado
     outro = [b for b in termo.outro if _casa(b, limpo)]
     for a, b in product(um, outro):
         x, y = _padrao(a), _padrao(b)
@@ -345,21 +348,26 @@ APRESENTOU = (
 )  # fmt: skip
 SE_APRESENTOU_COMO_PARENTE = Perto(APRESENTOU, PARENTES, entre=1, so_nessa_ordem=True)
 # "Se presentó como empleado del banco y me pidió la clave", "decía trabajar en este banco y me
-# pidió la clave": só com o segredo pedido; o atendente de verdade também se apresenta e pede o
-# comprovante, o protocolo ou o número de cliente (REG-27).
+# pidió la clave": só com o segredo ou o dinheiro pedidos, a lista do REG-28 da validação; o
+# atendente de verdade também se apresenta e pede o comprovante, o protocolo ou o número de cliente
+# (REG-27). As frases não entram no corretor: são muitas, e as palavras delas, comuns.
+PEDIDO_DE_SEGREDO_OU_DINHEIRO = tuple(
+    " ".join(p for p in (verbo, artigo, objeto) if p)
+    for verbo in ("me pidio", "me pidieron", "me solicito", "me pediu", "me pediram",
+                  "me solicitou")
+    for artigo in ("", "la", "el", "los", "las", "mi", "mis", "su", "a", "o", "os", "as", "minha",
+                   "meu", "meus", "minhas", "una", "un", "uma", "um")
+    for objeto in ("clave", "claves", "contrasena", "codigo", "codigos", "pin", "token", "cvv",
+                   "senha", "senhas", "plata", "dinero", "dinheiro", "pix", "transferencia",
+                   "deposito", "prestamo", "emprestimo")
+)  # fmt: skip
 APRESENTOU_E_PEDIU = Perto(
     (*APRESENTOU, "decia trabajar", "dijo trabajar", "dizia trabalhar", "disse trabalhar"),
-    ("pidio la clave", "pidio mi clave", "pidio la contrasena", "pidio mi contrasena",
-     "pidio el codigo", "pidio mi codigo", "pidio el pin", "pidio mi pin", "pidio el token",
-     "pidio mi token", "pidieron la clave", "pidieron mi clave", "pidieron la contrasena",
-     "pidieron el codigo", "pidieron el pin", "pidieron el token", "solicito la clave",
-     "solicito mi clave", "solicito el codigo", "pediu a senha", "pediu minha senha",
-     "pediu o codigo", "pediu meu codigo", "pediu o pin", "pediu o token", "pediram a senha",
-     "pediram minha senha", "pediram o codigo", "pediram o token", "solicitou a senha",
-     "solicitou minha senha", "solicitou o codigo"),
+    PEDIDO_DE_SEGREDO_OU_DINHEIRO,
     entre=5,
     so_nessa_ordem=True,
-)  # fmt: skip
+    corrige=False,
+)
 # "Disse que era" é comum fora do golpe ("o vendedor disse que era problema do banco"): só com
 # quem ele disse ser logo depois.
 DISSE_QUE_ERA = Perto(
@@ -916,6 +924,8 @@ def reconhecivel(texto: str) -> bool:
 
 def _palavras_do_termo(termo: str | Perto) -> Iterator[str]:
     if isinstance(termo, Perto):
+        if not termo.corrige:
+            return
         for parte in (*termo.um, *termo.outro):
             yield from _palavras_do_termo(parte)
     elif not termo.endswith("*"):
