@@ -162,6 +162,13 @@ PLASTICO = ("mi plastico", "meu plastico", "el plastico", "o plastico", "su plas
             "seu plastico", "mis plasticos", "meus plasticos")  # fmt: skip
 PERDA_DE_MEIO = Perto(
     ("perdi*", "extravi*", "no encuentro", "nao encontro", "sumiu", "desapareci*",
+     # O cartão que não se achou ("no encontré mi tarjeta", "ainda não achei o cartão") é perda, não
+     # o cartão achado. O "não achei" só com o objeto logo depois: "não achei que" é pensar
+     # (REG-41).
+     "no encontre", "nunca encontre", "nao encontrei", "nunca encontrei", "nao achei o",
+     "nao achei meu", "nao achei minha", "nao achei a", "nao achei mais o", "nao achei mais meu",
+     "nunca achei o", "nunca achei meu", "nunca achei minha", "nunca achei a",
+     "nunca achei mais o", "nunca achei mais meu",
      # DEV-079 (ACH-157, PERDA-01): as outras formas de perder ou ter o cartão levado.
      "quitaron", "hurt*", "no hallo", "no puedo encontrar", "ya no tengo", "olvid*",
      "no aparece", "furt*", "levaram", "nao acho", "nao consigo achar", "nao tenho mais",
@@ -176,19 +183,27 @@ PERDA_DE_MEIO = Perto(
           "contrasena", "pin", "saldo", "limite", "prazo", "plazo", "en", "em", "no", "na",
           # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).
           "fatura", "factura", "extrato", "extracto", "resumen", "opcion", "opcao", "boleto",
-          "comprovante", "comprobante"),
+          "comprovante", "comprobante",
+          # O cartão que se pensou ter perdido ("um cartão que pensei ter perdido", REG-41).
+          "pense", "pensei", "pensaba", "pensava", "achava"),
     # Com o cartão antes do verbo, o que vem logo antes dele também conta: "la compra con mi
     # tarjeta no aparece" e "el cargo de mi tarjeta no aparece" falam da compra (ACH-190).
     antes=3,
     fora_antes=("compra*", "cargo*", "cobr*", "pago*", "pagamento*", "transac*", "moviment*",
-                "debito*", "saldo", "limite"),
+                "debito*", "saldo", "limite",
+                # Quem achou o cartão e quer reativá-lo ("encontré la tarjeta que perdí, ¿cómo la
+                # reactivo?") pede o desbloqueio. O reativar não entra: "reactivé mi tarjeta y la
+                # perdí de nuevo" é perda (REG-40).
+                "encontre", "encontrei"),
     # Logo depois do par: o cartão em casa ou a tela do app não são perda (auditoria do dev,
     # 02/10). Só 3 palavras: mais longe, já é outra oração ("perdi meu cartão e não aparece no
     # aplicativo a opção de bloquear" é perda).
     depois=3,
     fora_depois=("en casa", "em casa", "en mi casa", "na minha casa", "en la app", "en el app",
                  "na app", "no app", "en la aplicacion", "no aplicativo", "na aplicacao",
-                 "en la lista", "de la lista", "na lista", "da lista", "en la pantalla", "na tela"),
+                 "en la lista", "de la lista", "na lista", "da lista", "en la pantalla", "na tela",
+                 # O cartão achado logo depois ("meu cartão perdido que encontrei esta manhã").
+                 "encontre", "encontrei", "la encontre", "o encontrei"),
 )  # fmt: skip
 # A pessoa ou o cargo de quem atende só é pedido de humano com verbo de pedido perto: "el gerente
 # de la tienda dice que…" (ACH-104) e "una persona me cobró de más" (ACH-159) não são pedido.
@@ -303,7 +318,10 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
 # O cartão achado ("ya apareció mi tarjeta", "achei meu cartão"): o cartão logo depois do verbo.
 # "Encontré un pago con tarjeta no autorizado" é outra coisa.
 CARTAO_ACHADO = Perto(
-    ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"), CARTAO, entre=1
+    ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"),
+    CARTAO,
+    entre=1,
+    negavel=True,  # "no encontré mi tarjeta" é perda
 )
 # Dinheiro sendo tirado da conta é relato de fraude (ACH-140); "¿por qué me estás robando con
 # las comisiones?" sem o dinheiro ou a conta perto, não. A conta esvaziada ("me vaciaron la
@@ -598,6 +616,42 @@ INDIGNACAO = re.compile(
     r"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e) "
     r"(?:un |um )?(?:robo|roubo|asalto|assalto)(?![a-z0-9])(?! d[eoa]\b)"
 )
+# A fraude negada pelo cliente ("no fue un fraude, yo hice la compra", "não é golpe, só quero
+# entender essa cobrança") também não é relato. Só no começo da mensagem, onde o cliente nega,
+# também depois do cumprimento ("hola, no es fraude…"): a negação do golpista citada no meio ("me
+# juró: no es una estafa") e a da oração com "que" seguem relato (REG-42 e REG-44 da validação). E
+# só com o verbo logo depois da negação: "no golpe do pix" é o "no" do português.
+FRAUDE_NEGADA = re.compile(
+    r"^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|buen dia|oi|ola|bom dia|boa tarde|"
+    r"boa noite) )?(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|"
+    r"creo que es|acho que seja|acho que foi|acho que e) (?:un |um |una |uma )?"
+    r"(?:fraude|golpe|estafa|robo|roubo)(?![a-z0-9])"
+)
+
+
+# Um verbo de fala logo depois marca a negação do golpista citada no começo ("'não é golpe', ele
+# falou, e eu fiz o pix"): ali, a negação fica no texto (REG-44 da validação, ACH-200).
+FALA = frozenset((
+    "disse", "disseram", "dizia", "diziam", "dizendo", "falou", "falaram", "falava", "falando",
+    "jurou", "juraram", "garantiu", "garantiram", "afirmou", "insistiu", "repetiu", "respondeu",
+    "escreveu", "dijo", "dijeron", "decia", "decian", "diciendo", "juro", "juraron", "aseguro",
+    "aseguraron", "afirmo", "insistio", "repitio", "respondio", "escribio",
+))  # fmt: skip
+FALA_JANELA = 3
+
+
+def _sem_o_que_nao_e_relato(limpo: str) -> str:
+    """O texto lido para a fraude: sem a indignação nem a fraude negada pelo cliente, com os espaços
+    juntados (o `Perto` conta palavras com um espaço só)."""
+    texto = INDIGNACAO.sub(" ", limpo)
+
+    def citada_ou_tirada(achado: re.Match[str]) -> str:
+        perto = {*texto[achado.end() :].split()[:FALA_JANELA]}
+        return achado.group(0) if FALA & perto else " "
+
+    return " ".join(FRAUDE_NEGADA.sub(citada_ou_tirada, texto).split())
+
+
 # O dinheiro tirado da conta por outros ("¡esto es un robo! me sacaron plata de la cuenta", "que
 # roubo! tiraram dinheiro da minha conta sem eu saber"), sem a tarifa logo depois ("me sacaron plata
 # de la cuenta por la comisión"): o C do REG-39 da validação, para os relatos que só a indignação
@@ -1197,7 +1251,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
             continue
         if intencao == "bloquear" and BLOQUEIO_CONTADO.search(texto.casefold()):
             continue
-        lido = " ".join(INDIGNACAO.sub(" ", limpo).split()) if intencao == "fraude" else limpo
+        lido = _sem_o_que_nao_e_relato(limpo) if intencao == "fraude" else limpo
         casados = tuple(sinal for t in termos if (sinal := _casou(t, lido)))
         if intencao == "humano" and SO_A_PESSOA.match(limpo):
             casados = (*casados, "so_a_pessoa")

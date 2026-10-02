@@ -303,19 +303,9 @@ test("por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem
 const pelo = (resolucao: ResultadoDoTurno["resolucao"], transaction_id: string | null = "TRX-1") =>
   turno({ resolucao, transaction_id });
 
-test.each<[string, ResultadoDoTurno, string]>([
-  [
-    "o ranking escolheu",
-    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.987, possiveis: 2 }),
-    "escolhida com garantia estatística de 95%: o conjunto conformal ficou só com ela (probabilidade 0,99; 2 possíveis; calibração 764ce683d347)",
-  ],
-  [
-    "o ranking só ordenou as opções",
-    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.6, possiveis: 3 }, null),
-    "sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (probabilidade 0,60; 3 possíveis; calibração 764ce683d347)",
-  ],
-  ["o filtro exato achou", pelo({ resolvedor: "filtro", calibracao: null, probabilidade: null, possiveis: null }), "pelo filtro exato"],
-])("por que esta resposta diz como a transação foi achada (DEV-071): %s", async (_caso, corpo, esperado) => {
+// Testes nomeados, sem `test.each`: o meta-check dos mutantes coleta o nome pelo `vitest list`, que
+// não expande o "%s" do nome.
+const comoFoiAchada = async (corpo: ResultadoDoTurno, esperado: string) => {
   servidor([{ status: 200, corpo }]);
   montar();
   await abrirEPedir();
@@ -323,7 +313,25 @@ test.each<[string, ResultadoDoTurno, string]>([
   if (!resposta) throw new Error("resposta fora da lista");
   await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
   expect(within(resposta).getByText(esperado)).toBeVisible();
-});
+};
+
+test("por que esta resposta diz como a transação foi achada (DEV-071): o ranking escolheu", () =>
+  comoFoiAchada(
+    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.987, possiveis: 2 }),
+    "escolhida com garantia estatística de 95%: o conjunto conformal ficou só com ela (probabilidade 0,99; 2 possíveis; calibração 764ce683d347)",
+  ));
+
+test("por que esta resposta diz como a transação foi achada (DEV-071): o ranking só ordenou as opções", () =>
+  comoFoiAchada(
+    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.6, possiveis: 3 }, null),
+    "sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (probabilidade 0,60; 3 possíveis; calibração 764ce683d347)",
+  ));
+
+test("por que esta resposta diz como a transação foi achada (DEV-071): o filtro exato achou", () =>
+  comoFoiAchada(
+    pelo({ resolvedor: "filtro", calibracao: null, probabilidade: null, possiveis: null }),
+    "pelo filtro exato",
+  ));
 
 test("por que esta resposta mostra de onde veio o fato: arquivo, linha e versão dos dados (DEV-044)", async () => {
   const recibo = { transaction_id: "TRX-1", arquivo: "transactions/day=10/part-0.csv", linha: 7, versao_dos_dados: "abc123def456789" };
