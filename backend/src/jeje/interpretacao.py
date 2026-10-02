@@ -1066,7 +1066,11 @@ SUSPEITA_SEM_PERDA = (
     "no respondi", "nao respondi", "no cai", "nao cai", "no perdi", "nao perdi", "sin perder",
     "sem perder", "no paso nada", "nao aconteceu nada", "por las dudas", "por via das duvidas",
     "solo para confirmar", "so para confirmar", "quiero confirmar", "quero confirmar",
-    "queria confirmar"
+    "queria confirmar",
+    # O objeto antes do verbo ("no se la di") e o nada entregue ("não passei nada"), do REG-21.
+    "no se la di", "no se lo di", "no se las di", "no se los di", "no la di", "no lo di",
+    "nunca se la di", "nunca se lo di", "no se la pase", "no se lo pase", "nao passei nada",
+    "nao informei", "nao forneci nada"
 )  # fmt: skip
 VITIMA = (
     "cai", "me aplicaron", "sofri", "sufri", "me estafaron", "estafaron", "fui vitima",
