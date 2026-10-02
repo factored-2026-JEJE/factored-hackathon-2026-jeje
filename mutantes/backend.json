@@ -11395,8 +11395,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"site errado\",\n                \"sitio equivocado\", \"pagina errada\", \"pagina equivocada\", \"link errado\")),",
-          "para": "\n                )),"
+          "de": "\"site errado\",\n                \"sitio equivocado\", \"pagina errada\", \"pagina equivocada\", \"link errado\",\n",
+          "para": "\n"
         }
       ],
       "testes": [
@@ -13019,6 +13019,51 @@
       "testes": [
         "tests/test_interpretacao.py::test_golpe_escrito_com_o_q_abreviado",
         "tests/test_interpretacao.py::test_so_o_q_sozinho_vira_que"
+      ]
+    },
+    {
+      "id": "M-ITP-227",
+      "requisito": "R02",
+      "descricao": "Quem disse ser do banco e pediu a clave ou tomou o cartão, na loja ou com o \"quien hablaba\", não é golpe (REG-37)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU)),\n",
+          "para": "                )),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_disse_ser_do_banco_e_pediu_ou_tomou_o_cartao_e_golpe_mesmo_na_loja"
+      ]
+    },
+    {
+      "id": "M-ITP-228",
+      "requisito": "R02",
+      "descricao": "O cartão tomado (\"se llevó mi tarjeta\", \"me cambió la tarjeta\") por quem disse ser do banco não é golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"se llevo mi tarjeta\", \"se llevo la tarjeta\", \"se llevaron mi tarjeta\", \"me cambio la tarjeta\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_disse_ser_do_banco_e_pediu_ou_tomou_o_cartao_e_golpe_mesmo_na_loja"
+      ]
+    },
+    {
+      "id": "M-ITP-229",
+      "requisito": "R02",
+      "descricao": "Qualquer pedido depois de \"disse que era do banco\" é golpe (\"me pidieron otra tarjeta\" bloqueia o cartão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        (\"clave\", \"contrasena\", \"codigo\", \"pin\", \"token\", \"cvv\", \"senha\", \"datos\", \"dados\", \"plata\",\n         \"dinero\", \"dinheiro\", \"pix\", \"transferencia\"),\n",
+          "para": "        (\"\",),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
       ]
     },
     {
