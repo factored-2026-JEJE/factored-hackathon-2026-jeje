@@ -965,7 +965,8 @@ def test_erro_de_digitacao_na_palavra_de_intencao(texto, intencao):
 
 
 def test_termo_com_uma_letra_a_mais_no_fim_nao_e_erro_de_digitacao():
-    """"pessoal" não é "pessoa" digitado errado (ACH-172), nem "golpes" é "golpe" (REG-14)."""
+    """O termo com uma letra a mais no fim é outra palavra: "pessoal" não é "pessoa" digitado errado
+    (ACH-172), nem "golpes" é "golpe" (REG-14)."""
     assert not interpretacao._uma_edicao("pessoal", "pessoa")
     assert not interpretacao._uma_edicao("personal", "persona")
     assert not interpretacao._uma_edicao("golpes", "golpe")
