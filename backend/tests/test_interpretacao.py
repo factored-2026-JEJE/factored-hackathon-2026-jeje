@@ -980,3 +980,27 @@ def test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem():
     assert [p for p, _ in pares] == sorted({p for p, _ in pares})
     assert all(interpretacao.normalizar(p) == p and int(n) >= 1 for p, n in pares)
     assert interpretacao.VOCABULARIO["reconozco"] >= 2 and interpretacao.VOCABULARIO["probado"] == 1
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # Os mesmos verbos sem o cartão perto não são relato de perda.
+        ("No puedo encontrar la compra en mi historial", "consultar"),
+        ("Já não tenho dúvidas sobre a cobrança", "consultar"),
+        ("Olvidé mi contraseña", "fora_de_escopo"),
+        ("Esqueci a senha do app", "fora_de_escopo"),
+        ("Não acho essa compra no extrato do cartão", "consultar"),
+        ("Ya no tengo saldo en la cuenta", "desconhecida"),
+        # Com o cartão perto, mas o objeto é outro (a senha, a compra, o limite): não é perda.
+        ("Esqueci a senha do cartão", "fora_de_escopo"),
+        ("La compra no aparece en la tarjeta", "consultar"),
+        ("Não acho a compra no cartão", "consultar"),
+        ("Não encontro a compra no cartão", "consultar"),
+        ("Ya no tengo saldo en la tarjeta", "desconhecida"),
+        ("perdi o prazo do cartão", "desconhecida"),
+        ("En la tarjeta la compra no aparece", "consultar"),  # o cartão antes do verbo
+    ],
+)
+def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
+    assert ler(texto).intencao == intencao
