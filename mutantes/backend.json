@@ -12366,6 +12366,21 @@
       ]
     },
     {
+      "id": "M-ITP-173",
+      "requisito": "R07",
+      "descricao": "As flexões de \"evitar\" e \"cuidar\" não são prevenção: \"¿cómo evito caer en una estafa?\" bloqueia o cartão (REG-16)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    \"evito\", \"evita\", \"evitas\", \"evite\", \"evitamos\", \"evitarlo\", \"evitarla\", \"evitalo\", \"evitala\",\n    \"como no caer\", \"para no caer\", \"para nao cair\", \"como nao cair\", \"cuidarme\", \"cuidarse\",\n    \"como me cuido\", \"me cuidar\", \"me previno\", \"como me previno\", \"prevengo\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_flexoes_de_evitar_e_cuidar_sao_prevencao"
+      ]
+    },
+    {
       "id": "M-LLM-25",
       "requisito": "R02",
       "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",

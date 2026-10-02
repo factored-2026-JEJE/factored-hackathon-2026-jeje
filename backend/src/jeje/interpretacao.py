@@ -999,7 +999,11 @@ PREVENCAO = (
     "e verdadeiro", "e verdadeira",
     # A pergunta condicional ("¿qué hago si alguien usó mi tarjeta?"): sem vítima, é pergunta.
     "que hago si", "que debo hacer si", "que hacer si", "o que fazer se", "o que faco se",
-    "o que devo fazer se", "como se si", "como sei se"
+    "o que devo fazer se", "como se si", "como sei se",
+    # As flexões de "evitar" e "cuidar" ("¿cómo evito caer en una estafa?"), medidas no REG-16.
+    "evito", "evita", "evitas", "evite", "evitamos", "evitarlo", "evitarla", "evitalo", "evitala",
+    "como no caer", "para no caer", "para nao cair", "como nao cair", "cuidarme", "cuidarse",
+    "como me cuido", "me cuidar", "me previno", "como me previno", "prevengo"
 )  # fmt: skip
 SUSPEITA_SEM_PERDA = (
     "no di", "no le di", "no les di", "nao dei", "nao passei", "no pase", "no entregue",
