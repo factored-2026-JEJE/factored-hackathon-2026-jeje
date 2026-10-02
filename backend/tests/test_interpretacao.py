@@ -1064,6 +1064,13 @@ def test_frase_comum_nao_e_corrigida_para_termo_de_acao(texto):
     assert interpretacao.corrigir(texto) == (texto, ())
 
 
+def test_frases_do_pedido_de_segredo_ou_dinheiro_ficam_fora_do_corretor():
+    """As 2.160 frases do pedido de segredo ou dinheiro (REG-28) não entram no léxico do corretor:
+    as palavras delas ("deposito", "prestamo", "solicitou") mudariam as candidatas validadas."""
+    palavras = {"solicitou", "deposito", "prestamo", "emprestimo", "pidieron"}
+    assert palavras.isdisjoint(interpretacao.LEXICO_DE_INTENCAO)
+
+
 def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
     """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe"."""
     texto = "paguei a aula de golfe com o cartão"
@@ -1376,6 +1383,21 @@ def test_golpe_de_quem_se_apresentou_como_outro(texto):
     ],
 )
 def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe):
+    assert (ler(texto).intencao == "fraude") is golpe
+
+
+@pytest.mark.parametrize(
+    ("texto", "golpe"),
+    [
+        # A pessoa "supuestamente del banco" é o falso atendente (REG-32, S2; o custo do #83)...
+        ("Una persona supuestamente del banco accedió a mi cuenta sin permiso", True),
+        ("Uma pessoa supostamente do banco acessou minha conta sem eu saber", True),
+        # ... e o banco "supuestamente" sem a pessoa, não.
+        ("Supuestamente el banco me iba a llamar hoy y nada", False),
+        ("Supostamente a agência abre às 10h, mas está fechada", False),
+    ],
+)
+def test_pessoa_supostamente_do_banco_e_golpe(texto, golpe):
     assert (ler(texto).intencao == "fraude") is golpe
 
 

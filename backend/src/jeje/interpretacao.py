@@ -388,6 +388,22 @@ FALSO_ATENDENTE = Perto(
      "central", "atendente", "asesor", "gerente", "agente"),
     entre=1,
 )  # fmt: skip
+# "Una persona supuestamente del banco accedió a mi cuenta": a pessoa logo antes do
+# "supuestamente" e o banco, a agência ou a sucursal logo depois são o falso atendente (S2 do
+# REG-32); "supuestamente el banco me iba a llamar" não é. As frases não entram no corretor.
+PESSOA_SUPOSTAMENTE = Perto(
+    tuple(
+        f"{pessoa} {s}"
+        for pessoa in ("persona", "alguien", "hombre", "mujer", "senor", "senora", "tipo", "chico",
+                       "chica", "pessoa", "alguem", "homem", "mulher", "senhor", "senhora", "cara",
+                       "rapaz", "moca")
+        for s in ("supuestamente", "supostamente")
+    ),
+    ("banco", "agencia", "sucursal"),
+    entre=1,
+    so_nessa_ordem=True,
+    corrige=False,
+)  # fmt: skip
 SENHA_ENTREGUE = Perto(
     ("passei", "dei", "deu", "di", "le di", "les di", "pase", "forneci", "fornecendo", "contei",
      "diera"),
@@ -547,6 +563,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 SE_PASSOU_POR, DISSE_QUE_ERA, FALSO_ATENDENTE, SENHA_ENTREGUE, SENHA_OBTIDA,
                 SITE_FALSO,
                 SEGREDO_FACILITADO, SE_APRESENTOU_COMO_PARENTE, APRESENTOU_E_PEDIU,
+                PESSOA_SUPOSTAMENTE,
                 PEDIDO_DE_DINHEIRO, TRANSFERENCIA_NAO_FEITA, AUTOR_DESCONHECIDO,
                 TERCEIRO_USOU, CARTAO_SE_ROUBOU,
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
