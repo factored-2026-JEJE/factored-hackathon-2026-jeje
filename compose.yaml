@@ -59,6 +59,12 @@ x-app-env: &app-env
   # validação no NOV-19 e os exemplos do BANKING77 gerados no build com o leitor.
   NAO_ENTENDI_MODELO: qwen3:4b
   LEITOR_VIZINHOS: /opt/modelos/vizinhos.joblib
+  # Garantia de encaminhamento da fraude (DEV-046, só com INTERPRETADOR=leitor_modelo): o detector
+  # gerado no build com o leitor e, onde ele dispara, o LLM confirmando; a mensagem vai ao
+  # atendente como possível fraude, sem bloquear o cartão. Ligada: no REG-22 da validação, a fraude
+  # que chega ao atendente vai de 60-74% a 88-92% nos golpes contados, sem bloqueio a mais.
+  GARANTIA_DE_FRAUDE: "true"
+  LEITOR_GARANTIA: /opt/modelos/garantia.joblib
   # "Qual transação" (DEV-037): "ranking" (as transações do cliente ordenadas pelas pistas, com
   # conjunto conformal calibrado em backend/src/jeje/qual_transacao.json) ou "filtro" (o exato).
   RESOLVEDOR_DE_TRANSACAO: "ranking"

@@ -2,13 +2,14 @@
 
 python -m jeje.leitor treinar <dir_corpus> <dir_e5> <arquivo_modelo>
     baixa o corpus e os pesos do e5 fixados, treina e grava o artefato, e ao lado dele os
-    exemplos do LLM do "não entendi" (vizinhos.joblib)
+    exemplos do LLM do "não entendi" (vizinhos.joblib) e o detector da garantia de fraude
+    (garantia.joblib)
 """
 
 import sys
 from pathlib import Path
 
-from jeje.leitor import codificador, corpus, fontes, vizinhos
+from jeje.leitor import codificador, corpus, fontes, garantia, vizinhos
 from jeje.leitor.modelo import ModeloLeitor, versao
 
 
@@ -32,6 +33,12 @@ def treinar(dir_corpus: Path, dir_e5: Path, arquivo_modelo: Path) -> ModeloLeito
     exemplos.salvar(arquivo_modelo.with_name("vizinhos.joblib"))
     frases = {f"{i}/{c}": len(t) for (i, c), t in sorted(exemplos.textos.items())}
     print(f"[leitor] exemplos do LLM {exemplos.versao[:12]}: {frases}", flush=True)
+    # Detector da garantia de fraude (DEV-046): os mesmos vetores e os golpes do NOV-31.
+    detector = garantia.Garantia.treinada(
+        lido, codificar, garantia.versao(modelo.versao), garantia.golpes()
+    )
+    detector.salvar(arquivo_modelo.with_name("garantia.joblib"))
+    print(f"[leitor] garantia {detector.versao[:12]}, limiares {detector.limiares}", flush=True)
     return modelo
 
 
