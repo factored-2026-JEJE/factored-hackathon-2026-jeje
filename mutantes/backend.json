@@ -11806,6 +11806,21 @@
       ]
     },
     {
+      "id": "M-ITP-155",
+      "requisito": "R07",
+      "descricao": "O plural do termo vira o termo (\"golpes\" vira \"golpe\" e quem pede dicas tem o cartão bloqueado; REG-14)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if a == b or a in (b + \"s\", b + \"es\") or abs(len(a) - len(b)) > 1:",
+          "para": "    if a == b or abs(len(a) - len(b)) > 1:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_plural_de_termo_nao_e_corrigido_para_o_termo"
+      ]
+    },
+    {
       "id": "M-LLM-25",
       "requisito": "R02",
       "descricao": "A recusa da transação proposta vai ao leitor, que a lê como outra coisa (ACH-145)",
