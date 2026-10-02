@@ -1636,7 +1636,7 @@
       "descricao": "A frase do exemplo troca o dia e o mês",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/frasesDoCliente.ts",
           "de": "  const [, mes, dia] = e.data.split(\"-\");\n",
           "para": "  const [, dia, mes] = e.data.split(\"-\");\n"
         }
