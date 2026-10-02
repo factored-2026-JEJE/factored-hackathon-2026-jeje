@@ -1070,10 +1070,31 @@ def test_verbo_de_perda_sem_o_cartao_perto_nao_e_fraude(texto, intencao):
         "um estranho acessou minha conta",
         "Mi tarjeta se robó anoche",
         "Meu cartão se roubou ontem",
+        # O leitor lia com confiança como contestação (ACH-182, LLM-01): agora as regras leem antes.
+        "Alguien anda gastando con mi plástico en tiendas donde nunca he puesto un pie",
+        "Tem alguém gastando com o meu plástico em loja que eu nunca fui",
+        "alguien está gastando con mi tarjeta",
+        "perdí mi plástico ayer",
     ],
 )
 def test_relato_de_que_outra_pessoa_usou_ou_roubou_e_fraude(texto):
     assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # Leituras que o leitor fazia com confiança e erradas (ACH-182, LLM-01): o cartão na gíria
+        # e o pedido de pessoa no plural agora são das regras.
+        ("Necesito que congelen mi plástico un ratito", "bloquear"),
+        ("Quero travar meu plástico um pouquinho", "bloquear"),
+        ("Bloqueen mi plástico, por favor", "bloquear"),
+        ("Pásenme con un ser humano, este chat no me sirve", "humano"),
+        ("Me passem para um atendente", "humano"),
+    ],
+)
+def test_girias_e_plurais_que_o_leitor_lia_errado_sao_das_regras(texto, intencao):
+    assert ler(texto).intencao == intencao
 
 
 @pytest.mark.parametrize(
