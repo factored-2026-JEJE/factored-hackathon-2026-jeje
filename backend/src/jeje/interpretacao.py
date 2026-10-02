@@ -410,6 +410,35 @@ DISSE_QUE_ERA = Perto(
     fora_depois=("el problema", "o problema", "la culpa", "a culpa", "el error", "o erro", "el que",
                  "la que", "quien", "quem"),
 )  # fmt: skip
+# Quem disse ser do banco e, a até 8 palavras, pediu o segredo, os dados ou o dinheiro, ou tomou o
+# cartão, é golpe mesmo com a loja antes ("en el cajero me dijo que era del banco y me cambió la
+# tarjeta", "me llamaron diciendo que era del banco quien hablaba y me pidieron el código"): o D1
+# do REG-38 da validação, que devolve os golpes que o fora do DISSE_QUE_ERA tirava (REG-37). O fora
+# fica para a atribuição sem ação (ACH-195). As frases não entram no corretor.
+DISSE_DO_BANCO_E_AGIU = Perto(
+    ("dijo que era del banco", "dijo era del banco", "dijeron que era del banco",
+     "diciendo que era del banco", "dijo ser del banco", "decia ser del banco",
+     "dijo que era de la sucursal", "dijo que era del soporte", "disse que era do banco",
+     "disseram que era do banco", "dizendo que era do banco", "disse ser do banco",
+     "dizia ser do banco", "falou que era do banco", "falando que era do banco",
+     "disse que era da agencia", "disse que era do suporte"),
+    (*_pedidos(
+        ("me pidio", "me pidieron", "me solicito", "me pediu", "me pediram", "me solicitou",
+         "pidio", "pidieron", "pediu", "pediram", "solicito", "solicitou"),
+        ("", "la", "el", "los", "las", "mi", "mis", "su", "a", "o", "os", "as", "minha", "meu",
+         "meus", "minhas"),
+        ("clave", "contrasena", "codigo", "pin", "token", "cvv", "senha", "datos", "dados", "plata",
+         "dinero", "dinheiro", "pix", "transferencia"),
+    ),
+     # O cartão tomado.
+     "se llevo mi tarjeta", "se llevo la tarjeta", "se llevaron mi tarjeta", "me cambio la tarjeta",
+     "cambio mi tarjeta", "cambio la tarjeta", "pegou meu cartao", "pegou o cartao",
+     "levou meu cartao", "levou o cartao", "trocou o cartao", "trocou meu cartao",
+     "trocaram o cartao"),
+    entre=8,
+    so_nessa_ordem=True,
+    corrige=False,
+)  # fmt: skip
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),
     ("vendedor", "corretor", "funcionario", "operador", "empleado", "ligacao", "llamada",
@@ -645,7 +674,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "phishing", "estafador*", "golpista*", "timo", "trapaca", "hackead*", "hackeou",
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
-                "sitio equivocado", "pagina errada", "pagina equivocada", "link errado")),
+                "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
+                DISSE_DO_BANCO_E_AGIU)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
