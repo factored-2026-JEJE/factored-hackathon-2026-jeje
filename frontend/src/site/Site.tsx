@@ -1554,60 +1554,83 @@ export class Site extends Component<object, Estado> {
           <Fragment key={i0}>
             {" "}
             <button data-lbl={n.id} onClick={n.open} onMouseEnter={n.enter} onMouseLeave={n.leave} style={{ position: "absolute", left: "0", top: "0", opacity: "0", pointerEvents: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", padding: "4px 7px 5px", border: "1px solid #16150F", borderStyle: n.bs, background: "#F7F4EC", color: "#16150F", whiteSpace: "nowrap", willChange: "transform", transition: "background-color .25s,color .25s,border-color .25s" }}>
+              {" "}
               <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "75%", fontWeight: "700", fontSize: "12px", lineHeight: "1.05", textTransform: "uppercase", letterSpacing: ".01em" }}>
                 {I(n.name)}
               </span>
+              {" "}
               <span data-sub="1" style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9px", lineHeight: "1.2", opacity: ".8" }}>
                 {I(n.sub)}
               </span>
+              {" "}
             </button>
             {" "}
           </Fragment>
         ))}
       </div>
       <header style={{ position: "fixed", top: "0", left: "0", right: "0", zIndex: "50", height: "56px", display: "flex", alignItems: "center", gap: "clamp(8px,1.6vw,20px)", padding: "0 clamp(12px,3vw,32px)", background: "rgba(240,236,227,.95)", backdropFilter: "blur(10px)", "WebkitBackdropFilter": "blur(10px)", borderBottom: "1px solid #16150F" }}>
+        {" "}
         <a href="#inicio" style={{ display: "flex", alignItems: "baseline", gap: "10px", textDecoration: "none", color: "#16150F", flex: "0 0 auto" }}>
+          {" "}
           <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "900", fontSize: "30px", lineHeight: "1", letterSpacing: ".01em" }}>
             {"JEJE"}
           </span>
+          {" "}
           <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".03em", textTransform: "uppercase", color: "#57534A", display: v.L.wideInline }}>
             {I(v.t.ui.tag)}
           </span>
+          {" "}
         </a>
+        {" "}
         <nav style={{ display: v.L.wideFlex, gap: "2px", marginLeft: "auto" }}>
+          {" "}
           {v.navItems.map((n, i0) => (
             <Fragment key={i0}>
+              {" "}
               <a href={n.href} style={{ fontSize: "13px", fontWeight: "500", color: "#16150F", textDecoration: "none", padding: "8px 9px" }} className="dc-h0">
                 {I(n.label)}
               </a>
+              {" "}
             </Fragment>
           ))}
+          {" "}
         </nav>
+        {" "}
         <div role="group" aria-label="Idioma" style={{ display: "flex", border: "1px solid #16150F", marginLeft: v.L.langMargin }}>
+          {" "}
           {v.langs.map((l, i0) => (
             <Fragment key={i0}>
+              {" "}
               <button onClick={l.pick} aria-pressed={l.on} style={{ border: "0", padding: "6px 8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", background: l.bg, color: l.fg }}>
                 {I(l.code)}
               </button>
+              {" "}
             </Fragment>
           ))}
+          {" "}
         </div>
+        {" "}
         <button onClick={v.toggleMotion} aria-pressed={v.motionOn} style={{ display: v.L.wideFlex, alignItems: "center", gap: "6px", border: "1px solid #16150F", background: "transparent", padding: "6px 9px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase" }}>
           {I(v.t.ui.motion)}{" · "}{I(v.motionLabel)}
         </button>
+        {" "}
         <a href={v.appUrl} target="_blank" rel="noopener" style={{ flex: "0 0 auto", background: "#2B35F0", color: "#fff", textDecoration: "none", fontWeight: "600", fontSize: "13.5px", padding: "9px 14px", border: "1px solid #2B35F0" }} className="dc-h1">
           {I(v.t.ui.app)}{" ↗"}
         </a>
+        {" "}
         <div ref={v.progRef} style={{ position: "absolute", left: "0", bottom: "-1px", height: "3px", width: "0", background: "#2B35F0" }}></div>
       </header>
       <main style={{ position: "relative", zIndex: "2", pointerEvents: "none" }}>
         {" "}
         <section id="inicio" data-stop="0" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", padding: "calc(56px + clamp(28px,7vh,84px)) clamp(16px,4vw,56px) 48px" }}>
+          {" "}
           <div style={{ pointerEvents: "auto", maxWidth: "1320px", display: "flex", flexDirection: "column", gap: "22px" }}>
+            {" "}
             <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
               <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
               {I(v.t.hero.kicker)}
             </p>
+            {" "}
             <h1 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".86", letterSpacing: "-.005em", margin: "0", fontSize: "clamp(54px,10.6vw,182px)", textWrap: "balance" }}>
               {I(v.t.hero.t1)}
               <br />
@@ -1615,21 +1638,29 @@ export class Site extends Component<object, Estado> {
                 {I(v.t.hero.t2)}
               </span>
             </h1>
+            {" "}
             <p style={{ maxWidth: "560px", fontSize: "clamp(16px,1.25vw,19px)", lineHeight: "1.5", margin: "0", textWrap: "pretty", background: "rgba(240,236,227,.86)", padding: "2px 0" }}>
               {I(v.t.hero.lede)}
             </p>
+            {" "}
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              {" "}
               <a href="#viagem" style={{ background: "#16150F", color: "#F0ECE3", textDecoration: "none", fontWeight: "600", fontSize: "15px", padding: "13px 18px", border: "1px solid #16150F" }} className="dc-h2">
                 {I(v.t.hero.follow)}{" ↓"}
               </a>
+              {" "}
               <a href={v.appUrl} target="_blank" rel="noopener" style={{ background: "#F0ECE3", color: "#16150F", textDecoration: "none", fontWeight: "600", fontSize: "15px", padding: "13px 18px", border: "1px solid #16150F" }} className="dc-h3">
                 {I(v.t.ui.app)}{" ↗"}
               </a>
+              {" "}
             </div>
+            {" "}
           </div>
+          {" "}
         </section>
         {" "}
         <section data-stop="1" style={{ minHeight: "112vh", display: "flex", alignItems: "center", padding: "96px clamp(16px,4vw,56px)" }}>
+          {" "}
           <div style={{ pointerEvents: "auto", maxWidth: "860px", background: "#F7F4EC", border: "1px solid #16150F" }}>
             {" "}
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 18px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase" }}>
@@ -1642,51 +1673,71 @@ export class Site extends Component<object, Estado> {
             </div>
             {" "}
             <div style={{ padding: "clamp(20px,3vw,36px)", display: "flex", flexDirection: "column", gap: "26px" }}>
+              {" "}
               <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".92", margin: "0", fontSize: "clamp(34px,4.4vw,66px)", textWrap: "balance" }}>
                 {I(v.t.problem.title)}
               </h2>
+              {" "}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", borderTop: "1px solid #16150F" }}>
+                {" "}
                 {v.probStats.map((p, i0) => (
                   <Fragment key={i0}>
+                    {" "}
                     <button onClick={p.open} style={{ textAlign: "left", background: "transparent", border: "0", borderBottom: "1px solid #CFC7B8", padding: "16px 16px 16px 0", display: "flex", flexDirection: "column", gap: "8px" }} className="dc-h4">
+                      {" "}
                       <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(46px,4.6vw,68px)", lineHeight: ".9", color: "#2B35F0" }}>
                         {I(p.v)}
                       </span>
+                      {" "}
                       <span style={{ fontSize: "13.5px", lineHeight: "1.4", color: "#16150F", textWrap: "pretty" }}>
                         {I(p.l)}
                       </span>
+                      {" "}
                       <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", color: "#2B35F0" }}>
                         {"↗ "}{I(p.s)}
                       </span>
+                      {" "}
                     </button>
+                    {" "}
                   </Fragment>
                 ))}
+                {" "}
               </div>
+              {" "}
               <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", lineHeight: "1.6", color: "#57534A", margin: "0" }}>
                 {I(v.t.problem.note)}
               </p>
+              {" "}
             </div>
             {" "}
           </div>
+          {" "}
         </section>
         {" "}
         <div id="viagem" style={{ scrollMarginTop: "56px" }}>
           {" "}
           <section data-stop="2" style={{ minHeight: "108vh", display: "flex", alignItems: v.L.cardAlign, padding: `96px clamp(16px,4vw,56px) ${v.L.padBottom ?? ""}` }}>
+            {" "}
             <div style={{ pointerEvents: "auto", flex: "0 1 520px", maxWidth: "100%", display: "flex", flexDirection: "column", gap: "18px" }}>
+              {" "}
               <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", background: "#F0ECE3", alignSelf: "flex-start", padding: "3px 0" }}>
                 {I(v.t.intro.kicker)}
               </p>
+              {" "}
               <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".9", margin: "0", fontSize: "clamp(40px,5vw,78px)", background: "rgba(240,236,227,.9)" }}>
                 {I(v.t.intro.title)}
               </h2>
+              {" "}
               <div style={{ background: "#FFFDF7", border: "1px solid #16150F", padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: "8px", maxWidth: "460px" }}>
+                {" "}
                 <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase", letterSpacing: ".04em", color: "#57534A" }}>
                   {I(v.t.intro.who)}
                 </span>
+                {" "}
                 <span style={{ fontSize: "clamp(20px,2vw,27px)", lineHeight: "1.25", fontWeight: "500" }}>
                   {"“"}{I(v.t.intro.phrase)}{"”"}
                 </span>
+                {" "}
                 {v.hasGloss ? (
                   <>
                     <span style={{ fontSize: "14px", color: "#57534A" }}>
@@ -1694,17 +1745,22 @@ export class Site extends Component<object, Estado> {
                     </span>
                   </>
                 ) : null}
+                {" "}
               </div>
+              {" "}
               <p style={{ fontSize: "16px", lineHeight: "1.5", margin: "0", maxWidth: "440px", background: "rgba(240,236,227,.9)" }}>
                 {I(v.t.intro.body)}{" ↓"}
               </p>
+              {" "}
             </div>
+            {" "}
           </section>
           {" "}
           {v.stops.map((s, i0) => (
             <Fragment key={i0}>
               {" "}
               <section data-stop={s.idx} style={{ minHeight: s.minH, display: "flex", flexWrap: "wrap", alignItems: s.align, alignContent: s.align, gap: "clamp(20px,4vw,56px)", padding: `96px clamp(16px,4vw,56px) ${s.padB ?? ""}` }}>
+                {" "}
                 <article style={{ pointerEvents: "auto", flex: "0 1 440px", maxWidth: "100%", background: "#F7F4EC", border: "1px solid #16150F" }}>
                   {" "}
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase" }}>
@@ -1717,150 +1773,221 @@ export class Site extends Component<object, Estado> {
                   </div>
                   {" "}
                   <div style={{ padding: "18px 20px 22px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {" "}
                     <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".92", margin: "0", fontSize: "clamp(32px,3.1vw,48px)" }}>
                       {I(s.title)}
                     </h3>
+                    {" "}
                     <p style={{ fontSize: "15px", lineHeight: "1.5", margin: "0", textWrap: "pretty" }}>
                       {I(s.does)}
                     </p>
+                    {" "}
                     {s.hasHere ? (
                       <>
+                        {" "}
                         <div style={{ alignSelf: "flex-start", display: "flex", gap: "8px", alignItems: "center", background: "#2B35F0", color: "#fff", padding: "6px 10px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px" }}>
                           {I(s.lblHere)}{" · "}{I(s.here)}
                         </div>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     {s.isLeitura ? (
                       <>
+                        {" "}
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {" "}
                           {s.cascade.map((c, i1) => (
                             <Fragment key={i1}>
+                              {" "}
                               <div style={{ display: "grid", gridTemplateColumns: "22px 1fr auto", gap: "10px", alignItems: "center", padding: "8px 10px", border: "1px solid #16150F", borderStyle: c.bstyle, background: c.bg, color: c.fg, marginLeft: c.indent }}>
+                                {" "}
                                 <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10px" }}>
                                   {I(c.k)}
                                 </span>
+                                {" "}
                                 <span style={{ fontSize: "13.5px", fontWeight: "600" }}>
                                   {I(c.n)}
                                 </span>
+                                {" "}
                                 <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", textTransform: "uppercase" }}>
                                   {I(c.d)}
                                 </span>
+                                {" "}
                               </div>
+                              {" "}
                             </Fragment>
                           ))}
+                          {" "}
                         </div>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     {s.isEtapas ? (
                       <>
+                        {" "}
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+                          {" "}
                           {s.statesL.map((x, i1) => (
                             <Fragment key={i1}>
+                              {" "}
                               <span style={{ padding: "6px 10px", border: "1px solid #16150F", background: x.bg, color: x.fg, fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
                                 {I(x.x)}
                               </span>
+                              {" "}
                             </Fragment>
                           ))}
+                          {" "}
                         </div>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     {s.isQual ? (
                       <>
+                        {" "}
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {" "}
                           {s.cluesL.map((x, i1) => (
                             <Fragment key={i1}>
+                              {" "}
                               <span style={{ padding: "6px 10px", border: "1px solid #2B35F0", color: "#2B35F0", background: "#FFFDF7", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px" }}>
                                 {I(x)}
                               </span>
+                              {" "}
                             </Fragment>
                           ))}
+                          {" "}
                         </div>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {" "}
                       <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".04em", textTransform: "uppercase", color: "#57534A", margin: "0" }}>
                         {I(s.lblProtects)}
                       </p>
+                      {" "}
                       <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexDirection: "column", gap: "7px" }}>
+                        {" "}
                         {s.protects.map((p, i1) => (
                           <Fragment key={i1}>
+                            {" "}
                             <li style={{ display: "grid", gridTemplateColumns: "12px 1fr", gap: "8px", fontSize: "14px", lineHeight: "1.45" }}>
                               <span style={{ width: "6px", height: "6px", background: "#16150F", marginTop: "7px" }}></span>
                               <span>
                                 {I(p)}
                               </span>
                             </li>
+                            {" "}
                           </Fragment>
                         ))}
+                        {" "}
                       </ul>
+                      {" "}
                     </div>
+                    {" "}
                     {s.isPolitica ? (
                       <>
+                        {" "}
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center", justifyContent: "space-between" }}>
+                          {" "}
                           <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", color: "#57534A" }}>
                             {I(s.note)}
                           </span>
+                          {" "}
                           <button onClick={s.openRules} style={{ background: "#16150F", color: "#F0ECE3", border: "1px solid #16150F", padding: "8px 12px", fontSize: "13px", fontWeight: "600" }} className="dc-h5">
                             {I(s.rulesBtn)}{" →"}
                           </button>
+                          {" "}
                         </div>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     {s.isAcao ? (
                       <>
+                        {" "}
                         <div style={{ border: "1px solid #16150F", background: "#FFFDF7", padding: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                          {" "}
                           <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase", color: "#57534A" }}>
                             {"JEJE"}
                           </span>
+                          {" "}
                           <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.45" }}>
                             {I(s.proposal)}
                           </p>
+                          {" "}
                           <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase", color: "#2B35F0", margin: "4px 0 0" }}>
                             {I(s.you)}
                           </p>
+                          {" "}
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            {" "}
                             <button onClick={s.onYes} style={{ background: s.yesBg, color: s.yesFg, border: "1px solid #2B35F0", padding: "9px 14px", fontWeight: "600", fontSize: "14px" }}>
                               {I(s.yes)}
                             </button>
+                            {" "}
                             <button onClick={s.onNo} style={{ background: s.noBg, color: s.noFg, border: "1px solid #16150F", padding: "9px 14px", fontWeight: "600", fontSize: "14px" }}>
                               {I(s.no)}
                             </button>
+                            {" "}
                           </div>
+                          {" "}
                           {s.answered ? (
                             <>
+                              {" "}
                               <p style={{ margin: "0", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", lineHeight: "1.5", color: s.ansColor }}>
                                 {I(s.ansText)}
                               </p>
+                              {" "}
                             </>
                           ) : null}
+                          {" "}
                         </div>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     {s.hasStat ? (
                       <>
+                        {" "}
                         <button onClick={s.openStat} style={{ textAlign: "left", background: "transparent", border: "0", borderTop: "1px solid #16150F", padding: "14px 0 0", display: "flex", flexDirection: "column", gap: "6px" }} className="dc-h4">
+                          {" "}
                           <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(42px,4vw,60px)", lineHeight: ".9", color: "#2B35F0" }}>
                             {I(s.statV)}
                           </span>
+                          {" "}
                           <span style={{ fontSize: "13.5px", lineHeight: "1.4" }}>
                             {I(s.statL)}
                           </span>
+                          {" "}
                           <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", color: "#2B35F0" }}>
                             {"↗ "}{I(s.statS)}
                           </span>
+                          {" "}
                         </button>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                   </div>
                   {" "}
                 </article>
+                {" "}
                 {s.isBanco ? (
                   <>
+                    {" "}
                     <div style={{ pointerEvents: "auto", flex: "0 1 380px", maxWidth: "100%", display: "flex", flexDirection: "column" }}>
+                      {" "}
                       <div style={{ height: "16px", background: "#16150F", borderRadius: "8px", margin: "0 -10px", position: "relative", zIndex: "1" }}></div>
+                      {" "}
                       <div ref={s.receiptRef} style={{ margin: "-8px 10px 0", clipPath: "inset(0 0 100% 0)" }}>
                         {" "}
                         <div style={{ background: "#FFFDF7", padding: "26px 20px 18px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", lineHeight: "1.65", color: "#16150F", display: "flex", flexDirection: "column", gap: "12px" }}>
+                          {" "}
                           <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "baseline" }}>
                             <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "900", fontSize: "24px", lineHeight: "1" }}>
                               {"JEJE"}
@@ -1869,57 +1996,82 @@ export class Site extends Component<object, Estado> {
                               {I(s.rcTitle)}
                             </span>
                           </div>
+                          {" "}
                           <div style={{ borderTop: "1px dashed #16150F" }}></div>
+                          {" "}
                           <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: "14px", rowGap: "3px" }}>
+                            {" "}
                             {s.rcRows.map((r, i1) => (
                               <Fragment key={i1}>
+                                {" "}
                                 <span style={{ color: "#57534A", textTransform: "uppercase", fontSize: "9.5px", paddingTop: "2px" }}>
                                   {I(r.k)}
                                 </span>
+                                {" "}
                                 <span style={{ fontWeight: r.w, color: r.c, textAlign: "right" }}>
                                   {I(r.v)}
                                 </span>
+                                {" "}
                               </Fragment>
                             ))}
+                            {" "}
                           </div>
+                          {" "}
                           <div style={{ borderTop: "1px dashed #16150F" }}></div>
+                          {" "}
                           <span style={{ textTransform: "uppercase", fontSize: "9.5px", color: "#57534A" }}>
                             {I(s.rcFactsT)}
                           </span>
+                          {" "}
                           <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: "14px", rowGap: "3px" }}>
+                            {" "}
                             {s.rcFacts.map((r, i1) => (
                               <Fragment key={i1}>
+                                {" "}
                                 <span style={{ color: "#57534A", textTransform: "uppercase", fontSize: "9.5px", paddingTop: "2px" }}>
                                   {I(r.k)}
                                 </span>
+                                {" "}
                                 <span style={{ textAlign: "right" }}>
                                   {I(r.v)}
                                 </span>
+                                {" "}
                               </Fragment>
                             ))}
+                            {" "}
                           </div>
+                          {" "}
                           <div style={{ borderTop: "1px dashed #16150F" }}></div>
+                          {" "}
                           <span style={{ textTransform: "uppercase", fontSize: "9.5px", color: "#57534A" }}>
                             {I(s.rcReplyT)}
                           </span>
+                          {" "}
                           <p style={{ margin: "0", fontFamily: "'Archivo',sans-serif", fontStretch: "100%", fontSize: "14.5px", lineHeight: "1.45" }}>
                             {"“"}{I(s.rcReply)}{"”"}
                           </p>
+                          {" "}
                           <div style={{ borderTop: "1px dashed #16150F" }}></div>
+                          {" "}
                           <p style={{ margin: "0", fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", fontSize: "21px", lineHeight: "1" }}>
                             {I(s.rcFoot)}
                           </p>
+                          {" "}
                           <span style={{ fontSize: "9.5px", color: "#57534A" }}>
                             {I(s.rcFixture)}
                           </span>
+                          {" "}
                         </div>
                         {" "}
                         <div style={{ height: "8px", background: "conic-gradient(from -45deg at 50% 100%,#FFFDF7 90deg,transparent 0) 0 0/12px 8px repeat-x" }}></div>
                         {" "}
                       </div>
+                      {" "}
                     </div>
+                    {" "}
                   </>
                 ) : null}
+                {" "}
               </section>
               {" "}
             </Fragment>
@@ -1929,6 +2081,7 @@ export class Site extends Component<object, Estado> {
             <Fragment key={i0}>
               {" "}
               <section data-stop={s.idx} style={{ minHeight: "104vh", display: "flex", alignItems: s.align, padding: `96px clamp(16px,4vw,56px) ${s.padB ?? ""}` }}>
+                {" "}
                 <article style={{ pointerEvents: "auto", flex: "0 1 420px", maxWidth: "100%", background: "#F7F4EC", border: "1px solid #16150F" }}>
                   {" "}
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase" }}>
@@ -1941,42 +2094,59 @@ export class Site extends Component<object, Estado> {
                   </div>
                   {" "}
                   <div style={{ padding: "18px 20px 22px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {" "}
                     {s.isFirst ? (
                       <>
+                        {" "}
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px", paddingBottom: "12px", borderBottom: "1px solid #CFC7B8" }}>
+                          {" "}
                           <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase", color: "#2B35F0" }}>
                             {I(s.introK)}
                           </span>
+                          {" "}
                           <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".92", fontSize: "clamp(26px,2.4vw,36px)" }}>
                             {I(s.introT)}
                           </span>
+                          {" "}
                         </div>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".92", margin: "0", fontSize: "clamp(30px,2.9vw,44px)" }}>
                       {I(s.title)}
                     </h3>
+                    {" "}
                     <p style={{ fontSize: "15px", lineHeight: "1.5", margin: "0", textWrap: "pretty" }}>
                       {I(s.does)}
                     </p>
+                    {" "}
                     {s.hasStat ? (
                       <>
+                        {" "}
                         <button onClick={s.openStat} style={{ textAlign: "left", background: "transparent", border: "0", borderTop: "1px solid #16150F", padding: "14px 0 0", display: "flex", flexDirection: "column", gap: "6px" }} className="dc-h4">
+                          {" "}
                           <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(40px,3.8vw,56px)", lineHeight: ".9", color: "#2B35F0" }}>
                             {I(s.statV)}
                           </span>
+                          {" "}
                           <span style={{ fontSize: "13.5px", lineHeight: "1.4" }}>
                             {I(s.statL)}
                           </span>
+                          {" "}
                           <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", color: "#2B35F0" }}>
                             {"↗ "}{I(s.statS)}
                           </span>
+                          {" "}
                         </button>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                   </div>
                   {" "}
                 </article>
+                {" "}
               </section>
               {" "}
             </Fragment>
@@ -1996,38 +2166,54 @@ export class Site extends Component<object, Estado> {
               </div>
               {" "}
               <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                {" "}
                 <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".92", margin: "0", fontSize: "clamp(30px,2.8vw,42px)" }}>
                   {I(v.t.map.title)}
                 </h2>
+                {" "}
                 <p style={{ fontSize: "14.5px", lineHeight: "1.5", margin: "0", display: v.L.mapBody }}>
                   {I(v.t.map.body)}
                 </p>
+                {" "}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "8px 12px" }}>
+                  {" "}
                   {v.legend.map((g, i0) => (
                     <Fragment key={i0}>
+                      {" "}
                       <div style={{ display: "flex", gap: "8px", alignItems: "center", fontSize: "12px", lineHeight: "1.25" }}>
                         <span style={{ flex: "0 0 14px", height: "14px", background: g.bg, border: "1px solid #16150F", borderStyle: g.bs }}></span>
                         <span>
                           {I(g.l)}
                         </span>
                       </div>
+                      {" "}
                     </Fragment>
                   ))}
+                  {" "}
                 </div>
+                {" "}
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px solid #CFC7B8", paddingTop: "12px" }}>
+                  {" "}
                   <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".04em", textTransform: "uppercase", color: "#57534A" }}>
                     {I(v.t.map.try)}{" · "}{I(v.convLangUp)}
                   </span>
+                  {" "}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {" "}
                     {v.chips.map((c, i0) => (
                       <Fragment key={i0}>
+                        {" "}
                         <button onClick={c.go} style={{ border: "1px solid #16150F", background: "#FFFDF7", padding: "7px 10px", fontSize: "12.5px", textAlign: "left" }} className="dc-h6">
                           {I(c.l)}
                         </button>
+                        {" "}
                       </Fragment>
                     ))}
+                    {" "}
                   </div>
+                  {" "}
                 </div>
+                {" "}
               </div>
               {" "}
             </div>
@@ -2039,45 +2225,68 @@ export class Site extends Component<object, Estado> {
         <section id="modelos" style={{ position: "relative", pointerEvents: "auto", background: "#F0ECE3", borderTop: "1px solid #16150F", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px)", scrollMarginTop: "56px" }}>
           {" "}
           <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "clamp(28px,4vw,48px)" }}>
+            {" "}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "20px 48px", alignItems: "flex-end", justifyContent: "space-between" }}>
+              {" "}
               <div style={{ display: "flex", flexDirection: "column", gap: "14px", flex: "1 1 560px" }}>
+                {" "}
                 <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
                   <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
                   {I(v.t.models.kicker)}
                 </p>
+                {" "}
                 <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".86", margin: "0", fontSize: "clamp(52px,8.6vw,138px)", textWrap: "balance" }}>
                   {I(v.t.models.title)}
                 </h2>
+                {" "}
               </div>
+              {" "}
               <p style={{ flex: "0 1 380px", fontSize: "16px", lineHeight: "1.5", margin: "0", textWrap: "pretty" }}>
                 {I(v.t.models.body)}
               </p>
+              {" "}
             </div>
+            {" "}
             <div style={{ display: "flex", flexWrap: "wrap", border: "1px solid #16150F", background: "#F7F4EC" }}>
+              {" "}
               <div role="tablist" style={{ flex: "1 1 300px", display: "flex", flexDirection: "column", borderRight: "1px solid #16150F" }}>
+                {" "}
                 {v.modelTabs.map((m, i0) => (
                   <Fragment key={i0}>
+                    {" "}
                     <button role="tab" aria-selected={m.on} onClick={m.pick} style={{ textAlign: "left", padding: "16px 18px", border: "0", borderBottom: "1px solid #16150F", background: m.bg, color: m.fg, display: "grid", gridTemplateColumns: "30px 1fr", gap: "4px 10px", alignItems: "baseline" }}>
+                      {" "}
                       <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px" }}>
                         {I(m.num)}
                       </span>
+                      {" "}
                       <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", fontSize: "24px", lineHeight: ".95" }}>
                         {I(m.name)}
                       </span>
+                      {" "}
                       <span></span>
+                      {" "}
                       <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", textTransform: "uppercase", letterSpacing: ".03em", opacity: ".85" }}>
                         {I(m.role)}
                       </span>
+                      {" "}
                     </button>
+                    {" "}
                   </Fragment>
                 ))}
+                {" "}
               </div>
+              {" "}
               <article style={{ flex: "2 1 560px", minWidth: "0", padding: "clamp(20px,3vw,40px)", display: "flex", flexDirection: "column", gap: "24px" }}>
+                {" "}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "flex-start", justifyContent: "space-between" }}>
+                  {" "}
                   <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".88", margin: "0", fontSize: "clamp(40px,4.8vw,74px)", flex: "1 1 320px" }}>
                     {I(v.mm.n)}
                   </h3>
+                  {" "}
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    {" "}
                     {v.mm.planned ? (
                       <>
                         <span style={{ border: "1px dashed #16150F", padding: "6px 10px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase" }}>
@@ -2085,6 +2294,7 @@ export class Site extends Component<object, Estado> {
                         </span>
                       </>
                     ) : null}
+                    {" "}
                     {v.mm.hasBy ? (
                       <>
                         <span style={{ border: "1px solid #16150F", padding: "6px 10px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase" }}>
@@ -2092,9 +2302,13 @@ export class Site extends Component<object, Estado> {
                         </span>
                       </>
                     ) : null}
+                    {" "}
                   </div>
+                  {" "}
                 </div>
+                {" "}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "22px 32px" }}>
+                  {" "}
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".04em", textTransform: "uppercase", color: "#57534A" }}>
                       {I(v.t.models.f.does)}
@@ -2103,6 +2317,7 @@ export class Site extends Component<object, Estado> {
                       {I(v.mm.does)}
                     </p>
                   </div>
+                  {" "}
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".04em", textTransform: "uppercase", color: "#57534A" }}>
                       {I(v.t.models.f.data)}
@@ -2111,15 +2326,21 @@ export class Site extends Component<object, Estado> {
                       {I(v.mm.data)}
                     </p>
                   </div>
+                  {" "}
                 </div>
+                {" "}
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", borderTop: "1px solid #16150F", paddingTop: "16px" }}>
+                  {" "}
                   <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".04em", textTransform: "uppercase", color: "#57534A" }}>
                     {I(v.t.models.f.measure)}
                   </span>
+                  {" "}
                   {v.mm.hasStats ? (
                     <>
+                      {" "}
                       {v.mm.stats.map((x, i0) => (
                         <Fragment key={i0}>
+                          {" "}
                           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", alignItems: "baseline" }}>
                             <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "64px", lineHeight: ".9", color: "#2B35F0" }}>
                               {I(x.v)}
@@ -2128,34 +2349,50 @@ export class Site extends Component<object, Estado> {
                               {I(x.l)}
                             </span>
                           </div>
+                          {" "}
                         </Fragment>
                       ))}
+                      {" "}
                     </>
                   ) : null}
+                  {" "}
                   {v.mm.hasBars ? (
                     <>
+                      {" "}
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {" "}
                         {v.mm.bars.map((b, i0) => (
                           <Fragment key={i0}>
+                            {" "}
                             <div style={{ display: "grid", gridTemplateColumns: "28px minmax(0,1fr) 72px", gap: "12px", alignItems: "center" }}>
+                              {" "}
                               <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10.5px" }}>
                                 {I(b.l)}
                               </span>
+                              {" "}
                               <span style={{ height: "14px", border: "1px solid #16150F", position: "relative", display: "block" }}>
                                 <span style={{ position: "absolute", left: "0", top: "0", bottom: "0", width: b.wp, background: "#2B35F0" }}></span>
                               </span>
+                              {" "}
                               <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "12px", textAlign: "right" }}>
                                 {I(b.v)}
                               </span>
+                              {" "}
                             </div>
+                            {" "}
                           </Fragment>
                         ))}
+                        {" "}
                       </div>
+                      {" "}
                     </>
                   ) : null}
+                  {" "}
                   {v.mm.hasPairs ? (
                     <>
+                      {" "}
                       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {" "}
                         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", fontSize: "12px" }}>
                           <span style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                             <span style={{ width: "12px", height: "12px", background: "#2B35F0" }}></span>
@@ -2166,12 +2403,16 @@ export class Site extends Component<object, Estado> {
                             {I(v.mm.legB)}
                           </span>
                         </div>
+                        {" "}
                         {v.mm.pairs.map((p, i0) => (
                           <Fragment key={i0}>
+                            {" "}
                             <div style={{ display: "grid", gridTemplateColumns: "minmax(80px,140px) minmax(0,1fr)", gap: "6px 12px", alignItems: "center" }}>
+                              {" "}
                               <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase", gridRow: "span 2" }}>
                                 {I(p.l)}
                               </span>
+                              {" "}
                               <span style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 56px", gap: "10px", alignItems: "center" }}>
                                 <span style={{ height: "12px", border: "1px solid #16150F", position: "relative", display: "block" }}>
                                   <span style={{ position: "absolute", left: "0", top: "0", bottom: "0", width: p.aw, background: "#2B35F0" }}></span>
@@ -2180,6 +2421,7 @@ export class Site extends Component<object, Estado> {
                                   {I(p.av)}
                                 </span>
                               </span>
+                              {" "}
                               <span style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 56px", gap: "10px", alignItems: "center" }}>
                                 <span style={{ height: "12px", border: "1px solid #16150F", position: "relative", display: "block" }}>
                                   <span style={{ position: "absolute", left: "0", top: "0", bottom: "0", width: p.bw, background: "repeating-linear-gradient(135deg,transparent 0 3px,#16150F 3px 4px)" }}></span>
@@ -2188,32 +2430,48 @@ export class Site extends Component<object, Estado> {
                                   {I(p.bv)}
                                 </span>
                               </span>
+                              {" "}
                             </div>
+                            {" "}
                           </Fragment>
                         ))}
+                        {" "}
                       </div>
+                      {" "}
                     </>
                   ) : null}
+                  {" "}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", alignItems: "baseline", justifyContent: "space-between" }}>
+                    {" "}
                     <span style={{ fontSize: "13.5px", lineHeight: "1.45", color: "#57534A", flex: "1 1 300px" }}>
                       {I(v.mm.note)}
                     </span>
+                    {" "}
                     <button onClick={v.mm.openSrc} style={{ background: "transparent", border: "0", borderBottom: "1px solid #2B35F0", padding: "2px 0", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", color: "#2B35F0" }}>
                       {"↗ "}{I(v.mm.src)}
                     </button>
+                    {" "}
                   </div>
+                  {" "}
                 </div>
+                {" "}
                 <div style={{ background: "#16150F", color: "#F0ECE3", padding: "18px 20px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {" "}
                   <span style={{ display: "flex", gap: "8px", alignItems: "center", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".04em", textTransform: "uppercase" }}>
                     <span style={{ width: "10px", height: "10px", background: "#FF5520", display: "inline-block" }}></span>
                     {I(v.t.models.f.limit)}
                   </span>
+                  {" "}
                   <p style={{ margin: "0", fontSize: "clamp(17px,1.5vw,21px)", lineHeight: "1.4", textWrap: "pretty" }}>
                     {I(v.mm.limit)}
                   </p>
+                  {" "}
                 </div>
+                {" "}
               </article>
+              {" "}
             </div>
+            {" "}
           </div>
           {" "}
         </section>
@@ -2221,15 +2479,20 @@ export class Site extends Component<object, Estado> {
         <section id="pilares" style={{ position: "relative", pointerEvents: "auto", background: "#16150F", color: "#F0ECE3", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px)", scrollMarginTop: "56px" }}>
           {" "}
           <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "20px" }}>
+            {" "}
             <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
               <span style={{ width: "8px", height: "8px", background: "#FF5520", display: "inline-block" }}></span>
               {I(v.t.pillars.kicker)}
             </p>
+            {" "}
             <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".86", margin: "0 0 24px", fontSize: "clamp(52px,8.6vw,138px)" }}>
               {I(v.t.pillars.title)}
             </h2>
+            {" "}
             <article style={{ display: "flex", flexWrap: "wrap", gap: "28px clamp(24px,4vw,64px)", padding: "44px 0", borderTop: "1px solid #57534A" }}>
+              {" "}
               <div style={{ flex: "1 1 380px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                {" "}
                 <div style={{ display: "flex", gap: "16px", alignItems: "baseline" }}>
                   <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(64px,8vw,120px)", lineHeight: ".8", color: "#FF5520" }}>
                     {"01"}
@@ -2238,10 +2501,13 @@ export class Site extends Component<object, Estado> {
                     {I(v.P0.n)}
                   </h3>
                 </div>
+                {" "}
                 <p style={{ fontSize: "clamp(18px,1.6vw,23px)", lineHeight: "1.35", margin: "0", textWrap: "pretty" }}>
                   {I(v.P0.claim)}
                 </p>
+                {" "}
                 <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexDirection: "column", borderTop: "1px solid #57534A" }}>
+                  {" "}
                   {v.P0.proofs.map((p, i0) => (
                     <Fragment key={i0}>
                       <li style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", justifyContent: "space-between", alignItems: "baseline", padding: "11px 0", borderBottom: "1px solid #3A382F", fontSize: "14.5px", lineHeight: "1.45" }}>
@@ -2254,9 +2520,13 @@ export class Site extends Component<object, Estado> {
                       </li>
                     </Fragment>
                   ))}
+                  {" "}
                 </ul>
+                {" "}
               </div>
+              {" "}
               <div style={{ flex: "1 1 460px", minWidth: "0", background: "#F7F4EC", color: "#16150F", display: "flex", flexDirection: "column" }}>
+                {" "}
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
                   <span>
                     {I(v.t.pillars.obs.title)}
@@ -2265,33 +2535,49 @@ export class Site extends Component<object, Estado> {
                     {I(v.t.ui.illustrative)}
                   </span>
                 </div>
+                {" "}
                 <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {" "}
                   <button onClick={v.toggleObs} style={{ alignSelf: "flex-start", background: "#2B35F0", color: "#fff", border: "0", padding: "10px 14px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "12px" }} className="dc-h8">
                     {"X-Request-ID: c1f4e2a9-7b0d ↓"}
                   </button>
+                  {" "}
                   <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", color: "#57534A", textTransform: "uppercase" }}>
                     {I(v.t.pillars.obs.hint)}
                   </span>
+                  {" "}
                   {v.obsRows.map((r, i0) => (
                     <Fragment key={i0}>
+                      {" "}
                       <div style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "10px 12px", border: "1px solid #16150F", background: r.bg, opacity: r.op, transition: "opacity .4s,background-color .4s" }}>
+                        {" "}
                         <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", textTransform: "uppercase", color: "#2B35F0" }}>
                           {I(r.k)}
                         </span>
+                        {" "}
                         <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", lineHeight: "1.55", overflowWrap: "anywhere" }}>
                           {I(r.v)}
                         </span>
+                        {" "}
                       </div>
+                      {" "}
                     </Fragment>
                   ))}
+                  {" "}
                   <p style={{ margin: "0", fontSize: "13px", lineHeight: "1.45", color: "#57534A" }}>
                     {I(v.t.pillars.obs.note)}
                   </p>
+                  {" "}
                 </div>
+                {" "}
               </div>
+              {" "}
             </article>
+            {" "}
             <article style={{ display: "flex", flexWrap: "wrap", gap: "28px clamp(24px,4vw,64px)", padding: "44px 0", borderTop: "1px solid #57534A" }}>
+              {" "}
               <div style={{ flex: "1 1 380px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                {" "}
                 <div style={{ display: "flex", gap: "16px", alignItems: "baseline" }}>
                   <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(64px,8vw,120px)", lineHeight: ".8", color: "#FF5520" }}>
                     {"02"}
@@ -2300,10 +2586,13 @@ export class Site extends Component<object, Estado> {
                     {I(v.P1.n)}
                   </h3>
                 </div>
+                {" "}
                 <p style={{ fontSize: "clamp(18px,1.6vw,23px)", lineHeight: "1.35", margin: "0", textWrap: "pretty" }}>
                   {I(v.P1.claim)}
                 </p>
+                {" "}
                 <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexDirection: "column", borderTop: "1px solid #57534A" }}>
+                  {" "}
                   {v.P1.proofs.map((p, i0) => (
                     <Fragment key={i0}>
                       <li style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", justifyContent: "space-between", alignItems: "baseline", padding: "11px 0", borderBottom: "1px solid #3A382F", fontSize: "14.5px", lineHeight: "1.45" }}>
@@ -2316,10 +2605,15 @@ export class Site extends Component<object, Estado> {
                       </li>
                     </Fragment>
                   ))}
+                  {" "}
                 </ul>
+                {" "}
               </div>
+              {" "}
               <div style={{ flex: "1 1 460px", minWidth: "0", display: "flex", flexDirection: "column", gap: "16px" }}>
+                {" "}
                 <div style={{ background: "#F7F4EC", color: "#16150F", display: "flex", flexDirection: "column" }}>
+                  {" "}
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
                     <span>
                       {I(v.t.pillars.conf.title)}
@@ -2328,7 +2622,9 @@ export class Site extends Component<object, Estado> {
                       {I(v.t.ui.illustrative)}
                     </span>
                   </div>
+                  {" "}
                   <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {" "}
                     <div style={{ background: "#FFFDF7", border: "1px solid #16150F", padding: "14px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "12px", lineHeight: "1.8", overflowX: "auto", whiteSpace: "pre" }}>
                       <span style={{ color: "#57534A" }}>
                         {"# politica.py"}
@@ -2346,30 +2642,44 @@ export class Site extends Component<object, Estado> {
                         {" LIMITE_USD  # 5.000"}
                       </span>
                     </div>
+                    {" "}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", justifyContent: "space-between", border: "1px solid #16150F", padding: "10px 12px" }}>
+                      {" "}
                       <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px" }}>
                         {"test_contestacao_no_limite_exato · 5000.00"}
                       </span>
+                      {" "}
                       <span style={{ background: v.testBg, color: v.testFg, padding: "4px 8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", fontWeight: "600", textTransform: "uppercase" }}>
                         {I(v.testLabel)}
                       </span>
+                      {" "}
                     </div>
+                    {" "}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center", justifyContent: "space-between" }}>
+                      {" "}
                       <button onClick={v.togglePlant} style={{ background: "#16150F", color: "#F0ECE3", border: "0", padding: "10px 14px", fontWeight: "600", fontSize: "14px" }} className="dc-h9">
                         {I(v.plantLabel)}
                       </button>
+                      {" "}
                       <span style={{ fontSize: "12.5px", color: "#57534A", flex: "1 1 200px", textAlign: "right" }}>
                         {I(v.t.pillars.conf.note)}
                       </span>
+                      {" "}
                     </div>
+                    {" "}
                   </div>
+                  {" "}
                 </div>
+                {" "}
                 <div style={{ border: "1px solid #57534A", padding: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {" "}
                   <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
                     {I(v.t.pillars.conf.failTitle)}
                   </span>
+                  {" "}
                   {v.fails.map((f, i0) => (
                     <Fragment key={i0}>
+                      {" "}
                       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) 44px minmax(0,1.2fr)", gap: "10px", fontSize: "13px", padding: "6px 0", borderTop: "1px solid #3A382F" }}>
                         <span>
                           {I(f.a)}
@@ -2381,13 +2691,20 @@ export class Site extends Component<object, Estado> {
                           {I(f.c)}
                         </span>
                       </div>
+                      {" "}
                     </Fragment>
                   ))}
+                  {" "}
                 </div>
+                {" "}
               </div>
+              {" "}
             </article>
+            {" "}
             <article style={{ display: "flex", flexWrap: "wrap", gap: "28px clamp(24px,4vw,64px)", padding: "44px 0", borderTop: "1px solid #57534A" }}>
+              {" "}
               <div style={{ flex: "1 1 380px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                {" "}
                 <div style={{ display: "flex", gap: "16px", alignItems: "baseline" }}>
                   <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(64px,8vw,120px)", lineHeight: ".8", color: "#FF5520" }}>
                     {"03"}
@@ -2396,10 +2713,13 @@ export class Site extends Component<object, Estado> {
                     {I(v.P2.n)}
                   </h3>
                 </div>
+                {" "}
                 <p style={{ fontSize: "clamp(18px,1.6vw,23px)", lineHeight: "1.35", margin: "0", textWrap: "pretty" }}>
                   {I(v.P2.claim)}
                 </p>
+                {" "}
                 <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexDirection: "column", borderTop: "1px solid #57534A" }}>
+                  {" "}
                   {v.P2.proofs.map((p, i0) => (
                     <Fragment key={i0}>
                       <li style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", justifyContent: "space-between", alignItems: "baseline", padding: "11px 0", borderBottom: "1px solid #3A382F", fontSize: "14.5px", lineHeight: "1.45" }}>
@@ -2412,10 +2732,15 @@ export class Site extends Component<object, Estado> {
                       </li>
                     </Fragment>
                   ))}
+                  {" "}
                 </ul>
+                {" "}
               </div>
+              {" "}
               <div style={{ flex: "1 1 460px", minWidth: "0", display: "flex", flexDirection: "column", gap: "16px" }}>
+                {" "}
                 <div style={{ background: "#F7F4EC", color: "#16150F", display: "flex", flexDirection: "column" }}>
+                  {" "}
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
                     <span>
                       {I(v.t.pillars.seg.title)}
@@ -2424,7 +2749,9 @@ export class Site extends Component<object, Estado> {
                       {"INJ-01"}
                     </span>
                   </div>
+                  {" "}
                   <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {" "}
                     <div style={{ background: "#FFFDF7", border: "1px solid #16150F", padding: "12px 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
                       <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", textTransform: "uppercase", color: "#57534A" }}>
                         {I(v.t.intro.who)}
@@ -2433,7 +2760,9 @@ export class Site extends Component<object, Estado> {
                         {"“"}{I(v.injMsg)}{"”"}
                       </span>
                     </div>
+                    {" "}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", border: "1px solid #16150F" }}>
+                      {" "}
                       {v.injRes.map((r, i0) => (
                         <Fragment key={i0}>
                           <div style={{ padding: "10px 12px", borderRight: "1px solid #CFC7B8", display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -2446,30 +2775,44 @@ export class Site extends Component<object, Estado> {
                           </div>
                         </Fragment>
                       ))}
+                      {" "}
                     </div>
+                    {" "}
                     <p style={{ margin: "0", fontSize: "13.5px", lineHeight: "1.45" }}>
                       {I(v.t.pillars.seg.note)}
                     </p>
+                    {" "}
                     <button onClick={v.sendInj} style={{ alignSelf: "flex-start", background: "#16150F", color: "#F0ECE3", border: "0", padding: "10px 14px", fontWeight: "600", fontSize: "14px" }} className="dc-h10">
                       {I(v.t.pillars.seg.send)}{" →"}
                     </button>
+                    {" "}
                   </div>
+                  {" "}
                 </div>
+                {" "}
                 <button onClick={v.openHonest} style={{ textAlign: "left", background: "transparent", color: "#F0ECE3", border: "1px solid #FF5520", padding: "16px 18px", display: "flex", flexWrap: "wrap", gap: "8px 18px", alignItems: "center" }} className="dc-h11">
+                  {" "}
                   <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(56px,6vw,84px)", lineHeight: ".85", color: "#FF5520" }}>
                     {I(v.t.pillars.seg.honest.v)}
                   </span>
+                  {" "}
                   <span style={{ flex: "1 1 240px", fontSize: "14px", lineHeight: "1.45" }}>
                     {I(v.t.pillars.seg.honest.l)}{" "}
                     <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10px", whiteSpace: "nowrap" }}>
                       {"↗ NOV-13"}
                     </span>
                   </span>
+                  {" "}
                 </button>
+                {" "}
               </div>
+              {" "}
             </article>
+            {" "}
             <article style={{ display: "flex", flexWrap: "wrap", gap: "28px clamp(24px,4vw,64px)", padding: "44px 0", borderTop: "1px solid #57534A" }}>
+              {" "}
               <div style={{ flex: "1 1 380px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                {" "}
                 <div style={{ display: "flex", gap: "16px", alignItems: "baseline" }}>
                   <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "clamp(64px,8vw,120px)", lineHeight: ".8", color: "#FF5520" }}>
                     {"04"}
@@ -2478,10 +2821,13 @@ export class Site extends Component<object, Estado> {
                     {I(v.P3.n)}
                   </h3>
                 </div>
+                {" "}
                 <p style={{ fontSize: "clamp(18px,1.6vw,23px)", lineHeight: "1.35", margin: "0", textWrap: "pretty" }}>
                   {I(v.P3.claim)}
                 </p>
+                {" "}
                 <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexDirection: "column", borderTop: "1px solid #57534A" }}>
+                  {" "}
                   {v.P3.proofs.map((p, i0) => (
                     <Fragment key={i0}>
                       <li style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", justifyContent: "space-between", alignItems: "baseline", padding: "11px 0", borderBottom: "1px solid #3A382F", fontSize: "14.5px", lineHeight: "1.45" }}>
@@ -2494,9 +2840,13 @@ export class Site extends Component<object, Estado> {
                       </li>
                     </Fragment>
                   ))}
+                  {" "}
                 </ul>
+                {" "}
               </div>
+              {" "}
               <div style={{ flex: "1 1 460px", minWidth: "0", background: "#F7F4EC", color: "#16150F", display: "flex", flexDirection: "column" }}>
+                {" "}
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
                   <span>
                     {I(v.t.pillars.rep.title)}
@@ -2505,8 +2855,11 @@ export class Site extends Component<object, Estado> {
                     {"EV-053"}
                   </span>
                 </div>
+                {" "}
                 <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {" "}
                   <div style={{ background: "#16150F", color: "#F0ECE3", padding: "16px", minHeight: "240px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "12px", lineHeight: "1.85", display: "flex", flexDirection: "column" }}>
+                    {" "}
                     {v.reproLines.map((l, i0) => (
                       <Fragment key={i0}>
                         <span style={{ color: l.c, fontWeight: l.w }}>
@@ -2514,16 +2867,23 @@ export class Site extends Component<object, Estado> {
                         </span>
                       </Fragment>
                     ))}
+                    {" "}
                     <span style={{ color: "#8F8A7E" }}>
                       {I(v.reproCursor)}
                     </span>
+                    {" "}
                   </div>
+                  {" "}
                   <button onClick={v.runRepro} style={{ alignSelf: "flex-start", background: "#2B35F0", color: "#fff", border: "0", padding: "10px 14px", fontWeight: "600", fontSize: "14px" }} className="dc-h8">
                     {I(v.t.pillars.rep.run)}{" · make repro"}
                   </button>
+                  {" "}
                 </div>
+                {" "}
               </div>
+              {" "}
             </article>
+            {" "}
           </div>
           {" "}
         </section>
@@ -2531,25 +2891,33 @@ export class Site extends Component<object, Estado> {
         <section id="resultados" style={{ position: "relative", pointerEvents: "auto", background: "#F0ECE3", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px)", scrollMarginTop: "56px" }}>
           {" "}
           <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "28px" }}>
+            {" "}
             <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
               <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
               {I(v.t.results.kicker)}{" · VAL-019"}
             </p>
+            {" "}
             <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".88", margin: "0", fontSize: "clamp(44px,6.4vw,104px)", maxWidth: "1100px", textWrap: "balance" }}>
               {I(v.t.results.title)}
             </h2>
+            {" "}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "14px 28px", alignItems: "flex-start" }}>
+              {" "}
               <div style={{ display: "flex", gap: "10px", alignItems: "center", border: "1px solid #16150F", padding: "10px 14px", background: "#F7F4EC" }}>
                 <span style={{ width: "10px", height: "10px", background: "#FF5520" }}></span>
                 <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", textTransform: "uppercase", fontWeight: "600" }}>
                   {I(v.t.results.status)}
                 </span>
               </div>
+              {" "}
               <p style={{ flex: "1 1 420px", margin: "0", fontSize: "16px", lineHeight: "1.5", maxWidth: "640px" }}>
                 {I(v.t.results.statusNote)}
               </p>
+              {" "}
             </div>
+            {" "}
             <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: "0", borderTop: "1px solid #16150F" }}>
+              {" "}
               {v.t.results.setup.map((x, i0) => (
                 <Fragment key={i0}>
                   <li style={{ padding: "14px 16px 14px 0", borderBottom: "1px solid #CFC7B8", fontSize: "14px", lineHeight: "1.45" }}>
@@ -2557,13 +2925,17 @@ export class Site extends Component<object, Estado> {
                   </li>
                 </Fragment>
               ))}
+              {" "}
             </ul>
+            {" "}
             <div style={{ overflowX: "auto", border: "1px solid #16150F", background: "#F7F4EC" }}>
               {" "}
               <div style={{ minWidth: "1080px", display: "grid", gridTemplateColumns: "200px repeat(9,minmax(0,1fr))" }}>
+                {" "}
                 <div style={{ padding: "12px 14px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase", color: "#57534A" }}>
                   {"ES + PT · n = 80"}
                 </div>
+                {" "}
                 {v.t.results.cols.map((c, i0) => (
                   <Fragment key={i0}>
                     <div style={{ padding: "12px 10px", borderBottom: "1px solid #16150F", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", lineHeight: "1.35", textTransform: "uppercase" }}>
@@ -2571,11 +2943,14 @@ export class Site extends Component<object, Estado> {
                     </div>
                   </Fragment>
                 ))}
+                {" "}
                 {v.resRows.map((r, i0) => (
                   <Fragment key={i0}>
+                    {" "}
                     <div style={{ padding: "16px 14px", borderBottom: "1px solid #CFC7B8", fontSize: "13.5px", fontWeight: "600" }}>
                       {I(r.l)}
                     </div>
+                    {" "}
                     {r.cells.map((c, i1) => (
                       <Fragment key={i1}>
                         <div style={{ padding: "16px 10px", borderBottom: "1px solid #CFC7B8", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontSize: "12px", color: "#57534A", background: "repeating-linear-gradient(135deg,transparent 0 7px,rgba(22,21,15,.06) 7px 8px)" }}>
@@ -2583,28 +2958,38 @@ export class Site extends Component<object, Estado> {
                         </div>
                       </Fragment>
                     ))}
+                    {" "}
                   </Fragment>
                 ))}
+                {" "}
               </div>
               {" "}
             </div>
+            {" "}
             <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.5", color: "#57534A", maxWidth: "860px" }}>
               {I(v.t.results.t2)}{" "}
               <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10.5px", color: "#2B35F0" }}>
                 {"VAL-019a"}
               </span>
             </p>
+            {" "}
             <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
+              {" "}
               <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".9", margin: "0", fontSize: "clamp(32px,3.4vw,52px)" }}>
                 {I(v.t.results.outTitle)}
               </h3>
+              {" "}
               <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.5", maxWidth: "640px" }}>
                 {I(v.t.results.outIntro)}
               </p>
+              {" "}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
+                {" "}
                 {v.outItems.map((o, i0) => (
                   <Fragment key={i0}>
+                    {" "}
                     <button onClick={o.open} style={{ textAlign: "left", background: "#F7F4EC", border: "1px solid #16150F", borderStyle: o.bs, padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }} className="dc-h12">
+                      {" "}
                       <span style={{ display: "flex", justifyContent: "space-between", gap: "8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
                         <span style={{ color: "#2B35F0" }}>
                           {"↗ "}{I(o.id)}
@@ -2613,14 +2998,20 @@ export class Site extends Component<object, Estado> {
                           {I(o.tag)}
                         </span>
                       </span>
+                      {" "}
                       <span style={{ fontSize: "14.5px", lineHeight: "1.45" }}>
                         {I(o.txt)}
                       </span>
+                      {" "}
                     </button>
+                    {" "}
                   </Fragment>
                 ))}
+                {" "}
               </div>
+              {" "}
             </div>
+            {" "}
           </div>
           {" "}
         </section>
@@ -2628,18 +3019,25 @@ export class Site extends Component<object, Estado> {
         <footer style={{ position: "relative", pointerEvents: "auto", background: "#2B35F0", color: "#fff", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px) 120px" }}>
           {" "}
           <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "36px" }}>
+            {" "}
             <blockquote style={{ margin: "0", display: "flex", flexDirection: "column", gap: "14px" }}>
+              {" "}
               <p style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".86", margin: "0", fontSize: "clamp(50px,8.4vw,136px)", textWrap: "balance" }}>
                 {"“"}{I(v.t.footer.quote)}{"”"}
               </p>
+              {" "}
               <cite style={{ fontStyle: "normal", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", textTransform: "uppercase" }}>
                 {I(v.t.footer.cite)}
               </cite>
+              {" "}
             </blockquote>
+            {" "}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" }}>
+              {" "}
               <a href={v.appUrl} target="_blank" rel="noopener" style={{ background: "#F0ECE3", color: "#16150F", textDecoration: "none", fontWeight: "700", fontSize: "17px", padding: "16px 22px" }} className="dc-h13">
                 {I(v.t.ui.app)}{" ↗"}
               </a>
+              {" "}
               <a href={v.guideUrl} target="_blank" rel="noopener" style={{ color: "#fff", textDecoration: "none", fontWeight: "600", fontSize: "15px", padding: "15px 18px", border: "1px solid #fff", display: "flex", flexDirection: "column", gap: "2px" }} className="dc-h14">
                 <span>
                   {I(v.t.footer.guide)}{" ↗"}
@@ -2648,11 +3046,15 @@ export class Site extends Component<object, Estado> {
                   {I(v.t.footer.guideSub)}
                 </span>
               </a>
+              {" "}
             </div>
+            {" "}
             <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.5", maxWidth: "620px" }}>
               {I(v.t.footer.note)}
             </p>
+            {" "}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "24px 48px", borderTop: "1px solid rgba(255,255,255,.5)", paddingTop: "22px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", lineHeight: "1.8" }}>
+              {" "}
               <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: "1 1 320px" }}>
                 <span style={{ textTransform: "uppercase" }}>
                   {I(v.t.footer.srcTitle)}
@@ -2665,6 +3067,7 @@ export class Site extends Component<object, Estado> {
                   </Fragment>
                 ))}
               </div>
+              {" "}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", flex: "0 1 360px" }}>
                 <span>
                   {I(v.t.footer.proto)}
@@ -2673,7 +3076,9 @@ export class Site extends Component<object, Estado> {
                   {I(v.t.ui.motion)}{" · "}{I(v.motionLabel)}
                 </button>
               </div>
+              {" "}
             </div>
+            {" "}
           </div>
           {" "}
         </footer>
@@ -2682,6 +3087,7 @@ export class Site extends Component<object, Estado> {
         <>
           {" "}
           <aside role="dialog" aria-label={v.dw.title} style={{ position: "fixed", top: "56px", right: "0", bottom: "0", zIndex: "65", width: "min(460px,100vw)", background: "#F7F4EC", borderLeft: "1px solid #16150F", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+            {" "}
             <div style={{ position: "sticky", top: "0", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "10px 16px", borderBottom: "1px solid #16150F", background: "#F7F4EC", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
               <span style={{ color: "#2B35F0" }}>
                 {I(v.dw.kicker)}
@@ -2690,16 +3096,22 @@ export class Site extends Component<object, Estado> {
                 {I(v.t.ui.close)}{" ✕"}
               </button>
             </div>
+            {" "}
             <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              {" "}
               <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".9", margin: "0", fontSize: "44px" }}>
                 {I(v.dw.title)}
               </h3>
+              {" "}
               {v.dw.isNode ? (
                 <>
+                  {" "}
                   <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {" "}
                     <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", color: "#57534A" }}>
                       {I(v.dw.sub)}
                     </span>
+                    {" "}
                     {v.dw.planned ? (
                       <>
                         <span style={{ alignSelf: "flex-start", border: "1px dashed #16150F", padding: "6px 10px", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase" }}>
@@ -2707,9 +3119,11 @@ export class Site extends Component<object, Estado> {
                         </span>
                       </>
                     ) : null}
+                    {" "}
                     <p style={{ margin: "0", fontSize: "15.5px", lineHeight: "1.5" }}>
                       {I(v.dw.does)}
                     </p>
+                    {" "}
                     <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexDirection: "column", gap: "7px" }}>
                       {v.dw.protects.map((p, i0) => (
                         <Fragment key={i0}>
@@ -2722,8 +3136,10 @@ export class Site extends Component<object, Estado> {
                         </Fragment>
                       ))}
                     </ul>
+                    {" "}
                     {v.dw.hasStat ? (
                       <>
+                        {" "}
                         <button onClick={v.dw.openStat} style={{ textAlign: "left", background: "transparent", border: "0", borderTop: "1px solid #16150F", padding: "14px 0 0", display: "flex", flexDirection: "column", gap: "6px" }}>
                           <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "56px", lineHeight: ".9", color: "#2B35F0" }}>
                             {I(v.dw.statV)}
@@ -2735,8 +3151,10 @@ export class Site extends Component<object, Estado> {
                             {"↗ "}{I(v.dw.statS)}
                           </span>
                         </button>
+                        {" "}
                       </>
                     ) : null}
+                    {" "}
                     {v.dw.hasModel ? (
                       <>
                         <button onClick={v.dw.goModel} style={{ alignSelf: "flex-start", background: "#16150F", color: "#F0ECE3", border: "0", padding: "9px 13px", fontWeight: "600", fontSize: "13.5px" }}>
@@ -2744,15 +3162,21 @@ export class Site extends Component<object, Estado> {
                         </button>
                       </>
                     ) : null}
+                    {" "}
                   </div>
+                  {" "}
                 </>
               ) : null}
+              {" "}
               {v.dw.isRules ? (
                 <>
+                  {" "}
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {" "}
                     <p style={{ margin: "0", fontSize: "14.5px", lineHeight: "1.5" }}>
                       {I(v.t.rules.sub)}
                     </p>
+                    {" "}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 12px" }}>
                       {v.ruleCats.map((c, i0) => (
                         <Fragment key={i0}>
@@ -2763,24 +3187,36 @@ export class Site extends Component<object, Estado> {
                         </Fragment>
                       ))}
                     </div>
+                    {" "}
                     <div style={{ display: "flex", flexDirection: "column", borderTop: "1px solid #16150F" }}>
+                      {" "}
                       {v.ruleRows.map((r, i0) => (
                         <Fragment key={i0}>
+                          {" "}
                           <div style={{ display: "grid", gridTemplateColumns: "118px 1fr", gap: "10px", padding: "9px 0", borderBottom: "1px solid #CFC7B8", alignItems: "start" }}>
+                            {" "}
                             <span style={{ alignSelf: "start", justifySelf: "start", padding: "3px 6px", background: r.bg, color: r.fg, border: "1px solid #16150F", borderStyle: r.bs, fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", fontWeight: "600" }}>
                               {I(r.id)}
                             </span>
+                            {" "}
                             <span style={{ fontSize: "13.5px", lineHeight: "1.45" }}>
                               {I(r.d)}
                             </span>
+                            {" "}
                           </div>
+                          {" "}
                         </Fragment>
                       ))}
+                      {" "}
                     </div>
+                    {" "}
                   </div>
+                  {" "}
                 </>
               ) : null}
+              {" "}
             </div>
+            {" "}
           </aside>
         </>
       ) : null}
@@ -2788,6 +3224,7 @@ export class Site extends Component<object, Estado> {
         <>
           {" "}
           <div role="dialog" aria-label={v.t.ui.source} style={{ position: "fixed", left: "16px", bottom: "84px", zIndex: "70", width: "min(360px,calc(100vw - 32px))", background: "#FFFDF7", border: "1px solid #16150F", boxShadow: "0 20px 40px -24px rgba(22,21,15,.5)", display: "flex", flexDirection: "column" }}>
+            {" "}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", padding: "9px 14px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
               <span>
                 {I(v.t.ui.source)}
@@ -2796,20 +3233,27 @@ export class Site extends Component<object, Estado> {
                 {"✕"}
               </button>
             </div>
+            {" "}
             <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {" "}
               <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "36px", lineHeight: ".9", color: "#2B35F0" }}>
                 {I(v.sv.id)}
               </span>
+              {" "}
               <span style={{ alignSelf: "flex-start", background: v.sv.bg, color: v.sv.fg, border: "1px solid #16150F", borderStyle: v.sv.bs, padding: "4px 8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase" }}>
                 {I(v.sv.kind)}
               </span>
+              {" "}
               <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", overflowWrap: "anywhere" }}>
                 {I(v.sv.where)}
               </span>
+              {" "}
               <p style={{ margin: "0", fontSize: "13.5px", lineHeight: "1.45", color: "#57534A" }}>
                 {I(v.sv.note)}
               </p>
+              {" "}
             </div>
+            {" "}
           </div>
         </>
       ) : null}
@@ -2817,10 +3261,13 @@ export class Site extends Component<object, Estado> {
         <>
           {" "}
           <div role="dialog" aria-label={v.t.dock.title} style={{ position: "fixed", right: "clamp(8px,2vw,20px)", bottom: "76px", zIndex: "60", width: "min(430px,calc(100vw - 16px))", maxHeight: "calc(100vh - 150px)", background: "#F7F4EC", border: "1px solid #16150F", display: "flex", flexDirection: "column", boxShadow: "0 24px 48px -28px rgba(22,21,15,.55)" }}>
+            {" "}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
+              {" "}
               <span style={{ marginRight: "auto" }}>
                 {I(v.t.dock.title)}
               </span>
+              {" "}
               <div style={{ display: "flex", border: "1px solid #16150F" }}>
                 {v.convLangs.map((l, i0) => (
                   <Fragment key={i0}>
@@ -2830,16 +3277,22 @@ export class Site extends Component<object, Estado> {
                   </Fragment>
                 ))}
               </div>
+              {" "}
               <button onClick={v.newConv} style={{ background: "transparent", border: "1px solid #16150F", padding: "4px 7px", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase" }}>
                 {I(v.t.dock.newConv)}
               </button>
+              {" "}
               <button onClick={v.toggleDock} aria-label={v.t.ui.close} style={{ background: "#16150F", color: "#F0ECE3", border: "0", padding: "4px 8px", fontFamily: "'Martian Mono',monospace", fontSize: "11px" }}>
                 {"✕"}
               </button>
+              {" "}
             </div>
+            {" "}
             <div ref={v.convRef} style={{ flex: "1 1 auto", overflowY: "auto", padding: "14px 12px", display: "flex", flexDirection: "column", gap: "10px", minHeight: "120px" }}>
+              {" "}
               {v.convItems.map((m, i0) => (
                 <Fragment key={i0}>
+                  {" "}
                   {m.isC ? (
                     <>
                       <div style={{ alignSelf: "flex-end", maxWidth: "84%", background: "#16150F", color: "#F0ECE3", padding: "9px 12px", fontSize: "14px", lineHeight: "1.4" }}>
@@ -2847,10 +3300,14 @@ export class Site extends Component<object, Estado> {
                       </div>
                     </>
                   ) : null}
+                  {" "}
                   {m.isS ? (
                     <>
+                      {" "}
                       <div style={{ alignSelf: "flex-start", maxWidth: "92%", display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {" "}
                         <div style={{ background: "#FFFDF7", border: "1px solid #16150F", borderColor: m.bc, padding: "10px 12px", fontSize: "14px", lineHeight: "1.45", display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {" "}
                           {m.human ? (
                             <>
                               <span style={{ alignSelf: "flex-start", background: "#FF5520", color: "#16150F", padding: "2px 6px", fontFamily: "'Martian Mono',monospace", fontSize: "9.5px", textTransform: "uppercase", fontWeight: "600" }}>
@@ -2858,10 +3315,13 @@ export class Site extends Component<object, Estado> {
                               </span>
                             </>
                           ) : null}
+                          {" "}
                           <span>
                             {I(m.text)}
                           </span>
+                          {" "}
                         </div>
+                        {" "}
                         {m.hasOpts ? (
                           <>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -2875,15 +3335,19 @@ export class Site extends Component<object, Estado> {
                             </div>
                           </>
                         ) : null}
+                        {" "}
                         {/* O aviso de falha da API não tem "Por que esta resposta?" (não houve turno). */}
                         {m.whyL ? (
                           <button onClick={m.toggleWhy} style={{ alignSelf: "flex-start", background: "transparent", border: "0", borderBottom: "1px solid #2B35F0", padding: "1px 0", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", color: "#2B35F0", textTransform: "uppercase" }}>
                             {I(m.whyL)}{" "}{I(m.whyArrow)}
                           </button>
                         ) : null}
+                        {" "}
                         {m.whyOpen ? (
                           <>
+                            {" "}
                             <div style={{ background: "#FFFDF7", border: "1px dashed #16150F", padding: "10px 12px", display: "grid", gridTemplateColumns: "auto 1fr", columnGap: "12px", rowGap: "3px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", lineHeight: "1.5" }}>
+                              {" "}
                               {m.rows.map((r, i1) => (
                                 <Fragment key={i1}>
                                   <span style={{ color: "#57534A", textTransform: "uppercase", fontSize: "9.5px" }}>
@@ -2896,14 +3360,20 @@ export class Site extends Component<object, Estado> {
                                   </span>
                                 </Fragment>
                               ))}
+                              {" "}
                             </div>
+                            {" "}
                           </>
                         ) : null}
+                        {" "}
                       </div>
+                      {" "}
                     </>
                   ) : null}
+                  {" "}
                 </Fragment>
               ))}
+              {" "}
               {v.convEmpty ? (
                 <>
                   <p style={{ margin: "0", fontSize: "13.5px", lineHeight: "1.45", color: "#57534A" }}>
@@ -2911,8 +3381,11 @@ export class Site extends Component<object, Estado> {
                   </p>
                 </>
               ) : null}
+              {" "}
             </div>
+            {" "}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", padding: "10px 12px", borderTop: "1px solid #CFC7B8" }}>
+              {" "}
               {v.chips.map((c, i0) => (
                 <Fragment key={i0}>
                   <button onClick={c.go} style={{ border: "1px solid #16150F", background: "#FFFDF7", padding: "5px 8px", fontSize: "12px" }} className="dc-h6">
@@ -2920,24 +3393,33 @@ export class Site extends Component<object, Estado> {
                   </button>
                 </Fragment>
               ))}
+              {" "}
             </div>
+            {" "}
             <div style={{ display: "flex", gap: "6px", padding: "0 12px 10px" }}>
+              {" "}
               <input value={v.draft} onChange={v.onDraft} onKeyDown={v.onKey} placeholder={v.t.dock.placeholder} aria-label={v.t.dock.placeholder} style={{ flex: "1 1 auto", minWidth: "0", border: "1px solid #16150F", background: "#FFFDF7", padding: "10px 12px", fontFamily: "'Archivo',sans-serif", fontSize: "14px", color: "#16150F", outline: "none" }} />
+              {" "}
               <button onClick={v.onSend} style={{ background: "#2B35F0", color: "#fff", border: "0", padding: "0 14px", fontWeight: "600", fontSize: "14px" }}>
                 {I(v.t.dock.send)}
               </button>
+              {" "}
             </div>
+            {" "}
             <p style={{ margin: "0", padding: "0 12px 10px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", lineHeight: "1.5", color: "#57534A" }}>
               {I(v.t.dock.note)}
             </p>
+            {" "}
           </div>
         </>
       ) : null}
       <div style={{ position: "fixed", left: "50%", bottom: "14px", transform: "translateX(-50%)", zIndex: "60", display: "flex", gap: "6px", pointerEvents: "auto" }}>
+        {" "}
         <button onClick={v.toggleDock} aria-expanded={v.dockOpen} style={{ display: "flex", alignItems: "center", gap: "10px", background: "#16150F", color: "#F0ECE3", border: "1px solid #57534A", padding: "12px 18px", fontWeight: "600", fontSize: "14.5px", whiteSpace: "nowrap" }} className="dc-h5">
           <span style={{ width: "8px", height: "8px", background: "#FF5520", display: "inline-block" }}></span>
           {I(v.t.dock.open)}
         </button>
+        {" "}
         <a href={v.appUrl} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", background: "#2B35F0", color: "#fff", textDecoration: "none", padding: "12px 16px", fontWeight: "600", fontSize: "14.5px", border: "1px solid #2B35F0", whiteSpace: "nowrap" }} className="dc-h15">
           {I(v.appShort)}{" ↗"}
         </a>
