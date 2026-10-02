@@ -227,6 +227,10 @@ termos compostos, com as duas partes perto e na ordem da história:
   contraseña", ACH-194), e quem ligou ou disse ser do banco e tirou o dinheiro (ACH-192, REG-33);
 - a conta esvaziada ("me vaciaron la cuenta").
 
+A indignação com a tarifa ou com a compra que não chegou ("¡esto es un robo!", "isso é um assalto")
+sozinha não é relato de roubo; o relato que vem junto continua ("¡esto es un robo! alguien usó mi
+tarjeta").
+
 A fraude lida pelas regras ou pelo leitor encaminha ao atendente e bloqueia o cartão (POL-HUM-01).
 A exceção é a **guarda de prevenção** (ACH-144, `prevencao`): a pergunta de prevenção ("¿cómo evito
 caer en una estafa?", "quais cuidados para não cair em golpe?") e a suspeita sem perda ("me llamó un
