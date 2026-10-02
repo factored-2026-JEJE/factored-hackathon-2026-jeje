@@ -12828,16 +12828,16 @@
     {
       "id": "M-ITP-206",
       "requisito": "R02",
-      "descricao": "As frases do pedido de segredo ou dinheiro entram no corretor, e \"pidieran\" vira \"pidieron\"",
+      "descricao": "As frases do pedido de segredo ou dinheiro entram no léxico do corretor",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    so_nessa_ordem=True,\n    corrige=False,\n)",
-          "para": "    so_nessa_ordem=True,\n)"
+          "de": "    entre=5,\n    so_nessa_ordem=True,\n    corrige=False,\n)",
+          "para": "    entre=5,\n    so_nessa_ordem=True,\n)"
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_palavra_comum_vizinha_de_termo_de_golpe_nao_e_corrigida"
+        "tests/test_interpretacao.py::test_frases_do_pedido_de_segredo_ou_dinheiro_ficam_fora_do_corretor"
       ]
     },
     {
@@ -12853,6 +12853,66 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-209",
+      "requisito": "R02",
+      "descricao": "O corretor troca qualquer palavra a uma edição (\"mirando\" vira \"tirando\" e a frase comum vira golpe, ACH-191)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        if len(candidatas) != 1 or not _forma_de_erro(palavra, candidatas[0]):",
+          "para": "        if len(candidatas) != 1:"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-210",
+      "requisito": "R02",
+      "descricao": "A letra que falta vale também para o \"n\" do gerúndio (\"pensado\" vira \"pensando\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        return not (b[i] == \"n\" and b[i + 1 : i + 2] == \"d\" and b[i - 1 : i] in (\"a\", \"i\", \"e\"))",
+          "para": "        return True"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_so_a_forma_de_erro_de_digitacao_e_corrigida"
+      ]
+    },
+    {
+      "id": "M-ITP-211",
+      "requisito": "R02",
+      "descricao": "A forma do erro restringe as candidatas antes de contá-las (\"desbloqueei\" vira \"desbloqueie\")",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        candidatas = [termo for termo in LEXICO_DE_INTENCAO if _uma_edicao(palavra, termo)]",
+          "para": "        candidatas = [termo for termo in LEXICO_DE_INTENCAO if _forma_de_erro(palavra, termo)]"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
+      ]
+    },
+    {
+      "id": "M-ITP-212",
+      "requisito": "R02",
+      "descricao": "A pessoa \"supuestamente del banco\" que acessou a conta não é golpe (REG-32, o custo do #83)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                PESSOA_SUPOSTAMENTE,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pessoa_supostamente_do_banco_e_golpe"
       ]
     },
     {
