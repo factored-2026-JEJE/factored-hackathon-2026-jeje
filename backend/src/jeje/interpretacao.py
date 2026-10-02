@@ -753,8 +753,9 @@ LEXICO_DE_INTENCAO = _lexico()
 
 
 def _uma_edicao(a: str, b: str) -> bool:
-    """A uma edição: uma letra trocada, uma a mais ou a menos, ou duas vizinhas invertidas."""
-    if a == b or abs(len(a) - len(b)) > 1:
+    """A uma edição: uma letra trocada, uma a mais ou a menos, ou duas vizinhas invertidas. O plural
+    do termo não conta ("golpes" não vira "golpe", REG-14)."""
+    if a == b or a in (b + "s", b + "es") or abs(len(a) - len(b)) > 1:
         return False
     if len(a) == len(b):
         dif = [i for i, (x, y) in enumerate(zip(a, b, strict=True)) if x != y]

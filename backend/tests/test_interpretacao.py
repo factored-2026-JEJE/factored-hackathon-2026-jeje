@@ -1096,3 +1096,10 @@ def test_cobranca_a_mais_e_contestacao(texto, intencao):
 def test_outros_verbos_de_pedido_de_pessoa(texto):
     assert ler(texto).intencao == "humano"
 
+
+def test_plural_de_termo_nao_e_corrigido_para_o_termo():
+    """Regressão do DEV-060 no ACH-144 (REG-14): "golpes" não vira "golpe", nem "estafas" vira
+    "estafa"; o erro de uma letra continua corrigido."""
+    texto = "Estoy preocupado con tantas estafas y golpes"
+    assert interpretacao.corrigir(texto) == (texto, ())
+    assert ler("No reconosco un cargo").intencao == "contestar"
