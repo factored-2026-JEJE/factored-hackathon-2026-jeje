@@ -321,16 +321,18 @@ SENHA_ENTREGUE = Perto(
     ("senha", "codigo", "clave", "contrasena", "datos", "dados", "pin", "token", "credenciales"),
     entre=2,
 )  # fmt: skip
-# A senha, o código ou os dados do cliente obtidos ou pedidos por outra pessoa ("conseguiu minha
-# senha", "me pidieron mi clave", ACH-171): só com o possessivo e sem negação. "La app me pidió un
-# código de verificación", "o caixa pediu a senha duas vezes" e "não conseguiu trocar a senha" não
-# são golpe (REG-17).
+# A senha, o código ou os dados do cliente obtidos ou roubados por outra pessoa ("conseguiu minha
+# senha", "robaron mi clave", ACH-171): só com o possessivo e sem negação. Pedida não basta: o
+# caixa, o app e o caixa eletrônico também pedem ("o caixa pediu a senha", "el cajero me pidió mi
+# pin", REG-17); e o meio de uso legítimo desfaz ("o sistema conseguiu recuperar minha senha").
 SENHA_OBTIDA = Perto(
-    ("conseguiu", "consiguio", "consiguieron", "conseguiram", "pediu", "pidio", "pidieron",
-     "pediram", "roubou", "robo", "roubaram", "robaron"),
+    ("conseguiu", "consiguio", "consiguieron", "conseguiram", "roubou", "robo", "roubaram",
+     "robaron"),
     ("minha senha", "mi clave", "mi contrasena", "meu codigo", "mi codigo", "meus dados",
      "mis datos", "meu pin", "mi pin", "meu token", "mi token"),
     entre=1,
+    fora=("recuperar", "trocar", "mudar", "alterar", "cambiar", "validar", "confirmar",
+          "redefinir", "restablecer", "cadastrar", "registrar", "desbloquear"),
     negavel=True,
 )  # fmt: skip
 SITE_FALSO = Perto(

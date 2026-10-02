@@ -12417,8 +12417,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"mis datos\", \"meu pin\", \"mi pin\", \"meu token\", \"mi token\"),\n    entre=1,\n    negavel=True,\n",
-          "para": "     \"mis datos\", \"meu pin\", \"mi pin\", \"meu token\", \"mi token\"),\n    entre=1,\n"
+          "de": "          \"redefinir\", \"restablecer\", \"cadastrar\", \"registrar\", \"desbloquear\"),\n    negavel=True,\n",
+          "para": "          \"redefinir\", \"restablecer\", \"cadastrar\", \"registrar\", \"desbloquear\"),\n"
         }
       ],
       "testes": [
@@ -12438,6 +12438,36 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-178",
+      "requisito": "R03",
+      "descricao": "\"O sistema conseguiu recuperar minha senha\" vira golpe e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=(\"recuperar\", \"trocar\", \"mudar\", \"alterar\", \"cambiar\", \"validar\", \"confirmar\",\n          \"redefinir\", \"restablecer\", \"cadastrar\", \"registrar\", \"desbloquear\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-180",
+      "requisito": "R03",
+      "descricao": "A senha pedida pelo caixa eletrônico ou pelo app vira golpe (REG-17)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    (\"conseguiu\", \"consiguio\", \"consiguieron\", \"conseguiram\", \"roubou\", \"robo\", \"roubaram\",",
+          "para": "    (\"conseguiu\", \"consiguio\", \"consiguieron\", \"conseguiram\", \"pediu\", \"pidio\", \"roubou\", \"robo\", \"roubaram\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
       ]
     },
     {
