@@ -100,6 +100,7 @@ class Perto:
     antes: int = 0
     fora_antes: tuple[str, ...] = ()
     negavel: bool = False  # negado logo antes ("no me cobraron de más"), não casa
+    so_nessa_ordem: bool = False  # só o termo do primeiro grupo e depois o do segundo
 
 
 def _casou(termo: str | Perto, limpo: str) -> str | None:
@@ -113,13 +114,16 @@ def _casou(termo: str | Perto, limpo: str) -> str | None:
     outro = [b for b in termo.outro if _casa(b, limpo)]
     for a, b in product(um, outro):
         x, y = _padrao(a), _padrao(b)
-        for achado in _regex(f"{x}{entre}{y}|{y}{entre}{x}").finditer(limpo):
-            meio = achado.group(1) or achado.group(2) or ""
+        padrao = f"{x}{entre}{y}" if termo.so_nessa_ordem else f"{x}{entre}{y}|{y}{entre}{x}"
+        for achado in _regex(padrao).finditer(limpo):
+            grupos = achado.groups()
+            meio = next((g for g in grupos if g), "")
             if any(_casa(f, meio) for f in termo.fora):
                 continue
-            # group(2) só participa quando o termo do segundo grupo veio antes.
+            # O segundo grupo só participa quando o termo do segundo grupo veio antes.
+            invertido = len(grupos) == 2 and grupos[1] is not None
             antes = " ".join(limpo[: achado.start()].split()[-termo.antes :] if termo.antes else ())
-            if achado.group(2) is not None and any(_casa(f, antes) for f in termo.fora_antes):
+            if invertido and any(_casa(f, antes) for f in termo.fora_antes):
                 continue
             if termo.negavel and _negado(limpo[: achado.start()]):
                 continue
@@ -290,6 +294,9 @@ SE_PASSOU_POR = Perto(
      "haciendose pasar por"),
     QUEM_ELE_DISSE_SER,
     entre=2,
+    # Só o verbo e depois o papel: "o atendente falou que era só esperar" é o atendente de
+    # verdade (ACH-173, REG-18).
+    so_nessa_ordem=True,
 )  # fmt: skip
 # "Disse que era" é comum fora do golpe ("o vendedor disse que era problema do banco"): só com
 # quem ele disse ser logo depois.
@@ -300,6 +307,7 @@ DISSE_QUE_ERA = Perto(
      "falou que era", "se dizia do", "que se dizia"),
     QUEM_ELE_DISSE_SER,
     entre=1,
+    so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)
 )  # fmt: skip
 FALSO_ATENDENTE = Perto(
     ("supuesto", "supuesta", "suposto", "suposta", "falso", "falsa"),

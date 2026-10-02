@@ -1169,6 +1169,34 @@ def test_outra_pessoa_sem_uso_nem_roubo_nao_e_relato_de_fraude(texto):
 @pytest.mark.parametrize(
     "texto",
     [
+        # O papel antes do verbo é quem atendeu de verdade, não golpe (ACH-173, REG-18).
+        "Liguei e o atendente falou que era só esperar 24 horas",
+        "El asesor dijo que era un error del sistema y que me devolverían el dinero",
+        "O operador falou que era normal demorar o estorno",
+        "Meu filho falou que era para eu perguntar aqui qual é o limite do cartão",
+        "O gerente disse que era um erro e que iam corrigir",
+    ],
+)
+def test_o_que_o_atendente_de_verdade_disse_nao_e_golpe(texto):
+    assert ler(texto).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Com o verbo antes do papel, continua golpe.
+        "Um falso atendente falou que era do banco",
+        "Me llamó un hombre que dijo que era del banco",
+        "Recebi uma ligação de alguém que se passava por um atendente do banco",
+    ],
+)
+def test_verbo_e_depois_o_papel_continua_golpe(texto):
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
         # DEV-080 (ACH-159, HUM-01): a pessoa citada sem pedido não é pedido de atendente.
         "Una persona me cobró de más en la tienda.",
         "Uma pessoa me cobrou a mais na loja.",
