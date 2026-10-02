@@ -1345,6 +1345,7 @@ def test_verbo_e_depois_o_papel_continua_golpe(texto):
         # banco, o parente que pede dinheiro, o agente disfarçado...
         "Acabo de enviar 2000 pesos por pix a alguien que me aseguró ser mi primo",
         "Uma pessoa se fazendo passar por atendente do banco me ligou",
+        "Uma pessoa se dizendo do suporte acessou minha conta e fez um pix",
         "Me fizeram uma ligação disfarçada de agente bancário e eu acreditei",
         # ... quem acreditou que era outro...
         "Le envié dinero a alguien creyendo que era mi sobrino",
@@ -1391,6 +1392,9 @@ def test_apresentar_se_como_outro_e_golpe_com_o_parente_ou_o_pedido(texto, golpe
     [
         # A pessoa "supuestamente del banco" é o falso atendente (REG-32, S2; o custo do #83)...
         ("Una persona supuestamente del banco accedió a mi cuenta sin permiso", True),
+        # O falso suporte é o falso atendente (ACH-194, F1X do REG-35).
+        ("Alguém do falso suporte acessou minha conta e transferiu meu dinheiro", True),
+        ("Alguien del supuesto soporte entró a mi cuenta y compró en línea", True),
         ("Uma pessoa supostamente do banco acessou minha conta sem eu saber", True),
         # ... e o banco "supuestamente" sem a pessoa, não.
         ("Supuestamente el banco me iba a llamar hoy y nada", False),
@@ -1493,6 +1497,10 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         # A pessoa do próprio banco (auditoria do dev, 02/10).
         "Una persona del banco abrió una cuenta a mi nombre cuando fui a la sucursal",
         "Uma pessoa da agência acessou minha conta para me ajudar com o cadastro",
+        # O suporte que entrou na conta a pedido (ACH-194, REG-35).
+        "Alguien del soporte entró a mi cuenta para restablecer la contraseña",
+        "Alguém do suporte acessou minha conta para trocar a senha que eu pedi",
+        "Alguém do atendimento acessou minha conta para corrigir meu cadastro",
         # Os termos do #77 em mensagens comuns (ACH-179, REG-24): "de ustedes", o cadastro, o
         # atendente de verdade que se apresenta e o "fraudulenta" negado.
         "Recibí un cargo y pensé que era de ustedes, pero no reconozco el comercio",
