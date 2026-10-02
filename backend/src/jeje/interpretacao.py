@@ -366,13 +366,18 @@ PEDIDO_DE_DINHEIRO = Perto(
 TERCEIRO_USOU = Perto(
     ("alguien", "alguem", "una persona", "uma pessoa", "otra persona", "outra pessoa",
      "un desconocido", "um desconhecido", "un extrano", "um estranho"),
-    ("uso", "usaba", "usaron", "usando", "utilizo", "utilizando", "gastando", "gastaron", "robo",
-     "hizo pagos", "hizo compras", "hizo un pago", "hizo una compra", "hizo un retiro", "compro",
-     "saco", "retiro", "transfirio", "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
-     "usou", "usava", "usaram", "gastou", "utilizou", "roubou",
+    # Usar e gastar só com o que é do cliente ("usando mi tarjeta", "gastando com o meu
+    # plástico"): "uma pessoa está usando o caixa" não é relato. Transferir fica fora: "alguém
+    # transferiu dinheiro para mim" é dinheiro recebido.
+    ("uso mi", "usaba mi", "usaron mi", "usando mi", "usando mis", "utilizo mi", "utilizando mi",
+     "gastando con mi", "gastando en mi", "gastaron", "robo", "hizo pagos", "hizo compras",
+     "hizo un pago", "hizo una compra", "hizo un retiro", "compro", "saco", "retiro",
+     "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
+     "usou meu", "usou minha", "usava meu", "usaram meu", "usaram minha", "usando meu",
+     "usando minha", "usando meus", "utilizou meu", "utilizou minha", "gastando com o meu",
+     "gastando com meu", "gastando com a minha", "gastando com minha", "gastou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
-     "comprou", "sacou", "transferiu", "tirou", "se passou", "acessou", "entrou na minha conta",
-     "clonou"),
+     "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou"),
 )  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
