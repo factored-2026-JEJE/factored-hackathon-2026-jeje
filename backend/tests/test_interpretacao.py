@@ -1463,8 +1463,10 @@ def test_so_o_q_sozinho_vira_que():
     [
         ("¡Es un robo! Me cobraron 3 dólares de comisión", "es"),
         ("¡Esto es un robo! Pagué el pedido hace dos semanas y nunca llegó", "es"),
-        ("Que roubo, me cobraram tarifa de novo", "pt"),
         ("Isso é um assalto, a tarifa subiu de novo", "pt"),
+        # O dinheiro tirado pela tarifa (REG-39 da validação).
+        ("Me sacaron plata de la cuenta por la comisión de mantenimiento", "es"),
+        ("Tiraram dinheiro da minha conta pela tarifa do pacote", "pt"),
     ],
 )
 def test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo(texto, anterior):
@@ -1481,6 +1483,16 @@ def test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo(texto, ante
         ("¡Esto es un robo! Alguien usó mi tarjeta en otra ciudad", "es"),
         ("Fui vítima de um roubo, levaram meu cartão", "pt"),
         ("Me han estafado con una transferencia y no recupero el dinero", "es"),
+        # O "que" de quem roubou e o roubo de alguma coisa não são indignação (REG-39 da validação).
+        ("Alguien que robó mi tarjeta la está usando", "es"),
+        ("Fui víctima de alguien que robó mi billetera", "es"),
+        ("Creo que es un robo de identidad", "es"),
+        ("Isso é um roubo de identidade", "pt"),
+        # O dinheiro tirado da conta por outros.
+        ("¡Esto es un robo! Me sacaron plata de la cuenta", "es"),
+        ("Que roubo! Tiraram dinheiro da minha conta sem eu saber", "pt"),
+        # Sem a exclamação, o relato em volta dela continua inteiro.
+        ("Alguien, ¡esto es un robo!, usó mi tarjeta", "es"),
     ],
 )
 def test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude(texto, anterior):

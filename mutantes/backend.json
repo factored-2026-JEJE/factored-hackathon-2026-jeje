@@ -13022,14 +13022,89 @@
       ]
     },
     {
+      "id": "M-ITP-230",
+      "requisito": "R02",
+      "descricao": "O \"que\" volta à indignação: \"alguien que robó mi tarjeta la está usando\" deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e) ",
+          "para": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que) "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-231",
+      "requisito": "R02",
+      "descricao": "O roubo de alguma coisa vira indignação: \"creo que es un robo de identidad\" deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?![a-z0-9])(?! d[eoa]\\b)\"",
+          "para": "(?![a-z0-9])\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-232",
+      "requisito": "R02",
+      "descricao": "O dinheiro tirado da conta por outros (\"me sacaron plata de la cuenta\") não é fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU)),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-233",
+      "requisito": "R02",
+      "descricao": "O dinheiro tirado pela tarifa (\"me sacaron plata de la cuenta por la comisión\") é fraude e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=4,\n    fora_depois=(\"comision\",",
+          "para": "    depois=0,\n    fora_depois=(\"comision\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo"
+      ]
+    },
+    {
+      "id": "M-ITP-234",
+      "requisito": "R02",
+      "descricao": "Sem a exclamação, os espaços que sobram partem o relato em volta dela (\"alguien, ¡esto es un robo!, usó mi tarjeta\" deixa de ser fraude)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        lido = \" \".join(INDIGNACAO.sub(\" \", limpo).split()) if intencao == \"fraude\" else limpo\n",
+          "para": "        lido = INDIGNACAO.sub(\" \", limpo) if intencao == \"fraude\" else limpo\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
       "id": "M-ITP-227",
       "requisito": "R02",
       "descricao": "Quem disse ser do banco e pediu a clave ou tomou o cartão, na loja ou com o \"quien hablaba\", não é golpe (REG-37)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU)),\n",
-          "para": "                )),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),\n",
+          "para": "                DINHEIRO_SACADO)),\n"
         }
       ],
       "testes": [
@@ -13073,7 +13148,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "        lido = INDIGNACAO.sub(\" \", limpo) if intencao == \"fraude\" else limpo\n",
+          "de": "        lido = \" \".join(INDIGNACAO.sub(\" \", limpo).split()) if intencao == \"fraude\" else limpo\n",
           "para": "        lido = limpo\n"
         }
       ],
@@ -13088,8 +13163,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que) ",
-          "para": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que|sufri|hubo) "
+          "de": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e) ",
+          "para": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|sufri|hubo) "
         }
       ],
       "testes": [

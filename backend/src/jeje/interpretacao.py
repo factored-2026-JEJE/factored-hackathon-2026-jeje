@@ -592,11 +592,27 @@ DO_BANCO_E_TIROU = Perto(
 # assalto") não é relato de roubo: a fraude é lida sem ela, e o relato que vem junto continua
 # ("¡esto es un robo! alguien usó mi tarjeta"). 4 mensagens da gemma ES bloqueavam o cartão de quem
 # reclamava da compra não entregue. O roubo contado ("sufrí un robo", "fue un robo") não é
-# indignação.
+# indignação, nem o "que" ("alguien que robó mi tarjeta" sem acento é "que robo") nem o roubo de
+# alguma coisa ("es un robo de identidad"): a I1 do REG-39 da validação.
 INDIGNACAO = re.compile(
-    r"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que) "
-    r"(?:un |um )?(?:robo|roubo|asalto|assalto)(?![a-z0-9])"
+    r"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e) "
+    r"(?:un |um )?(?:robo|roubo|asalto|assalto)(?![a-z0-9])(?! d[eoa]\b)"
 )
+# O dinheiro tirado da conta por outros ("¡esto es un robo! me sacaron plata de la cuenta", "que
+# roubo! tiraram dinheiro da minha conta sem eu saber"), sem a tarifa logo depois ("me sacaron plata
+# de la cuenta por la comisión"): o C do REG-39 da validação, para os relatos que só a indignação
+# lia. As frases não entram no corretor.
+DINHEIRO_SACADO = Perto(
+    ("me sacaron", "sacaron", "me tiraram", "tiraram", "sumiu", "desaparecio", "me robaron"),
+    ("plata de la cuenta", "plata de mi cuenta", "dinero de la cuenta", "dinero de mi cuenta",
+     "dinheiro da conta", "dinheiro da minha conta", "dinheiro de minha conta"),
+    entre=2,
+    so_nessa_ordem=True,
+    depois=4,
+    fora_depois=("comision", "comisiones", "tarifa", "tarifas", "taxa", "taxas", "cuota",
+                 "anualidad", "anuidade", "mensalidade", "impuesto", "imposto"),
+    corrige=False,
+)  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -675,7 +691,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
                 "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
-                DISSE_DO_BANCO_E_AGIU)),
+                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
@@ -1181,7 +1197,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
             continue
         if intencao == "bloquear" and BLOQUEIO_CONTADO.search(texto.casefold()):
             continue
-        lido = INDIGNACAO.sub(" ", limpo) if intencao == "fraude" else limpo
+        lido = " ".join(INDIGNACAO.sub(" ", limpo).split()) if intencao == "fraude" else limpo
         casados = tuple(sinal for t in termos if (sinal := _casou(t, lido)))
         if intencao == "humano" and SO_A_PESSOA.match(limpo):
             casados = (*casados, "so_a_pessoa")
