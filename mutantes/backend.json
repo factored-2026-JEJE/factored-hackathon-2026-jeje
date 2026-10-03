@@ -14963,6 +14963,81 @@
       "testes": [
         "tests/test_conversa.py::test_o_sim_sem_nada_pendente_nao_conta_como_nao_entendido"
       ]
+    },
+    {
+      "id": "M-ITP-274",
+      "requisito": "R05",
+      "descricao": "O 'app' deixa de ser canal citado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"\\b(?:app|aplicativo|aplicacion|aplicacao|web|internet|online|en linea|pagina|site|cajero\"\n",
+          "para": "    r\"\\b(?:aplicativo|aplicacion|aplicacao|web|internet|online|en linea|pagina|site|cajero\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_canal_e_quando_relativo_citados_para_o_texto_do_caso"
+      ]
+    },
+    {
+      "id": "M-ITP-275",
+      "requisito": "R05",
+      "descricao": "O 'ayer' deixa de ser quando citado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"\\b(?:hoy|hoje|ayer|ontem|anteayer|antier|anteontem|anoche|esta manana|hoje de manha\"\n",
+          "para": "    r\"\\b(?:hoy|hoje|ontem|anteantier|anteontem|anoche|esta manana|hoje de manha\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_canal_e_quando_relativo_citados_para_o_texto_do_caso"
+      ]
+    },
+    {
+      "id": "M-ITP-276",
+      "requisito": "R05",
+      "descricao": "O 'há duas semanas' deixa de ser quando citado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\" (?:dia|dias|semana|semanas|mes|meses)\"\n",
+          "para": "    r\" (?:dia|dias|mes|meses)\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_canal_e_quando_relativo_citados_para_o_texto_do_caso"
+      ]
+    },
+    {
+      "id": "M-CONV-118",
+      "requisito": "R05",
+      "descricao": "A fala com o canal fica fora do texto do caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if canal_citado(fala):\n            campos.add(\"canal\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_leva_o_canal_e_o_quando_que_o_cliente_contou"
+      ]
+    },
+    {
+      "id": "M-CONV-119",
+      "requisito": "R05",
+      "descricao": "A fala com o quando relativo fica fora do texto do caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if quando_relativo_citado(fala):\n            campos.add(\"quando\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_leva_o_canal_e_o_quando_que_o_cliente_contou"
+      ]
     }
   ]
 }
