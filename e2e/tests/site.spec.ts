@@ -28,7 +28,7 @@ test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ 
   await expect(page.getByRole("link", { name: /How to test/ })).toHaveAttribute("href", "/#how-to-test");
   await page.getByRole("link", { name: /Abrir o app/ }).first().evaluate((a) => a.removeAttribute("target"));
   await page.getByRole("link", { name: /Abrir o app/ }).first().click();
-  await expect(page.getByRole("tab", { name: "Cliente" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "Customer" })).toHaveAttribute("aria-selected", "true");
 });
 
 test("os números vêm da API: as reclamações de transação e o tamanho da carga", async ({ page, request }) => {

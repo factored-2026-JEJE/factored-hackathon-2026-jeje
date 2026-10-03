@@ -3,7 +3,15 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Transacao } from "./api/cliente";
+import { SessaoProvider } from "./app/sessao";
 import { Atendimento } from "./Atendimento";
+
+// A sessão é do app inteiro (app/sessao.tsx): o acesso e a área do cliente vivem dentro dela.
+const comSessao = () => (
+  <SessaoProvider>
+    <Atendimento />
+  </SessaoProvider>
+);
 
 const ANA = {
   customer_id: "CLI-C",
@@ -77,7 +85,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 test("entrar como persona abre sessão e mostra só as transações dela", async () => {
   servidor();
-  render(<Atendimento />);
+  render(comSessao());
   await userEvent.click(await screen.findByRole("button", { name: "Entrar como Ana Souza" }));
   expect(await screen.findByRole("heading", { name: "Olá, Ana Souza" })).toBeInTheDocument();
   const linha = within(await screen.findByRole("row", { name: /Almacenes Éxito/ }));
@@ -88,7 +96,7 @@ test("entrar como persona abre sessão e mostra só as transações dela", async
 test("cada persona traz quantas contestáveis tem e a frase pronta com uma compra dela", async () => {
   // DEV-073: o exemplo do guia é da própria persona, não uma transação da fixture.
   servidor();
-  render(<Atendimento />);
+  render(comSessao());
   expect(await screen.findByText(/contestáveis: 4/)).toBeInTheDocument();
   expect(screen.getByText("No reconozco el cobro de 1.234,50 del 07/03")).toBeInTheDocument();
   expect(screen.getByText("Não reconheço a cobrança de 1.234,50 do dia 07/03")).toBeInTheDocument();
@@ -96,7 +104,7 @@ test("cada persona traz quantas contestáveis tem e a frase pronta com uma compr
 
 test("pede as transações com o token emitido e nunca com o id do cliente", async () => {
   const { pedidos } = servidor();
-  render(<Atendimento />);
+  render(comSessao());
   await userEvent.click(await screen.findByRole("button", { name: "Entrar como Ana Souza" }));
   await screen.findByRole("row", { name: /Almacenes Éxito/ });
   const lista = pedidos.find((p) => p.url === "/api/minhas/transacoes");
@@ -106,7 +114,7 @@ test("pede as transações com o token emitido e nunca com o id do cliente", asy
 
 test("sessão expirada volta para o acesso com aviso", async () => {
   const api = servidor();
-  render(<Atendimento />);
+  render(comSessao());
   api.invalidar();
   await userEvent.click(await screen.findByRole("button", { name: "Entrar como Ana Souza" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Sua sessão expirou");
@@ -116,7 +124,7 @@ test("sessão expirada volta para o acesso com aviso", async () => {
 
 test("sair apaga a sessão guardada", async () => {
   servidor();
-  render(<Atendimento />);
+  render(comSessao());
   await userEvent.click(await screen.findByRole("button", { name: "Entrar como Ana Souza" }));
   await screen.findByRole("heading", { name: "Olá, Ana Souza" });
   expect(sessionStorage.getItem("jeje.sessao")).toBe("tok-ana");
@@ -128,13 +136,13 @@ test("sair apaga a sessão guardada", async () => {
 test("recarregar a página com sessão guardada volta direto para o cliente", async () => {
   servidor();
   sessionStorage.setItem("jeje.sessao", "tok-ana");
-  render(<Atendimento />);
+  render(comSessao());
   expect(await screen.findByRole("heading", { name: "Olá, Ana Souza" })).toBeInTheDocument();
 });
 
 test("o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a sessão mostra o escolhido", async () => {
   const { dispositivos } = servidor();
-  render(<Atendimento />);
+  render(comSessao());
   const grupo = await screen.findByRole("radiogroup", { name: "Dispositivo (simulação)" });
   expect(within(grupo).getByRole("radio", { name: "Novo" })).toBeChecked();
   await userEvent.click(screen.getByRole("button", { name: "Entrar como Ana Souza" }));
@@ -148,18 +156,18 @@ test("o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a s
 
 test("recarregar a página mostra o dispositivo guardado pelo servidor", async () => {
   servidor();
-  render(<Atendimento />);
+  render(comSessao());
   await userEvent.click(await screen.findByRole("radio", { name: "Cadastrado" }));
   await userEvent.click(screen.getByRole("button", { name: "Entrar como Ana Souza" }));
   await screen.findByText("Dispositivo (simulação): cadastrado");
   cleanup();
-  render(<Atendimento />);
+  render(comSessao());
   expect(await screen.findByText("Dispositivo (simulação): cadastrado")).toBeInTheDocument();
 });
 
 async function perguntarSobreALinha(abrir: string) {
   const api = servidor();
-  render(<Atendimento />);
+  render(comSessao());
   await userEvent.click(await screen.findByRole("button", { name: "Entrar como Ana Souza" }));
   const linha = within(await screen.findByRole("row", { name: /Almacenes Éxito/ }));
   // Sem conversa aberta, não há a quem perguntar.
@@ -184,7 +192,7 @@ test("perguntar sobre esta manda à conversa em português as pistas da linha", 
 
 test("cada persona mostra as dicas para escolher o caminho da demonstração", async () => {
   servidor();
-  render(<Atendimento />);
+  render(comSessao());
   const item = (await screen.findByRole("button", { name: "Entrar como Ana Souza" })).closest("li");
   expect(item).toHaveTextContent("cartões para bloquear: 2 · recusas: 3 · pré-casos recentes: 1");
 });

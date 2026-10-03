@@ -31,12 +31,12 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
   const bloqueio = (await bloqueado.textContent())!.match(/BL-\d{8}/)![0];
 
   // O aviso ao atendente é o bloqueio no console.
-  await page.getByRole("tab", { name: "Atendente" }).click();
+  await page.getByRole("tab", { name: "Agent" }).click();
   const painel = page.getByRole("region", { name: "Bloqueios de cartão" });
   await expect(painel.getByRole("listitem", { name: `Bloqueio ${bloqueio}` })).toContainText("bloqueio completo");
 
   // Dentro do prazo, o cliente desfaz pela conversa, e só com o sim.
-  await page.getByRole("tab", { name: "Cliente" }).click();
+  await page.getByRole("tab", { name: "Customer" }).click();
   await page.getByLabel("Mensagem").fill("quiero desbloquear mi tarjeta");
   await page.getByRole("button", { name: "Enviar", exact: true }).click();
   await expect(falas).toHaveCount(5);
@@ -52,7 +52,7 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
   );
 
   // Some do console, na tela e na API.
-  await page.getByRole("tab", { name: "Atendente" }).click();
+  await page.getByRole("tab", { name: "Agent" }).click();
   await expect(painel.getByRole("listitem", { name: `Bloqueio ${bloqueio}` })).toHaveCount(0);
   const depois: { id: string }[] = await (await request.get("/api/atendimento/bloqueios?limite=100")).json();
   expect(depois.map((b) => b.id)).not.toContain(bloqueio);
@@ -93,7 +93,7 @@ test("relato de roubo: o cliente desfaz o bloqueio em até 7 dias pela conversa,
   );
 
   // O caso, na fila do atendente, mostra que o cliente desfez o bloqueio.
-  await page.getByRole("tab", { name: "Atendente" }).click();
+  await page.getByRole("tab", { name: "Agent" }).click();
   const caso = page.getByRole("region", { name: "Fila do atendimento humano" }).getByRole("listitem", { name: `Encaminhamento ${atendimento}` });
   await expect(caso.getByRole("list", { name: "Ações tentadas" })).toContainText(`desbloquear_cartao: ${bloqueio}: desfeito pelo cliente`);
   // Sem sobra para as outras jornadas: o atendente assume o caso.
