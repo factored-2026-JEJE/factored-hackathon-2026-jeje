@@ -210,6 +210,9 @@ PERDA_DE_MEIO = Perto(
 PEDIDO_DE_PESSOA = Perto(
     ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "pasas", "pasa",
      "pasenme", "pasen", "passem",
+     "passar para", "me passar para", "passe para", "pasar con", "pasarme con", "pases con",
+     "transfieras con", "transfiera con", "transfira para", "encaminhar para", "encaminhe para",
+     "encaminha para", "puede atender", "pode atender", "pode me atender",
      "passa", "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar",
      "contacto", "contato", "conect*", "chama", "chame", "chamar", "coloca", "coloque", "colocar",
      "atienda", "atenda", "dame", "deme", "llamame", "llame", "liga", "ligue", "poe", "ponme"),
@@ -296,6 +299,7 @@ CARTAO = ("tarjeta*", "cartao", "cartoes", *PLASTICO)
 PEDIDO_DE_BLOQUEIO = Perto(
     ("bloquear", "bloquearla", "bloquearlo", "bloquea", "bloquee", "bloqueen", "bloqueela",
      "bloqueala", "bloqueenla", "bloqueia", "bloqueie", "bloqueiem", "como bloqueo",
+     "bloqueame", "bloquearme", "bloqueenme", "bloqueeme", "congelame", "congelarme", "congelenme",
      "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congele", "congelen",
      "congelem", "congelarla", "congelala", "travar", "trave", "travem",
      # "Trava" e "congela" também descrevem o cartão ("meu cartão trava na maquininha", "o
@@ -311,6 +315,7 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
     ("desbloquear", "desbloquearla", "desbloquearlo", "desbloquea", "desbloquee", "desbloqueen",
      "desbloqueela", "desbloqueala", "desbloqueenla", "desbloqueia", "desbloqueie",
      "desbloqueiem", "como desbloqueo", "como desbloqueio", "el desbloqueo", "o desbloqueio",
+     "reactivame", "reactiveme", "reactivenme", "reactivarme",
      "reactivar", "reactiva", "reactive", "reactiven", "reativar", "reativa", "reative",
      "reativem"),
     CARTAO,
@@ -702,6 +707,7 @@ VOLTA_DO_BLOQUEADO = Perto(
 NEGACAO = (
     r"(?<![a-z0-9])(?:no|nao|nunca)(?: (?:quiero|quero|necesito|preciso|precisa|precisam"
     r"|hace falta|es necesario|e necessario|vayan a|van a|va a|vao|vai|pueden|podem|puede|pode"
+    r"|que|vayas a|vas a|vuelvan a|vuelva a|vuelvas a|voltem a|volte a|volta a"
     r"|me|te|la|lo|a|o|mi|meu|minha|el|os|as|las|los))* "
 )
 # O bloqueio que o cliente já fez ("ya bloqueé mi tarjeta", "la bloquee por error") conta o que
@@ -761,6 +767,9 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
                    "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
+                   "no lo hice", "no la hice", "no los hice", "no las hice", "nao o fiz",
+                   "nao a fiz", "nao os fiz", "nao as fiz", "no lo autorice", "no la autorice",
+                   "nao o autorizei", "nao a autorizei",
                    COBRANCA_REPETIDA, COBRANCA_A_MAIS, "revisen", "revisem", "reclamar",
                    PEDIDO_DE_CONTESTACAO, TRANSACAO_NEGADA)),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
