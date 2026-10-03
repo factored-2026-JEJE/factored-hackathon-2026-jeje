@@ -4743,7 +4743,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"usaron mi tarjeta\", \"usaram meu cartao\", \"alguien uso mi tarjeta\",\n                \"alguem usou meu cartao\",\n",
+          "de": "                \"usaron mi tarjeta\", \"usaram meu cartao\",\n",
           "para": ""
         }
       ],
@@ -12315,8 +12315,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
-          "para": "    (\"usa mi\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+          "de": "    (\"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\",",
+          "para": "    (\"usa mi\", \"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -12740,7 +12740,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la utilizo\", \"la uso\", \"la usaron\", \"la utilizaron\", \"la esta usando\", \"la esta utilizando\",\n     \"la ha utilizado\", \"la ha usado\", \"usado mi\", \"usado meu\", \"usado minha\", \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou a minha\", \"usou o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la esta usando\", \"la esta utilizando\",\n     \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
           "para": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\"),"
         }
       ],
@@ -13061,8 +13061,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_USOU)),\n"
         }
       ],
       "testes": [
@@ -13076,8 +13076,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    antes=3,\n    fora_antes=(\"pense\", \"pensaba\",",
-          "para": "    antes=0,\n    fora_antes=(\"pense\", \"pensaba\","
+          "de": "    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\", \"si\",",
+          "para": "    antes=0,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\", \"si\","
         }
       ],
       "testes": [
@@ -13316,8 +13316,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n"
         }
       ],
       "testes": [
@@ -13361,8 +13361,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),\n",
-          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
+          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n"
         }
       ],
       "testes": [
@@ -13616,8 +13616,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
-          "para": "    (\"usando\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+          "de": "    (\"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\",",
+          "para": "    (\"usando\", \"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -14586,6 +14586,51 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_consequencia_de_golpe_nao_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-264",
+      "requisito": "R03",
+      "descricao": "O uso por outro pensado ou perguntado volta a ser fraude: o ALGUEM_USOU sem o pensar e a pergunta antes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\",\n                \"pensei\", \"pensava\", \"achei\", \"achava\", \"perguntou\", \"perguntei\"),\n",
+          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-265",
+      "requisito": "R03",
+      "descricao": "O ALGUEM_USOU casa nas duas ordens, e o pensar antes do par deixa de desfazê-lo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
+          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-266",
+      "requisito": "R03",
+      "descricao": "O uso por outro contado no passado deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),",
+          "para": "DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
       ]
     }
   ]
