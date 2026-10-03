@@ -664,6 +664,36 @@
       "testes": [
         "site.spec.ts > no celular, o menu do cabeçalho leva às seções e fecha"
       ]
+    },
+    {
+      "id": "M-E2E-49",
+      "requisito": "R03",
+      "descricao": "Sem escolha, o acesso marca o dispositivo novo, e não o cadastrado do design",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Atendimento.tsx",
+          "de": "useState<Dispositivo>(\"cadastrado\")",
+          "para": "useState<Dispositivo>(\"novo\")"
+        }
+      ],
+      "testes": [
+        "acesso.spec.ts > entrar como persona mostra na tela exatamente as transações da sessão"
+      ]
+    },
+    {
+      "id": "M-E2E-50",
+      "requisito": "R02",
+      "descricao": "No celular, a conversa continua na tela quando a aba interna é a das transações",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/abas/cliente/cliente.css",
+          "de": "  .cli:not([data-painel=\"0\"]) .cli-conversa { display: none; }\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "celular.spec.ts > a página cabe na tela e o Enviar recebe o toque"
+      ]
     }
   ]
 }
