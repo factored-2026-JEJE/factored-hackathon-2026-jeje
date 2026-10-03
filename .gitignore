@@ -12,5 +12,6 @@ data/raw/
 *.tsbuildinfo
 test-results/
 playwright-report/
-# O relatório parcial do atacante (make atacar); o final fica, para a release o incluir.
-resultados/atacante/*.parcial.json
+# Os relatórios do atacante (make atacar) ficam fora do Git, senão o make publicar acha a árvore suja;
+# o da versão entregue entra com git add -f.
+resultados/atacante/
