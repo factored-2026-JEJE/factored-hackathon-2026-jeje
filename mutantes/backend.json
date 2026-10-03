@@ -12669,6 +12669,21 @@
       ]
     },
     {
+      "id": "M-ITP-257",
+      "requisito": "R03",
+      "descricao": "A descrição do cartão que se bloqueia bloqueia na hora (ACH-221)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if DESCRICAO_DO_BLOQUEIO.search(limpo):\n        return True\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_descricao_do_cartao_que_se_bloqueia_pede_confirmacao"
+      ]
+    },
+    {
       "id": "M-ITP-190",
       "requisito": "R07",
       "descricao": "A suspeita sem prejuízo com \"no se la di\" lida como fraude bloqueia o cartão (REG-21)",
