@@ -28,3 +28,10 @@ export const CLIENTE = {
   opcoes: E("Options", "Opciones", "Opções"),
   atalhos: E("Shortcuts", "Atajos", "Atalhos"),
 } as const;
+
+// Os atalhos do design mandam a frase deles, menos a que as regras não entendem (conferido contra a API
+// da fixture em 03/10): o rótulo segue o do design, e vai a frase que o produto entende. Em português,
+// "pedido" sozinho é ambíguo para as regras (fazer um pedido); o registrado é o "pedido de revisão".
+export const FRASE_DO_ATALHO: Readonly<Record<string, string>> = {
+  "Como está meu pedido?": "Como está meu pedido de revisão?",
+};

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CLIENTE } from "./abas/cliente/textos";
+import { CLIENTE, FRASE_DO_ATALHO } from "./abas/cliente/textos";
 import { linhasDoPorQue, type Motivo } from "./abas/cliente/porQue";
 import {
   abrirConversa,
@@ -398,7 +398,7 @@ export function Conversa({
         {!encerrada && !comAtendente && (
           <div role="group" aria-label={traduzir(CLIENTE.atalhos, lingua)} className="conv-atalhos">
             {ATALHOS[idiomaDaConversa].map(([rotulo, frase]) => (
-              <button key={rotulo} type="button" disabled={enviando} onClick={() => void enviar(frase)}>
+              <button key={rotulo} type="button" disabled={enviando} onClick={() => void enviar(FRASE_DO_ATALHO[frase] ?? frase)}>
                 {rotulo}
               </button>
             ))}
