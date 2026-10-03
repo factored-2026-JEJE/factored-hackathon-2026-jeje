@@ -14,7 +14,8 @@ import {
   type PersonaDaDemo,
   type ResultadoDoTurno,
 } from "../api/cliente";
-import { frasesDoExemplo } from "../frasesDoCliente";
+import { frasesDoExemplo, idiomaDaFrase } from "../frasesDoCliente";
+import { escolherPersona } from "../personas";
 import { SEM_NUMEROS, comNumerosAoVivo, lerNumerosAoVivo, type NumerosAoVivo } from "./aoVivo";
 import {
   C as frase,
@@ -211,16 +212,8 @@ const TRANSACAO_AO_VIVO = {
   ),
 };
 
-/**
- * A persona da conversa de verdade: a que tem um exemplo para contestar e, depois, mais de uma
- * recusa (o "qual transação" do design) e um cartão para bloquear (sem ele, o relato de fraude ainda
- * vai ao atendente).
- */
-export function escolherPersona(personas: readonly PersonaDaDemo[]): PersonaDaDemo | undefined {
-  const nota = (p: PersonaDaDemo) =>
-    (p.exemplo ? 4 : 0) + (p.transacoes_recusadas > 1 ? 2 : 0) + (p.cartoes_bloqueaveis > 0 ? 1 : 0);
-  return [...personas].sort((a, b) => nota(b) - nota(a))[0];
-}
+// A persona da conversa de verdade (personas.ts), a mesma que o "Try in ES/PT" do app usa.
+export { escolherPersona };
 
 /**
  * Um valor no meio de um texto, como no runtime do design: num <span> próprio. Num contêiner flex o
@@ -917,11 +910,7 @@ export class Site extends Component<object, Estado> {
   }
 
   private detectLang(t?: string): IdiomaDaConversa | null {
-    if (!t) return null;
-    const s = " " + t.toLowerCase() + " ";
-    if (/[ãõç]|\snão\s|\snao\s|\smeu\s|\sminha\s|\svocê\s|\scartão\s|\scobrança\s|\squero\s|\sroubaram\s/.test(s)) return "pt";
-    if (/[ñ¿¡]|\smi\s|\starjeta\s|\squiero\s|\scobro\s|\srobaron\s|\sme\s/.test(s)) return "es";
-    return null;
+    return t ? idiomaDaFrase(t) : null;
   }
 
   private match(t: string): IdDaJornada {

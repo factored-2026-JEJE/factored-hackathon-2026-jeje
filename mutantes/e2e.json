@@ -300,9 +300,9 @@
       "descricao": "Fila do atendente não atualiza quando a conversa encaminha",
       "trocas": [
         {
-          "arquivo": "frontend/src/App.tsx",
-          "de": "          <FilaDoAtendimento versao={versao} />",
-          "para": "          <FilaDoAtendimento versao={0} />"
+          "arquivo": "frontend/src/abas/Atendente.tsx",
+          "de": "      <FilaDoAtendimento versao={versao} />",
+          "para": "      <FilaDoAtendimento versao={0} />"
         }
       ],
       "testes": [
@@ -391,9 +391,9 @@
       "descricao": "Console de bloqueios não atualiza quando a conversa bloqueia o cartão",
       "trocas": [
         {
-          "arquivo": "frontend/src/App.tsx",
-          "de": "          <BloqueiosDoAtendimento versao={versao} />",
-          "para": "          <BloqueiosDoAtendimento versao={0} />"
+          "arquivo": "frontend/src/abas/Atendente.tsx",
+          "de": "      <BloqueiosDoAtendimento versao={versao} />",
+          "para": "      <BloqueiosDoAtendimento versao={0} />"
         }
       ],
       "testes": [
@@ -451,9 +451,14 @@
       "descricao": "O guia dos jurados fica sem aba e sem endereço",
       "trocas": [
         {
-          "arquivo": "frontend/src/App.tsx",
-          "de": "  [\"how-to-test\", \"How to test\"],\n",
-          "para": ""
+          "arquivo": "frontend/src/app/abas.ts",
+          "de": "  return ABAS.find(([id]) => id === pedida)?.[0] ?? \"cliente\";\n",
+          "para": "  return ABAS.find(([id]) => id === pedida && id !== \"how-to-test\")?.[0] ?? \"cliente\";\n"
+        },
+        {
+          "arquivo": "frontend/src/app/Topo.tsx",
+          "de": "        {ABAS.map(([id, chave]) => (\n",
+          "para": "        {ABAS.filter(([id]) => id !== \"how-to-test\").map(([id, chave]) => (\n"
         }
       ],
       "testes": [
@@ -552,6 +557,36 @@
       ],
       "testes": [
         "site.spec.ts > os números vêm da API: as reclamações de transação e o tamanho da carga"
+      ]
+    },
+    {
+      "id": "M-E2E-40",
+      "requisito": "R02",
+      "descricao": "Os botões de língua da barra do topo não trocam a língua",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/app/Topo.tsx",
+          "de": "onClick={() => mudarLingua(l)}",
+          "para": "onClick={() => mudarLingua(lingua)}"
+        }
+      ],
+      "testes": [
+        "casca.spec.ts > a língua vem do endereço e da barra do topo, sem trocar a área aberta"
+      ]
+    },
+    {
+      "id": "M-E2E-41",
+      "requisito": "R02",
+      "descricao": "O ?lang= do endereço é ignorado: o app abre sempre em inglês",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/app/lingua.ts",
+          "de": "  return ehLingua(pedida) ? pedida : \"en\";",
+          "para": "  return ehLingua(pedida) ? \"en\" : \"en\";"
+        }
+      ],
+      "testes": [
+        "casca.spec.ts > a língua vem do endereço e da barra do topo, sem trocar a área aberta"
       ]
     }
   ]

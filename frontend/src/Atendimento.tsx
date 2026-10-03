@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  abrirSessao,
   type Dispositivo,
   type Idioma,
   listarPersonas,
@@ -10,13 +9,11 @@ import {
   type PersonaDaDemo,
   type PreCaso,
   SessaoExpirada,
-  sessaoAtual,
   type Transacao,
 } from "./api/cliente";
+import { useSessao } from "./app/sessao";
 import { Conversa } from "./Conversa";
 import { frasesDoExemplo, quantiaDoCliente } from "./frasesDoCliente";
-
-const CHAVE_SESSAO = "jeje.sessao";
 
 const STATUS: Record<string, string> = {
   Approved: "Aprovada",
@@ -37,29 +34,10 @@ const valor = (t: Transacao) =>
 const quando = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
-type Sessao = { token: string; cliente: Persona; dispositivo: Dispositivo };
-
 const DISPOSITIVOS: [Dispositivo, string][] = [
   ["novo", "Novo"],
   ["cadastrado", "Cadastrado"],
 ];
-
-function lerSessaoGuardada(): string | null {
-  try {
-    return sessionStorage.getItem(CHAVE_SESSAO);
-  } catch {
-    return null;
-  }
-}
-
-function guardarSessao(token: string | null) {
-  try {
-    if (token) sessionStorage.setItem(CHAVE_SESSAO, token);
-    else sessionStorage.removeItem(CHAVE_SESSAO);
-  } catch {
-    // Sem armazenamento: a sessão vale só enquanto a página estiver aberta.
-  }
-}
 
 function MeusPreCasos({ token, versao }: { token: string; versao: number }) {
   const [preCasos, setPreCasos] = useState<PreCaso[]>([]);
@@ -163,50 +141,50 @@ function MinhasTransacoes({
   );
 }
 
-/** Acesso de teste por persona e área do cliente (a identidade vem só da sessão). `aoMudar` avisa
- * que a conversa criou algo (pré-caso, encaminhamento) para a fila e as métricas se atualizarem. */
-export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
-  const [sessao, setSessao] = useState<Sessao | null>(null);
+/** Acesso de teste por persona e área do cliente (a identidade vem só da sessão, que é do app inteiro).
+ * `aoMudar` avisa que a conversa criou algo (pré-caso, encaminhamento) para a fila e as métricas se
+ * atualizarem. `pergunta` é a frase que vai para a conversa como mensagem do cliente: a do "Perguntar
+ * sobre esta" ou a do "Try in ES/PT" das outras abas (`experimentar` do App). */
+export function Atendimento({
+  aoMudar = () => {},
+  pergunta = null,
+  aoPerguntar,
+  aoPerguntado = () => {},
+}: {
+  aoMudar?: () => void;
+  pergunta?: string | null;
+  aoPerguntar?: (pergunta: string) => void;
+  aoPerguntado?: () => void;
+}) {
+  const { sessao, aviso, entrar: entrarNaSessao, sair, expirou } = useSessao();
   const [personas, setPersonas] = useState<PersonaDaDemo[] | null>(null);
-  const [aviso, setAviso] = useState<string | null>(null);
   const [versaoPreCasos, setVersaoPreCasos] = useState(0);
   // Sem escolha, "novo": o lado conservador (bloqueio preventivo e atendente).
   const [dispositivo, setDispositivo] = useState<Dispositivo>("novo");
   // "Perguntar sobre esta": a tabela monta a pergunta na língua da conversa aberta, e a conversa a
   // envia como mensagem do cliente.
   const [idiomaDaConversa, setIdiomaDaConversa] = useState<Idioma | null>(null);
-  const [pergunta, setPergunta] = useState<string | null>(null);
-  const perguntada = useCallback(() => setPergunta(null), []);
+  const [perguntaLocal, setPerguntaLocal] = useState<string | null>(null);
+  const perguntar = aoPerguntar ?? setPerguntaLocal;
+  const perguntaAtual = aoPerguntar ? pergunta : perguntaLocal;
+  const perguntada = useCallback(() => {
+    setPerguntaLocal(null);
+    aoPerguntado();
+  }, [aoPerguntado]);
   // O pré-caso nasce na conversa: cada registro atualiza a lista, a fila e as métricas.
   const conversaMudou = useCallback(() => {
     setVersaoPreCasos((v) => v + 1);
     aoMudar();
   }, [aoMudar]);
 
-  const sair = useCallback((mensagem: string | null = null) => {
-    guardarSessao(null);
-    setSessao(null);
-    setAviso(mensagem);
-  }, []);
-  const expirou = useCallback(() => sair("Sua sessão expirou. Entre de novo."), [sair]);
-
   useEffect(() => {
-    const token = lerSessaoGuardada();
-    if (token) {
-      sessaoAtual(token)
-        .then((atual) => setSessao({ token, cliente: atual, dispositivo: atual.dispositivo }))
-        .catch(() => sair("Sua sessão expirou. Entre de novo."));
-    }
     listarPersonas()
       .then(setPersonas)
       .catch(() => setPersonas([]));
-  }, [sair]);
+  }, []);
 
   async function entrar(persona: Persona) {
-    const aberta = await abrirSessao(persona.customer_id, dispositivo);
-    guardarSessao(aberta.token);
-    setAviso(null);
-    setSessao({ token: aberta.token, cliente: aberta.cliente, dispositivo: aberta.dispositivo });
+    await entrarNaSessao(persona, dispositivo);
   }
 
   if (sessao) {
@@ -224,14 +202,14 @@ export function Atendimento({ aoMudar = () => {} }: { aoMudar?: () => void }) {
           aoExpirar={expirou}
           aoMudar={conversaMudou}
           aoIdioma={setIdiomaDaConversa}
-          pergunta={pergunta}
+          pergunta={perguntaAtual}
           aoPerguntado={perguntada}
         />
         <MinhasTransacoes
           token={sessao.token}
           aoExpirar={expirou}
           idioma={idiomaDaConversa}
-          aoPerguntar={setPergunta}
+          aoPerguntar={perguntar}
         />
         <MeusPreCasos token={sessao.token} versao={versaoPreCasos} />
       </section>
