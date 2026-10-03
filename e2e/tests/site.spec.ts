@@ -177,3 +177,12 @@ test("sem movimento, o mapa é o 2D e o recibo aparece inteiro", async ({ page }
     page.locator("[style*='clip-path']").first().evaluate((e) => parseFloat((e as HTMLElement).style.clipPath.split(/[()\s]+/)[3] ?? "100"));
   await expect.poll(recorte).toBe(0);
 });
+
+test("sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404", async ({ page, request }) => {
+  // O 404 de verdade (e não a página do app): é por ele que o site sabe que o teste ainda não rodou.
+  expect((await request.get("/resultados/teste-final.json")).status()).toBe(404);
+  await page.goto("/site/?lang=pt");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Não é um chatbot.");
+  await expect(page.locator("#resultados")).toHaveCount(0);
+  await expect(page.getByRole("navigation").getByRole("link", { name: "Resultados" })).toHaveCount(0);
+});
