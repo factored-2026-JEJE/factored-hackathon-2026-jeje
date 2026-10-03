@@ -1839,3 +1839,33 @@ def test_plural_de_termo_nao_e_corrigido_para_o_termo():
     texto = "Estoy preocupado con tantas estafas y golpes"
     assert interpretacao.corrigir(texto) == (texto, ())
     assert ler("No reconosco un cargo").intencao == "contestar"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # A transação "duplicada", "extraña" ou "desconocida" é contestação (ACH-220 da validação).
+        ("La compra de 80 dólares está duplicada", "es"),
+        ("Meu pagamento de 50 reais está duplicado", "pt"),
+        ("Tengo un cargo extraño en mi tarjeta", "es"),
+        ("Apareceu uma cobrança estranha no meu cartão", "pt"),
+        ("Hay un cargo desconocido en mi tarjeta", "es"),
+        ("Tem uma compra desconhecida no meu cartão", "pt"),
+    ],
+)
+def test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao(texto, anterior):
+    assert ler(texto, anterior).intencao == "contestar"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # Com o sinal de golpe antes, a consequência não decide: o relato fica com o leitor e o LLM
+        # (REG-68 e REG-69 da validação).
+        ("Hice clic en un enlace del banco que me llegó por mensaje y tengo cobros extraños", "es"),
+        ("Cliquei num link do banco que chegou por mensagem e tenho cobranças estranhas", "pt"),
+        ("Me llegó un SMS del banco, puse mis datos y ahora tengo cargos desconocidos", "es"),
+    ],
+)
+def test_consequencia_de_golpe_nao_e_contestacao(texto, anterior):
+    assert ler(texto, anterior).intencao != "contestar"
