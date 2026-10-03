@@ -27,6 +27,11 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
   await expect(bloqueado).toContainText("Bloqueé tu tarjeta de débito terminada en 9876 (bloqueo completo simulado, referencia BL-");
   const bloqueio = (await bloqueado.textContent())!.match(/BL-\d{8}/)![0];
 
+  // O painel de cartões da sessão relê o cartão (2.1): bloqueado, completo, com a nota de desfazer.
+  const cartao = page.getByRole("region", { name: UI.es.cartoes }).getByRole("listitem").filter({ hasText: "•••• 9876" });
+  await expect(cartao).toContainText("bloqueada · completo");
+  await expect(cartao).toContainText("Se puede deshacer por el chat en hasta 7 días.");
+
   // O aviso ao atendente é o bloqueio no console.
   await page.getByRole("tab", { name: UI.es.agente }).click();
   const painel = page.getByRole("region", { name: "Bloqueios de cartão" });
@@ -46,6 +51,8 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
   await expect(falas.last().locator("p").first()).toHaveText(
     `Listo: deshice el bloqueo de tu tarjeta de débito terminada en 9876 (referencia ${bloqueio}).`,
   );
+  await expect(cartao).toContainText("activa");
+  await expect(cartao).not.toContainText("bloqueada");
 
   // Some do console, na tela e na API.
   await page.getByRole("tab", { name: UI.es.agente }).click();
