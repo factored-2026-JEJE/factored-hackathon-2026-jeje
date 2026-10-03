@@ -33,6 +33,12 @@
 		try_files {path} /site/index.html
 		file_server
 	}
+	# Os resultados do teste final (1.5 do fechamento): o arquivo, se já existir; sem ele, 404, e não a
+	# página do app (o site esconde a seção quando não há resultado).
+	handle /resultados/* {
+		root * /srv
+		file_server
+	}
 	handle {
 		root * /srv
 		try_files {path} /index.html

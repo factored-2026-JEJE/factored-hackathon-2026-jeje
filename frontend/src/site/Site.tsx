@@ -29,6 +29,7 @@ import {
   type TipoDeFonte,
 } from "./conteudo";
 import { CONTEUDO_DO_MAIN, MAPA_DO_MAIN } from "./fatos";
+import { estadoConcluido, formatarCelula, LINHAS_DA_TABELA, lerResultados, type ResultadosDoTeste } from "./resultados";
 import {
   DADOS,
   IDS_DOS_NOS,
@@ -89,6 +90,8 @@ interface Estado {
   appHash: string;
   /** O menu do cabeçalho abaixo de 980 px. */
   menuOpen: boolean;
+  /** Os números do teste final (resultados.ts); sem o arquivo, null, e a seção não aparece. */
+  resultados: ResultadosDoTeste | null;
 }
 
 interface Rotulo {
@@ -257,6 +260,7 @@ export class Site extends Component<object, Estado> {
     appSrc: "",
     appHash: "#cliente",
     menuOpen: false,
+    resultados: null,
   };
   canvasRef = createRef<HTMLCanvasElement>();
   stageRef = createRef<HTMLDivElement>();
@@ -351,6 +355,9 @@ export class Site extends Component<object, Estado> {
     const sinal = this.leitura.signal;
     void lerNumerosAoVivo(sinal).then((numeros) => {
       if (!sinal.aborted) this.setState({ numeros });
+    });
+    void lerResultados(sinal).then((resultados) => {
+      if (!sinal.aborted) this.setState({ resultados });
     });
     situacaoDoAcesso()
       .then((s) => !sinal.aborted && this.setState({ acesso: !s.restrito || s.liberado ? "aberto" : "fechado" }))
@@ -1418,7 +1425,10 @@ export class Site extends Component<object, Estado> {
     };
     const vivo = this.aoVivo();
     const doSite = comNumerosAoVivo(resolver(CONTEUDO_DO_SITE, S.lang), S.numeros, S.lang);
-    const t = vivo ? { ...doSite, dock: { ...doSite.dock, note: doSite.dock.noteLive ?? doSite.dock.note } } : doSite;
+    const comVivo = vivo ? { ...doSite, dock: { ...doSite.dock, note: doSite.dock.noteLive ?? doSite.dock.note } } : doSite;
+    // Depois do teste final, o estado da seção de resultados é o concluído, com o commit e a evidência.
+    const feito = S.resultados ? estadoConcluido(S.resultados, S.lang) : null;
+    const t = feito ? { ...comVivo, results: { ...comVivo.results, status: feito.status, statusNote: feito.nota } } : comVivo;
     const C = CONTEUDO_DO_SITE;
     const cl = S.convLang;
     const ink = "#16150F";
@@ -1712,7 +1722,8 @@ export class Site extends Component<object, Estado> {
       progRef: this.progRef,
       zoneRef: this.zoneRef,
       convRef: this.convRef,
-      navItems: t.ui.nav.map((n) => ({
+      // Sem a seção de resultados, o menu não leva a ela.
+      navItems: t.ui.nav.filter((n) => n.href !== "#resultados" || SO_DESIGN || S.resultados !== null).map((n) => ({
         href: n.href,
         label: n.label,
         go: (e: MouseEvent<HTMLAnchorElement>) => {
@@ -1769,7 +1780,13 @@ export class Site extends Component<object, Estado> {
       reproLines,
       reproCursor: S.reproN >= rl.length ? "$ _" : S.reproN === 0 ? "$ _" : "…",
       runRepro: this.runRepro,
-      resRows: t.results.rows.map((l) => ({ l, cells: t.results.cols.map((_c, k) => (k === 5 ? "— / 80" : "—")) })),
+      // Sem o arquivo do teste final, os traços do design; com ele, os números, na língua do site.
+      resRows: t.results.rows.map((l, i) => {
+        const linha = S.resultados?.linhas[LINHAS_DA_TABELA[i] ?? "baseline"];
+        return { l, cells: t.results.cols.map((_c, k) => (linha ? formatarCelula(linha[k] ?? null, S.lang) : k === 5 ? "— / 80" : "—")) };
+      }),
+      // Só o design (a comparação da réplica) mostra a seção sem o arquivo; o site publicado, só com ele.
+      mostrarResultados: SO_DESIGN || S.resultados !== null,
       outItems: t.results.out.map((o) => ({
         id: o[0],
         txt: o[1],
@@ -3195,133 +3212,137 @@ export class Site extends Component<object, Estado> {
           {" "}
         </section>
         {" "}
-        <section id="resultados" style={{ position: "relative", pointerEvents: "auto", background: "#F0ECE3", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px)", scrollMarginTop: "56px" }}>
-          {" "}
-          <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "28px" }}>
+        {/* Sem o arquivo do teste final, o site publicado não mostra a seção (resultados.ts); edição à
+            mão no template convertido, como as do reaplicar.py. */}
+        {v.mostrarResultados ? (
+          <section id="resultados" style={{ position: "relative", pointerEvents: "auto", background: "#F0ECE3", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px)", scrollMarginTop: "56px" }}>
             {" "}
-            <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
-              <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
-              {I(v.t.results.kicker)}{" · VAL-019"}
-            </p>
-            {" "}
-            <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".88", margin: "0", fontSize: "clamp(44px,6.4vw,104px)", maxWidth: "1100px", textWrap: "balance" }}>
-              {I(v.t.results.title)}
-            </h2>
-            {" "}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "14px 28px", alignItems: "flex-start" }}>
+            <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "28px" }}>
               {" "}
-              <div style={{ display: "flex", gap: "10px", alignItems: "center", border: "1px solid #16150F", padding: "10px 14px", background: "#F7F4EC" }}>
-                <span style={{ width: "10px", height: "10px", background: "#FF5520" }}></span>
-                <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", textTransform: "uppercase", fontWeight: "600" }}>
-                  {I(v.t.results.status)}
-                </span>
-              </div>
-              {" "}
-              <p style={{ flex: "1 1 420px", margin: "0", fontSize: "16px", lineHeight: "1.5", maxWidth: "640px" }}>
-                {I(v.t.results.statusNote)}
+              <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
+                <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
+                {I(v.t.results.kicker)}{" · VAL-019"}
               </p>
               {" "}
-            </div>
-            {" "}
-            <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: "0", borderTop: "1px solid #16150F" }}>
+              <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".88", margin: "0", fontSize: "clamp(44px,6.4vw,104px)", maxWidth: "1100px", textWrap: "balance" }}>
+                {I(v.t.results.title)}
+              </h2>
               {" "}
-              {v.t.results.setup.map((x, i0) => (
-                <Fragment key={i0}>
-                  <li style={{ padding: "14px 16px 14px 0", borderBottom: "1px solid #CFC7B8", fontSize: "14px", lineHeight: "1.45" }}>
-                    {I(x)}
-                  </li>
-                </Fragment>
-              ))}
-              {" "}
-            </ul>
-            {" "}
-            <div style={{ overflowX: "auto", border: "1px solid #16150F", background: "#F7F4EC" }}>
-              {" "}
-              <div style={{ minWidth: "1080px", display: "grid", gridTemplateColumns: "200px repeat(9,minmax(0,1fr))" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "14px 28px", alignItems: "flex-start" }}>
                 {" "}
-                <div style={{ padding: "12px 14px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase", color: "#57534A" }}>
-                  {"ES + PT · n = 80"}
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", border: "1px solid #16150F", padding: "10px 14px", background: "#F7F4EC" }}>
+                  <span style={{ width: "10px", height: "10px", background: "#FF5520" }}></span>
+                  <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", textTransform: "uppercase", fontWeight: "600" }}>
+                    {I(v.t.results.status)}
+                  </span>
                 </div>
                 {" "}
-                {v.t.results.cols.map((c, i0) => (
-                  <Fragment key={i0}>
-                    <div style={{ padding: "12px 10px", borderBottom: "1px solid #16150F", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", lineHeight: "1.35", textTransform: "uppercase" }}>
-                      {I(c)}
-                    </div>
-                  </Fragment>
-                ))}
-                {" "}
-                {v.resRows.map((r, i0) => (
-                  <Fragment key={i0}>
-                    {" "}
-                    <div style={{ padding: "16px 14px", borderBottom: "1px solid #CFC7B8", fontSize: "13.5px", fontWeight: "600" }}>
-                      {I(r.l)}
-                    </div>
-                    {" "}
-                    {r.cells.map((c, i1) => (
-                      <Fragment key={i1}>
-                        <div style={{ padding: "16px 10px", borderBottom: "1px solid #CFC7B8", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontSize: "12px", color: "#57534A", background: "repeating-linear-gradient(135deg,transparent 0 7px,rgba(22,21,15,.06) 7px 8px)" }}>
-                          {I(c)}
-                        </div>
-                      </Fragment>
-                    ))}
-                    {" "}
-                  </Fragment>
-                ))}
+                <p style={{ flex: "1 1 420px", margin: "0", fontSize: "16px", lineHeight: "1.5", maxWidth: "640px" }}>
+                  {I(v.t.results.statusNote)}
+                </p>
                 {" "}
               </div>
               {" "}
-            </div>
-            {" "}
-            <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.5", color: "#57534A", maxWidth: "860px" }}>
-              {I(v.t.results.t2)}{" "}
-              <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10.5px", color: "#2B35F0" }}>
-                {"VAL-019a"}
-              </span>
-            </p>
-            {" "}
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
+              <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: "0", borderTop: "1px solid #16150F" }}>
+                {" "}
+                {v.t.results.setup.map((x, i0) => (
+                  <Fragment key={i0}>
+                    <li style={{ padding: "14px 16px 14px 0", borderBottom: "1px solid #CFC7B8", fontSize: "14px", lineHeight: "1.45" }}>
+                      {I(x)}
+                    </li>
+                  </Fragment>
+                ))}
+                {" "}
+              </ul>
               {" "}
-              <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".9", margin: "0", fontSize: "clamp(32px,3.4vw,52px)" }}>
-                {I(v.t.results.outTitle)}
-              </h3>
+              <div style={{ overflowX: "auto", border: "1px solid #16150F", background: "#F7F4EC" }}>
+                {" "}
+                <div style={{ minWidth: "1080px", display: "grid", gridTemplateColumns: "200px repeat(9,minmax(0,1fr))" }}>
+                  {" "}
+                  <div style={{ padding: "12px 14px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase", color: "#57534A" }}>
+                    {"ES + PT · n = 80"}
+                  </div>
+                  {" "}
+                  {v.t.results.cols.map((c, i0) => (
+                    <Fragment key={i0}>
+                      <div style={{ padding: "12px 10px", borderBottom: "1px solid #16150F", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", lineHeight: "1.35", textTransform: "uppercase" }}>
+                        {I(c)}
+                      </div>
+                    </Fragment>
+                  ))}
+                  {" "}
+                  {v.resRows.map((r, i0) => (
+                    <Fragment key={i0}>
+                      {" "}
+                      <div style={{ padding: "16px 14px", borderBottom: "1px solid #CFC7B8", fontSize: "13.5px", fontWeight: "600" }}>
+                        {I(r.l)}
+                      </div>
+                      {" "}
+                      {r.cells.map((c, i1) => (
+                        <Fragment key={i1}>
+                          <div style={{ padding: "16px 10px", borderBottom: "1px solid #CFC7B8", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontSize: "12px", color: "#57534A", background: "repeating-linear-gradient(135deg,transparent 0 7px,rgba(22,21,15,.06) 7px 8px)" }}>
+                            {I(c)}
+                          </div>
+                        </Fragment>
+                      ))}
+                      {" "}
+                    </Fragment>
+                  ))}
+                  {" "}
+                </div>
+                {" "}
+              </div>
               {" "}
-              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.5", maxWidth: "640px" }}>
-                {I(v.t.results.outIntro)}
+              <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.5", color: "#57534A", maxWidth: "860px" }}>
+                {I(v.t.results.t2)}{" "}
+                <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10.5px", color: "#2B35F0" }}>
+                  {"VAL-019a"}
+                </span>
               </p>
               {" "}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
                 {" "}
-                {v.outItems.map((o, i0) => (
-                  <Fragment key={i0}>
-                    {" "}
-                    <button onClick={o.open} style={{ textAlign: "left", background: "#F7F4EC", border: "1px solid #16150F", borderStyle: o.bs, padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }} className="dc-h12">
+                <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".9", margin: "0", fontSize: "clamp(32px,3.4vw,52px)" }}>
+                  {I(v.t.results.outTitle)}
+                </h3>
+                {" "}
+                <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.5", maxWidth: "640px" }}>
+                  {I(v.t.results.outIntro)}
+                </p>
+                {" "}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
+                  {" "}
+                  {v.outItems.map((o, i0) => (
+                    <Fragment key={i0}>
                       {" "}
-                      <span style={{ display: "flex", justifyContent: "space-between", gap: "8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
-                        <span style={{ color: "#2B35F0" }}>
-                          {"↗ "}{I(o.id)}
+                      <button onClick={o.open} style={{ textAlign: "left", background: "#F7F4EC", border: "1px solid #16150F", borderStyle: o.bs, padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }} className="dc-h12">
+                        {" "}
+                        <span style={{ display: "flex", justifyContent: "space-between", gap: "8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
+                          <span style={{ color: "#2B35F0" }}>
+                            {"↗ "}{I(o.id)}
+                          </span>
+                          <span>
+                            {I(o.tag)}
+                          </span>
                         </span>
-                        <span>
-                          {I(o.tag)}
+                        {" "}
+                        <span style={{ fontSize: "14.5px", lineHeight: "1.45" }}>
+                          {I(o.txt)}
                         </span>
-                      </span>
+                        {" "}
+                      </button>
                       {" "}
-                      <span style={{ fontSize: "14.5px", lineHeight: "1.45" }}>
-                        {I(o.txt)}
-                      </span>
-                      {" "}
-                    </button>
-                    {" "}
-                  </Fragment>
-                ))}
+                    </Fragment>
+                  ))}
+                  {" "}
+                </div>
                 {" "}
               </div>
               {" "}
             </div>
             {" "}
-          </div>
-          {" "}
-        </section>
+          </section>
+        ) : null}
         {" "}
         <footer style={{ position: "relative", pointerEvents: "auto", background: "#2B35F0", color: "#fff", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px) 120px" }}>
           {" "}
