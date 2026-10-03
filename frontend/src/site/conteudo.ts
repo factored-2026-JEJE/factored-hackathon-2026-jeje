@@ -146,6 +146,8 @@ export interface Conteudo {
     readonly tag: Traducao;
     readonly nav: readonly { readonly href: string; readonly label: Traducao }[];
     readonly app: Traducao;
+    /** A janela do app (design de 03/10): o menu do cabeçalho, o "Nova aba" e a nota da barra. */
+    readonly appWin: { readonly menu: Traducao; readonly newTab: Traducao; readonly note: Traducao };
     readonly motion: Traducao;
     readonly on: Traducao;
     readonly off: Traducao;
@@ -368,6 +370,7 @@ ui: {
     { href: '#resultados', label: T('Resultados', 'Resultados', 'Results') }
   ],
   app: T('Abrir o app', 'Abrir la app', 'Open the app'),
+  appWin: { menu: T('Menu', 'Menú', 'Menu'), newTab: T('Nova aba', 'Nueva pestaña', 'New tab'), note: T('demo · dados sintéticos', 'demo · datos sintéticos', 'demo · synthetic data') },
   motion: T('Movimento', 'Movimiento', 'Motion'),
   on: T('ligado', 'sí', 'on'),
   off: T('desligado', 'no', 'off'),
@@ -894,7 +897,7 @@ journeys: {
 
 const cache = new WeakMap<Conteudo, Map<Idioma, Resolvido<Conteudo>>>();
 
-/** O conteúdo resolvido num idioma (o texto em português quando falta o do idioma). */
+/** O conteúdo resolvido num idioma (o texto em inglês quando falta o do idioma, como no design de 03/10). */
 export function resolver(conteudo: Conteudo, idioma: Idioma): Resolvido<Conteudo> {
   const porIdioma = cache.get(conteudo) ?? new Map<Idioma, Resolvido<Conteudo>>();
   cache.set(conteudo, porIdioma);
@@ -904,7 +907,7 @@ export function resolver(conteudo: Conteudo, idioma: Idioma): Resolvido<Conteudo
     if (o == null || typeof o !== "object") return o;
     if ("__t" in o) {
       const t = o as Traducao;
-      return t[idioma] != null ? t[idioma] : t.pt;
+      return t[idioma] != null ? t[idioma] : t.en;
     }
     if ("__c" in o) return o;
     if (Array.isArray(o)) return o.map(r);
