@@ -12108,7 +12108,8 @@
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao"
+        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao",
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
       ]
     },
     {
