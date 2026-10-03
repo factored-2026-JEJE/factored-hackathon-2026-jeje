@@ -298,8 +298,8 @@
       "trocas": [
         {
           "arquivo": "src/App.tsx",
-          "de": "import { StatusDoSistema } from \"./StatusDoSistema\";",
-          "para": "import { StatusDoSistema } from \"./StatusDoSistema\"; // controle"
+          "de": "import { Topo } from \"./app/Topo\";",
+          "para": "import { Topo } from \"./app/Topo\"; // controle"
         }
       ],
       "testes": [
@@ -732,7 +732,7 @@
       "descricao": "Sair não apaga o token guardado",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": "    guardarSessao(null);\n    setSessao(null);",
           "para": "    setSessao(null);"
         }
@@ -747,7 +747,7 @@
       "descricao": "Token não é guardado: recarregar perde a sessão",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": "    guardarSessao(aberta.token);\n",
           "para": ""
         }
@@ -762,7 +762,7 @@
       "descricao": "Recarregar ignora a sessão guardada",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": "    const token = lerSessaoGuardada();",
           "para": "    const token: string | null = null;"
         }
@@ -1003,7 +1003,7 @@
       "descricao": "A sessão restaurada ignora o dispositivo guardado pelo servidor",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": ".then((atual) => setSessao({ token, cliente: atual, dispositivo: atual.dispositivo }))",
           "para": ".then((atual) => setSessao({ token, cliente: atual, dispositivo: \"novo\" }))"
         }
@@ -1336,8 +1336,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "    void enviar(pergunta);\n  }, [pergunta, aoPerguntado]);",
-          "para": "  }, [pergunta, aoPerguntado]);"
+          "de": "    aoPerguntado();\n    void enviar(pergunta);\n  }, [pergunta, aoPerguntado, conversaId, carregando]);",
+          "para": "    aoPerguntado();\n  }, [pergunta, aoPerguntado, conversaId, carregando]);"
         }
       ],
       "testes": [
@@ -1486,8 +1486,8 @@
       "descricao": "O guia dos jurados fica sem aba",
       "trocas": [
         {
-          "arquivo": "src/App.tsx",
-          "de": "  [\"how-to-test\", \"How to test\"],\n",
+          "arquivo": "src/app/abas.ts",
+          "de": "  [\"how-to-test\", \"guia\"],\n",
           "para": ""
         }
       ],
@@ -2164,21 +2164,6 @@
       ]
     },
     {
-      "id": "M-WEB-321",
-      "requisito": "R02",
-      "descricao": "Frase em português lida como espanhol",
-      "trocas": [
-        {
-          "arquivo": "src/frasesDoCliente.ts",
-          "de": "\\sroubaram\\s/.test(s)) return \"pt\";",
-          "para": "\\sroubaram\\s/.test(s)) return \"es\";"
-        }
-      ],
-      "testes": [
-        "src/frasesDoCliente.test.ts > a língua da frase pelas marcas do português e do espanhol, e nada quando não dá para dizer"
-      ]
-    },
-    {
       "id": "M-WEB-300",
       "requisito": "R02",
       "descricao": "O ?lang= do site é ignorado: o app abre sempre em inglês",
@@ -2221,7 +2206,8 @@
         }
       ],
       "testes": [
-        "src/app/lingua.test.ts > o <html lang> acompanha a língua, com o português do Brasil"
+        "src/app/lingua.test.ts > o <html lang> acompanha a língua, com o português do Brasil",
+        "src/app/Topo.test.tsx > a língua da barra troca os rótulos e o <html lang>"
       ]
     },
     {
@@ -2266,7 +2252,8 @@
         }
       ],
       "testes": [
-        "src/app/ponte.test.ts > a rota vai para o pai, na própria origem, e o app aberto direto não posta nada"
+        "src/app/ponte.test.ts > a rota vai para o pai, na própria origem, e o app aberto direto não posta nada",
+        "src/App.test.tsx > trocar de aba avisa o site, com o endereço da aba, só quando a aba muda"
       ]
     },
     {
@@ -2297,6 +2284,231 @@
       ],
       "testes": [
         "src/app/ponte.test.ts > o turno vai com os nós de verdade por onde passou, inclusive o leitor, e se foi para uma pessoa"
+      ]
+    },
+    {
+      "id": "M-WEB-308",
+      "requisito": "R07",
+      "descricao": "O contador da fila não é relido quando a conversa encaminha",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "  }, [versao]);",
+          "para": "  }, []);"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a aba do atendente mostra quantos casos esperam, relidos a cada efeito da conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-309",
+      "requisito": "R02",
+      "descricao": "A aba do atendente mostra o contador mesmo com a fila vazia",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "{id === \"atendente\" && naFila > 0 && <span",
+          "para": "{id === \"atendente\" && <span"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a aba do atendente mostra quantos casos esperam, relidos a cada efeito da conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-310",
+      "requisito": "R03",
+      "descricao": "O Leave do topo não encerra a sessão",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "onClick={() => sair()}",
+          "para": "onClick={() => {}}"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > quem está na sessão aparece no topo, e o Leave a encerra"
+      ]
+    },
+    {
+      "id": "M-WEB-311",
+      "requisito": "R02",
+      "descricao": "Os botões de língua da barra não trocam a língua",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "onClick={() => mudarLingua(l)}",
+          "para": "onClick={() => {}}"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a língua da barra troca os rótulos e o <html lang>"
+      ]
+    },
+    {
+      "id": "M-WEB-312",
+      "requisito": "R02",
+      "descricao": "O app avisa o site também ao abrir, sem a aba mudar",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "    if (anterior.current === aba) return;\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > trocar de aba avisa o site, com o endereço da aba, só quando a aba muda"
+      ]
+    },
+    {
+      "id": "M-WEB-313",
+      "requisito": "R02",
+      "descricao": "O site recebe sempre o endereço do cliente, qualquer que seja a aba",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "    avisarRota(`#${aba}`);",
+          "para": "    avisarRota(\"#cliente\");"
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > trocar de aba avisa o site, com o endereço da aba, só quando a aba muda"
+      ]
+    },
+    {
+      "id": "M-WEB-314",
+      "requisito": "R03",
+      "descricao": "O Try entra com o dispositivo novo (o bloqueio vira preventivo)",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "        await entrar(persona, \"cadastrado\");",
+          "para": "        await entrar(persona, \"novo\");"
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-315",
+      "requisito": "R02",
+      "descricao": "A conversa do Try abre sempre em português, qualquer que seja a frase",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "void iniciar(idiomaDaFrase(pergunta) ?? (lingua === \"pt\" ? \"pt\" : \"es\"))",
+          "para": "void iniciar(\"pt\")"
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-316",
+      "requisito": "R02",
+      "descricao": "O Try não manda a frase à conversa",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "      setPergunta(frase);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-317",
+      "requisito": "R02",
+      "descricao": "O turno não é avisado ao site (o mapa não acende)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      avisarTurno(turno);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-318",
+      "requisito": "R02",
+      "descricao": "O app não ouve a língua escolhida no site",
+      "trocas": [
+        {
+          "arquivo": "src/app/LinguaDoApp.tsx",
+          "de": "  useEffect(() => ouvirLingua(mudarLingua), []);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a língua escolhida no site chega à barra do app aberto na janela dele"
+      ]
+    },
+    {
+      "id": "M-WEB-319",
+      "requisito": "R02",
+      "descricao": "O <html lang> não acompanha a língua escolhida",
+      "trocas": [
+        {
+          "arquivo": "src/app/LinguaDoApp.tsx",
+          "de": "  useEffect(() => marcarDocumento(lingua), [lingua]);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a língua da barra troca os rótulos e o <html lang>"
+      ]
+    },
+    {
+      "id": "M-WEB-320",
+      "requisito": "R02",
+      "descricao": "O portão fica sempre em inglês",
+      "trocas": [
+        {
+          "arquivo": "src/Acesso.tsx",
+          "de": "traduzir(texto, lingua);",
+          "para": "traduzir(texto, \"en\");"
+        }
+      ],
+      "testes": [
+        "src/Acesso.test.tsx > o portão fala a língua que o site pediu no endereço"
+      ]
+    },
+    {
+      "id": "M-WEB-321",
+      "requisito": "R02",
+      "descricao": "Frase em português lida como espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/frasesDoCliente.ts",
+          "de": "\\sroubaram\\s/.test(s)) return \"pt\";",
+          "para": "\\sroubaram\\s/.test(s)) return \"es\";"
+        }
+      ],
+      "testes": [
+        "src/frasesDoCliente.test.ts > a língua da frase pelas marcas do português e do espanhol, e nada quando não dá para dizer"
+      ]
+    },
+    {
+      "id": "M-WEB-322",
+      "requisito": "R02",
+      "descricao": "A frase do App (Try e Perguntar sobre esta) não chega à conversa",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "  const perguntaAtual = aoPerguntar ? pergunta : perguntaLocal;",
+          "para": "  const perguntaAtual = perguntaLocal;"
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
       ]
     }
   ]
