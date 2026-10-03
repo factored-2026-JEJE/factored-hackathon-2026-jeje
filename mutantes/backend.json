@@ -13061,8 +13061,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_USOU)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -13316,8 +13316,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -13361,8 +13361,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
-          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -14610,8 +14610,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
-          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
+          "de": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
+          "para": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
         }
       ],
       "testes": [
@@ -14625,12 +14625,72 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),",
-          "para": "DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO,\n"
         }
       ],
       "testes": [
         "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-277",
+      "requisito": "R03",
+      "descricao": "O relato com o uso antes da pessoa deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                USOU_ALGUEM)),\n",
+          "para": "                )),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-278",
+      "requisito": "R03",
+      "descricao": "O uso por outro desfeito deixa de ser marcado e volta ao leitor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"uso_desfeito\": _uso_desfeito(limpo),\n",
+          "para": "        \"uso_desfeito\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-LLM-42",
+      "requisito": "R03",
+      "descricao": "O uso desfeito volta a ser lido pelo leitor e pelo LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.outra,\n        lida.uso_desfeito,\n    )\n",
+          "para": "        lida.outra,\n    )\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-GAR-19",
+      "requisito": "R03",
+      "descricao": "O uso desfeito passa pela garantia de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "lida.id_digitado, lida.uso_desfeito)",
+          "para": "lida.id_digitado)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
       ]
     }
   ]
