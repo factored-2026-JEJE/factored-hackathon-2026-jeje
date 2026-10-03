@@ -2600,6 +2600,96 @@
       "testes": [
         "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a entrada diz o cabeçalho que o Caddy manda de verdade: só a própria origem embute o app"
       ]
+    },
+    {
+      "id": "M-WEB-325",
+      "requisito": "R08",
+      "descricao": "O site aceita mensagens de qualquer origem e janela",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "if (e.origin !== location.origin || !frame || e.source !== frame) return;",
+          "para": "if (!frame) return;"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a janela do app (design de 03/10) > a barra mostra a aba que o app avisa, só da janela dele e da própria origem"
+      ]
+    },
+    {
+      "id": "M-WEB-326",
+      "requisito": "R08",
+      "descricao": "O site manda a língua ao app para qualquer origem ('*', como o design)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "postMessage({ type: \"jeje-lang\", lang: S.lang }, location.origin)",
+          "para": "postMessage({ type: \"jeje-lang\", lang: S.lang }, \"*\")"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a janela do app (design de 03/10) > a língua trocada no site vai para o app aberto, na própria origem"
+      ]
+    },
+    {
+      "id": "M-WEB-327",
+      "requisito": "R02",
+      "descricao": "O ?lang= do endereço é ignorado pelo site",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    if (q === \"pt\" || q === \"es\" || q === \"en\") lang = q;\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a janela do app (design de 03/10) > o ?lang= do endereço vence a língua guardada"
+      ]
+    },
+    {
+      "id": "M-WEB-328",
+      "requisito": "R02",
+      "descricao": "O site abre em português, e não em inglês (o padrão do design de 03/10)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    let lang: Idioma = \"en\";",
+          "para": "    let lang: Idioma = \"pt\";"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
+    },
+    {
+      "id": "M-WEB-329",
+      "requisito": "R02",
+      "descricao": "O Esc não fecha a janela do app",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    if (this.state.appOpen) this.closeApp();\n    else ",
+          "para": "    "
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
+    },
+    {
+      "id": "M-WEB-330",
+      "requisito": "R02",
+      "descricao": "A janela abre o app sem a aba pedida (o guia abre no cliente)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "(this.state.motion ? \"\" : \"&motion=0\") + hash,",
+          "para": "(this.state.motion ? \"\" : \"&motion=0\"),"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
     }
   ]
 }
