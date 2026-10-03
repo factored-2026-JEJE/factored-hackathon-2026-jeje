@@ -1295,6 +1295,27 @@ def test_pergunta_hipotetica_ou_de_capacidade(texto, pergunta):
 
 
 @pytest.mark.parametrize(
+    ("texto", "confirma"),
+    [
+        # A descrição do cartão que se bloqueia também espera um sim (ACH-221, REG-52 da validação).
+        ("Mi tarjeta se bloquea cada vez que pago en línea", True),
+        ("¿Cómo evito que se bloquee mi tarjeta?", True),
+        ("No quiero que se bloquee mi tarjeta cuando viaje", True),
+        ("¿Cuántos intentos incorrectos causan que la tarjeta se bloquee?", True),
+        ("Siempre se me bloquea la tarjeta en las compras por internet", True),
+        ("¿Qué hago para que no se bloquee la tarjeta?", True),
+        ("Meu cartão bloqueia toda vez que compro online", True),
+        ("O cartão bloqueia se eu errar a senha?", True),
+        # O "se bloquee" depois de um verbo de pedido pede.
+        ("Estoy solicitando que se bloquee mi tarjeta de crédito", False),
+        ("Quiero que se bloquee mi tarjeta ya", False),
+    ],
+)
+def test_descricao_do_cartao_que_se_bloqueia_pede_confirmacao(texto, confirma):
+    assert interpretacao.hipotese_ou_capacidade(texto) is confirma
+
+
+@pytest.mark.parametrize(
     ("texto", "pergunta"),
     [
         # A pergunta condicional sobre o uso por outra pessoa vai ao atendente sem bloquear (P3);
