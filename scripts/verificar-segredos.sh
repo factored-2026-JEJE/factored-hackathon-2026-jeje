@@ -5,9 +5,22 @@
 set -eu
 cd "$(dirname "$0")/.."
 
-docker run --rm -v "$PWD":/repo:ro \
-  zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
-  git /repo --no-banner --redact --log-level warn
+GITLEAKS=zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+# Numa worktree, o .git é um arquivo que aponta para o repositório principal, fora desta pasta: o
+# container recebe o diretório comum no mesmo caminho. Sem ele, o gitleaks não lê o histórico, loga o
+# erro do git e sai 0 sem conferir nada (ACH-291). O dono dos arquivos não é o do container: o git
+# precisa aceitar o diretório (safe.directory).
+comum=$(git rev-parse --path-format=absolute --git-common-dir)
+no_container() {
+  docker run --rm -v "$PWD":/repo:ro -v "$comum":"$comum":ro \
+    -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0='*' "$@"
+}
+# O histórico tem de abrir de verdade no container; senão, falha (nunca um "ok" sem ter lido nada).
+if ! no_container --entrypoint git "$GITLEAKS" -C /repo rev-parse -q --verify HEAD >/dev/null; then
+  echo "ERRO: o histórico Git não abre no container do gitleaks" >&2
+  exit 1
+fi
+no_container "$GITLEAKS" git /repo --no-banner --redact --log-level warn
 
 if [ -f .env ]; then
   valores=$(mktemp)
