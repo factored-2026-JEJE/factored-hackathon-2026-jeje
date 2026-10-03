@@ -357,11 +357,11 @@
     {
       "id": "M-E2E-22",
       "requisito": "R08",
-      "descricao": "Proxy sem a proteção contra clickjacking (página pode ser embutida em outro site)",
+      "descricao": "Proxy sem a proteção contra clickjacking (a página pode ser embutida em qualquer site)",
       "trocas": [
         {
           "arquivo": "frontend/Caddyfile",
-          "de": "\t\tX-Frame-Options DENY\n\t\tContent-Security-Policy \"frame-ancestors 'none'\"\n",
+          "de": "\t\tX-Frame-Options SAMEORIGIN\n\t\tContent-Security-Policy \"frame-ancestors 'self'\"\n",
           "para": ""
         }
       ],
@@ -587,6 +587,82 @@
       ],
       "testes": [
         "casca.spec.ts > a língua vem do endereço e da barra do topo, sem trocar a área aberta"
+      ]
+    },
+    {
+      "id": "M-E2E-42",
+      "requisito": "R02",
+      "descricao": "O Caddy volta a proibir qualquer iframe: a janela do site não abre o app",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\t\tX-Frame-Options SAMEORIGIN\n\t\tContent-Security-Policy \"frame-ancestors 'self'\"\n",
+          "para": "\t\tX-Frame-Options DENY\n\t\tContent-Security-Policy \"frame-ancestors 'none'\"\n"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > o site abre em /site/, ao lado do app, e leva ao app e ao guia"
+      ]
+    },
+    {
+      "id": "M-E2E-43",
+      "requisito": "R02",
+      "descricao": "O app não avisa a aba ao site: a barra da janela fica no endereço de abertura",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/App.tsx",
+          "de": "    avisarRota(`#${aba}`);\n",
+          "para": "    avisarRota(\"#cliente\");\n"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > o site abre em /site/, ao lado do app, e leva ao app e ao guia"
+      ]
+    },
+    {
+      "id": "M-E2E-44",
+      "requisito": "R02",
+      "descricao": "O site ignora as mensagens do app da janela",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "if (e.origin !== location.origin || !frame || e.source !== frame) return;",
+          "para": "if (frame) return;"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > o site abre em /site/, ao lado do app, e leva ao app e ao guia",
+        "site.spec.ts > a conversa feita no app da janela acende o caminho do turno no mapa do site"
+      ]
+    },
+    {
+      "id": "M-E2E-45",
+      "requisito": "R02",
+      "descricao": "O app não avisa o turno ao site: o mapa não acende",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Conversa.tsx",
+          "de": "      avisarTurno(turno);\n",
+          "para": "      if (turno.regra === \"NUNCA\") avisarTurno(turno);\n"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > a conversa feita no app da janela acende o caminho do turno no mapa do site"
+      ]
+    },
+    {
+      "id": "M-E2E-46",
+      "requisito": "R02",
+      "descricao": "O menu do cabeçalho não abre no celular",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "toggleMenu: () => this.setState({ menuOpen: !S.menuOpen }),",
+          "para": "toggleMenu: () => {},"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > no celular, o menu do cabeçalho leva às seções e fecha"
       ]
     }
   ]

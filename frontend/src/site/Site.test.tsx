@@ -1,6 +1,7 @@
-// O site (DEV-032a) no jsdom: os links até o app, a troca de idioma e a conversa, de exemplo (sem a
-// API) e de verdade. Na de verdade, a resposta da API entra pela borda (fetch); a lógica do site que
-// monta a conversa, as opções e o "Por que esta resposta?" é a de produção.
+// O site (DEV-032a) no jsdom: a janela do app, a troca de idioma e a conversa, de exemplo (sem a API) e
+// de verdade. Na de verdade, a resposta da API entra pela borda (fetch); a lógica do site que monta a
+// conversa, as opções e o "Por que esta resposta?" é a de produção. A barra do dock só aparece depois de
+// 55% da tela rolada, e o jsdom não rola: os cliques nela não conferem o pointer-events.
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { PersonaDaDemo, ResultadoDoTurno } from "../api/cliente";
@@ -24,23 +25,41 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
+// O site inteiro no jsdom (o template do design tem ~5 mil nós) leva segundos por interação numa
+// máquina carregada: os testes com várias interações têm um limite maior.
+const LONGO = 20_000;
+
 describe("sem a API (o site público)", () => {
   beforeEach(() => vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new TypeError("sem rede")))));
 
   it("leva ao app e ao guia, e troca o idioma do site", async () => {
     render(<Site />);
-    expect(screen.getAllByRole("link", { name: /Abrir o app/ })[0]).toHaveAttribute("href", "/#cliente");
-    expect(screen.getByRole("link", { name: /How to test/ })).toHaveAttribute("href", "/#how-to-test");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Não é um chatbot.");
+    // O inglês é o padrão (design de 03/10); o app abre numa janela dentro do site, com o app de verdade.
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Not a chatbot.");
+    await userEvent.click(screen.getAllByRole("button", { name: /Open the app/ })[0] as HTMLElement);
+    const janela = screen.getByRole("dialog", { name: "JEJE app" });
+    expect(within(janela).getByTitle("JEJE app")).toHaveAttribute("src", "/?lang=en&tab=cliente#cliente");
+    expect(within(janela).getByRole("link", { name: /New tab/ })).toHaveAttribute("href", "/#cliente");
+    await userEvent.click(within(janela).getByRole("button", { name: /Close/ }));
+    expect(screen.queryByRole("dialog", { name: "JEJE app" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: /How to test/ }));
+    expect(within(screen.getByRole("dialog", { name: "JEJE app" })).getByTitle("JEJE app")).toHaveAttribute(
+      "src",
+      "/?lang=en&tab=guia#how-to-test",
+    );
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "JEJE app" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "ES" }));
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("No es un chatbot.");
-    expect(localStorage.getItem("jeje.site.lang")).toBe("es");
-  });
+    expect(localStorage.getItem("jeje.site.locale")).toBe("es");
+    expect(document.documentElement.lang).toBe("es");
+  }, LONGO);
 
   it("a conversa mostra o exemplo do design, com as opções e o porquê", async () => {
+    localStorage.setItem("jeje.site.locale", "pt");
     render(<Site />);
     await waitFor(() => expect(screen.getByRole("button", { name: /Mande uma mensagem/ })).toBeEnabled());
-    await userEvent.click(screen.getByRole("button", { name: /Mande uma mensagem/ }));
+    await userEvent.setup({ pointerEventsCheck: 0 }).click(screen.getByRole("button", { name: /Mande uma mensagem/ }));
     const dock = screen.getByRole("dialog", { name: "Conversa" });
     await userEvent.click(within(dock).getByRole("button", { name: "Não reconheço uma cobrança" }));
     expect(within(dock).getByText("Não reconheço a cobrança de 45,90 do dia 10/03")).toBeInTheDocument();
@@ -51,7 +70,7 @@ describe("sem a API (o site público)", () => {
     expect(within(dock).getByText(/protocolo PC-000417/)).toBeInTheDocument();
     // A nota diz que são turnos de exemplo (fatos.ts), não a API.
     expect(within(dock).getByText(/Turnos de exemplo/)).toBeInTheDocument();
-  });
+  }, LONGO);
 });
 
 describe("com a API (acesso aberto)", () => {
@@ -102,8 +121,9 @@ describe("com a API (acesso aberto)", () => {
   });
 
   it("a contestação vai com uma compra da persona, e o balão mostra o turno da API", async () => {
+    localStorage.setItem("jeje.site.locale", "pt");
     render(<Site />);
-    await userEvent.click(screen.getByRole("button", { name: /Mande uma mensagem/ }));
+    await userEvent.setup({ pointerEventsCheck: 0 }).click(screen.getByRole("button", { name: /Mande uma mensagem/ }));
     const dock = screen.getByRole("dialog", { name: "Conversa" });
     await waitFor(() => expect(within(dock).getByText(/Ao vivo: POST \/conversas/)).toBeInTheDocument());
     await act(() => userEvent.click(within(dock).getByRole("button", { name: "Não reconheço uma cobrança" })));
@@ -119,7 +139,7 @@ describe("com a API (acesso aberto)", () => {
     await act(() => userEvent.click(within(dock).getByRole("button", { name: "Sim, confirmo" })));
     await waitFor(() => expect(pedidos.filter((p) => p.url === "/api/conversas/CV-1/turnos")).toHaveLength(2));
     expect(pedidos.at(-1)?.corpo).toEqual({ texto: "Sim, confirmo" });
-  });
+  }, LONGO);
 });
 
 describe("a persona da conversa de verdade", () => {
@@ -133,5 +153,45 @@ describe("a persona da conversa de verdade", () => {
     expect(escolherPersona([a, b])?.customer_id).toBe("B");
     expect(escolherPersona([c, d])?.customer_id).toBe("D");
     expect(escolherPersona([])).toBeUndefined();
-  });
+  }, LONGO);
+});
+
+describe("a janela do app (design de 03/10)", () => {
+  beforeEach(() => vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new TypeError("sem rede")))));
+
+  const abrir = async () => {
+    render(<Site />);
+    await userEvent.click(screen.getAllByRole("button", { name: /Open the app/ })[0] as HTMLElement);
+    const quadro = within(screen.getByRole("dialog", { name: "JEJE app" })).getByTitle("JEJE app") as HTMLIFrameElement;
+    if (!quadro.contentWindow) throw new Error("o jsdom não criou a janela do app");
+    return quadro.contentWindow;
+  };
+  const doApp = (app: Window, data: unknown, origin = location.origin) =>
+    act(() => window.dispatchEvent(new MessageEvent("message", { data, origin, source: app })));
+
+  it("a barra mostra a aba que o app avisa, só da janela dele e da própria origem", async () => {
+    const app = await abrir();
+    const janela = screen.getByRole("dialog", { name: "JEJE app" });
+    expect(within(janela).getByText("#cliente")).toBeInTheDocument();
+    await doApp(app, { type: "jeje-app-route", hash: "#atendente" }, "https://outro.example");
+    await doApp(window, { type: "jeje-app-route", hash: "#atendente" });
+    expect(within(janela).getByText("#cliente")).toBeInTheDocument();
+    await doApp(app, { type: "jeje-app-route", hash: "#atendente" });
+    expect(within(janela).getByText("#atendente")).toBeInTheDocument();
+  }, LONGO);
+
+  it("a língua trocada no site vai para o app aberto, na própria origem", async () => {
+    const app = await abrir();
+    const postar = vi.spyOn(app, "postMessage");
+    await userEvent.click(screen.getByRole("button", { name: "PT" }));
+    expect(postar).toHaveBeenCalledExactlyOnceWith({ type: "jeje-lang", lang: "pt" }, location.origin);
+  }, LONGO);
+
+  it("o ?lang= do endereço vence a língua guardada", () => {
+    localStorage.setItem("jeje.site.locale", "pt");
+    window.history.replaceState(null, "", "/site/?lang=es");
+    render(<Site />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("No es un chatbot.");
+    window.history.replaceState(null, "", "/");
+  }, LONGO);
 });
