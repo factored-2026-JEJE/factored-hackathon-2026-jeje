@@ -1726,7 +1726,7 @@
       "descricao": "A persona da conversa ignora o exemplo para contestar",
       "trocas": [
         {
-          "arquivo": "src/site/Site.tsx",
+          "arquivo": "src/personas.ts",
           "de": "(p.exemplo ? 4 : 0)",
           "para": "(p.exemplo ? 1 : 0)"
         }
@@ -2154,13 +2154,28 @@
       "descricao": "A persona da conversa prefere cartão a recusas (o \"qual transação\" some da demo)",
       "trocas": [
         {
-          "arquivo": "src/site/Site.tsx",
+          "arquivo": "src/personas.ts",
           "de": "(p.transacoes_recusadas > 1 ? 2 : 0)",
           "para": "(p.transacoes_recusadas > 1 ? 0 : 0)"
         }
       ],
       "testes": [
         "src/site/Site.test.tsx > a persona da conversa de verdade > prefere a que tem exemplo para contestar; depois, a com mais de uma recusa; depois, cartão"
+      ]
+    },
+    {
+      "id": "M-WEB-321",
+      "requisito": "R02",
+      "descricao": "Frase em português lida como espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/frasesDoCliente.ts",
+          "de": "\\sroubaram\\s/.test(s)) return \"pt\";",
+          "para": "\\sroubaram\\s/.test(s)) return \"es\";"
+        }
+      ],
+      "testes": [
+        "src/frasesDoCliente.test.ts > a língua da frase pelas marcas do português e do espanhol, e nada quando não dá para dizer"
       ]
     }
   ]
