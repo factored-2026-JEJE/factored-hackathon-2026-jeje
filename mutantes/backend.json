@@ -14451,6 +14451,126 @@
       "testes": [
         "tests/test_interpretacao.py::test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem"
       ]
+    },
+    {
+      "id": "M-API-18",
+      "requisito": "R08",
+      "descricao": "Os cartões de um cliente fixo, e não os do cliente da sessão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio.cartoes_do_cliente(conexao, ativa.customer_id)",
+          "para": "bloqueio.cartoes_do_cliente(conexao, \"CLI-A\")"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-19",
+      "requisito": "R07",
+      "descricao": "O cartão bloqueado pelo canal aparece sem o bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio=_do_bloqueio(ativos.get(c.bloqueio)),",
+          "para": "bloqueio=None,"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-20",
+      "requisito": "R07",
+      "descricao": "O bloqueio preventivo aparece como completo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "tipo=ativo.tipo,",
+          "para": "tipo=\"completo\","
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-21",
+      "requisito": "R07",
+      "descricao": "O prazo para desfazer o bloqueio vira a hora em que ele foi feito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "reversivel_ate=ativo.reversivel_ate)",
+          "para": "reversivel_ate=ativo.criado_em)"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-EVT-11",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos incluem o efeito feito fora de um turno (o atendente)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo IN ('turno', 'acao') ORDER BY id DESC LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-EVT-12",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos saem do mais antigo para o mais recente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo = 'turno' ORDER BY id LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-MET-11",
+      "requisito": "R08",
+      "descricao": "Os últimos eventos ficam abertos fora do modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "@router.get(\"/metricas/eventos\", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)",
+          "para": "@router.get(\"/metricas/eventos\", responses=RESPOSTAS_DEMO)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
+    },
+    {
+      "id": "M-MET-12",
+      "requisito": "R06",
+      "descricao": "O limite dos últimos eventos aceita zero",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "Query(ge=1, le=50)",
+          "para": "Query(ge=0, le=50)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
     }
   ]
 }
