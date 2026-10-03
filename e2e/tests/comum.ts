@@ -160,7 +160,9 @@ export async function entrarPeloAcesso(page: Page, nome: string, idioma: "es" | 
   await page.locator(".acc-persona").filter({ hasText: nome }).first().click();
   await page.getByRole("button", { name: dispositivo === "cadastrado" ? u.cadastrado : u.novo }).click();
   await page.getByRole("button", { name: u.entrar(nome), exact: true }).click();
-  await expect(page.getByRole("region", { name: u.transacoes })).toBeAttached();
+  // Abaixo de 900 px, o painel fica atrás da aba interna da conversa (escondido, fora da árvore de
+  // acessibilidade): o que mostra que a sessão abriu é a região montada, visível ou não.
+  await expect(page.getByRole("region", { name: u.transacoes, includeHidden: true })).toBeAttached();
 }
 
 /** As falas da conversa (as do cliente e as do assistente), sem o "lendo…" de passagem. */
