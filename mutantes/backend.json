@@ -14753,6 +14753,186 @@
       "testes": [
         "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
       ]
+    },
+    {
+      "id": "M-ITP-267",
+      "requisito": "R08",
+      "descricao": "A mensagem 'sin reglas' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"\\b(?:sin reglas|sem regras|sin restricciones|sem restricoes)\\b\"\n",
+          "para": "    r\"\\b(?:sin restricciones|sem restricoes)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-268",
+      "requisito": "R08",
+      "descricao": "Nenhuma mensagem é instrução: a injeção segue para o leitor e o LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"instrucao\": INSTRUCAO.search(limpo) is not None,\n",
+          "para": "        \"instrucao\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-269",
+      "requisito": "R08",
+      "descricao": "O 'ignora todo lo anterior' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|restricoes|todo lo anterior|tudo o que)\\b\"\n",
+          "para": "    r\"|restricoes|tudo o que)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-270",
+      "requisito": "R08",
+      "descricao": "O 'ignore' (PT) deixa de ser verbo de instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?:ignora|ignore|ignorar|olvida|olvidar|esquece|esqueca|esquecer|desconsidera)",
+          "para": "(?:ignora|ignorar|olvida|olvidar|esquece|esqueca|esquecer|desconsidera)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-271",
+      "requisito": "R02",
+      "descricao": "Quem se corrige ('ignore a mensagem anterior') vira instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|restricoes|todo lo anterior|tudo o que)\\b\"\n",
+          "para": "    r\"|restricoes|todo lo anterior|tudo o que|anterior)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_que_nao_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-272",
+      "requisito": "R08",
+      "descricao": "O 'eres un asistente' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:eres|voce e) (?:un|una|um|uma) (?:asistente|assistente)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-273",
+      "requisito": "R08",
+      "descricao": "O 'modo desarrollador' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:modo desarrollador|modo desenvolvedor|system prompt|prompt|jailbreak)\\b\"\n",
+          "para": "    r\"|\\b(?:modo desenvolvedor|system prompt|prompt|jailbreak)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-LLM-41",
+      "requisito": "R08",
+      "descricao": "A instrução volta a ser lida pelo modelo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.outra,\n        lida.instrucao,\n    )\n",
+          "para": "        lida.outra,\n    )\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_instrucao_injetada_na_mensagem_nao_vira_acao"
+      ]
+    },
+    {
+      "id": "M-GAR-18",
+      "requisito": "R08",
+      "descricao": "A instrução passa pela garantia de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "lida.id_digitado, lida.instrucao)",
+          "para": "lida.id_digitado)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-CONV-114",
+      "requisito": "R08",
+      "descricao": "A instrução segue o fluxo comum, e o fora de escopo oferece o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.instrucao:\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_a_instrucao_para_mudar_as_regras_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-115",
+      "requisito": "R03",
+      "descricao": "A instrução no meio da confirmação desfaz a proposta pendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "return Saida(\"POL-ESC-01\", \"recusar\", (limite,), self.estado, self.contexto)",
+          "para": "return Saida(\"POL-ESC-01\", \"recusar\", (limite,), \"livre\", {})"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_instrucao_injetada_na_mensagem_nao_vira_acao"
+      ]
+    },
+    {
+      "id": "M-MSG-14",
+      "requisito": "R02",
+      "descricao": "A resposta à instrução não pergunta o que o cliente precisa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "\"bloquear tu tarjeta o pasarte con un agente. ¿Qué necesitas?\",",
+          "para": "\"bloquear tu tarjeta o pasarte con un agente.\","
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_a_instrucao_para_mudar_as_regras_nao_oferece_o_atendente"
+      ]
     }
   ]
 }
