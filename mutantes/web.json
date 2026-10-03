@@ -2781,6 +2781,21 @@
       "testes": [
         "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela mostra os números de cada linha e a seção diz que acabou"
       ]
+    },
+    {
+      "id": "M-WEB-352",
+      "requisito": "R02",
+      "descricao": "O turno de verdade chega ao mapa sempre como lido pelas regras (o leitor e o LLM não acendem)",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "    return { nos, humano, leitura: leitura === \"llm\" || leitura === \"leitor\" ? leitura : \"regras\" };",
+          "para": "    return { nos, humano, leitura: \"regras\" };"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > a lista dos nós de verdade vale como veio; um tipo de rota do design vale como a jornada"
+      ]
     }
   ]
 }
