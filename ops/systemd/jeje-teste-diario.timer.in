@@ -1,0 +1,10 @@
+# Todo dia às 9h (e, se a máquina estava desligada, assim que ela voltar), até 16/10.
+[Unit]
+Description=JEJE: teste diário da publicação em ES e PT
+
+[Timer]
+OnCalendar=*-*-* 09:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
