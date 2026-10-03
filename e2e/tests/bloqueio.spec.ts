@@ -7,7 +7,7 @@
 // jornada toca; as jornadas deste arquivo rodam em série. Roda só no Chromium: com um cartão só, o
 // Firefox disputaria o mesmo bloqueio.
 import { expect, test } from "@playwright/test";
-import { personas } from "./comum";
+import { dizerNaConversa, entrarPeloAcesso, falasDaConversa, personas, UI } from "./comum";
 
 test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console acompanhando", async ({ page, request, browserName }) => {
   test.skip(browserName !== "chromium", "um cartão só para a jornada: roda num navegador");
@@ -15,44 +15,40 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
   test.skip(prontidao.dataset.source !== "fixture", "a jornada usa o cartão da segunda persona da fixture");
 
   const [, segunda] = await personas(request);
-  await page.goto("/");
-  await page.getByRole("radio", { name: "Cadastrado" }).check();
-  await page.getByRole("button", { name: `Entrar como ${segunda!.nome}` }).click();
-  await expect(page.getByText("Dispositivo (simulação): cadastrado")).toBeVisible();
-  await page.getByRole("button", { name: "Conversar em español" }).click();
-  const falas = page.getByRole("log", { name: "Mensagens" }).locator("li");
-  await expect(falas).toHaveCount(1);
+  await entrarPeloAcesso(page, segunda!.nome, "es", "cadastrado");
+  await expect(page.getByText(`${segunda!.customer_id} · ${segunda!.nome} · dispositivo registrado`)).toBeAttached();
+  const falas = falasDaConversa(page);
+  await expect(falas).toHaveCount(0);
 
   // Bloqueio pelo atalho: completo, porque o dispositivo é cadastrado, e sem encaminhamento.
-  await page.getByRole("group", { name: "Atalhos" }).getByRole("button", { name: "Bloquear cartão" }).click();
-  await expect(falas).toHaveCount(3);
+  await page.getByRole("group", { name: UI.es.atalhos }).getByRole("button", { name: "Bloquear tarjeta" }).click();
+  await expect(falas).toHaveCount(2);
   const bloqueado = falas.last().locator("p").first();
   await expect(bloqueado).toContainText("Bloqueé tu tarjeta de débito terminada en 9876 (bloqueo completo simulado, referencia BL-");
   const bloqueio = (await bloqueado.textContent())!.match(/BL-\d{8}/)![0];
 
   // O aviso ao atendente é o bloqueio no console.
-  await page.getByRole("tab", { name: "Agent" }).click();
+  await page.getByRole("tab", { name: UI.es.agente }).click();
   const painel = page.getByRole("region", { name: "Bloqueios de cartão" });
   await expect(painel.getByRole("listitem", { name: `Bloqueio ${bloqueio}` })).toContainText("bloqueio completo");
 
   // Dentro do prazo, o cliente desfaz pela conversa, e só com o sim.
-  await page.getByRole("tab", { name: "Customer" }).click();
-  await page.getByLabel("Mensagem").fill("quiero desbloquear mi tarjeta");
-  await page.getByRole("button", { name: "Enviar", exact: true }).click();
-  await expect(falas).toHaveCount(5);
+  await page.getByRole("tab", { name: UI.es.cliente }).click();
+  await dizerNaConversa(page, "quiero desbloquear mi tarjeta", "es");
+  await expect(falas).toHaveCount(4);
   await expect(falas.last().locator("p").first()).toHaveText(
     `¿Confirmas que quieres deshacer el bloqueo de tu tarjeta de débito terminada en 9876 (referencia ${bloqueio})? Responde sí o no.`,
   );
   const antes: { id: string }[] = await (await request.get("/api/atendimento/bloqueios?limite=100")).json();
   expect(antes.map((b) => b.id)).toContain(bloqueio);
-  await page.getByRole("button", { name: "Sí, confirmo" }).click();
-  await expect(falas).toHaveCount(7);
+  await page.getByRole("group", { name: UI.es.opcoes }).getByRole("button", { name: "Sí, confirmo" }).click();
+  await expect(falas).toHaveCount(6);
   await expect(falas.last().locator("p").first()).toHaveText(
     `Listo: deshice el bloqueo de tu tarjeta de débito terminada en 9876 (referencia ${bloqueio}).`,
   );
 
   // Some do console, na tela e na API.
-  await page.getByRole("tab", { name: "Agent" }).click();
+  await page.getByRole("tab", { name: UI.es.agente }).click();
   await expect(painel.getByRole("listitem", { name: `Bloqueio ${bloqueio}` })).toHaveCount(0);
   const depois: { id: string }[] = await (await request.get("/api/atendimento/bloqueios?limite=100")).json();
   expect(depois.map((b) => b.id)).not.toContain(bloqueio);
@@ -64,36 +60,27 @@ test("relato de roubo: o cliente desfaz o bloqueio em até 7 dias pela conversa,
   test.skip(prontidao.dataset.source !== "fixture", "a jornada usa o cartão da segunda persona da fixture");
 
   const [, segunda] = await personas(request);
-  await page.goto("/");
-  await page.getByRole("radio", { name: "Cadastrado" }).check();
-  await page.getByRole("button", { name: `Entrar como ${segunda!.nome}` }).click();
-  await page.getByRole("button", { name: "Conversar em español" }).click();
-  const falas = page.getByRole("log", { name: "Mensagens" }).locator("li");
-  await expect(falas).toHaveCount(1);
+  await entrarPeloAcesso(page, segunda!.nome, "es", "cadastrado");
+  const falas = falasDaConversa(page);
+  await expect(falas).toHaveCount(0);
 
   // O relato bloqueia o cartão e encaminha; o bloqueio fica ligado ao caso.
-  await page.getByLabel("Mensagem").fill("Me robaron la tarjeta");
-  await page.getByRole("button", { name: "Enviar", exact: true }).click();
-  await expect(falas).toHaveCount(3);
-  const relato = (await falas.last().textContent())!;
+  const relato = (await (await dizerNaConversa(page, "Me robaron la tarjeta", "es")).textContent())!;
   const bloqueio = relato.match(/BL-\d{8}/)![0];
   const atendimento = relato.match(/AT-\d{8}/)![0];
 
   // Urgência (PRD-009): numa conversa nova, o cliente desfaz dentro do prazo, e só com o sim.
-  await page.getByRole("button", { name: "Nova conversa" }).click();
-  await page.getByRole("button", { name: "Conversar em español" }).click();
-  await expect(falas).toHaveCount(1);
-  await page.getByLabel("Mensagem").fill("quiero desbloquear mi tarjeta");
-  await page.getByRole("button", { name: "Enviar", exact: true }).click();
-  await expect(falas).toHaveCount(3);
-  await page.getByRole("button", { name: "Sí, confirmo" }).click();
-  await expect(falas).toHaveCount(5);
+  await page.getByRole("button", { name: UI.es.nova }).click();
+  await expect(falas).toHaveCount(0);
+  await dizerNaConversa(page, "quiero desbloquear mi tarjeta", "es");
+  await page.getByRole("group", { name: UI.es.opcoes }).getByRole("button", { name: "Sí, confirmo" }).click();
+  await expect(falas).toHaveCount(4);
   await expect(falas.last().locator("p").first()).toHaveText(
     `Listo: deshice el bloqueo de tu tarjeta de débito terminada en 9876 (referencia ${bloqueio}).`,
   );
 
   // O caso, na fila do atendente, mostra que o cliente desfez o bloqueio.
-  await page.getByRole("tab", { name: "Agent" }).click();
+  await page.getByRole("tab", { name: UI.es.agente }).click();
   const caso = page.getByRole("region", { name: "Fila do atendimento humano" }).getByRole("listitem", { name: `Encaminhamento ${atendimento}` });
   await expect(caso.getByRole("list", { name: "Ações tentadas" })).toContainText(`desbloquear_cartao: ${bloqueio}: desfeito pelo cliente`);
   // Sem sobra para as outras jornadas: o atendente assume o caso.

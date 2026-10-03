@@ -1,6 +1,6 @@
 // Ajudantes das jornadas E2E: sessão pela API real e escolha de transações sem disputa entre os
 // testes que rodam em paralelo contra o mesmo banco.
-import { expect, type APIRequestContext, type TestInfo } from "@playwright/test";
+import { expect, type APIRequestContext, type Page, type TestInfo } from "@playwright/test";
 
 export type Persona = { customer_id: string; nome: string };
 export type Transacao = {
@@ -106,4 +106,73 @@ export function dataTexto(iso: string): string {
 export function descricao(t: Transacao, idioma: "es" | "pt"): string {
   const onde = t.merchant_name ? `${idioma === "es" ? "en" : "em"} ${t.merchant_name}` : t.transaction_id;
   return `${onde} de ${t.currency} ${valorTexto(t.amount)} (${dataTexto(t.transaction_date)})`;
+}
+
+// A aba do cliente do design de 03/10 (DEV-032b). As jornadas abrem o app na língua da conversa
+// (?lang=es ou pt): os rótulos do design ficam previsíveis. Os textos estão aqui como oráculo.
+export const UI = {
+  es: {
+    entrar: (nome: string) => `Entrar como ${nome} →`,
+    caixa: "Escribe como cliente, en español o portugués",
+    enviar: "Enviar",
+    opcoes: "Opciones",
+    atalhos: "Atajos",
+    conversa: "Conversación",
+    humano: "Pasado a una persona",
+    recebido: "pre-caso recibido",
+    pedidos: "Mis solicitudes",
+    transacoes: "Mis transacciones",
+    cadastrado: "Dispositivo registrado",
+    novo: "Dispositivo nuevo",
+    agente: "Agente",
+    cliente: "Cliente",
+    nova: "Nueva conversación",
+    reenviar: "Reenviar",
+    perguntar: "Preguntar por esta →",
+    paineis: ["Chat", "Transacciones", "Solicitudes · tarjetas"],
+  },
+  pt: {
+    entrar: (nome: string) => `Entrar como ${nome} →`,
+    caixa: "Escreva como cliente, em espanhol ou português",
+    enviar: "Enviar",
+    opcoes: "Opções",
+    atalhos: "Atalhos",
+    conversa: "Conversa",
+    humano: "Passado para uma pessoa",
+    recebido: "pré-caso recebido",
+    pedidos: "Meus pedidos",
+    transacoes: "Minhas transações",
+    cadastrado: "Dispositivo cadastrado",
+    novo: "Dispositivo novo",
+    agente: "Atendente",
+    cliente: "Cliente",
+    nova: "Nova conversa",
+    reenviar: "Reenviar",
+    perguntar: "Perguntar sobre esta →",
+    paineis: ["Conversa", "Transações", "Pedidos · cartões"],
+  },
+} as const;
+
+/** Entra pela tela de acesso do design: o cartão da persona, o dispositivo e o "Entrar como". */
+export async function entrarPeloAcesso(page: Page, nome: string, idioma: "es" | "pt", dispositivo: "cadastrado" | "novo" = "cadastrado") {
+  const u = UI[idioma];
+  await page.goto(`/?lang=${idioma}#cliente`);
+  await page.locator(".acc-persona").filter({ hasText: nome }).first().click();
+  await page.getByRole("button", { name: dispositivo === "cadastrado" ? u.cadastrado : u.novo }).click();
+  await page.getByRole("button", { name: u.entrar(nome), exact: true }).click();
+  await expect(page.getByRole("region", { name: u.transacoes })).toBeAttached();
+}
+
+/** As falas da conversa (as do cliente e as do assistente), sem o "lendo…" de passagem. */
+export const falasDaConversa = (page: Page) => page.getByRole("log").locator(".conv-falas > li:not(.conv-lendo)");
+
+/** Escreve e envia como o cliente; devolve a resposta do assistente, depois que ela chega. */
+export async function dizerNaConversa(page: Page, texto: string, idioma: "es" | "pt") {
+  const u = UI[idioma];
+  const falas = falasDaConversa(page);
+  const antes = await falas.count();
+  await page.getByLabel(u.caixa).fill(texto);
+  await page.getByRole("button", { name: u.enviar, exact: true }).click();
+  await expect(falas).toHaveCount(antes + 2);
+  return falas.last();
 }

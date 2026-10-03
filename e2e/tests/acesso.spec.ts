@@ -1,4 +1,5 @@
 import { expect, type APIRequestContext, test } from "@playwright/test";
+import { entrarPeloAcesso, UI } from "./comum";
 
 type Persona = { customer_id: string; nome: string };
 type Transacao = { transaction_id: string; merchant_name: string | null; transaction_type: string | null };
@@ -23,17 +24,16 @@ async function transacoes(request: APIRequestContext, tok: string): Promise<Tran
 
 test("entrar como persona mostra na tela exatamente as transações da sessão", async ({ page, request }) => {
   const [primeira] = await personas(request);
-  await page.goto("/");
-  await page.getByRole("button", { name: `Entrar como ${primeira!.nome}` }).click();
-  await expect(page.getByRole("heading", { name: `Olá, ${primeira!.nome}` })).toBeVisible();
+  await entrarPeloAcesso(page, primeira!.nome, "pt");
+  await expect(page.getByText(`${primeira!.customer_id} · ${primeira!.nome} · dispositivo cadastrado`)).toBeAttached();
 
   const tok = await page.evaluate(() => sessionStorage.getItem("jeje.sessao"));
   expect(tok).toBeTruthy();
   const esperadas = await transacoes(request, tok!);
-  const linhas = page.getByRole("table", { name: "Minhas transações" }).locator("tbody tr");
+  const linhas = page.getByRole("region", { name: UI.pt.transacoes }).getByRole("listitem");
   await expect(linhas).toHaveCount(esperadas.length);
   for (const [i, t] of esperadas.entries()) {
-    await expect(linhas.nth(i).getByRole("rowheader")).toHaveText(t.merchant_name ?? t.transaction_type ?? t.transaction_id);
+    await expect(linhas.nth(i).locator(".trx-comercio")).toHaveText(t.merchant_name ?? t.transaction_type ?? t.transaction_id);
   }
 });
 
