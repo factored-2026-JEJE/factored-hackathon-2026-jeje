@@ -504,6 +504,55 @@
       "testes": [
         "celular.spec.ts > a página cabe na tela e o Enviar recebe o toque"
       ]
+    },
+    {
+      "id": "M-E2E-32",
+      "requisito": "DEV-032a",
+      "descricao": "O Caddy deixa de servir o site em /site/ (o app aparece no lugar, e /site não redireciona)",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\t# O site do JEJE (DEV-032a): página própria em /site/, ao lado do app, no mesmo build.\n\tredir /site /site/ 308\n\thandle /site/* {\n\t\troot * /srv\n\t\ttry_files {path} /site/index.html\n\t\tfile_server\n\t}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "site.spec.ts > o site abre em /site/, ao lado do app, e leva ao app e ao guia",
+        "site.spec.ts > os números vêm da API: as reclamações de transação e o tamanho da carga",
+        "site.spec.ts > sem movimento, o mapa é o 2D e o recibo aparece inteiro"
+      ]
+    },
+    {
+      "id": "M-E2E-33",
+      "requisito": "DEV-032a",
+      "descricao": "A conversa do site nunca fala com a API (fica nos exemplos do design)",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "    return !SO_DESIGN && this.state.acesso === \"aberto\";",
+          "para": "    return false;"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > a conversa fala com a API: a contestação vai com uma compra da persona, e o balão e o porquê são os do turno",
+        "site.spec.ts > perguntar qual transação acende o Qual sem a Ação, e as opções são as da API",
+        "site.spec.ts > a injeção do pilar de segurança vai à API e não tem efeito"
+      ]
+    },
+    {
+      "id": "M-E2E-34",
+      "requisito": "DEV-032a",
+      "descricao": "O site só lê os números da API quando mostra só o design (a condição invertida): os números ficam os do design",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "    if (!SO_DESIGN) this.lerDaApi();\n",
+          "para": "    if (SO_DESIGN) this.lerDaApi();\n"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > os números vêm da API: as reclamações de transação e o tamanho da carga"
+      ]
     }
   ]
 }

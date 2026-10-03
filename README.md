@@ -72,6 +72,27 @@ baixa o leitor (torch só-CPU e pesos do e5, ~2 GB) e o treina (~11 min em CPU);
 fica com ~3,9 GB. Depois sobe em segundos.
 Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 
+## O site
+
+`/site/` (ao lado do app, no mesmo build do `web`) explica o sistema numa rolagem: a viagem de uma
+mensagem pelo mapa da arquitetura, em 3D (Three.js; sem WebGL ou com movimento reduzido, o mesmo
+mapa em 2D), o caminho dos dados, os modelos, os quatro pilares com a prova de cada um e os
+resultados. É a réplica do design entregue pelo designer (`04-solucao/design-do-site` no vault do
+time), com o conteúdo dele; o que mudou no `main` desde o design fica em `frontend/src/site/fatos.ts`,
+com a evidência ao lado (o LLM do "não entendi" e a garantia de fraude, que o design ainda via como
+planejados, já estão ligados).
+
+- Os números do problema, da carga e do portão TF-IDF vêm da API (`/dados/eda`, `/dados/qualidade`
+  e `/intencao/modelo`). Sem a API (o site aberto sem a senha dos jurados), ficam os do design, que
+  são os das evidências citadas em cada número.
+- "Mande uma mensagem" conversa com a API de verdade quando o acesso está aberto (na máquina, ou
+  depois da senha no app): uma persona de demonstração, a contestação com uma compra dela, e o mapa
+  acende o caminho do turno (quem leu, a transação, a política e a ação; em laranja quando passa
+  para uma pessoa). Sem o acesso, mostra as jornadas de exemplo do design, avisando que são exemplos.
+- `VITE_SO_DESIGN=1` no build mostra só o design, sem a API nem os fatos do `main`: foi assim que a
+  réplica foi comparada, imagem a imagem, com o HTML do designer.
+- Fontes Archivo e Martian Mono (SIL OFL 1.1, em `frontend/src/site/fontes/`), servidas pelo site.
+
 ## Experimente
 
 - **Contestar:** "No reconozco el cobro de 45,90 del 10/03/2025" (use valor e data de uma
@@ -419,7 +440,8 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
   `.env` guarda só segredos e nunca vai para o Git.
 - `backend/` — API (FastAPI) e migrations. Regras em `politica.py`, conversa em `conversa.py`,
   textos aprovados ES/PT em `mensagens.py`.
-- `frontend/` — interface React; tipos gerados de `contrato/openapi.json` (`make contrato`).
+- `frontend/` — interface React; tipos gerados de `contrato/openapi.json` (`make contrato`). O
+  site fica em `frontend/site/` (a página) e `frontend/src/site/` (conteúdo, mapa, fatos e números).
 - `e2e/` — jornadas no navegador; `mutantes/` — defeitos deliberados que os testes precisam pegar.
 - `data/manifesto/` — versão dos dados (hash de cada arquivo); `data/fixture/` — dataset sintético.
 
