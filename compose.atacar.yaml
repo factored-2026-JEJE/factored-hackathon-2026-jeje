@@ -1,0 +1,26 @@
+# O portão de release com o atacante adaptativo (make atacar, DEV-021b, NOV-13a): por cima do
+# compose.ci.yaml (a fixture) e do mutantes/compose.mutantes.yaml (sem portas no host), a API com o
+# leitor e5, o interpretador da demonstração, sem o LLM do site (PRD-010, item 3), e a reincidência
+# folgada como no NOV-13 (as rodadas não saturam as poucas personas da fixture). O atacante roda num
+# container na mesma rede e fala com o Ollama do host pela ponte (host.docker.internal).
+services:
+  api:
+    environment:
+      INTERPRETADOR: "leitor"
+      REINCIDENCIA_PRE_CASOS: "1000"
+  atacante:
+    image: python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
+    profiles: ["atacar"]
+    working_dir: /repo
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./avaliacao:/repo/avaliacao:ro
+      - ./data/fixture:/repo/data/fixture:ro
+      - ./compose.yaml:/repo/compose.yaml:ro
+      - ./compose.ci.yaml:/repo/compose.ci.yaml:ro
+      - ./compose.atacar.yaml:/repo/compose.atacar.yaml:ro
+      - ./resultados/atacante:/saida
+    depends_on:
+      web:
+        condition: service_healthy
