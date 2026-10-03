@@ -28,6 +28,8 @@ async function abrirConversa(page: Page) {
 const sombra = (page: Page, no: string) => page.locator(`[data-lbl=${no}]`).evaluate((e) => (e as HTMLElement).style.boxShadow);
 
 test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ page, request }) => {
+  // O site inteiro e o app na janela, duas vezes: mais que os 30 s numa máquina carregada.
+  test.setTimeout(90_000);
   const semBarra = await request.get("/site", { maxRedirects: 0 });
   expect(semBarra.status()).toBe(308);
   expect(semBarra.headers()["location"]).toMatch(/\/site\/$/);
