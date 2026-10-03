@@ -91,6 +91,14 @@ export async function minhasTransacoes(token: string): Promise<Transacao[]> {
   return json<Transacao[]>(await fetch("/api/minhas/transacoes", { headers: comToken(token) }), 200);
 }
 
+/** Os cartões do cliente da sessão (painel "Cartões"): tipo, 4 últimos dígitos, status da base e o
+ * bloqueio ativo feito pelo canal. O número inteiro nunca vem da API. */
+export type CartaoDoCliente = components["schemas"]["CartaoDoCliente"];
+
+export async function meusCartoes(token: string): Promise<CartaoDoCliente[]> {
+  return json<CartaoDoCliente[]>(await fetch("/api/minhas/cartoes", { headers: comToken(token) }), 200);
+}
+
 export type AvaliacaoDeContestacao = components["schemas"]["AvaliacaoDeContestacao"];
 export type PreCaso = components["schemas"]["PreCaso"];
 
@@ -114,6 +122,8 @@ export type ResultadoDoTurno = components["schemas"]["ResultadoDoTurno"];
 export type Historico = components["schemas"]["Historico"];
 export type Encaminhamento = components["schemas"]["Encaminhamento"];
 export type Metricas = components["schemas"]["Metricas"];
+/** Um dos últimos turnos (Operação): hora, id da requisição, regra, ação e efeito; nunca o cliente. */
+export type EventoRecente = components["schemas"]["EventoRecente"];
 
 /** Turno não registrado (503): a API desfez tudo, e reenviar a mesma mensagem é seguro. */
 export class NaoRegistrado extends Error {}
@@ -172,6 +182,11 @@ export async function desbloquearCartao(id: string): Promise<BloqueioDeCartao> {
 
 export async function buscarMetricas(): Promise<Metricas> {
   return json<Metricas>(await fetch("/api/metricas"), 200);
+}
+
+/** Os últimos turnos, o mais recente primeiro (só com MODO_DEMO, como o console do atendente). */
+export async function ultimosEventos(limite = 8): Promise<EventoRecente[]> {
+  return json<EventoRecente[]>(await fetch(`/api/metricas/eventos?limite=${limite}`), 200);
 }
 
 export type PedidoDeReview = components["schemas"]["PedidoDeReview"];
