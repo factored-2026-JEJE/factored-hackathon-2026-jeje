@@ -12,11 +12,13 @@ import pytest
 from jeje import interpretacao
 from jeje.interpretacao import (
     Interpretacao,
+    canal_citado,
     cartao_citado,
     cita_cartao,
     comercio_citado,
     comercio_citado_e_como,
     interpretar,
+    quando_relativo_citado,
 )
 
 REFERENCIA = date(2026, 3, 1)
@@ -2016,3 +2018,21 @@ def test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao(texto, anterior):
 )
 def test_o_que_nao_e_instrucao(texto, anterior):
     assert not ler(texto, anterior).instrucao
+
+
+@pytest.mark.parametrize(
+    ("texto", "canal", "quando"),
+    [
+        ("Pagué en el cajero ayer", True, True),
+        ("Fiz pelo app há duas semanas", True, True),
+        ("Compré online hace 3 días", True, True),
+        ("Foi na maquininha, 2 dias atrás", True, True),
+        ("Fue en la sucursal la semana pasada", True, True),
+        ("Fiz um pix no mês passado", True, True),
+        ("No reconozco el cobro del 10/03", False, False),
+        ("Me aplicaron un cargo y hace falta revisarlo", False, False),
+    ],
+)
+def test_canal_e_quando_relativo_citados_para_o_texto_do_caso(texto, canal, quando):
+    """ACH-126: o canal e o quando relativo que o cliente conta, só para o texto do caso."""
+    assert (canal_citado(texto), quando_relativo_citado(texto)) == (canal, quando)
