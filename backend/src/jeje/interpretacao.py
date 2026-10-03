@@ -210,6 +210,9 @@ PERDA_DE_MEIO = Perto(
 PEDIDO_DE_PESSOA = Perto(
     ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "pasas", "pasa",
      "pasenme", "pasen", "passem",
+     "passar para", "me passar para", "passe para", "pasar con", "pasarme con", "pases con",
+     "transfieras con", "transfiera con", "transfira para", "encaminhar para", "encaminhe para",
+     "encaminha para", "puede atender", "pode atender", "pode me atender",
      "passa", "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar",
      "contacto", "contato", "conect*", "chama", "chame", "chamar", "coloca", "coloque", "colocar",
      "atienda", "atenda", "dame", "deme", "llamame", "llame", "liga", "ligue", "poe", "ponme"),
@@ -254,6 +257,18 @@ PEDIDO_DE_CONTESTACAO = Perto(
 # A transação negada como do cliente ("hay un cobro que no es mío", "essa compra não é minha") é não
 # reconhecer (ACH-120 ampliado, EV-147). A janela é maior porque o valor costuma vir no meio ("un
 # cobro de 30 dólares que no es mío"); sem a transação perto, "ese error no es mío" não decide nada.
+# A transação citada e o sinal de golpe antes dela (ACH-220 da validação): a consequência do golpe
+# ("cliquei num link do banco e tenho cobranças estranhas") fica com o leitor e o LLM.
+TRANSACAO_CITADA = (
+    "pago", "pagos", "cargo", "cargos", "cobro", "cobros", "compra", "compras", "transaccion",
+    "transacciones", "pagamento", "pagamentos", "cobranca", "cobrancas", "transacao", "transacoes",
+)  # fmt: skip
+SINAL_DE_GOLPE = (
+    "enlace*", "link*", "sms", "whatsapp", "mensaje", "mensagem", "app", "aplicacion", "aplicativo",
+    "pagina", "sitio", "site", "correo", "email", "e mail", "llamaron", "ligaram", "llamo", "ligou",
+    "del banco", "do banco", "codigo", "clave", "senha", "datos", "dados", "falso", "falsa",
+    "supuesto", "suposta", "suposto",
+)  # fmt: skip
 TRANSACAO_NEGADA = Perto(
     ("no es mio", "no es mia", "no son mios", "no son mias", "nao e minha", "nao e meu",
      "nao sao minhas", "nao sao meus"),
@@ -296,6 +311,7 @@ CARTAO = ("tarjeta*", "cartao", "cartoes", *PLASTICO)
 PEDIDO_DE_BLOQUEIO = Perto(
     ("bloquear", "bloquearla", "bloquearlo", "bloquea", "bloquee", "bloqueen", "bloqueela",
      "bloqueala", "bloqueenla", "bloqueia", "bloqueie", "bloqueiem", "como bloqueo",
+     "bloqueame", "bloquearme", "bloqueenme", "bloqueeme", "congelame", "congelarme", "congelenme",
      "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congele", "congelen",
      "congelem", "congelarla", "congelala", "travar", "trave", "travem",
      # "Trava" e "congela" também descrevem o cartão ("meu cartão trava na maquininha", "o
@@ -311,6 +327,7 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
     ("desbloquear", "desbloquearla", "desbloquearlo", "desbloquea", "desbloquee", "desbloqueen",
      "desbloqueela", "desbloqueala", "desbloqueenla", "desbloqueia", "desbloqueie",
      "desbloqueiem", "como desbloqueo", "como desbloqueio", "el desbloqueo", "o desbloqueio",
+     "reactivame", "reactiveme", "reactivenme", "reactivarme",
      "reactivar", "reactiva", "reactive", "reactiven", "reativar", "reativa", "reative",
      "reativem"),
     CARTAO,
@@ -719,6 +736,7 @@ VOLTA_DO_BLOQUEADO = Perto(
 NEGACAO = (
     r"(?<![a-z0-9])(?:no|nao|nunca)(?: (?:quiero|quero|necesito|preciso|precisa|precisam"
     r"|hace falta|es necesario|e necessario|vayan a|van a|va a|vao|vai|pueden|podem|puede|pode"
+    r"|que|vayas a|vas a|vuelvan a|vuelva a|vuelvas a|voltem a|volte a|volta a"
     r"|me|te|la|lo|a|o|mi|meu|minha|el|os|as|las|los))* "
 )
 # O bloqueio que o cliente já fez ("ya bloqueé mi tarjeta", "la bloquee por error") conta o que
@@ -778,7 +796,18 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
                    "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
+                   "no lo hice", "no la hice", "no los hice", "no las hice", "nao o fiz",
+                   "nao a fiz", "nao os fiz", "nao as fiz", "no lo autorice", "no la autorice",
+                   "nao o autorizei", "nao a autorizei",
                    COBRANCA_REPETIDA, COBRANCA_A_MAIS, "revisen", "revisem", "reclamar",
+                   Perto(TRANSACAO_CITADA, ("duplicad*",), entre=5, so_nessa_ordem=True,
+                         antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),
+                   Perto(TRANSACAO_CITADA, ("extrano", "extrana", "extranos", "extranas",
+                                            "estranho", "estranha", "estranhos", "estranhas"),
+                         entre=1, so_nessa_ordem=True, antes=NA_MENSAGEM,
+                         fora_antes=SINAL_DE_GOLPE),
+                   Perto(TRANSACAO_CITADA, ("desconocid*", "desconhecid*"), entre=3,
+                         so_nessa_ordem=True, antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),
                    PEDIDO_DE_CONTESTACAO, TRANSACAO_NEGADA)),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
@@ -1411,6 +1440,23 @@ SUSPEITA_SEM_PERDA = (
     "nao informei", "nao forneci nada"
 )  # fmt: skip
 VITIMA = (
+    # A perda contada no passado com artigo ("e eu fiz o pix", "hice la transferencia"), também
+    # com a negação do golpista citada ("'não é golpe', ele falou"), do REG-73 (ACH-222).
+    "fiz o pix", "fiz a transferencia", "fiz o deposito", "fiz o pagamento", "fiz um deposito",
+    "fiz um pagamento", "hice la transferencia", "hice el deposito", "hice el pago",
+    "hice un deposito", "hice un pago",
+    # O cartão entregue ao golpista ou levado por ele, com o objeto logo depois ("o motoboy
+    # recolheu meu cartão", "se llevó mi tarjeta"), do REG-77 (ACH-222).
+    "entreguei o cartao", "entreguei meu cartao", "entreguei o meu cartao", "levou o cartao",
+    "levou meu cartao", "levou o meu cartao", "pegou o cartao", "pegou meu cartao",
+    "pegou o meu cartao", "pegaram o cartao", "pegaram meu cartao", "pegaram o meu cartao",
+    "recolheu o cartao", "recolheu meu cartao", "recolheu o meu cartao", "recolheram o cartao",
+    "recolheram meu cartao", "recolheram o meu cartao", "ficou com o cartao",
+    "ficou com meu cartao", "ficou com o meu cartao", "ficaram com o cartao",
+    "ficaram com meu cartao", "ficaram com o meu cartao", "se llevo la tarjeta",
+    "se llevo mi tarjeta", "se quedo con la tarjeta", "se quedo con mi tarjeta",
+    "se quedaron con la tarjeta", "se quedaron con mi tarjeta", "recogio la tarjeta",
+    "recogio mi tarjeta", "recogieron la tarjeta", "recogieron mi tarjeta",
     "cai", "me aplicaron", "sofri", "sufri", "me estafaron", "estafaron", "fui vitima",
     "fui victima", "foi vitima", "perdi", "me robaron", "roubaram", "me roubaram", "transferi",
     "transfiri", "hice una transferencia", "fiz um pix", "fiz uma transferencia", "me sacaron",
@@ -1426,6 +1472,8 @@ VITIMA = (
     "vaciaron", "esvaziaram", "limparam"
 )  # fmt: skip
 NEGA_A_VITIMA = (
+    # "Ninguém levou meu cartão" não é perda (REG-77 da validação, ACH-222).
+    "ninguem", "nadie",
     "no", "nao", "nunca", "ni", "nem", "jamas", "jamais"
 )  # fmt: skip
 PRONOMES_DA_VITIMA = (
