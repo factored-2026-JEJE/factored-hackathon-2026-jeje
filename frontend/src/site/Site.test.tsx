@@ -195,3 +195,38 @@ describe("a janela do app (design de 03/10)", () => {
     window.history.replaceState(null, "", "/");
   }, LONGO);
 });
+
+describe("a seção de resultados (1.5 do fechamento)", () => {
+  const celula = { fracao: 0.9125 };
+  const linha = (c: unknown) => Array.from({ length: 9 }, () => c);
+  const ARQUIVO = { commit: "0123456789abcdef", evidencia: "EV-300", n: 80, linhas: { baseline: linha(celula), execucao1: linha({ contagem: 2, de: 80 }), execucao2: linha(null) } };
+  const servir = (resultados: unknown | null) =>
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) =>
+        url === "/resultados/teste-final.json" && resultados !== null
+          ? Promise.resolve(new Response(JSON.stringify(resultados), { status: 200 }))
+          : Promise.reject(new TypeError("sem rede")),
+      ),
+    );
+
+  it("sem o arquivo do teste final, a seção e o link do menu não aparecem", async () => {
+    servir(null);
+    const { container } = render(<Site />);
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument());
+    expect(container.querySelector("#resultados")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Results" })).toBeNull();
+  }, LONGO);
+
+  it("com o arquivo, a tabela mostra os números de cada linha e a seção diz que acabou", async () => {
+    servir(ARQUIVO);
+    const { container } = render(<Site />);
+    await waitFor(() => expect(container.querySelector("#resultados")).not.toBeNull());
+    const secao = within(container.querySelector("#resultados") as HTMLElement);
+    expect(secao.getAllByText("91.3%")).toHaveLength(9);
+    expect(secao.getAllByText("2 / 80")).toHaveLength(9);
+    expect(secao.getByText("Done")).toBeInTheDocument();
+    expect(secao.getByText(/frozen commit 0123456789ab/)).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Results" }).length).toBeGreaterThan(0);
+  }, LONGO);
+});
