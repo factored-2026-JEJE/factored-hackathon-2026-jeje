@@ -1,0 +1,10 @@
+# A cada 10 minutos, de 6 a 16/10 (depois disso o script não faz nada).
+[Unit]
+Description=JEJE: conferência rápida da publicação a cada 10 minutos
+
+[Timer]
+OnCalendar=*:0/10
+Persistent=true
+
+[Install]
+WantedBy=timers.target
