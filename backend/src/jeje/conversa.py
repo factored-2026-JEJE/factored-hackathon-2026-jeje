@@ -37,6 +37,7 @@ from sqlalchemy import Connection, text
 from jeje import bloqueio, consultas, eventos, handoff, politica, pre_caso, qual_transacao
 from jeje.interpretacao import (
     Interpretacao,
+    canal_citado,
     cartao_citado,
     cita_cartao,
     comercio_citado,
@@ -44,6 +45,7 @@ from jeje.interpretacao import (
     hipotese_ou_capacidade,
     interpretar,
     prevencao,
+    quando_relativo_citado,
 )
 from jeje.interpretacao_modelo import (
     Interpretador,
@@ -1197,6 +1199,11 @@ class _Turno:
             campos.add(f"pedido:{lida.intencao}")
         if comercio_citado(fala, self._comercios) is not None:
             campos.add("comercio")
+        # O canal e o quando relativo só escolhem as falas do caso (ACH-126), sem tocar no ranking.
+        if canal_citado(fala):
+            campos.add("canal")
+        if quando_relativo_citado(fala):
+            campos.add("quando")
         return frozenset(campos)
 
     @cached_property
