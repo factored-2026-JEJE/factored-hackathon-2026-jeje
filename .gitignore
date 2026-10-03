@@ -12,3 +12,5 @@ data/raw/
 *.tsbuildinfo
 test-results/
 playwright-report/
+# O relatório parcial do atacante (make atacar); o final fica, para a release o incluir.
+resultados/atacante/*.parcial.json
