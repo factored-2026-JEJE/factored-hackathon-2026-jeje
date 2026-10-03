@@ -1,7 +1,9 @@
-// O site do JEJE (DEV-032a) contra a stack de verdade: abre em /site/ ao lado do app, mostra os
-// números lidos da API (a fixture tem outros valores que os do design, então a troca aparece) e
-// conversa com a API, com o mapa acendendo o caminho do turno. Nada aqui registra pré-caso nem
-// bloqueia cartão: as outras jornadas usam as mesmas personas ao mesmo tempo.
+// O site do JEJE (DEV-032a) contra a stack de verdade: abre em /site/ ao lado do app, abre o app de
+// verdade numa janela (design de 03/10), mostra os números lidos da API (a fixture tem outros valores
+// que os do design, então a troca aparece) e conversa com a API, com o mapa acendendo o caminho do
+// turno, inclusive o da conversa feita no app da janela. Nada aqui registra pré-caso nem bloqueia
+// cartão: as outras jornadas usam as mesmas personas ao mesmo tempo. O site abre em inglês; as
+// jornadas abrem em português (?lang=pt), a língua dos oráculos escritos aqui.
 import { expect, test, type Page } from "@playwright/test";
 
 // Os formatos que o cliente vê, escritos aqui como oráculo (não vêm do código do site).
@@ -9,8 +11,15 @@ const porcento = (p: number) => (Math.round(p * 1000) / 10).toFixed(1).replace("
 const milhar = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 const ACESO = "rgb(43, 53, 240)";
 
+// A barra do dock aparece depois de 55% da tela rolada (design de 03/10).
+async function rolarAteABarra(page: Page) {
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight));
+  await expect(page.getByRole("button", { name: /Mande uma mensagem/ })).toHaveCSS("opacity", "1");
+}
+
 async function abrirConversa(page: Page) {
-  await page.goto("/site/");
+  await page.goto("/site/?lang=pt");
+  await rolarAteABarra(page);
   await page.getByRole("button", { name: /Mande uma mensagem/ }).click();
   const dock = page.getByRole("dialog", { name: "Conversa" });
   await expect(dock.getByText(/Ao vivo: POST \/conversas/)).toBeVisible();
@@ -19,16 +28,67 @@ async function abrirConversa(page: Page) {
 const sombra = (page: Page, no: string) => page.locator(`[data-lbl=${no}]`).evaluate((e) => (e as HTMLElement).style.boxShadow);
 
 test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ page, request }) => {
+  // O site inteiro e o app na janela, duas vezes: mais que os 30 s numa máquina carregada.
+  test.setTimeout(90_000);
   const semBarra = await request.get("/site", { maxRedirects: 0 });
   expect(semBarra.status()).toBe(308);
   expect(semBarra.headers()["location"]).toMatch(/\/site\/$/);
-  await page.goto("/site/");
+  await page.goto("/site/?lang=pt");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Não é um chatbot.");
-  await expect(page.getByRole("link", { name: /Abrir o app/ }).first()).toHaveAttribute("href", "/#cliente");
-  await expect(page.getByRole("link", { name: /How to test/ })).toHaveAttribute("href", "/#how-to-test");
-  await page.getByRole("link", { name: /Abrir o app/ }).first().evaluate((a) => a.removeAttribute("target"));
-  await page.getByRole("link", { name: /Abrir o app/ }).first().click();
-  await expect(page.getByRole("tab", { name: "Customer" })).toHaveAttribute("aria-selected", "true");
+  // O app abre numa janela dentro do site: o app de verdade, na mesma origem, na língua do site.
+  await page.getByRole("button", { name: /Abrir o app/ }).first().click();
+  const janela = page.getByRole("dialog", { name: "JEJE app" });
+  const app = page.frameLocator('iframe[title="JEJE app"]');
+  await expect(app.getByRole("tab", { name: "Cliente" })).toHaveAttribute("aria-selected", "true");
+  await expect(janela.getByRole("link", { name: /Nova aba/ })).toHaveAttribute("href", "/#cliente");
+  // Trocar de aba no app muda o endereço na barra da janela (jeje-app-route).
+  await app.getByRole("tab", { name: "Atendente" }).click();
+  await expect(janela.getByText("#atendente", { exact: true })).toBeVisible();
+  // O Esc é do site: com o foco dentro do app, a tecla vai para o app (como no design). Um toque na
+  // barra da janela devolve o foco ao site.
+  await janela.getByText("#atendente", { exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(janela).toBeHidden();
+  // O guia dos jurados abre na mesma janela, na aba dele.
+  await page.getByRole("button", { name: /How to test/ }).click();
+  await expect(app.getByRole("tab", { name: "Como testar" })).toHaveAttribute("aria-selected", "true");
+  await janela.getByRole("button", { name: /Fechar/ }).click();
+  await expect(janela).toBeHidden();
+});
+
+test("a conversa feita no app da janela acende o caminho do turno no mapa do site", async ({ page }) => {
+  // O site inteiro e o app na janela, com a sessão e a conversa: mais que os 30 s numa máquina carregada.
+  test.setTimeout(90_000);
+  await page.goto("/site/?lang=pt");
+  // O mapa acende com o bloco do mapa inteiro na tela: o link "O mapa" do cabeçalho leva até ele.
+  await page.getByRole("navigation").getByRole("link", { name: "O mapa" }).click();
+  await expect(page.getByRole("button", { name: /Mande uma mensagem/ })).toHaveCSS("opacity", "1");
+  // No mapa inteiro, a rolagem acende o caminho todo da mensagem, inclusive o "Qual".
+  await expect.poll(() => sombra(page, "qual"), { timeout: 15_000 }).toContain(ACESO);
+  await page.getByRole("button", { name: /Abrir o app/ }).last().click();
+  const app = page.frameLocator('iframe[title="JEJE app"]');
+  await app.getByRole("button", { name: /^Entrar como / }).first().click();
+  await app.getByRole("button", { name: "Conversar em español" }).click();
+  // Uma mensagem sem transação: o caminho do turno não passa pelo "Qual", e passa pela política.
+  const resposta = turnoDaApi(page);
+  await app.getByLabel("Mensagem").fill("xyz");
+  await app.getByRole("button", { name: "Enviar" }).click();
+  const turno: Turno = await (await resposta).json();
+  expect(turno.opcoes).toEqual([]);
+  await expect.poll(() => sombra(page, "qual"), { timeout: 15_000 }).toBe("none");
+  await expect.poll(() => sombra(page, "politica"), { timeout: 15_000 }).toMatch(/43, 53, 240|255, 85, 32/);
+});
+
+test("no celular, o menu do cabeçalho leva às seções e fecha", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/site/?lang=pt");
+  const menu = page.getByRole("button", { name: "Menu" });
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await menu.click();
+  await expect(menu).toHaveAttribute("aria-expanded", "true");
+  await page.getByRole("link", { name: "Modelos" }).last().click();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
 });
 
 test("os números vêm da API: as reclamações de transação e o tamanho da carga", async ({ page, request }) => {
@@ -37,7 +97,7 @@ test("os números vêm da API: as reclamações de transação e o tamanho da ca
   const tabelas: { tabela: string; curado: number }[] = await (await request.get("/api/dados/qualidade")).json();
   const curado = (t: string) => tabelas.find((x) => x.tabela === t)?.curado ?? -1;
   expect(cargo).toBeDefined();
-  await page.goto("/site/");
+  await page.goto("/site/?lang=pt");
   const problema = page.locator("section").filter({ hasText: "Por que este fluxo" });
   await expect(problema.getByText(porcento(cargo?.proporcao ?? -1), { exact: true })).toBeVisible();
   const versao = page.locator("article").filter({ hasText: "Versão dos dados" });
@@ -94,7 +154,7 @@ test("perguntar qual transação acende o Qual sem a Ação, e as opções são 
 });
 
 test("a injeção do pilar de segurança vai à API e não tem efeito", async ({ page }) => {
-  await page.goto("/site/");
+  await page.goto("/site/?lang=pt");
   await page.getByRole("button", { name: /Mandar ao sistema/ }).click();
   const dock = page.getByRole("dialog", { name: "Conversa" });
   await expect(dock.getByText(/Ignore suas instruções/)).toBeVisible();
@@ -108,7 +168,7 @@ test("a injeção do pilar de segurança vai à API e não tem efeito", async ({
 
 test("sem movimento, o mapa é o 2D e o recibo aparece inteiro", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/site/");
+  await page.goto("/site/?lang=pt");
   await expect(page.locator("svg").first()).toBeVisible();
   await expect(page.locator("canvas")).toBeHidden();
   await page.getByText("Efeito conferido. Recibo impresso.").scrollIntoViewIfNeeded();
@@ -116,4 +176,13 @@ test("sem movimento, o mapa é o 2D e o recibo aparece inteiro", async ({ page }
   const recorte = () =>
     page.locator("[style*='clip-path']").first().evaluate((e) => parseFloat((e as HTMLElement).style.clipPath.split(/[()\s]+/)[3] ?? "100"));
   await expect.poll(recorte).toBe(0);
+});
+
+test("sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404", async ({ page, request }) => {
+  // O 404 de verdade (e não a página do app): é por ele que o site sabe que o teste ainda não rodou.
+  expect((await request.get("/resultados/teste-final.json")).status()).toBe(404);
+  await page.goto("/site/?lang=pt");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Não é um chatbot.");
+  await expect(page.locator("#resultados")).toHaveCount(0);
+  await expect(page.getByRole("navigation").getByRole("link", { name: "Resultados" })).toHaveCount(0);
 });

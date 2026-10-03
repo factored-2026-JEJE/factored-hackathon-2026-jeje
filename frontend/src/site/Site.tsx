@@ -1,7 +1,7 @@
 // O site do JEJE (DEV-032a): a réplica do design entregue (04-solucao/design-do-site no vault), com o
 // mesmo template, a mesma lógica e o mesmo mapa da arquitetura, em 3D (Three.js, carregado só com
 // movimento e WebGL) ou em 2D (SVG), preso à rolagem.
-import { Component, Fragment, createRef, type ChangeEvent, type KeyboardEvent } from "react";
+import { Component, Fragment, createRef, type ChangeEvent, type KeyboardEvent, type MouseEvent } from "react";
 import type * as THREE from "three";
 import {
   AcessoRestrito,
@@ -29,6 +29,7 @@ import {
   type TipoDeFonte,
 } from "./conteudo";
 import { CONTEUDO_DO_MAIN, MAPA_DO_MAIN } from "./fatos";
+import { estadoConcluido, formatarCelula, LINHAS_DA_TABELA, lerResultados, type ResultadosDoTeste } from "./resultados";
 import {
   DADOS,
   IDS_DOS_NOS,
@@ -43,7 +44,7 @@ import {
   type IdDoNo,
   type Ligacao,
 } from "./mapa";
-import { caminhoDaJornada, caminhoDoTurno, type CaminhoDoTurno } from "./turnoNoMapa";
+import { caminhoDaJornada, caminhoDoTurno, caminhoRecebido, type CaminhoDoTurno } from "./turnoNoMapa";
 
 // Só o design (VITE_SO_DESIGN=1): o conteúdo e o mapa do designer, sem a API. É assim que a réplica
 // é comparada com o HTML do designer; o site publicado mostra os fatos do main e os números ao vivo.
@@ -82,12 +83,28 @@ interface Estado {
   numeros: NumerosAoVivo;
   /** A conversa fala com a API de verdade quando o acesso está aberto (local, ou com a senha dos jurados). */
   acesso: "verificando" | "aberto" | "fechado";
+  /** A janela do app (design de 03/10): aberta, o endereço que ela carrega e a aba que o app avisou. */
+  appOpen: boolean;
+  appSrc: string;
+  appHash: string;
+  /** O menu do cabeçalho abaixo de 980 px. */
+  menuOpen: boolean;
+  /** Os números do teste final (resultados.ts); sem o arquivo, null, e a seção não aparece. */
+  resultados: ResultadosDoTeste | null;
 }
 
 interface Rotulo {
   readonly el: HTMLElement;
   readonly sub: HTMLElement | null;
   last: string;
+  /** Medido ("m") ou por medir: a largura e a altura só mudam quando muda o sub-rótulo. */
+  mk: string;
+  w?: number;
+  h?: number;
+  sx?: number;
+  sy?: number;
+  act?: boolean;
+  on?: boolean;
 }
 
 interface Cena3D {
@@ -225,7 +242,7 @@ function I(valor: string | number | null | undefined) {
 
 export class Site extends Component<object, Estado> {
   state: Estado = {
-    lang: "pt",
+    lang: "en",
     motion: true,
     vw: window.innerWidth,
     vh: window.innerHeight,
@@ -236,13 +253,18 @@ export class Site extends Component<object, Estado> {
     dockOpen: false,
     conv: [],
     draft: "",
-    convLang: "pt",
+    convLang: "es",
     obsOn: false,
     mutant: false,
     reproN: 0,
     whyOpen: {},
     numeros: SEM_NUMEROS,
     acesso: SO_DESIGN ? "fechado" : "verificando",
+    appOpen: false,
+    appSrc: "",
+    appHash: "#cliente",
+    menuOpen: false,
+    resultados: null,
   };
   canvasRef = createRef<HTMLCanvasElement>();
   stageRef = createRef<HTMLDivElement>();
@@ -252,6 +274,12 @@ export class Site extends Component<object, Estado> {
   receiptRef = createRef<HTMLDivElement>();
   convRef = createRef<HTMLDivElement>();
   zoneRef = createRef<HTMLDivElement>();
+  mapCardRef = createRef<HTMLDivElement>();
+  dockBarRef = createRef<HTMLDivElement>();
+  dockPanelRef = createRef<HTMLDivElement>();
+  drawerRef = createRef<HTMLElement>();
+  appWinRef = createRef<HTMLDivElement>();
+  appFrameRef = createRef<HTMLIFrameElement>();
 
   private ro: ResizeObserver | null = null;
   private raf = 0;
@@ -260,6 +288,16 @@ export class Site extends Component<object, Estado> {
   private movimentoAplicado = true;
   private blocks: HTMLElement[] = [];
   private lbls: Partial<Record<IdDoNo, Rotulo>> = {};
+  // O que tira espaço dos rótulos e da câmera (design de 03/10): os blocos marcados com data-ob, a
+  // barra do dock depois de 55% da tela, o painel e a gaveta.
+  private obEls: HTMLElement[] = [];
+  private blockRight: number[] = [];
+  private barShown = false;
+  private lastSop = "";
+  private lastWide: boolean | null = null;
+  private zoneMk = "";
+  private zw = 0;
+  private zh = 0;
   private mode: "2d" | "3d" = "2d";
   private geo: Geometria | null = null;
   private tres: Cena3D | null = null;
@@ -275,17 +313,20 @@ export class Site extends Component<object, Estado> {
   private enviando = false;
 
   componentDidMount() {
-    let lang: Idioma = "pt";
+    let lang: Idioma = "en";
     // Sem matchMedia (jsdom), o padrão é com movimento, como no design.
     let motion = !(typeof window.matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches);
     try {
-      const l = localStorage.getItem("jeje.site.lang");
+      const l = localStorage.getItem("jeje.site.locale");
       if (l === "pt" || l === "es" || l === "en") lang = l;
       const m = localStorage.getItem("jeje.site.motion");
       if (m) motion = m === "1";
     } catch {
       // sem armazenamento (janela privada): fica o padrão
     }
+    // O ?lang= do endereço vence a escolha guardada, como no design.
+    const q = new URLSearchParams(location.search).get("lang");
+    if (q === "pt" || q === "es" || q === "en") lang = q;
     this.setState({ lang, motion, convLang: lang === "pt" ? "pt" : "es", vw: innerWidth, vh: innerHeight });
     if (window.ResizeObserver) {
       this.ro = new ResizeObserver(() => {
@@ -297,6 +338,7 @@ export class Site extends Component<object, Estado> {
     if (!SO_DESIGN) this.lerDaApi();
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyEsc);
+    addEventListener("message", this.onMsg);
     this.raf = requestAnimationFrame(this.tick);
   }
 
@@ -304,6 +346,8 @@ export class Site extends Component<object, Estado> {
     cancelAnimationFrame(this.raf);
     removeEventListener("resize", this.onResize);
     removeEventListener("keydown", this.onKeyEsc);
+    removeEventListener("message", this.onMsg);
+    document.documentElement.style.overflow = "";
     clearInterval(this.rt);
     this.leitura.abort();
     if (this.ro) this.ro.disconnect();
@@ -316,17 +360,42 @@ export class Site extends Component<object, Estado> {
     void lerNumerosAoVivo(sinal).then((numeros) => {
       if (!sinal.aborted) this.setState({ numeros });
     });
+    void lerResultados(sinal).then((resultados) => {
+      if (!sinal.aborted) this.setState({ resultados });
+    });
     situacaoDoAcesso()
       .then((s) => !sinal.aborted && this.setState({ acesso: !s.restrito || s.liberado ? "aberto" : "fechado" }))
       .catch(() => !sinal.aborted && this.setState({ acesso: "fechado" }));
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(_: object, ps: Estado) {
+    const S = this.state;
     this.cacheEls();
-    if (this.inited && this.movimentoAplicado !== this.state.motion) {
-      this.movimentoAplicado = this.state.motion;
+    if (this.inited && this.movimentoAplicado !== S.motion) {
+      this.movimentoAplicado = S.motion;
       void this.applyMode();
     }
+    const loc = { pt: "pt-BR", es: "es", en: "en" }[S.lang];
+    if (document.documentElement.lang !== loc) document.documentElement.lang = loc;
+    if (!ps.appOpen && S.appOpen) {
+      document.documentElement.style.overflow = "hidden";
+      const w = this.appWinRef.current;
+      if (w && S.motion) {
+        w.style.transition = "none";
+        w.style.opacity = "0";
+        w.style.transform = "translateY(18px) scale(.985)";
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            w.style.transition = "opacity .32s cubic-bezier(.2,.8,.2,1), transform .42s cubic-bezier(.2,.8,.2,1)";
+            w.style.opacity = "1";
+            w.style.transform = "none";
+          }),
+        );
+      }
+    }
+    if (ps.appOpen && !S.appOpen) document.documentElement.style.overflow = "";
+    // A língua do site chega ao app aberto na janela, só para ele e na própria origem.
+    if (ps.lang !== S.lang && S.appOpen) this.appFrameRef.current?.contentWindow?.postMessage({ type: "jeje-lang", lang: S.lang }, location.origin);
   }
 
   private onResize = () => {
@@ -336,7 +405,26 @@ export class Site extends Component<object, Estado> {
   };
 
   private onKeyEsc = (e: globalThis.KeyboardEvent) => {
-    if (e.key === "Escape") this.setState({ drawer: null, src: null });
+    if (e.key !== "Escape") return;
+    if (this.state.appOpen) this.closeApp();
+    else this.setState({ drawer: null, src: null, menuOpen: false });
+  };
+
+  /**
+   * O app na janela avisa a aba aberta (para a barra de endereço) e cada turno (o caminho acende no
+   * mapa). Só da própria origem e só da janela do app (o design aceitava de qualquer um); a rota vem
+   * como a lista dos nós de verdade do turno ou como um tipo de rota do design, e qualquer outra coisa
+   * é ignorada.
+   */
+  private onMsg = (e: MessageEvent) => {
+    const frame = this.appFrameRef.current?.contentWindow;
+    if (e.origin !== location.origin || !frame || e.source !== frame) return;
+    const d = (e.data ?? {}) as { type?: unknown; hash?: unknown; route?: unknown; human?: unknown; leitura?: unknown };
+    if (d.type === "jeje-app-route" && typeof d.hash === "string") this.setState({ appHash: d.hash });
+    else if (d.type === "jeje-turn") {
+      const caminho = caminhoRecebido(d.route, d.human === true, d.leitura);
+      if (caminho) this.demo = { t0: performance.now(), caminho };
+    }
   };
 
   private cacheEls() {
@@ -347,7 +435,18 @@ export class Site extends Component<object, Estado> {
     this.blocks = Array.from(root.querySelectorAll<HTMLElement>("[data-stop]"));
     this.lbls = {};
     root.querySelectorAll<HTMLElement>("[data-lbl]").forEach((el) => {
-      this.lbls[el.getAttribute("data-lbl") as IdDoNo] = { el, sub: el.querySelector<HTMLElement>("[data-sub]"), last: "" };
+      this.lbls[el.getAttribute("data-lbl") as IdDoNo] = { el, sub: el.querySelector<HTMLElement>("[data-sub]"), last: "", mk: "" };
+    });
+    this.lastWide = null;
+    this.zoneMk = "";
+    this.obEls = Array.from(root.querySelectorAll<HTMLElement>("[data-ob]"));
+    this.blockRight = this.blocks.map((b) => {
+      let m = 0;
+      b.querySelectorAll("[data-ob]").forEach((e) => {
+        const q = e.getBoundingClientRect();
+        if (q.width) m = Math.max(m, q.right);
+      });
+      return m;
     });
   }
 
@@ -619,6 +718,7 @@ export class Site extends Component<object, Estado> {
     const max = de.scrollHeight - H;
     if (this.progRef.current) this.progRef.current.style.width = (max > 0 ? Math.min(100, (scrollY / max) * 100) : 0) + "%";
     this.receiptTick(H);
+    this.barTick(H);
     const bl = this.blocks;
     const ultimo = bl[bl.length - 1];
     if (bl.length < 17 || !ultimo) return;
@@ -644,6 +744,12 @@ export class Site extends Component<object, Estado> {
           s = i + -c(i) / (c(i + 1) - c(i));
           break;
         }
+    // O palco aparece aos poucos: 0,3 no topo e inteiro a partir do primeiro bloco do mapa.
+    const sop = Math.max(0.3, Math.min(1, 0.3 + (s - 0.2) * 0.9)).toFixed(2);
+    if (this.lastSop !== sop) {
+      this.lastSop = sop;
+      stage.style.opacity = sop;
+    }
     const stat = this.mode === "2d" && !this.state.motion;
     let i = Math.floor(s);
     let f = s - i;
@@ -653,8 +759,9 @@ export class Site extends Component<object, Estado> {
     }
     let e = suavizar(Math.max(0, Math.min(1, (f - 0.18) / 0.64)));
     if (stat) e = f < 0.5 ? 0 : 1;
-    const A = quadro(i, W, H, geo.msgR, geo.dataR, NOS);
-    const B = quadro(i + 1, W, H, geo.msgR, geo.dataR, NOS);
+    const medidas = { livre: this.safeRect(W, H), direita: this.rightEdge(W), bordaDoBloco: this.blockRight };
+    const A = quadro(i, W, H, geo.msgR, geo.dataR, NOS, medidas);
+    const B = quadro(i + 1, W, H, geo.msgR, geo.dataR, NOS, medidas);
     const lp = (a: number, b: number) => a + (b - a) * e;
     const goal: Camera = {
       x: lp(A.tg[0], B.tg[0]),
@@ -823,19 +930,67 @@ export class Site extends Component<object, Estado> {
       p2.capD2.style.display = dataOn ? "" : "none";
       project = (x, y, z) => ({ sx: tx + (x - cx) * sc, sy: ty + (z - cy) * sc - (y > 0.3 ? Math.min(30, sc * 0.45) : 0), ok: true });
     } else return;
+    // Os rótulos (design de 03/10): os candidatos por prioridade (o componente ativo, depois os acesos,
+    // depois os mais perto do foco) entram só onde não batem nos blocos, na barra, no painel, na gaveta
+    // nem uns nos outros.
     const wideL = wide || stat;
+    const showL = s > 1.55;
+    if (this.lastWide !== wideL) {
+      this.lastWide = wideL;
+      for (const id of IDS_DOS_NOS) {
+        const L = this.lbls[id];
+        if (!L) continue;
+        if (L.sub) L.sub.style.display = wideL ? "none" : "block";
+        L.mk = "";
+      }
+      this.zoneMk = "";
+    }
+    const obs = this.obstacles(W, H);
+    const placed: number[][] = [];
+    const cand: { L: Rotulo; p: number }[] = [];
+    const hit = (a: readonly number[]) => {
+      const [a0 = 0, a1 = 0, a2 = 0, a3 = 0] = a;
+      for (const [b0 = 0, b1 = 0, b2 = 0, b3 = 0] of obs) if (a0 < b2 && a2 > b0 && a1 < b3 && a3 > b1) return true;
+      for (const [b0 = 0, b1 = 0, b2 = 0, b3 = 0] of placed) if (a0 < b2 + 6 && a2 + 6 > b0 && a1 < b3 + 4 && a3 + 4 > b1) return true;
+      return false;
+    };
     for (const id of IDS_DOS_NOS) {
       const L = this.lbls[id];
       if (!L) continue;
+      L.on = false;
       const n = NOS[id];
       const top = this.tres?.n3[id]?.top ?? 0.6;
       const pr = project(n.x, top + 0.34, n.y);
-      const near = wideL || Math.hypot(n.x - tgt[0], n.y - tgt[2]) < 6.8;
-      const on = pr.ok && near && pr.sx > -80 && pr.sx < W + 80 && pr.sy > 40 && pr.sy < H + 40;
-      L.el.style.transform = "translate(" + pr.sx.toFixed(1) + "px," + pr.sy.toFixed(1) + "px) translate(-50%,-100%)";
-      const act = id === activeNode && !wideL;
+      const d = Math.hypot(n.x - tgt[0], n.y - tgt[2]);
+      L.sx = pr.sx;
+      L.sy = pr.sy;
+      L.act = id === activeNode && !wideL;
+      if (showL && pr.ok && (wideL || d < 6.8) && pr.sx > -80 && pr.sx < W + 80 && pr.sy > 40 && pr.sy < H + 40)
+        cand.push({ L, p: (L.act ? -10 : 0) + (lit[id] ? 0 : 1) + d * 0.01 });
+    }
+    cand.sort((a, b) => a.p - b.p);
+    for (const { L } of cand) {
+      if (L.mk !== "m") {
+        L.w = L.el.offsetWidth;
+        L.h = L.el.offsetHeight;
+        L.mk = "m";
+      }
+      const sx = L.sx ?? 0;
+      const sy = L.sy ?? 0;
+      const rc = [sx - (L.w ?? 0) / 2, sy - (L.h ?? 0), sx + (L.w ?? 0) / 2, sy];
+      if (!hit(rc)) {
+        placed.push(rc);
+        L.on = true;
+      }
+    }
+    for (const id of IDS_DOS_NOS) {
+      const L = this.lbls[id];
+      if (!L || L.sx == null || L.sy == null) continue;
+      const on = !!L.on;
+      const act = !!L.act;
       const hum = isHumanNode(id);
-      const sig = (on ? 1 : 0) + "|" + (act ? 1 : 0) + "|" + (lit[id] ? 1 : 0) + "|" + (hum ? 1 : 0) + "|" + (wideL ? 1 : 0);
+      L.el.style.transform = "translate(" + L.sx.toFixed(1) + "px," + L.sy.toFixed(1) + "px) translate(-50%,-100%)";
+      const sig = (on ? 1 : 0) + "|" + (act ? 1 : 0) + "|" + (lit[id] ? 1 : 0) + "|" + (hum ? 1 : 0);
       if (L.last !== sig) {
         L.last = sig;
         L.el.style.opacity = on ? "1" : "0";
@@ -844,14 +999,120 @@ export class Site extends Component<object, Estado> {
         L.el.style.color = act ? "#F7F4EC" : "#16150F";
         L.el.style.borderColor = hum ? "#FF5520" : lit[id] ? "#2B35F0" : "#16150F";
         L.el.style.boxShadow = lit[id] ? (hum ? "inset 0 -3px 0 #FF5520" : "inset 0 -3px 0 #2B35F0") : "none";
-        if (L.sub) L.sub.style.display = wideL ? "none" : "block";
       }
     }
-    if (this.zoneRef.current) {
+    const Z = this.zoneRef.current;
+    if (Z) {
       const pz = project(4.45, 0.1, -0.85);
-      this.zoneRef.current.style.transform = "translate(" + pz.sx.toFixed(1) + "px," + pz.sy.toFixed(1) + "px)";
-      this.zoneRef.current.style.opacity = pz.ok && cv.r > 7.5 ? "1" : "0";
+      let zon = false;
+      if (showL && pz.ok && cv.r > 7.5) {
+        if (this.zoneMk !== "m") {
+          this.zw = Z.offsetWidth;
+          this.zh = Z.offsetHeight;
+          this.zoneMk = "m";
+        }
+        zon = !hit([pz.sx, pz.sy, pz.sx + this.zw, pz.sy + this.zh]);
+      }
+      Z.style.transform = "translate(" + pz.sx.toFixed(1) + "px," + pz.sy.toFixed(1) + "px)";
+      const zo = zon ? "1" : "0";
+      if (Z.style.opacity !== zo) Z.style.opacity = zo;
     }
+  };
+
+  /** O que os rótulos e a câmera não podem cobrir: o topo, os blocos com data-ob, a barra, o painel e a gaveta. */
+  private obstacles(W: number, H: number): number[][] {
+    const out = [[0, 0, W, 60]];
+    const add = (el: Element | null) => {
+      if (!el) return;
+      const q = el.getBoundingClientRect();
+      if (q.width && q.bottom > 0 && q.top < H && q.right > 0 && q.left < W) out.push([q.left, q.top, q.right, q.bottom]);
+    };
+    this.obEls.forEach(add);
+    if (this.barShown) add(this.dockBarRef.current);
+    add(this.dockPanelRef.current);
+    add(this.drawerRef.current);
+    return out;
+  }
+
+  /** A barra do dock aparece depois de 55% da tela rolada (ou com o painel aberto). */
+  private barTick(H: number) {
+    const el = this.dockBarRef.current;
+    if (!el) return;
+    const show = this.state.dockOpen || scrollY > H * 0.55;
+    this.barShown = show;
+    const op = show ? "1" : "0";
+    if (el.style.opacity !== op) {
+      el.style.opacity = op;
+      el.style.transform = show ? "none" : "translateY(16px)";
+      el.style.pointerEvents = show ? "auto" : "none";
+    }
+  }
+
+  /** O retângulo livre para o mapa inteiro: sem o cartão do mapa, a barra do dock e o lado direito ocupado. */
+  private safeRect(W: number, H: number) {
+    const mob = W < 760;
+    let l = 16;
+    let t = 70;
+    let r = W - 16;
+    let b = H - 16;
+    const mc = this.mapCardRef.current?.getBoundingClientRect();
+    if (mc && mc.bottom > 60 && mc.top < H) {
+      if (mob) t = Math.max(t, mc.bottom + 12);
+      else l = Math.max(l, mc.right + 24);
+    }
+    if (this.barShown) {
+      const q = this.dockBarRef.current?.getBoundingClientRect();
+      if (q) b = Math.min(b, q.top - 12);
+    }
+    if (!mob) r = this.rightEdge(W);
+    return { l, t, r, b };
+  }
+
+  /** A borda direita livre: antes do painel do dock e da gaveta, quando abertos. */
+  private rightEdge(W: number) {
+    let r = W - 24;
+    if (W < 760) return r;
+    const p = this.dockPanelRef.current?.getBoundingClientRect();
+    if (p) r = Math.min(r, p.left - 20);
+    const d = this.drawerRef.current?.getBoundingClientRect();
+    if (d) r = Math.min(r, d.left - 20);
+    return r;
+  }
+
+  /** A navegação do cabeçalho e do menu: rolagem suave até o bloco, sem mudar o endereço. */
+  private scrollToId(id: string) {
+    const beh: ScrollBehavior = this.state.motion ? "smooth" : "auto";
+    this.setState({ menuOpen: false });
+    if (id === "mapa") {
+      this.goMap();
+      return;
+    }
+    if (id === "inicio") {
+      window.scrollTo({ top: 0, behavior: beh });
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - (id === "viagem" ? 0 : 56), behavior: beh });
+  }
+
+  /**
+   * A janela do app (design de 03/10): o app de verdade, em / na mesma origem, com a língua do site, a
+   * aba pedida e o movimento. O hash vai junto porque o app roteia por ele.
+   */
+  private openApp(tab: "cliente" | "guia") {
+    const l = this.state.lang;
+    const hash = tab === "guia" ? "#how-to-test" : "#cliente";
+    this.setState({
+      appOpen: true,
+      menuOpen: false,
+      dockOpen: false,
+      appSrc: "/?lang=" + l + "&tab=" + tab + (this.state.motion ? "" : "&motion=0") + hash,
+      appHash: hash,
+    });
+  }
+
+  private closeApp = () => {
+    this.setState({ appOpen: false });
   };
 
   private receiptTick(H: number) {
@@ -869,7 +1130,7 @@ export class Site extends Component<object, Estado> {
 
   private setLang(l: Idioma) {
     try {
-      localStorage.setItem("jeje.site.lang", l);
+      localStorage.setItem("jeje.site.locale", l);
     } catch {
       // sem armazenamento: a escolha vale só nesta visita
     }
@@ -1150,17 +1411,36 @@ export class Site extends Component<object, Estado> {
   private renderVals() {
     const S = this.state;
     const mob = S.vw < 760;
+    const vw = S.vw;
+    const navOn = vw >= 980;
     const L = {
-      wideInline: mob ? "none" : "inline",
-      wideFlex: mob ? "none" : "flex",
-      langMargin: mob ? "auto" : "0",
+      tagDisp: vw >= 1280 ? "inline" : "none",
+      navDisp: navOn ? "flex" : "none",
+      motionDisp: vw >= 1120 ? "flex" : "none",
+      menuDisp: navOn ? "none" : "flex",
+      langMargin: navOn ? "0" : "auto",
       cardAlign: mob ? "flex-end" : "center",
-      padBottom: mob ? "92px" : "64px",
+      padBottom: mob ? "96px" : "64px",
       mapBody: mob ? "none" : "block",
+      legendDisp: mob ? "none" : "grid",
+      mapTop: mob ? "64px" : "76px",
+      barLeft: mob ? "8px" : "auto",
+      barRight: mob ? "8px" : "20px",
+      barBottom: mob ? "8px" : "16px",
+      barFlex: mob ? "1 1 0" : "0 0 auto",
+      panelLeft: mob ? "8px" : "auto",
+      panelRight: mob ? "8px" : "20px",
+      panelBottom: mob ? "64px" : "76px",
+      panelW: mob ? "auto" : "min(420px, calc(100vw - 40px))",
+      winPad: mob ? "0" : "clamp(10px,2.4vw,32px)",
+      winNote: vw >= 720 ? "flex" : "none",
     };
     const vivo = this.aoVivo();
     const doSite = comNumerosAoVivo(resolver(CONTEUDO_DO_SITE, S.lang), S.numeros, S.lang);
-    const t = vivo ? { ...doSite, dock: { ...doSite.dock, note: doSite.dock.noteLive ?? doSite.dock.note } } : doSite;
+    const comVivo = vivo ? { ...doSite, dock: { ...doSite.dock, note: doSite.dock.noteLive ?? doSite.dock.note } } : doSite;
+    // Depois do teste final, o estado da seção de resultados é o concluído, com o commit e a evidência.
+    const feito = S.resultados ? estadoConcluido(S.resultados, S.lang) : null;
+    const t = feito ? { ...comVivo, results: { ...comVivo.results, status: feito.status, statusNote: feito.nota } } : comVivo;
     const C = CONTEUDO_DO_SITE;
     const cl = S.convLang;
     const ink = "#16150F";
@@ -1423,7 +1703,30 @@ export class Site extends Component<object, Estado> {
       t,
       appUrl: C.appUrl,
       guideUrl: C.guideUrl,
-      appShort: mob ? "App" : t.ui.app,
+      mapCardRef: this.mapCardRef,
+      dockBarRef: this.dockBarRef,
+      dockPanelRef: this.dockPanelRef,
+      drawerRef: this.drawerRef,
+      appWinRef: this.appWinRef,
+      appFrameRef: this.appFrameRef,
+      appOpen: S.appOpen,
+      appSrc: S.appSrc,
+      appHash: S.appHash,
+      openApp: () => this.openApp("cliente"),
+      openGuide: () => this.openApp("guia"),
+      closeApp: this.closeApp,
+      menuOpen: S.menuOpen,
+      menuBg: S.menuOpen ? "#16150F" : "transparent",
+      menuFg: S.menuOpen ? "#F0ECE3" : "#16150F",
+      toggleMenu: () => this.setState({ menuOpen: !S.menuOpen }),
+      goTop: (e: MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        this.scrollToId("inicio");
+      },
+      goJourney: (e: MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        this.scrollToId("viagem");
+      },
       stageRef: this.stageRef,
       canvasRef: this.canvasRef,
       svgHostRef: this.svgHostRef,
@@ -1431,12 +1734,20 @@ export class Site extends Component<object, Estado> {
       progRef: this.progRef,
       zoneRef: this.zoneRef,
       convRef: this.convRef,
-      navItems: t.ui.nav,
+      // Sem a seção de resultados, o menu não leva a ela.
+      navItems: t.ui.nav.filter((n) => n.href !== "#resultados" || SO_DESIGN || S.resultados !== null).map((n) => ({
+        href: n.href,
+        label: n.label,
+        go: (e: MouseEvent<HTMLAnchorElement>) => {
+          e.preventDefault();
+          this.scrollToId(n.href.slice(1));
+        },
+      })),
       langs: (
         [
-          ["pt", "PT"],
-          ["es", "ES"],
           ["en", "EN"],
+          ["es", "ES"],
+          ["pt", "PT"],
         ] as const
       ).map(([c, code]) => ({ code, on: S.lang === c, bg: S.lang === c ? ink : "transparent", fg: S.lang === c ? paper : ink, pick: () => this.setLang(c) })),
       motionOn: S.motion,
@@ -1481,7 +1792,13 @@ export class Site extends Component<object, Estado> {
       reproLines,
       reproCursor: S.reproN >= rl.length ? "$ _" : S.reproN === 0 ? "$ _" : "…",
       runRepro: this.runRepro,
-      resRows: t.results.rows.map((l) => ({ l, cells: t.results.cols.map((_c, k) => (k === 5 ? "— / 80" : "—")) })),
+      // Sem o arquivo do teste final, os traços do design; com ele, os números, na língua do site.
+      resRows: t.results.rows.map((l, i) => {
+        const linha = S.resultados?.linhas[LINHAS_DA_TABELA[i] ?? "baseline"];
+        return { l, cells: t.results.cols.map((_c, k) => (linha ? formatarCelula(linha[k] ?? null, S.lang) : k === 5 ? "— / 80" : "—")) };
+      }),
+      // Só o design (a comparação da réplica) mostra a seção sem o arquivo; o site publicado, só com ele.
+      mostrarResultados: SO_DESIGN || S.resultados !== null,
       outItems: t.results.out.map((o) => ({
         id: o[0],
         txt: o[1],
@@ -1546,7 +1863,7 @@ export class Site extends Component<object, Estado> {
         {v.labels.map((n, i0) => (
           <Fragment key={i0}>
             {" "}
-            <button data-lbl={n.id} onClick={n.open} onMouseEnter={n.enter} onMouseLeave={n.leave} style={{ position: "absolute", left: "0", top: "0", opacity: "0", pointerEvents: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", padding: "4px 7px 5px", border: "1px solid #16150F", borderStyle: n.bs, background: "#F7F4EC", color: "#16150F", whiteSpace: "nowrap", willChange: "transform", transition: "background-color .25s,color .25s,border-color .25s" }}>
+            <button data-lbl={n.id} onClick={n.open} onMouseEnter={n.enter} onMouseLeave={n.leave} style={{ position: "absolute", left: "0", top: "0", opacity: "0", pointerEvents: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", padding: "4px 7px 5px", border: "1px solid #16150F", borderStyle: n.bs, background: "#F7F4EC", color: "#16150F", whiteSpace: "nowrap", willChange: "transform", transition: "background-color .25s,color .25s,border-color .25s,opacity .2s" }}>
               {" "}
               <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "75%", fontWeight: "700", fontSize: "12px", lineHeight: "1.05", textTransform: "uppercase", letterSpacing: ".01em" }}>
                 {I(n.name)}
@@ -1563,24 +1880,24 @@ export class Site extends Component<object, Estado> {
       </div>
       <header style={{ position: "fixed", top: "0", left: "0", right: "0", zIndex: "50", height: "56px", display: "flex", alignItems: "center", gap: "clamp(8px,1.6vw,20px)", padding: "0 clamp(12px,3vw,32px)", background: "rgba(240,236,227,.95)", backdropFilter: "blur(10px)", "WebkitBackdropFilter": "blur(10px)", borderBottom: "1px solid #16150F" }}>
         {" "}
-        <a href="#inicio" style={{ display: "flex", alignItems: "baseline", gap: "10px", textDecoration: "none", color: "#16150F", flex: "0 0 auto" }}>
+        <a href="#inicio" onClick={v.goTop} style={{ display: "flex", alignItems: "baseline", gap: "10px", textDecoration: "none", color: "#16150F", flex: "0 0 auto" }}>
           {" "}
           <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "900", fontSize: "30px", lineHeight: "1", letterSpacing: ".01em" }}>
             {"JEJE"}
           </span>
           {" "}
-          <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".03em", textTransform: "uppercase", color: "#57534A", display: v.L.wideInline }}>
+          <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", letterSpacing: ".03em", textTransform: "uppercase", color: "#57534A", whiteSpace: "nowrap", display: v.L.tagDisp }}>
             {I(v.t.ui.tag)}
           </span>
           {" "}
         </a>
         {" "}
-        <nav style={{ display: v.L.wideFlex, gap: "2px", marginLeft: "auto" }}>
+        <nav style={{ display: v.L.navDisp, gap: "2px", marginLeft: "auto" }}>
           {" "}
           {v.navItems.map((n, i0) => (
             <Fragment key={i0}>
               {" "}
-              <a href={n.href} style={{ fontSize: "13px", fontWeight: "500", color: "#16150F", textDecoration: "none", padding: "8px 9px" }} className="dc-h0">
+              <a href={n.href} onClick={n.go} style={{ fontSize: "13px", fontWeight: "500", color: "#16150F", textDecoration: "none", padding: "8px 9px", whiteSpace: "nowrap" }} className="dc-h0">
                 {I(n.label)}
               </a>
               {" "}
@@ -1603,21 +1920,47 @@ export class Site extends Component<object, Estado> {
           {" "}
         </div>
         {" "}
-        <button onClick={v.toggleMotion} aria-pressed={v.motionOn} style={{ display: v.L.wideFlex, alignItems: "center", gap: "6px", border: "1px solid #16150F", background: "transparent", padding: "6px 9px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase" }}>
+        <button onClick={v.toggleMotion} aria-pressed={v.motionOn} style={{ display: v.L.motionDisp, alignItems: "center", gap: "6px", border: "1px solid #16150F", background: "transparent", padding: "6px 9px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
           {I(v.t.ui.motion)}{" · "}{I(v.motionLabel)}
         </button>
         {" "}
-        <a href={v.appUrl} target="_blank" rel="noopener" style={{ flex: "0 0 auto", background: "#2B35F0", color: "#fff", textDecoration: "none", fontWeight: "600", fontSize: "13.5px", padding: "9px 14px", border: "1px solid #2B35F0" }} className="dc-h1">
+        <button onClick={v.toggleMenu} aria-expanded={v.menuOpen} style={{ display: v.L.menuDisp, alignItems: "center", border: "1px solid #16150F", background: v.menuBg, color: v.menuFg, padding: "6px 9px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10px", textTransform: "uppercase" }}>
+          {I(v.t.ui.appWin.menu)}
+        </button>
+        {" "}
+        <button onClick={v.openApp} style={{ flex: "0 0 auto", background: "#2B35F0", color: "#fff", fontWeight: "600", fontSize: "13.5px", padding: "9px 14px", border: "1px solid #2B35F0", whiteSpace: "nowrap" }} className="dc-h1">
           {I(v.t.ui.app)}{" ↗"}
-        </a>
+        </button>
         {" "}
         <div ref={v.progRef} style={{ position: "absolute", left: "0", bottom: "-1px", height: "3px", width: "0", background: "#2B35F0" }}></div>
       </header>
+      {v.menuOpen ? (
+        <>
+          {" "}
+          <div style={{ position: "fixed", top: "56px", left: "0", right: "0", zIndex: "49", background: "#F0ECE3", borderBottom: "1px solid #16150F", padding: "10px clamp(12px,3vw,32px) 18px", display: "flex", flexDirection: "column" }}>
+            {" "}
+            {v.navItems.map((n, i0) => (
+              <Fragment key={i0}>
+                {" "}
+                <a href={n.href} onClick={n.go} style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", fontSize: "40px", lineHeight: "1", textTransform: "uppercase", color: "#16150F", textDecoration: "none", padding: "8px 0", borderBottom: "1px solid #CFC7B8" }} className="dc-h0">
+                  {I(n.label)}
+                </a>
+                {" "}
+              </Fragment>
+            ))}
+            {" "}
+            <button onClick={v.toggleMotion} style={{ alignSelf: "flex-start", marginTop: "14px", border: "1px solid #16150F", background: "transparent", padding: "8px 10px", fontFamily: "'Martian Mono',monospace", fontSize: "10.5px", textTransform: "uppercase" }}>
+              {I(v.t.ui.motion)}{" · "}{I(v.motionLabel)}
+            </button>
+            {" "}
+          </div>
+        </>
+      ) : null}
       <main style={{ position: "relative", zIndex: "2", pointerEvents: "none" }}>
         {" "}
         <section id="inicio" data-stop="0" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", padding: "calc(56px + clamp(28px,7vh,84px)) clamp(16px,4vw,56px) 48px" }}>
           {" "}
-          <div style={{ pointerEvents: "auto", maxWidth: "1320px", display: "flex", flexDirection: "column", gap: "22px" }}>
+          <div data-ob="1" style={{ pointerEvents: "auto", maxWidth: "1320px", display: "flex", flexDirection: "column", gap: "22px" }}>
             {" "}
             <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
               <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
@@ -1638,13 +1981,13 @@ export class Site extends Component<object, Estado> {
             {" "}
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               {" "}
-              <a href="#viagem" style={{ background: "#16150F", color: "#F0ECE3", textDecoration: "none", fontWeight: "600", fontSize: "15px", padding: "13px 18px", border: "1px solid #16150F" }} className="dc-h2">
+              <a href="#viagem" onClick={v.goJourney} style={{ background: "#16150F", color: "#F0ECE3", textDecoration: "none", fontWeight: "600", fontSize: "15px", padding: "13px 18px", border: "1px solid #16150F" }} className="dc-h2">
                 {I(v.t.hero.follow)}{" ↓"}
               </a>
               {" "}
-              <a href={v.appUrl} target="_blank" rel="noopener" style={{ background: "#F0ECE3", color: "#16150F", textDecoration: "none", fontWeight: "600", fontSize: "15px", padding: "13px 18px", border: "1px solid #16150F" }} className="dc-h3">
+              <button onClick={v.openApp} style={{ background: "#F0ECE3", color: "#16150F", fontWeight: "600", fontSize: "15px", padding: "13px 18px", border: "1px solid #16150F" }} className="dc-h3">
                 {I(v.t.ui.app)}{" ↗"}
-              </a>
+              </button>
               {" "}
             </div>
             {" "}
@@ -1654,7 +1997,7 @@ export class Site extends Component<object, Estado> {
         {" "}
         <section data-stop="1" style={{ minHeight: "112vh", display: "flex", alignItems: "center", padding: "96px clamp(16px,4vw,56px)" }}>
           {" "}
-          <div style={{ pointerEvents: "auto", maxWidth: "860px", background: "#F7F4EC", border: "1px solid #16150F" }}>
+          <div data-ob="1" style={{ pointerEvents: "auto", maxWidth: "860px", background: "#F7F4EC", border: "1px solid #16150F" }}>
             {" "}
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 18px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase" }}>
               <span>
@@ -1711,7 +2054,7 @@ export class Site extends Component<object, Estado> {
           {" "}
           <section data-stop="2" style={{ minHeight: "108vh", display: "flex", alignItems: v.L.cardAlign, padding: `96px clamp(16px,4vw,56px) ${v.L.padBottom ?? ""}` }}>
             {" "}
-            <div style={{ pointerEvents: "auto", flex: "0 1 520px", maxWidth: "100%", display: "flex", flexDirection: "column", gap: "18px" }}>
+            <div data-ob="1" style={{ pointerEvents: "auto", flex: "0 1 520px", maxWidth: "100%", display: "flex", flexDirection: "column", gap: "18px" }}>
               {" "}
               <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", background: "#F0ECE3", alignSelf: "flex-start", padding: "3px 0" }}>
                 {I(v.t.intro.kicker)}
@@ -1754,7 +2097,7 @@ export class Site extends Component<object, Estado> {
               {" "}
               <section data-stop={s.idx} style={{ minHeight: s.minH, display: "flex", flexWrap: "wrap", alignItems: s.align, alignContent: s.align, gap: "clamp(20px,4vw,56px)", padding: `96px clamp(16px,4vw,56px) ${s.padB ?? ""}` }}>
                 {" "}
-                <article style={{ pointerEvents: "auto", flex: "0 1 440px", maxWidth: "100%", background: "#F7F4EC", border: "1px solid #16150F" }}>
+                <article data-ob="1" style={{ pointerEvents: "auto", flex: "0 1 440px", maxWidth: "100%", background: "#F7F4EC", border: "1px solid #16150F" }}>
                   {" "}
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase" }}>
                     <span>
@@ -1973,7 +2316,7 @@ export class Site extends Component<object, Estado> {
                 {s.isBanco ? (
                   <>
                     {" "}
-                    <div style={{ pointerEvents: "auto", flex: "0 1 380px", maxWidth: "100%", display: "flex", flexDirection: "column" }}>
+                    <div data-ob="1" style={{ pointerEvents: "auto", flex: "0 1 380px", maxWidth: "100%", display: "flex", flexDirection: "column" }}>
                       {" "}
                       <div style={{ height: "16px", background: "#16150F", borderRadius: "8px", margin: "0 -10px", position: "relative", zIndex: "1" }}></div>
                       {" "}
@@ -2075,7 +2418,7 @@ export class Site extends Component<object, Estado> {
               {" "}
               <section data-stop={s.idx} style={{ minHeight: "104vh", display: "flex", alignItems: s.align, padding: `96px clamp(16px,4vw,56px) ${s.padB ?? ""}` }}>
                 {" "}
-                <article style={{ pointerEvents: "auto", flex: "0 1 420px", maxWidth: "100%", background: "#F7F4EC", border: "1px solid #16150F" }}>
+                <article data-ob="1" style={{ pointerEvents: "auto", flex: "0 1 420px", maxWidth: "100%", background: "#F7F4EC", border: "1px solid #16150F" }}>
                   {" "}
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase" }}>
                     <span>
@@ -2147,7 +2490,7 @@ export class Site extends Component<object, Estado> {
           {" "}
           <section id="mapa" data-stop="16" style={{ minHeight: "190vh", padding: "84px clamp(16px,4vw,56px) 40px", scrollMarginTop: "0" }}>
             {" "}
-            <div style={{ position: "sticky", top: "76px", pointerEvents: "auto", maxWidth: "400px", background: "#F7F4EC", border: "1px solid #16150F" }}>
+            <div ref={v.mapCardRef} data-ob="1" style={{ position: "sticky", top: v.L.mapTop, pointerEvents: "auto", maxWidth: "400px", background: "#F7F4EC", border: "1px solid #16150F" }}>
               {" "}
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 16px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", letterSpacing: ".04em", textTransform: "uppercase" }}>
                 <span>
@@ -2168,7 +2511,7 @@ export class Site extends Component<object, Estado> {
                   {I(v.t.map.body)}
                 </p>
                 {" "}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "8px 12px" }}>
+                <div style={{ display: v.L.legendDisp, gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "8px 12px" }}>
                   {" "}
                   {v.legend.map((g, i0) => (
                     <Fragment key={i0}>
@@ -2881,133 +3224,137 @@ export class Site extends Component<object, Estado> {
           {" "}
         </section>
         {" "}
-        <section id="resultados" style={{ position: "relative", pointerEvents: "auto", background: "#F0ECE3", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px)", scrollMarginTop: "56px" }}>
-          {" "}
-          <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "28px" }}>
+        {/* Sem o arquivo do teste final, o site publicado não mostra a seção (resultados.ts); edição à
+            mão no template convertido, como as do reaplicar.py. */}
+        {v.mostrarResultados ? (
+          <section id="resultados" style={{ position: "relative", pointerEvents: "auto", background: "#F0ECE3", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px)", scrollMarginTop: "56px" }}>
             {" "}
-            <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
-              <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
-              {I(v.t.results.kicker)}{" · VAL-019"}
-            </p>
-            {" "}
-            <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".88", margin: "0", fontSize: "clamp(44px,6.4vw,104px)", maxWidth: "1100px", textWrap: "balance" }}>
-              {I(v.t.results.title)}
-            </h2>
-            {" "}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "14px 28px", alignItems: "flex-start" }}>
+            <div style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "28px" }}>
               {" "}
-              <div style={{ display: "flex", gap: "10px", alignItems: "center", border: "1px solid #16150F", padding: "10px 14px", background: "#F7F4EC" }}>
-                <span style={{ width: "10px", height: "10px", background: "#FF5520" }}></span>
-                <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", textTransform: "uppercase", fontWeight: "600" }}>
-                  {I(v.t.results.status)}
-                </span>
-              </div>
-              {" "}
-              <p style={{ flex: "1 1 420px", margin: "0", fontSize: "16px", lineHeight: "1.5", maxWidth: "640px" }}>
-                {I(v.t.results.statusNote)}
+              <p style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", letterSpacing: ".04em", textTransform: "uppercase", margin: "0", display: "flex", gap: "10px", alignItems: "center" }}>
+                <span style={{ width: "8px", height: "8px", background: "#2B35F0", display: "inline-block" }}></span>
+                {I(v.t.results.kicker)}{" · VAL-019"}
               </p>
               {" "}
-            </div>
-            {" "}
-            <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: "0", borderTop: "1px solid #16150F" }}>
+              <h2 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".88", margin: "0", fontSize: "clamp(44px,6.4vw,104px)", maxWidth: "1100px", textWrap: "balance" }}>
+                {I(v.t.results.title)}
+              </h2>
               {" "}
-              {v.t.results.setup.map((x, i0) => (
-                <Fragment key={i0}>
-                  <li style={{ padding: "14px 16px 14px 0", borderBottom: "1px solid #CFC7B8", fontSize: "14px", lineHeight: "1.45" }}>
-                    {I(x)}
-                  </li>
-                </Fragment>
-              ))}
-              {" "}
-            </ul>
-            {" "}
-            <div style={{ overflowX: "auto", border: "1px solid #16150F", background: "#F7F4EC" }}>
-              {" "}
-              <div style={{ minWidth: "1080px", display: "grid", gridTemplateColumns: "200px repeat(9,minmax(0,1fr))" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "14px 28px", alignItems: "flex-start" }}>
                 {" "}
-                <div style={{ padding: "12px 14px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase", color: "#57534A" }}>
-                  {"ES + PT · n = 80"}
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", border: "1px solid #16150F", padding: "10px 14px", background: "#F7F4EC" }}>
+                  <span style={{ width: "10px", height: "10px", background: "#FF5520" }}></span>
+                  <span style={{ fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", textTransform: "uppercase", fontWeight: "600" }}>
+                    {I(v.t.results.status)}
+                  </span>
                 </div>
                 {" "}
-                {v.t.results.cols.map((c, i0) => (
-                  <Fragment key={i0}>
-                    <div style={{ padding: "12px 10px", borderBottom: "1px solid #16150F", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", lineHeight: "1.35", textTransform: "uppercase" }}>
-                      {I(c)}
-                    </div>
-                  </Fragment>
-                ))}
-                {" "}
-                {v.resRows.map((r, i0) => (
-                  <Fragment key={i0}>
-                    {" "}
-                    <div style={{ padding: "16px 14px", borderBottom: "1px solid #CFC7B8", fontSize: "13.5px", fontWeight: "600" }}>
-                      {I(r.l)}
-                    </div>
-                    {" "}
-                    {r.cells.map((c, i1) => (
-                      <Fragment key={i1}>
-                        <div style={{ padding: "16px 10px", borderBottom: "1px solid #CFC7B8", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontSize: "12px", color: "#57534A", background: "repeating-linear-gradient(135deg,transparent 0 7px,rgba(22,21,15,.06) 7px 8px)" }}>
-                          {I(c)}
-                        </div>
-                      </Fragment>
-                    ))}
-                    {" "}
-                  </Fragment>
-                ))}
+                <p style={{ flex: "1 1 420px", margin: "0", fontSize: "16px", lineHeight: "1.5", maxWidth: "640px" }}>
+                  {I(v.t.results.statusNote)}
+                </p>
                 {" "}
               </div>
               {" "}
-            </div>
-            {" "}
-            <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.5", color: "#57534A", maxWidth: "860px" }}>
-              {I(v.t.results.t2)}{" "}
-              <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10.5px", color: "#2B35F0" }}>
-                {"VAL-019a"}
-              </span>
-            </p>
-            {" "}
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
+              <ul style={{ listStyle: "none", margin: "0", padding: "0", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: "0", borderTop: "1px solid #16150F" }}>
+                {" "}
+                {v.t.results.setup.map((x, i0) => (
+                  <Fragment key={i0}>
+                    <li style={{ padding: "14px 16px 14px 0", borderBottom: "1px solid #CFC7B8", fontSize: "14px", lineHeight: "1.45" }}>
+                      {I(x)}
+                    </li>
+                  </Fragment>
+                ))}
+                {" "}
+              </ul>
               {" "}
-              <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".9", margin: "0", fontSize: "clamp(32px,3.4vw,52px)" }}>
-                {I(v.t.results.outTitle)}
-              </h3>
+              <div style={{ overflowX: "auto", border: "1px solid #16150F", background: "#F7F4EC" }}>
+                {" "}
+                <div style={{ minWidth: "1080px", display: "grid", gridTemplateColumns: "200px repeat(9,minmax(0,1fr))" }}>
+                  {" "}
+                  <div style={{ padding: "12px 14px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase", color: "#57534A" }}>
+                    {"ES + PT · n = 80"}
+                  </div>
+                  {" "}
+                  {v.t.results.cols.map((c, i0) => (
+                    <Fragment key={i0}>
+                      <div style={{ padding: "12px 10px", borderBottom: "1px solid #16150F", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "9.5px", lineHeight: "1.35", textTransform: "uppercase" }}>
+                        {I(c)}
+                      </div>
+                    </Fragment>
+                  ))}
+                  {" "}
+                  {v.resRows.map((r, i0) => (
+                    <Fragment key={i0}>
+                      {" "}
+                      <div style={{ padding: "16px 14px", borderBottom: "1px solid #CFC7B8", fontSize: "13.5px", fontWeight: "600" }}>
+                        {I(r.l)}
+                      </div>
+                      {" "}
+                      {r.cells.map((c, i1) => (
+                        <Fragment key={i1}>
+                          <div style={{ padding: "16px 10px", borderBottom: "1px solid #CFC7B8", borderLeft: "1px solid #CFC7B8", fontFamily: "'Martian Mono',monospace", fontSize: "12px", color: "#57534A", background: "repeating-linear-gradient(135deg,transparent 0 7px,rgba(22,21,15,.06) 7px 8px)" }}>
+                            {I(c)}
+                          </div>
+                        </Fragment>
+                      ))}
+                      {" "}
+                    </Fragment>
+                  ))}
+                  {" "}
+                </div>
+                {" "}
+              </div>
               {" "}
-              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.5", maxWidth: "640px" }}>
-                {I(v.t.results.outIntro)}
+              <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.5", color: "#57534A", maxWidth: "860px" }}>
+                {I(v.t.results.t2)}{" "}
+                <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10.5px", color: "#2B35F0" }}>
+                  {"VAL-019a"}
+                </span>
               </p>
               {" "}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
                 {" "}
-                {v.outItems.map((o, i0) => (
-                  <Fragment key={i0}>
-                    {" "}
-                    <button onClick={o.open} style={{ textAlign: "left", background: "#F7F4EC", border: "1px solid #16150F", borderStyle: o.bs, padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }} className="dc-h12">
+                <h3 style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "800", textTransform: "uppercase", lineHeight: ".9", margin: "0", fontSize: "clamp(32px,3.4vw,52px)" }}>
+                  {I(v.t.results.outTitle)}
+                </h3>
+                {" "}
+                <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.5", maxWidth: "640px" }}>
+                  {I(v.t.results.outIntro)}
+                </p>
+                {" "}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
+                  {" "}
+                  {v.outItems.map((o, i0) => (
+                    <Fragment key={i0}>
                       {" "}
-                      <span style={{ display: "flex", justifyContent: "space-between", gap: "8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
-                        <span style={{ color: "#2B35F0" }}>
-                          {"↗ "}{I(o.id)}
+                      <button onClick={o.open} style={{ textAlign: "left", background: "#F7F4EC", border: "1px solid #16150F", borderStyle: o.bs, padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }} className="dc-h12">
+                        {" "}
+                        <span style={{ display: "flex", justifyContent: "space-between", gap: "8px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
+                          <span style={{ color: "#2B35F0" }}>
+                            {"↗ "}{I(o.id)}
+                          </span>
+                          <span>
+                            {I(o.tag)}
+                          </span>
                         </span>
-                        <span>
-                          {I(o.tag)}
+                        {" "}
+                        <span style={{ fontSize: "14.5px", lineHeight: "1.45" }}>
+                          {I(o.txt)}
                         </span>
-                      </span>
+                        {" "}
+                      </button>
                       {" "}
-                      <span style={{ fontSize: "14.5px", lineHeight: "1.45" }}>
-                        {I(o.txt)}
-                      </span>
-                      {" "}
-                    </button>
-                    {" "}
-                  </Fragment>
-                ))}
+                    </Fragment>
+                  ))}
+                  {" "}
+                </div>
                 {" "}
               </div>
               {" "}
             </div>
             {" "}
-          </div>
-          {" "}
-        </section>
+          </section>
+        ) : null}
         {" "}
         <footer style={{ position: "relative", pointerEvents: "auto", background: "#2B35F0", color: "#fff", padding: "clamp(64px,11vh,128px) clamp(16px,4vw,56px) 120px" }}>
           {" "}
@@ -3027,18 +3374,18 @@ export class Site extends Component<object, Estado> {
             {" "}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" }}>
               {" "}
-              <a href={v.appUrl} target="_blank" rel="noopener" style={{ background: "#F0ECE3", color: "#16150F", textDecoration: "none", fontWeight: "700", fontSize: "17px", padding: "16px 22px" }} className="dc-h13">
+              <button onClick={v.openApp} style={{ background: "#F0ECE3", color: "#16150F", border: "0", fontWeight: "700", fontSize: "17px", padding: "16px 22px" }} className="dc-h13">
                 {I(v.t.ui.app)}{" ↗"}
-              </a>
+              </button>
               {" "}
-              <a href={v.guideUrl} target="_blank" rel="noopener" style={{ color: "#fff", textDecoration: "none", fontWeight: "600", fontSize: "15px", padding: "15px 18px", border: "1px solid #fff", display: "flex", flexDirection: "column", gap: "2px" }} className="dc-h14">
+              <button onClick={v.openGuide} style={{ textAlign: "left", background: "transparent", color: "#fff", fontWeight: "600", fontSize: "15px", padding: "15px 18px", border: "1px solid #fff", display: "flex", flexDirection: "column", gap: "2px" }} className="dc-h14">
                 <span>
                   {I(v.t.footer.guide)}{" ↗"}
                 </span>
                 <span style={{ fontSize: "12px", fontWeight: "400" }}>
                   {I(v.t.footer.guideSub)}
                 </span>
-              </a>
+              </button>
               {" "}
             </div>
             {" "}
@@ -3079,7 +3426,7 @@ export class Site extends Component<object, Estado> {
       {v.hasDrawer ? (
         <>
           {" "}
-          <aside role="dialog" aria-label={v.dw.title} style={{ position: "fixed", top: "56px", right: "0", bottom: "0", zIndex: "65", width: "min(460px,100vw)", background: "#F7F4EC", borderLeft: "1px solid #16150F", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <aside ref={v.drawerRef} role="dialog" aria-label={v.dw.title} style={{ position: "fixed", top: "56px", right: "0", bottom: "0", zIndex: "65", width: "min(460px,100vw)", background: "#F7F4EC", borderLeft: "1px solid #16150F", overflowY: "auto", display: "flex", flexDirection: "column" }}>
             {" "}
             <div style={{ position: "sticky", top: "0", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "10px 16px", borderBottom: "1px solid #16150F", background: "#F7F4EC", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
               <span style={{ color: "#2B35F0" }}>
@@ -3253,7 +3600,7 @@ export class Site extends Component<object, Estado> {
       {v.dockOpen ? (
         <>
           {" "}
-          <div role="dialog" aria-label={v.t.dock.title} style={{ position: "fixed", right: "clamp(8px,2vw,20px)", bottom: "76px", zIndex: "60", width: "min(430px,calc(100vw - 16px))", maxHeight: "calc(100vh - 150px)", background: "#F7F4EC", border: "1px solid #16150F", display: "flex", flexDirection: "column", boxShadow: "0 24px 48px -28px rgba(22,21,15,.55)" }}>
+          <div ref={v.dockPanelRef} role="dialog" aria-label={v.t.dock.title} style={{ position: "fixed", right: v.L.panelRight, left: v.L.panelLeft, bottom: v.L.panelBottom, zIndex: "60", width: v.L.panelW, maxHeight: "calc(100vh - 150px)", background: "#F7F4EC", border: "1px solid #16150F", display: "flex", flexDirection: "column", boxShadow: "0 24px 48px -28px rgba(22,21,15,.55)" }}>
             {" "}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", borderBottom: "1px solid #16150F", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "10.5px", textTransform: "uppercase" }}>
               {" "}
@@ -3406,16 +3753,64 @@ export class Site extends Component<object, Estado> {
           </div>
         </>
       ) : null}
-      <div style={{ position: "fixed", left: "50%", bottom: "14px", transform: "translateX(-50%)", zIndex: "60", display: "flex", gap: "6px", pointerEvents: "auto" }}>
+      {v.appOpen ? (
+        <>
+          {" "}
+          <div style={{ position: "fixed", inset: "0", zIndex: "90", display: "flex", alignItems: "center", justifyContent: "center", padding: v.L.winPad }}>
+            {" "}
+            <div onClick={v.closeApp} style={{ position: "absolute", inset: "0", background: "rgba(22,21,15,.62)" }}></div>
+            {" "}
+            <div ref={v.appWinRef} role="dialog" aria-modal="true" aria-label="JEJE app" style={{ position: "relative", width: "100%", maxWidth: "1380px", height: "100%", maxHeight: "900px", display: "flex", flexDirection: "column", background: "#F0ECE3", border: "1px solid #16150F", boxShadow: "0 48px 96px -48px rgba(0,0,0,.7)" }}>
+              {" "}
+              <div style={{ flex: "0 0 auto", height: "44px", display: "flex", alignItems: "center", gap: "10px", padding: "0 8px 0 14px", background: "#16150F", color: "#F0ECE3" }}>
+                {" "}
+                <span style={{ fontFamily: "'Archivo',sans-serif", fontStretch: "62%", fontWeight: "900", fontSize: "20px", lineHeight: "1" }}>
+                  {"JEJE"}
+                </span>
+                {" "}
+                <div style={{ flex: "1 1 auto", minWidth: "0", display: "flex", alignItems: "center", gap: "8px", background: "#26251E", border: "1px solid #3A382F", padding: "6px 10px", fontFamily: "'Martian Mono',monospace", fontStretch: "87.5%", fontSize: "11px", whiteSpace: "nowrap", overflow: "hidden" }}>
+                  {" "}
+                  <span style={{ flex: "0 0 7px", height: "7px", background: "#2B35F0" }}></span>
+                  <span style={{ color: "#B9B3A6" }}>
+                    {"jeje.example/"}
+                  </span>
+                  <span style={{ color: "#fff" }}>
+                    {I(v.appHash)}
+                  </span>
+                  {" "}
+                  <span style={{ marginLeft: "auto", color: "#B9B3A6", textTransform: "uppercase", fontSize: "9.5px", display: v.L.winNote }}>
+                    {I(v.t.ui.appWin.note)}
+                  </span>
+                  {" "}
+                </div>
+                {" "}
+                <a href={v.appUrl} target="_blank" rel="noopener" style={{ display: v.L.winNote, alignItems: "center", color: "#F0ECE3", textDecoration: "none", border: "1px solid #57534A", padding: "6px 9px", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase", whiteSpace: "nowrap" }} className="dc-h15">
+                  {I(v.t.ui.appWin.newTab)}{" ↗"}
+                </a>
+                {" "}
+                <button onClick={v.closeApp} style={{ background: "#F0ECE3", color: "#16150F", border: "0", padding: "7px 10px", fontFamily: "'Martian Mono',monospace", fontSize: "10px", textTransform: "uppercase", whiteSpace: "nowrap" }} className="dc-h16">
+                  {I(v.t.ui.close)}{" ✕"}
+                </button>
+                {" "}
+              </div>
+              {" "}
+              <iframe ref={v.appFrameRef} src={v.appSrc} title="JEJE app" style={{ flex: "1 1 auto", width: "100%", minHeight: "0", border: "0", display: "block", background: "#F0ECE3" }}></iframe>
+              {" "}
+            </div>
+            {" "}
+          </div>
+        </>
+      ) : null}
+      <div ref={v.dockBarRef} style={{ position: "fixed", left: v.L.barLeft, right: v.L.barRight, bottom: v.L.barBottom, zIndex: "60", display: "flex", gap: "6px", opacity: "0", transform: "translateY(16px)", pointerEvents: "none", transition: "opacity .3s ease,transform .3s ease" }}>
         {" "}
-        <button onClick={v.toggleDock} aria-expanded={v.dockOpen} style={{ display: "flex", alignItems: "center", gap: "10px", background: "#16150F", color: "#F0ECE3", border: "1px solid #57534A", padding: "12px 18px", fontWeight: "600", fontSize: "14.5px", whiteSpace: "nowrap" }} className="dc-h5">
+        <button onClick={v.toggleDock} aria-expanded={v.dockOpen} style={{ flex: v.L.barFlex, display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", background: "#16150F", color: "#F0ECE3", border: "1px solid #57534A", padding: "12px 18px", fontWeight: "600", fontSize: "14.5px", whiteSpace: "nowrap" }} className="dc-h5">
           <span style={{ width: "8px", height: "8px", background: "#FF5520", display: "inline-block" }}></span>
           {I(v.t.dock.open)}
         </button>
         {" "}
-        <a href={v.appUrl} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", background: "#2B35F0", color: "#fff", textDecoration: "none", padding: "12px 16px", fontWeight: "600", fontSize: "14.5px", border: "1px solid #2B35F0", whiteSpace: "nowrap" }} className="dc-h15">
-          {I(v.appShort)}{" ↗"}
-        </a>
+        <button onClick={v.openApp} style={{ flex: v.L.barFlex, display: "flex", alignItems: "center", justifyContent: "center", background: "#2B35F0", color: "#fff", padding: "12px 16px", fontWeight: "600", fontSize: "14.5px", border: "1px solid #2B35F0", whiteSpace: "nowrap" }} className="dc-h17">
+          {I(v.t.ui.app)}{" ↗"}
+        </button>
       </div>
     </div>
     );

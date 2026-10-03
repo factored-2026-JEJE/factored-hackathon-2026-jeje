@@ -2,7 +2,7 @@
 // mensagem, se houve uma transação a achar, se a política agiu e se o caso passou para uma pessoa.
 // No exemplo roteirizado do design, as rotas vêm das jornadas (nosDaRota); aqui, do turno de verdade.
 import type { ResultadoDoTurno } from "../api/cliente";
-import { MENSAGEM, nosDaRota, type IdDoNo, type TipoDeRota } from "./mapa";
+import { IDS_DOS_NOS, MENSAGEM, nosDaRota, type IdDoNo, type TipoDeRota } from "./mapa";
 
 /** Quem leu a mensagem: as regras, o leitor e5 (decidindo ou abaixo do limite) ou o LLM. */
 export type Leitura = "regras" | "leitor" | "llm";
@@ -39,4 +39,23 @@ export function caminhoDoTurno(t: Turno): CaminhoDoTurno {
 export function caminhoDaJornada(rota: TipoDeRota, id: string, humano: boolean): CaminhoDoTurno {
   const nos = nosDaRota(rota, id);
   return { nos, humano, leitura: nos.includes("leitor") ? "leitor" : "regras" };
+}
+
+const ROTAS_DO_DESIGN: readonly TipoDeRota[] = ["full", "read", "ask", "act", "noact", "reader"];
+
+/**
+ * O caminho que chega pelo jeje-turn do app aberto na janela do site: a lista dos nós de verdade do turno
+ * (o que o app manda) ou um tipo de rota do design. Qualquer outra coisa (nó que não existe, rota
+ * desconhecida, lista vazia) é ignorada: o nosDaRota não tem reserva.
+ */
+export function caminhoRecebido(rota: unknown, humano: boolean, leitura: unknown): CaminhoDoTurno | null {
+  if (Array.isArray(rota)) {
+    const nos = rota.filter((id): id is IdDoNo => typeof id === "string" && (IDS_DOS_NOS as readonly string[]).includes(id));
+    if (nos.length === 0 || nos.length !== rota.length) return null;
+    return { nos, humano, leitura: leitura === "llm" || leitura === "leitor" ? leitura : "regras" };
+  }
+  if (typeof rota === "string" && (ROTAS_DO_DESIGN as readonly string[]).includes(rota)) {
+    return caminhoDaJornada(rota as TipoDeRota, "", humano);
+  }
+  return null;
 }
