@@ -48,7 +48,7 @@ describe("quadros da câmera", () => {
     expect(celular.r).toBeCloseTo(27 * 1.5, 12);
     expect(celular.ox).toBe(0);
     expect(computador.r).toBe(27);
-    expect(computador.oy).toBe(-0.17);
+    expect(computador.oy).toBe(-0.26);
   });
 
   it("o mapa inteiro (último quadro) olha de cima, de frente no computador e girado na tela em pé", () => {
@@ -61,6 +61,24 @@ describe("quadros da câmera", () => {
     expect(quadro(3, 1440, 900, msg, dados).node).toBe("portao");
     expect(quadro(5, 1440, 900, msg, dados).node).toBe("regras");
     expect(quadro(10, 1440, 900, msg, dados).tg).toEqual([NOS.banco.x, 0.35, NOS.banco.y]);
+  });
+  it("o mapa inteiro fica no meio do retângulo livre (design de 03/10), e em pé quando ele é estreito", () => {
+    // Livre à direita do cartão do mapa: o centro do mapa desloca para a direita (ox negativo).
+    const livre = { l: 440, t: 70, r: 1416, b: 884 };
+    const deitado = quadro(16, 1440, 900, msg, dados, NOS, { livre });
+    expect(deitado.ox).toBeCloseTo((720 - (440 + (1416 - 440) / 2)) / 1440, 12);
+    expect(deitado.oy).toBeCloseTo((450 - (70 + (884 - 70) / 2)) / 900, 12);
+    expect(deitado.th).toBe(0);
+    // Um retângulo livre estreito e alto vira o mapa em pé, mesmo na tela deitada.
+    expect(quadro(16, 1440, 900, msg, dados, NOS, { livre: { l: 1000, t: 70, r: 1416, b: 884 } }).th).toBe(90);
+  });
+
+  it("no computador, cada parada foca entre o conteúdo do bloco e a borda direita livre", () => {
+    const bordaDoBloco = [0, 0, 0, 600];
+    const q = quadro(3, 1440, 900, msg, dados, NOS, { bordaDoBloco, direita: 1000 });
+    expect(q.ox).toBeCloseTo((720 - (624 + 1000) / 2) / 1440, 12);
+    // No celular, a parada fica centrada, sem as medidas.
+    expect(quadro(3, 390, 844, msg, dados, NOS, { bordaDoBloco, direita: 300 }).ox).toBe(0);
   });
 });
 
@@ -85,3 +103,4 @@ describe("o mapa do main (fatos.ts)", () => {
     expect(MAPA_DO_MAIN.nos.llm).toEqual(doDesign);
   });
 });
+

@@ -118,7 +118,7 @@ export interface QuadroDoDesign {
 }
 
 export const QUADROS: readonly QuadroDoDesign[] = [
-  { f: "center", ty: 1.4, r: 27, th: -26, ph: 22, ox: 0, oy: -0.17, m: "navegador" },
+  { f: "center", ty: 1.4, r: 27, th: -26, ph: 22, ox: -0.06, oy: -0.26, m: "navegador" },
   { f: "center", r: 22, th: -10, ph: 40, ox: -0.22, m: "navegador" },
   { f: "navegador", r: 6.2, th: -28, ph: 26, m: "navegador" },
   { f: "portao", r: 7.4, th: -16, ph: 30, m: "portao" },
@@ -269,12 +269,30 @@ export interface QuadroCalculado {
   node: IdDoNo | null;
 }
 
+/**
+ * O que a página mede para a câmera (design de 03/10): o retângulo livre do mapa (sem o cartão do mapa,
+ * a barra do dock, o painel e a gaveta), a borda direita livre e a borda direita do conteúdo de cada
+ * bloco. Sem DOM, os padrões do design: a tela menos as margens e o conteúdo até o meio da tela.
+ */
+export interface Medidas {
+  readonly livre?: { readonly l: number; readonly t: number; readonly r: number; readonly b: number };
+  readonly direita?: number;
+  readonly bordaDoBloco?: readonly number[];
+}
+
 /** O quadro i da câmera para a janela W×H; no celular, mais longe e centrado. */
-export function quadro(i: number, W: number, H: number, msg: Caminho, dados: Caminho, nos: Mapa["nos"] = NOS): QuadroCalculado {
+export function quadro(
+  i: number,
+  W: number,
+  H: number,
+  msg: Caminho,
+  dados: Caminho,
+  nos: Mapa["nos"] = NOS,
+  medidas: Medidas = {},
+): QuadroCalculado {
   const K = QUADROS[i];
   if (!K) throw new RangeError(`quadro ${i} inexistente`);
   const mob = W < 760;
-  const port = H > W;
   let tg: readonly [number, number, number];
   if (K.f === "center") tg = [8.1, K.ty || 0.2, 2.6];
   else if (Array.isArray(K.f)) tg = K.f as readonly [number, number, number];
@@ -287,20 +305,30 @@ export function quadro(i: number, W: number, H: number, msg: Caminho, dados: Cam
   let ox = K.ox != null ? K.ox : -0.17;
   let oy = K.oy || 0;
   if (r === "fit") {
+    // O mapa inteiro cabe no retângulo livre; deitado ou em pé, o que der o raio menor.
+    const sr = medidas.livre ?? { l: 16, t: 70, r: mob ? W - 16 : W - 24, b: H - 16 };
+    const sw = Math.max(140, sr.r - sr.l);
+    const sh = Math.max(140, sr.b - sr.t);
+    const tv = Math.tan((16 * Math.PI) / 180);
+    const tz = (tv * W) / H;
+    const fit = (hx: number, hy: number) => Math.max(hx / ((tz * sw) / W), hy / ((tv * sh) / H)) * 1.05;
+    const rl = fit(9.3, 4.3);
+    const rp = fit(4.9, 8.6);
+    const port = rp < rl * 0.9;
+    r = port ? rp : rl;
     th = port ? 90 : 0;
-    const vf = (16 * Math.PI) / 180;
-    const hf = Math.atan((Math.tan(vf) * W) / H);
-    r = port
-      ? Math.max(10.6 / Math.tan(vf), 4.6 / Math.tan(hf))
-      : Math.max(10.4 / Math.tan(hf), 5.2 / Math.tan(vf));
-    r *= 1.06;
-    ox = mob ? 0 : -0.12;
-    oy = mob ? 0.1 : 0.03;
+    ox = (W / 2 - (sr.l + sw / 2)) / W;
+    oy = (H / 2 - (sr.t + sh / 2)) / H;
   } else if (mob) {
     ox = 0;
     oy = i === 0 ? -0.12 : 0.2;
     if (i > 1) r *= 1.35;
     else r *= 1.5;
+  } else if (i >= 1) {
+    // No computador, o foco fica no meio do espaço entre o conteúdo do bloco e a borda direita livre.
+    const esquerda = Math.min((medidas.bordaDoBloco?.[i] || W * 0.5) + 24, W - 300);
+    const direita = medidas.direita ?? W - 24;
+    ox = (W / 2 - (esquerda + direita) / 2) / W;
   }
   const node = typeof K.f === "string" && K.f !== "center" ? K.f : i === 5 ? "regras" : null;
   return {
