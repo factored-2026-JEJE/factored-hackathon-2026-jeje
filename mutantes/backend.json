@@ -11541,21 +11541,6 @@
       ]
     },
     {
-      "id": "M-SES-18",
-      "requisito": "R08",
-      "descricao": "A janela de contestação não limita as contestáveis",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/sessao.py",
-          "de": "    desde = hoje - timedelta(days=limites.janela_contestacao_dias)\n",
-          "para": "    desde = hoje - timedelta(days=100 * 365)\n"
-        }
-      ],
-      "testes": [
-        "tests/test_sessao_api.py::test_personas_trazem_as_contestaveis_e_um_exemplo_que_acha_so_ela"
-      ]
-    },
-    {
       "id": "M-ITP-127",
       "requisito": "R02",
       "descricao": "O valor nunca vem marcado como dinheiro (ACH-143)",
@@ -12108,7 +12093,8 @@
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao"
+        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao",
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
       ]
     },
     {
@@ -12616,6 +12602,51 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "    \"usaram\",\n    # A conta esvaziada (\"no se la di, pero vaciaron mi cuenta\"), do REG-21.\n    \"vaciaron\", \"esvaziaram\", \"limparam\"\n",
           "para": "    \"usaram\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-256",
+      "requisito": "R07",
+      "descricao": "A perda contada no passado com artigo (\"e eu fiz o pix\", \"hice la transferencia\") não desfaz a guarda de prevenção: o golpe com a negação do golpista citada fica sem bloqueio (ACH-222)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # A perda contada no passado com artigo (\"e eu fiz o pix\", \"hice la transferencia\"), também\n    # com a negação do golpista citada (\"'não é golpe', ele falou\"), do REG-73 (ACH-222).\n    \"fiz o pix\", \"fiz a transferencia\", \"fiz o deposito\", \"fiz o pagamento\", \"fiz um deposito\",\n    \"fiz um pagamento\", \"hice la transferencia\", \"hice el deposito\", \"hice el pago\",\n    \"hice un deposito\", \"hice un pago\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-262",
+      "requisito": "R07",
+      "descricao": "O cartão entregue ao golpista ou levado por ele (\"o motoboy recolheu meu cartão\") não desfaz a guarda de prevenção: o cartão com o golpista fica sem bloqueio (ACH-222)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # O cartão entregue ao golpista ou levado por ele, com o objeto logo depois (\"o motoboy\n    # recolheu meu cartão\", \"se llevó mi tarjeta\"), do REG-77 (ACH-222).\n    \"entreguei o cartao\", \"entreguei meu cartao\", \"entreguei o meu cartao\", \"levou o cartao\",\n    \"levou meu cartao\", \"levou o meu cartao\", \"pegou o cartao\", \"pegou meu cartao\",\n    \"pegou o meu cartao\", \"pegaram o cartao\", \"pegaram meu cartao\", \"pegaram o meu cartao\",\n    \"recolheu o cartao\", \"recolheu meu cartao\", \"recolheu o meu cartao\", \"recolheram o cartao\",\n    \"recolheram meu cartao\", \"recolheram o meu cartao\", \"ficou com o cartao\",\n    \"ficou com meu cartao\", \"ficou com o meu cartao\", \"ficaram com o cartao\",\n    \"ficaram com meu cartao\", \"ficaram com o meu cartao\", \"se llevo la tarjeta\",\n    \"se llevo mi tarjeta\", \"se quedo con la tarjeta\", \"se quedo con mi tarjeta\",\n    \"se quedaron con la tarjeta\", \"se quedaron con mi tarjeta\", \"recogio la tarjeta\",\n    \"recogio mi tarjeta\", \"recogieron la tarjeta\", \"recogieron mi tarjeta\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-263",
+      "requisito": "R07",
+      "descricao": "\"Ninguém\" e \"nadie\" deixam de negar o termo de vítima: \"Ninguém levou meu cartão, mas era golpe?\" bloqueia o cartão de quem pergunta (ACH-222)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # \"Ninguém levou meu cartão\" não é perda (REG-77 da validação, ACH-222).\n    \"ninguem\", \"nadie\",\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -14495,6 +14526,66 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem"
+      ]
+    },
+    {
+      "id": "M-ITP-258",
+      "requisito": "R04",
+      "descricao": "A transação duplicada deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"duplicad*\",), entre=5, so_nessa_ordem=True,\n                         antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-259",
+      "requisito": "R04",
+      "descricao": "A transação estranha deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"extrano\", \"extrana\", \"extranos\", \"extranas\",\n                                            \"estranho\", \"estranha\", \"estranhos\", \"estranhas\"),\n                         entre=1, so_nessa_ordem=True, antes=NA_MENSAGEM,\n                         fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-260",
+      "requisito": "R04",
+      "descricao": "A transação desconhecida deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"desconocid*\", \"desconhecid*\"), entre=3,\n                         so_nessa_ordem=True, antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-261",
+      "requisito": "R04",
+      "descricao": "Sem a guarda do sinal de golpe, a consequência do golpe vira contestação (REG-68)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SINAL_DE_GOLPE = (\n",
+          "para": "SINAL_DE_GOLPE = ()\n_SINAL_SEM_USO = (\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_consequencia_de_golpe_nao_e_contestacao"
       ]
     }
   ]
