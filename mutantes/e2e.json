@@ -256,7 +256,7 @@
       "trocas": [
         {
           "arquivo": "frontend/src/Conversa.tsx",
-          "de": "  const rapidas = RESPOSTAS[situacao.idioma];",
+          "de": "  const rapidas = RESPOSTAS[idiomaDaConversa];",
           "para": "  const rapidas = RESPOSTAS.es;"
         }
       ],
