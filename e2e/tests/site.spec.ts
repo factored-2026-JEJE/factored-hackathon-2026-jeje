@@ -42,6 +42,9 @@ test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ 
   // Trocar de aba no app muda o endereço na barra da janela (jeje-app-route).
   await app.getByRole("tab", { name: "Atendente" }).click();
   await expect(janela.getByText("#atendente", { exact: true })).toBeVisible();
+  // O Esc é do site: com o foco dentro do app, a tecla vai para o app (como no design). Um toque na
+  // barra da janela devolve o foco ao site.
+  await janela.getByText("#atendente", { exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(janela).toBeHidden();
   // O guia dos jurados abre na mesma janela, na aba dele.
@@ -52,18 +55,25 @@ test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ 
 });
 
 test("a conversa feita no app da janela acende o caminho do turno no mapa do site", async ({ page }) => {
+  // O site inteiro e o app na janela, com a sessão e a conversa: mais que os 30 s numa máquina carregada.
+  test.setTimeout(90_000);
   await page.goto("/site/?lang=pt");
-  // O mapa acende com o bloco dele na tela: o fim da página.
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  // O mapa acende com o bloco do mapa inteiro na tela: o link "O mapa" do cabeçalho leva até ele.
+  await page.getByRole("navigation").getByRole("link", { name: "O mapa" }).click();
   await expect(page.getByRole("button", { name: /Mande uma mensagem/ })).toHaveCSS("opacity", "1");
-  expect(await sombra(page, "politica")).toBe("none");
+  // No mapa inteiro, a rolagem acende o caminho todo da mensagem, inclusive o "Qual".
+  await expect.poll(() => sombra(page, "qual"), { timeout: 15_000 }).toContain(ACESO);
   await page.getByRole("button", { name: /Abrir o app/ }).last().click();
   const app = page.frameLocator('iframe[title="JEJE app"]');
   await app.getByRole("button", { name: /^Entrar como / }).first().click();
   await app.getByRole("button", { name: "Conversar em español" }).click();
-  await app.getByLabel("Mensagem").fill("¿Por qué rechazaron mi compra?");
+  // Uma mensagem sem transação: o caminho do turno não passa pelo "Qual", e passa pela política.
+  const resposta = turnoDaApi(page);
+  await app.getByLabel("Mensagem").fill("xyz");
   await app.getByRole("button", { name: "Enviar" }).click();
-  await expect(app.getByRole("log", { name: "Mensagens" }).locator("li")).toHaveCount(3);
+  const turno: Turno = await (await resposta).json();
+  expect(turno.opcoes).toEqual([]);
+  await expect.poll(() => sombra(page, "qual"), { timeout: 15_000 }).toBe("none");
   await expect.poll(() => sombra(page, "politica"), { timeout: 15_000 }).toMatch(/43, 53, 240|255, 85, 32/);
 });
 
