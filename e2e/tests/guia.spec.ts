@@ -7,6 +7,6 @@ test("o guia dos jurados abre pelo endereço e leva à aba do cliente", async ({
   await expect(guia).toBeVisible();
   await expect(page.getByRole("tab", { name: "How to test" })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("link", { name: "Cliente" }).first().click();
-  await expect(page.getByRole("tab", { name: "Cliente" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "Customer" })).toHaveAttribute("aria-selected", "true");
   await expect(guia).toBeHidden();
 });

@@ -1,0 +1,187 @@
+/* A casca do app (DEV-032b), como no design (04-solucao/design-do-site/JEJE App.dc.html no vault):
+   a página na altura da tela, a barra do topo e uma área por aba, que rola por dentro. */
+@import "../site/fontes.css";
+
+html, body { margin: 0; height: 100%; background: #F0ECE3; color: #16150F; }
+body { -webkit-font-smoothing: antialiased; }
+::selection { background: #2B35F0; color: #fff; }
+:focus-visible { outline: 2px solid #2B35F0; outline-offset: 2px; }
+
+.app-pagina {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Archivo', sans-serif;
+  background: #F0ECE3;
+  color: #16150F;
+  overflow: hidden;
+}
+.app-pagina button { font: inherit; color: inherit; cursor: pointer; }
+
+/* A barra do topo. */
+.app-topo {
+  flex: 0 0 auto;
+  height: 50px;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #16150F;
+  background: #F7F4EC;
+}
+.app-marca {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-right: 1px solid #16150F;
+}
+.app-jeje { font-family: 'Archivo', sans-serif; font-stretch: 62%; font-weight: 900; font-size: 24px; line-height: 1; }
+.app-demo {
+  display: none;
+  font-family: 'Martian Mono', monospace;
+  font-stretch: 87.5%;
+  font-size: 9.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #57534A;
+  white-space: nowrap;
+}
+@media (min-width: 1100px) { .app-demo { display: inline; } }
+.app-abas {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.app-aba {
+  flex: 0 0 auto;
+  border: 0;
+  border-right: 1px solid #CFC7B8;
+  background: transparent;
+  color: #16150F;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-family: 'Archivo', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.app-aba[aria-selected="true"] { background: #F0ECE3; box-shadow: inset 0 -3px 0 #2B35F0; }
+.app-na-fila { background: #FF5520; color: #16150F; font-family: 'Martian Mono', monospace; font-size: 10px; padding: 1px 6px; }
+.app-direita {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-left: 1px solid #16150F;
+}
+.app-sessao { display: flex; align-items: center; gap: 8px; }
+/* No design, o bloco da sessão some abaixo de 1080 px; aqui só o texto some, e o "Leave" fica à mão. */
+.app-sessao-quem {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Martian Mono', monospace;
+  font-stretch: 87.5%;
+  font-size: 10px;
+  white-space: nowrap;
+}
+@media (min-width: 1080px) { .app-sessao-quem { display: flex; } }
+.app-quadrado { width: 7px; height: 7px; background: #2B35F0; }
+.app-sair {
+  border: 1px solid #16150F;
+  background: transparent;
+  padding: 4px 8px;
+  font-family: 'Martian Mono', monospace !important;
+  font-size: 10px !important;
+  text-transform: uppercase;
+}
+.app-sair:hover { background: #16150F !important; color: #F0ECE3 !important; }
+.app-linguas { display: flex; border: 1px solid #16150F; }
+.app-linguas button {
+  border: 0;
+  padding: 5px 7px;
+  font-family: 'Martian Mono', monospace !important;
+  font-size: 10px !important;
+  background: transparent;
+  color: #16150F;
+}
+.app-linguas button[aria-pressed="true"] { background: #16150F; color: #F7F4EC; }
+
+/* As áreas: uma por aba, montadas mesmo escondidas, cada uma rolando por dentro. */
+.app-conteudo { flex: 1 1 auto; min-height: 0; position: relative; }
+.app-area { position: absolute; inset: 0; overflow-y: auto; }
+.app-area[hidden] { display: none !important; }
+
+/* O portão dos jurados (PRD-009), no estilo do acesso do design. */
+.app-portao {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: clamp(22px, 8vh, 96px) clamp(16px, 3vw, 32px) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: 'Archivo', sans-serif;
+  color: #16150F;
+}
+.app-portao-kicker {
+  margin: 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-family: 'Martian Mono', monospace;
+  font-stretch: 87.5%;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.app-portao .app-quadrado { width: 8px; height: 8px; }
+.app-portao h1 {
+  margin: 0;
+  font-family: 'Archivo', sans-serif;
+  font-stretch: 62%;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: .88;
+  font-size: clamp(46px, 5.4vw, 80px);
+}
+.app-portao p { margin: 0; font-size: 16px; line-height: 1.55; }
+.app-portao-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.app-portao-form label {
+  flex: 1 1 100%;
+  font-family: 'Martian Mono', monospace;
+  font-stretch: 87.5%;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.app-portao-form input {
+  flex: 1 1 240px;
+  min-width: 0;
+  border: 1px solid #16150F;
+  background: #FFFDF7;
+  padding: 11px 12px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 14.5px;
+  color: #16150F;
+}
+.app-portao-form button {
+  background: #2B35F0;
+  color: #fff;
+  border: 1px solid #2B35F0;
+  padding: 11px 18px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+.app-portao-form button:hover:not(:disabled) { background: #16150F; border-color: #16150F; }
+.app-portao-form button:disabled { opacity: .5; cursor: default; }
+.app-portao [role="alert"] { color: #B3261E; font-weight: 600; }

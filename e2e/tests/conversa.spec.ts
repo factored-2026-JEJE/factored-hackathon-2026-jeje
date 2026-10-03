@@ -164,7 +164,7 @@ for (const idioma of ["es", "pt"] as const) {
     await expect(lembrete).toContainText(t.comHumano(atendimento));
 
     // O atendente fica na aba dele; só a área escolhida aparece.
-    await page.getByRole("tab", { name: "Atendente" }).click();
+    await page.getByRole("tab", { name: "Agent" }).click();
     await expect(page.getByRole("region", { name: "Conversa" })).toBeHidden();
     await expect(page.getByRole("heading", { name: "Qualidade dos dados" })).toBeHidden();
     const naFila = page.getByRole("region", { name: "Fila do atendimento humano" }).getByRole("listitem", { name: `Encaminhamento ${atendimento}` });

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useLingua } from "./app/LinguaDoApp";
+import { avisarTurno } from "./app/ponte";
 import { AvaliarConversa } from "./AvaliarConversa";
 import {
   abrirConversa,
@@ -9,6 +11,7 @@ import {
   type ResultadoDoTurno,
   SessaoExpirada,
 } from "./api/cliente";
+import { idiomaDaFrase } from "./frasesDoCliente";
 
 const CHAVE_CONVERSA = "jeje.conversa";
 
@@ -231,11 +234,24 @@ export function Conversa({
   useEffect(() => {
     aoIdioma(idiomaAberto);
   }, [idiomaAberto, aoIdioma]);
+  // A frase de fora ("Perguntar sobre esta" ou o "Try in ES/PT" das outras abas): sem conversa aberta,
+  // abre uma na língua da frase (ou na da interface: português ou, senão, espanhol) e manda quando ela
+  // abrir.
+  const { lingua } = useLingua();
+  const abrindo = useRef(false);
   useEffect(() => {
-    if (!pergunta) return;
+    if (!pergunta || carregando) return;
+    if (!conversaId) {
+      if (abrindo.current) return;
+      abrindo.current = true;
+      void iniciar(idiomaDaFrase(pergunta) ?? (lingua === "pt" ? "pt" : "es")).finally(() => {
+        abrindo.current = false;
+      });
+      return;
+    }
     aoPerguntado();
     void enviar(pergunta);
-  }, [pergunta, aoPerguntado]);
+  }, [pergunta, aoPerguntado, conversaId, carregando]);
 
   async function iniciar(idioma: Idioma) {
     try {
@@ -267,6 +283,8 @@ export function Conversa({
         atendimento: turno.atendimento,
       });
       setTexto("");
+      // O site, com o app na janela dele, acende o caminho do turno no mapa.
+      avisarTurno(turno);
       if (AVISAM_O_CONSOLE.includes(turno.acao)) aoMudar();
     } catch (e) {
       if (e instanceof SessaoExpirada) aoExpirar();

@@ -1,5 +1,8 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { ACESSO_RESTRITO, entrarComSenha, situacaoDoAcesso } from "./api/cliente";
+import { useLingua } from "./app/LinguaDoApp";
+import { PORTAO, traduzir } from "./app/textos";
+import "./app/app.css";
 
 /** Portão dos jurados (PRD-009): com a senha configurada na API, a demonstração só abre depois dela
  * e começa pelo guia (#how-to-test). Sem senha (desenvolvimento, CI), abre direto. Quem decide é a
@@ -9,6 +12,8 @@ export function Acesso({ children }: { children: ReactNode }) {
   const [senha, setSenha] = useState("");
   const [errada, setErrada] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const { lingua } = useLingua();
+  const t = (texto: (typeof PORTAO)[keyof typeof PORTAO]) => traduzir(texto, lingua);
 
   useEffect(() => {
     let ativo = true;
@@ -39,14 +44,19 @@ export function Acesso({ children }: { children: ReactNode }) {
     }
   }
 
-  if (situacao === "carregando") return <p role="status">Loading…</p>;
+  if (situacao === "carregando") return <p role="status">{t(PORTAO.carregando)}</p>;
   if (situacao === "aberto") return <>{children}</>;
+  // No estilo do design (o portão não foi desenhado): o quadrado azul, o título condensado e o campo.
   return (
-    <main className="pagina acesso">
+    <main className="app-portao">
+      <p className="app-portao-kicker">
+        <span className="app-quadrado" />
+        {t(PORTAO.kicker)}
+      </p>
       <h1>JEJE</h1>
-      <p>This demo is for the judges of the Factored AI &amp; Data Hackathon 2026. Enter the password the team sent you.</p>
-      <form className="envio" onSubmit={(evento) => void entrar(evento)}>
-        <label htmlFor="senha">Password</label>
+      <p>{t(PORTAO.corpo)}</p>
+      <form className="app-portao-form" onSubmit={(evento) => void entrar(evento)}>
+        <label htmlFor="senha">{t(PORTAO.senha)}</label>
         <input
           id="senha"
           type="password"
@@ -58,10 +68,10 @@ export function Acesso({ children }: { children: ReactNode }) {
           }}
         />
         <button type="submit" disabled={enviando || senha === ""}>
-          Enter
+          {t(PORTAO.entrar)}
         </button>
       </form>
-      {errada && <p role="alert">Wrong password.</p>}
+      {errada && <p role="alert">{t(PORTAO.errada)}</p>}
     </main>
   );
 }
