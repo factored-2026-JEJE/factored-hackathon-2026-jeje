@@ -2555,6 +2555,36 @@
       "testes": [
         "src/site/mapa.test.ts > quadros da câmera > no computador, cada parada foca entre o conteúdo do bloco e a borda direita livre"
       ]
+    },
+    {
+      "id": "M-WEB-323",
+      "requisito": "R08",
+      "descricao": "Uma lista com nó desconhecido acende os nós que existem",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "if (nos.length === 0 || nos.length !== rota.length) return null;",
+          "para": "if (nos.length === 0) return null;"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > nó que não existe, rota desconhecida ou lista vazia não acendem nada"
+      ]
+    },
+    {
+      "id": "M-WEB-324",
+      "requisito": "R08",
+      "descricao": "Qualquer texto vale como rota do design",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "if (typeof rota === \"string\" && (ROTAS_DO_DESIGN as readonly string[]).includes(rota)) {",
+          "para": "if (typeof rota === \"string\") {"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > nó que não existe, rota desconhecida ou lista vazia não acendem nada"
+      ]
     }
   ]
 }
