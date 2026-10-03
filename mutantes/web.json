@@ -298,8 +298,8 @@
       "trocas": [
         {
           "arquivo": "src/App.tsx",
-          "de": "import { StatusDoSistema } from \"./StatusDoSistema\";",
-          "para": "import { StatusDoSistema } from \"./StatusDoSistema\"; // controle"
+          "de": "import { Topo } from \"./app/Topo\";",
+          "para": "import { Topo } from \"./app/Topo\"; // controle"
         }
       ],
       "testes": [
@@ -732,7 +732,7 @@
       "descricao": "Sair não apaga o token guardado",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": "    guardarSessao(null);\n    setSessao(null);",
           "para": "    setSessao(null);"
         }
@@ -747,7 +747,7 @@
       "descricao": "Token não é guardado: recarregar perde a sessão",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": "    guardarSessao(aberta.token);\n",
           "para": ""
         }
@@ -762,7 +762,7 @@
       "descricao": "Recarregar ignora a sessão guardada",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": "    const token = lerSessaoGuardada();",
           "para": "    const token: string | null = null;"
         }
@@ -1003,7 +1003,7 @@
       "descricao": "A sessão restaurada ignora o dispositivo guardado pelo servidor",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/app/sessao.tsx",
           "de": ".then((atual) => setSessao({ token, cliente: atual, dispositivo: atual.dispositivo }))",
           "para": ".then((atual) => setSessao({ token, cliente: atual, dispositivo: \"novo\" }))"
         }
@@ -1336,8 +1336,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "    void enviar(pergunta);\n  }, [pergunta, aoPerguntado]);",
-          "para": "  }, [pergunta, aoPerguntado]);"
+          "de": "    aoPerguntado();\n    void enviar(pergunta);\n  }, [pergunta, aoPerguntado, conversaId, carregando]);",
+          "para": "    aoPerguntado();\n  }, [pergunta, aoPerguntado, conversaId, carregando]);"
         }
       ],
       "testes": [
@@ -1486,8 +1486,8 @@
       "descricao": "O guia dos jurados fica sem aba",
       "trocas": [
         {
-          "arquivo": "src/App.tsx",
-          "de": "  [\"how-to-test\", \"How to test\"],\n",
+          "arquivo": "src/app/abas.ts",
+          "de": "  [\"how-to-test\", \"guia\"],\n",
           "para": ""
         }
       ],
@@ -1651,7 +1651,7 @@
       "descricao": "A frase do exemplo troca o dia e o mês",
       "trocas": [
         {
-          "arquivo": "src/Atendimento.tsx",
+          "arquivo": "src/frasesDoCliente.ts",
           "de": "  const [, mes, dia] = e.data.split(\"-\");\n",
           "para": "  const [, dia, mes] = e.data.split(\"-\");\n"
         }
@@ -1673,6 +1673,842 @@
       ],
       "testes": [
         "src/ComoTestar.test.tsx > o guia mostra os três caminhos em espanhol e português e leva a cada aba"
+      ]
+    },
+    {
+      "id": "M-WEB-116",
+      "requisito": "DEV-032a",
+      "descricao": "Abrir o app leva ao endereço de rascunho do design, fora do app",
+      "trocas": [
+        {
+          "arquivo": "src/site/conteudo.ts",
+          "de": "appUrl: '/#cliente',",
+          "para": "appUrl: 'https://jeje.example/#cliente',"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
+    },
+    {
+      "id": "M-WEB-117",
+      "requisito": "DEV-032a",
+      "descricao": "A opção de exemplo não segue a jornada (\"Sim, confirmo\" não registra)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    if (o.next) {\n      this.send(o.next, label);",
+          "para": "    if (!o.next) {\n      this.send(\"ajuda\", label);"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > a conversa mostra o exemplo do design, com as opções e o porquê"
+      ]
+    },
+    {
+      "id": "M-WEB-118",
+      "requisito": "DEV-032a",
+      "descricao": "A contestação de verdade manda a frase do design, não uma compra da persona",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "(p) => (id === \"contestar\" && p.exemplo ? frasesDoExemplo(p.exemplo)[idioma === \"es\" ? 0 : 1] : desenho),",
+          "para": "() => desenho,"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > com a API (acesso aberto) > a contestação vai com uma compra da persona, e o balão mostra o turno da API"
+      ]
+    },
+    {
+      "id": "M-WEB-119",
+      "requisito": "DEV-032a",
+      "descricao": "A persona da conversa ignora o exemplo para contestar",
+      "trocas": [
+        {
+          "arquivo": "src/personas.ts",
+          "de": "(p.exemplo ? 4 : 0)",
+          "para": "(p.exemplo ? 1 : 0)"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a persona da conversa de verdade > prefere a que tem exemplo para contestar; depois, a com mais de uma recusa; depois, cartão"
+      ]
+    },
+    {
+      "id": "M-WEB-120",
+      "requisito": "DEV-032a",
+      "descricao": "O número do problema sai da primeira linha da EDA, não da do motivo transacional",
+      "trocas": [
+        {
+          "arquivo": "src/site/aoVivo.ts",
+          "de": "const transacional = linha(indicadores, \"motivos-de-contato\", \"Transaccional\");",
+          "para": "const transacional = indicadores.find((i) => i.id === \"motivos-de-contato\")?.linhas[0];"
+        }
+      ],
+      "testes": [
+        "src/site/aoVivo.test.ts > da EDA > pega a linha do motivo transacional, o primeiro contato e o cargo não reconhecido"
+      ]
+    },
+    {
+      "id": "M-WEB-121",
+      "requisito": "DEV-032a",
+      "descricao": "Sem o indicador, o site mostra 0% no lugar do número do design",
+      "trocas": [
+        {
+          "arquivo": "src/site/aoVivo.ts",
+          "de": "primeiroContato: resolvidos?.proporcao ?? null,",
+          "para": "primeiroContato: resolvidos?.proporcao ?? 0,"
+        }
+      ],
+      "testes": [
+        "src/site/aoVivo.test.ts > da EDA > sem o indicador, fica sem número (e o site mostra o do design)"
+      ]
+    },
+    {
+      "id": "M-WEB-122",
+      "requisito": "DEV-032a",
+      "descricao": "A carga conta clientes no lugar de transações",
+      "trocas": [
+        {
+          "arquivo": "src/site/aoVivo.ts",
+          "de": "const transacoes = curado(\"transactions\");",
+          "para": "const transacoes = curado(\"customers\");"
+        }
+      ],
+      "testes": [
+        "src/site/aoVivo.test.ts > da carga > conta o curado de transações, clientes e reclamações"
+      ]
+    },
+    {
+      "id": "M-WEB-123",
+      "requisito": "DEV-032a",
+      "descricao": "Faltando uma tabela, a carga sai com buracos",
+      "trocas": [
+        {
+          "arquivo": "src/site/aoVivo.ts",
+          "de": "return transacoes != null && clientes != null && reclamacoes != null ? { transacoes, clientes, reclamacoes } : null;",
+          "para": "return clientes != null ? { transacoes, clientes, reclamacoes } : null;"
+        }
+      ],
+      "testes": [
+        "src/site/aoVivo.test.ts > da carga > faltando uma tabela, nada"
+      ]
+    },
+    {
+      "id": "M-WEB-124",
+      "requisito": "DEV-032a",
+      "descricao": "O texto ao vivo troca a base no formato do inglês em todos os idiomas",
+      "trocas": [
+        {
+          "arquivo": "src/site/aoVivo.ts",
+          "de": "l: s.l.replace(nr(D.contatos.base), nr(n.contatos.base))",
+          "para": "l: s.l.replace(nr(D.contatos.base), inteiro(n.contatos.base, \"en\"))"
+        }
+      ],
+      "testes": [
+        "src/site/aoVivo.test.ts > no texto do site > com outros valores, troca o número e a base no lugar certo, no formato de cada idioma"
+      ]
+    },
+    {
+      "id": "M-WEB-125",
+      "requisito": "DEV-032a",
+      "descricao": "O porcento perde a casa decimal (\"35%\" no lugar de \"35,0%\")",
+      "trocas": [
+        {
+          "arquivo": "src/site/aoVivo.ts",
+          "de": "{ minimumFractionDigits: 1, maximumFractionDigits: 1 }",
+          "para": "{ minimumFractionDigits: 0, maximumFractionDigits: 1 }"
+        }
+      ],
+      "testes": [
+        "src/site/aoVivo.test.ts > no texto do site > com os valores das evidências, o conteúdo fica igual ao do design, nos três idiomas",
+        "src/site/aoVivo.test.ts > no texto do site > o porcento arredonda a uma casa"
+      ]
+    },
+    {
+      "id": "M-WEB-126",
+      "requisito": "DEV-032a",
+      "descricao": "As barras do TF-IDF com a largura sem arredondar",
+      "trocas": [
+        {
+          "arquivo": "src/site/aoVivo.ts",
+          "de": "w: Math.round(a * 1000) / 10",
+          "para": "w: a * 100"
+        }
+      ],
+      "testes": [
+        "src/site/aoVivo.test.ts > no texto do site > as barras do portão TF-IDF levam a acurácia com três casas e a largura em décimos"
+      ]
+    },
+    {
+      "id": "M-WEB-127",
+      "requisito": "DEV-032a",
+      "descricao": "A posição de cada componente no caminho cai um ponto depois",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    marcas[id] = pts.length - 1;",
+          "para": "    marcas[id] = pts.length;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > caminho de uma mensagem > vai do navegador (0) ao banco (1), passando por cada componente em ordem crescente",
+        "src/site/mapa.test.ts > caminho de uma mensagem > na posição de cada componente, o ponto do caminho está sobre ele (a 0,3 do chão)"
+      ]
+    },
+    {
+      "id": "M-WEB-128",
+      "requisito": "DEV-032a",
+      "descricao": "O caminho extrapola fora de 0 a 1",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "const L = Math.max(0, Math.min(1, u)) * R.total;",
+          "para": "const L = u * R.total;"
+        },
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "const f = Math.max(0, Math.min(1, (L - cLo) / seg));",
+          "para": "const f = (L - cLo) / seg;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > caminho de uma mensagem > fora de 0 a 1, fica nas pontas"
+      ]
+    },
+    {
+      "id": "M-WEB-129",
+      "requisito": "DEV-032a",
+      "descricao": "A cascata da leitura arqueia como o caminho principal",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "const h = ty === \"m\" || ty === \"d\" ? 0.3 + 0.22 * Math.sin(Math.PI * u) : 0.3;",
+          "para": "const h = 0.3 + 0.22 * Math.sin(Math.PI * u);"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > caminho de uma mensagem > o caminho principal arqueia (até 0,52 no meio de cada ligação), a cascata fica rente (0,3)"
+      ]
+    },
+    {
+      "id": "M-WEB-130",
+      "requisito": "DEV-032a",
+      "descricao": "Falta o quadro do mapa inteiro no fim da viagem",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "  { f: \"center\", r: \"fit\", th: 0, ph: 58, m: \"banco\", d: \"banco\" },\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > há um quadro por bloco da rolagem: o topo, o problema, a introdução, 8 paradas, 5 dos dados e o mapa"
+      ]
+    },
+    {
+      "id": "M-WEB-131",
+      "requisito": "DEV-032a",
+      "descricao": "No celular, o topo fica tão perto quanto as paradas",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    else r *= 1.5;",
+          "para": "    else r *= 1.35;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > no celular, o primeiro quadro fica 1,5 vez mais longe e centrado; no computador, deslocado"
+      ]
+    },
+    {
+      "id": "M-WEB-132",
+      "requisito": "DEV-032a",
+      "descricao": "Na tela em pé, o mapa inteiro não gira",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "th = port ? 90 : 0;",
+          "para": "th = 0;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > o mapa inteiro (último quadro) olha de cima, de frente no computador e girado na tela em pé"
+      ]
+    },
+    {
+      "id": "M-WEB-133",
+      "requisito": "DEV-032a",
+      "descricao": "A leitura em cascata (quadro 5) perde o foco nas regras",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": ": i === 5 ? \"regras\" : null;",
+          "para": ": null;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > cada parada da viagem foca o seu componente"
+      ]
+    },
+    {
+      "id": "M-WEB-134",
+      "requisito": "DEV-032a",
+      "descricao": "Perguntar qual transação acende a Ação",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "ask: menos([\"acoes\"]),",
+          "para": "ask: todos,"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > rotas das jornadas do design > perguntar não acende a Ação; agir sem transação não acende o Qual; o desbloqueio só pede o sim"
+      ]
+    },
+    {
+      "id": "M-WEB-135",
+      "requisito": "DEV-032a",
+      "descricao": "No mapa do main, a cascata até o LLM continua planejada",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "[a, b, curva, tipo === \"p\" ? \"l\" : tipo] as const",
+          "para": "[a, b, curva, tipo] as const"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > o mapa do main (fatos.ts) > as ligações até o LLM deixam de ser planejadas e viram a cascata dele"
+      ]
+    },
+    {
+      "id": "M-WEB-136",
+      "requisito": "DEV-032a",
+      "descricao": "No mapa do main, o LLM continua marcado como planejado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "llm: { x: NOS.llm.x, y: NOS.llm.y, k: NOS.llm.k, h: NOS.llm.h, w: NOS.llm.w }",
+          "para": "llm: { ...NOS.llm }"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > o mapa do main (fatos.ts) > o componente do LLM fica onde o design o pôs, com a mesma forma, sem a marca de planejado"
+      ]
+    },
+    {
+      "id": "M-WEB-137",
+      "requisito": "DEV-032a",
+      "descricao": "O LLM (ollama:…) não é reconhecido como quem leu",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "if (interpretacao.startsWith(\"ollama:\")) return \"llm\";",
+          "para": "if (interpretacao.startsWith(\"llm:\")) return \"llm\";"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > quem leu a mensagem > o campo interpretacao: as regras, o leitor (decidindo ou abaixo do limite) e o LLM",
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > lido pelo LLM: acende o leitor e o LLM, que o design não tinha no produto"
+      ]
+    },
+    {
+      "id": "M-WEB-138",
+      "requisito": "DEV-032a",
+      "descricao": "O leitor abaixo do limite não acende o leitor",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "return interpretacao.includes(\"leitor\") ? \"leitor\" : \"regras\";",
+          "para": "return interpretacao.startsWith(\"leitor\") ? \"leitor\" : \"regras\";"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > não entendido com o leitor abaixo do limite: acende o leitor (reader)"
+      ]
+    },
+    {
+      "id": "M-WEB-139",
+      "requisito": "DEV-032a",
+      "descricao": "Propor o pré-caso não acende a Ação",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "\"consultar\", \"propor_pre_caso\", \"registrar_pre_caso\"",
+          "para": "\"consultar\", \"registrar_pre_caso\""
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > proposta de pré-caso com a transação achada: o caminho inteiro (full)"
+      ]
+    },
+    {
+      "id": "M-WEB-140",
+      "requisito": "DEV-032a",
+      "descricao": "A fraude sem transação acende o Qual",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "const achouTransacao = t.transaction_id != null || t.resolucao != null || t.opcoes.length > 0;",
+          "para": "const achouTransacao = true;"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > fraude: atendente e bloqueio sem transação (act), passando para uma pessoa"
+      ]
+    },
+    {
+      "id": "M-WEB-141",
+      "requisito": "DEV-032a",
+      "descricao": "Passar para uma pessoa não pinta o caminho de laranja",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "humano: t.acao === \"humano\" || t.atendimento != null || t.estado === \"com_humano\"",
+          "para": "humano: t.estado === \"encaminhada\""
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > fraude: atendente e bloqueio sem transação (act), passando para uma pessoa"
+      ]
+    },
+    {
+      "id": "M-WEB-142",
+      "requisito": "DEV-032a",
+      "descricao": "Oferecer o atendente conta como ação",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "\"humano\", \"bloquear_cartao\", \"desbloquear_cartao\"]",
+          "para": "\"humano\", \"oferecer_humano\", \"bloquear_cartao\", \"desbloquear_cartao\"]"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > fora do escopo, só oferecendo o atendente: nem Qual nem Ação (noact)"
+      ]
+    },
+    {
+      "id": "M-WEB-143",
+      "requisito": "DEV-032a",
+      "descricao": "Pedir o sim do desbloqueio conta como ação",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "\"bloquear_cartao\", \"desbloquear_cartao\"]);",
+          "para": "\"bloquear_cartao\", \"propor_desbloqueio\", \"desbloquear_cartao\"]);"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > pedir o sim do desbloqueio não age (como a jornada desbloq do design)"
+      ]
+    },
+    {
+      "id": "M-WEB-144",
+      "requisito": "DEV-032a",
+      "descricao": "Várias transações possíveis não acendem o Qual",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": " || t.resolucao != null || t.opcoes.length > 0;",
+          "para": " || t.resolucao != null;"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho do turno é o da rota do design > várias transações possíveis: pergunta qual, sem a Ação (ask)"
+      ]
+    },
+    {
+      "id": "M-WEB-145",
+      "requisito": "DEV-032a",
+      "descricao": "O porquê de verdade mostra a versão dos dados inteira, sem o corte",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "tr.recibo?.versao_dos_dados?.slice(0, 12) ?? \"—\"",
+          "para": "tr.recibo?.versao_dos_dados ?? \"—\""
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > com a API (acesso aberto) > a contestação vai com uma compra da persona, e o balão mostra o turno da API"
+      ]
+    },
+    {
+      "id": "M-WEB-146",
+      "requisito": "DEV-032a",
+      "descricao": "O \"Sim, confirmo\" de verdade manda só \"Sim\"",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "{ l: RESPOSTAS.confirmar[i], pick: manda(RESPOSTAS.confirmar[i]) },",
+          "para": "{ l: RESPOSTAS.confirmar[i], pick: manda(RESPOSTAS.sim[i]) },"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > com a API (acesso aberto) > a contestação vai com uma compra da persona, e o balão mostra o turno da API"
+      ]
+    },
+    {
+      "id": "M-WEB-147",
+      "requisito": "DEV-032a",
+      "descricao": "A persona da conversa prefere cartão a recusas (o \"qual transação\" some da demo)",
+      "trocas": [
+        {
+          "arquivo": "src/personas.ts",
+          "de": "(p.transacoes_recusadas > 1 ? 2 : 0)",
+          "para": "(p.transacoes_recusadas > 1 ? 0 : 0)"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a persona da conversa de verdade > prefere a que tem exemplo para contestar; depois, a com mais de uma recusa; depois, cartão"
+      ]
+    },
+    {
+      "id": "M-WEB-300",
+      "requisito": "R02",
+      "descricao": "O ?lang= do site é ignorado: o app abre sempre em inglês",
+      "trocas": [
+        {
+          "arquivo": "src/app/lingua.ts",
+          "de": "  return ehLingua(pedida) ? pedida : \"en\";",
+          "para": "  return \"en\";"
+        }
+      ],
+      "testes": [
+        "src/app/lingua.test.ts > a língua do ?lang= vale ao abrir; sem ela, ou com uma desconhecida, o app abre em inglês"
+      ]
+    },
+    {
+      "id": "M-WEB-301",
+      "requisito": "R08",
+      "descricao": "Qualquer texto vira língua (o ?lang= e a mensagem do site sem conferência)",
+      "trocas": [
+        {
+          "arquivo": "src/app/lingua.ts",
+          "de": "  return typeof valor === \"string\" && (LINGUAS as readonly string[]).includes(valor);",
+          "para": "  return typeof valor === \"string\";"
+        }
+      ],
+      "testes": [
+        "src/app/lingua.test.ts > a língua do ?lang= vale ao abrir; sem ela, ou com uma desconhecida, o app abre em inglês",
+        "src/app/ponte.test.ts > só a língua mandada pelo pai, na própria origem, muda a língua do app"
+      ]
+    },
+    {
+      "id": "M-WEB-302",
+      "requisito": "R02",
+      "descricao": "O <html lang> do português sai sem o Brasil",
+      "trocas": [
+        {
+          "arquivo": "src/app/lingua.ts",
+          "de": "pt: \"pt-BR\" };",
+          "para": "pt: \"pt\" };"
+        }
+      ],
+      "testes": [
+        "src/app/lingua.test.ts > o <html lang> acompanha a língua, com o português do Brasil",
+        "src/app/Topo.test.tsx > a língua da barra troca os rótulos e o <html lang>"
+      ]
+    },
+    {
+      "id": "M-WEB-303",
+      "requisito": "R08",
+      "descricao": "O app ouve a língua mandada de qualquer origem",
+      "trocas": [
+        {
+          "arquivo": "src/app/ponte.ts",
+          "de": "    if (evento.origin !== ambiente.origem || evento.source !== ambiente.pai) return;",
+          "para": "    if (evento.source !== ambiente.pai) return;"
+        }
+      ],
+      "testes": [
+        "src/app/ponte.test.ts > só a língua mandada pelo pai, na própria origem, muda a língua do app"
+      ]
+    },
+    {
+      "id": "M-WEB-304",
+      "requisito": "R08",
+      "descricao": "O app ouve a língua mandada por qualquer janela da mesma origem",
+      "trocas": [
+        {
+          "arquivo": "src/app/ponte.ts",
+          "de": "    if (evento.origin !== ambiente.origem || evento.source !== ambiente.pai) return;",
+          "para": "    if (evento.origin !== ambiente.origem) return;"
+        }
+      ],
+      "testes": [
+        "src/app/ponte.test.ts > só a língua mandada pelo pai, na própria origem, muda a língua do app"
+      ]
+    },
+    {
+      "id": "M-WEB-305",
+      "requisito": "R08",
+      "descricao": "O app posta para qualquer origem ('*', como o design)",
+      "trocas": [
+        {
+          "arquivo": "src/app/ponte.ts",
+          "de": "  ambiente.pai.postMessage(mensagem, ambiente.origem);",
+          "para": "  ambiente.pai.postMessage(mensagem, \"*\");"
+        }
+      ],
+      "testes": [
+        "src/app/ponte.test.ts > a rota vai para o pai, na própria origem, e o app aberto direto não posta nada",
+        "src/App.test.tsx > trocar de aba avisa o site, com o endereço da aba, só quando a aba muda"
+      ]
+    },
+    {
+      "id": "M-WEB-306",
+      "requisito": "R08",
+      "descricao": "O app aberto direto posta para si mesmo",
+      "trocas": [
+        {
+          "arquivo": "src/app/ponte.ts",
+          "de": "  if (ambiente.pai === ambiente.proprio) return;\n  ambiente.pai.postMessage",
+          "para": "  ambiente.pai.postMessage"
+        }
+      ],
+      "testes": [
+        "src/app/ponte.test.ts > a rota vai para o pai, na própria origem, e o app aberto direto não posta nada"
+      ]
+    },
+    {
+      "id": "M-WEB-307",
+      "requisito": "R02",
+      "descricao": "O turno vai com a rota fixa do design, sem os nós de verdade (o leitor não acende)",
+      "trocas": [
+        {
+          "arquivo": "src/app/ponte.ts",
+          "de": "route: caminho.nos,",
+          "para": "route: \"full\","
+        }
+      ],
+      "testes": [
+        "src/app/ponte.test.ts > o turno vai com os nós de verdade por onde passou, inclusive o leitor, e se foi para uma pessoa"
+      ]
+    },
+    {
+      "id": "M-WEB-308",
+      "requisito": "R07",
+      "descricao": "O contador da fila não é relido quando a conversa encaminha",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "  }, [versao]);",
+          "para": "  }, []);"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a aba do atendente mostra quantos casos esperam, relidos a cada efeito da conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-309",
+      "requisito": "R02",
+      "descricao": "A aba do atendente mostra o contador mesmo com a fila vazia",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "{id === \"atendente\" && naFila > 0 && <span",
+          "para": "{id === \"atendente\" && <span"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a aba do atendente mostra quantos casos esperam, relidos a cada efeito da conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-310",
+      "requisito": "R03",
+      "descricao": "O Leave do topo não encerra a sessão",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "onClick={() => sair()}",
+          "para": "onClick={() => {}}"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > quem está na sessão aparece no topo, e o Leave a encerra"
+      ]
+    },
+    {
+      "id": "M-WEB-311",
+      "requisito": "R02",
+      "descricao": "Os botões de língua da barra não trocam a língua",
+      "trocas": [
+        {
+          "arquivo": "src/app/Topo.tsx",
+          "de": "onClick={() => mudarLingua(l)}",
+          "para": "onClick={() => {}}"
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a língua da barra troca os rótulos e o <html lang>"
+      ]
+    },
+    {
+      "id": "M-WEB-312",
+      "requisito": "R02",
+      "descricao": "O app avisa o site também ao abrir, sem a aba mudar",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "    if (anterior.current === aba) return;\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > trocar de aba avisa o site, com o endereço da aba, só quando a aba muda"
+      ]
+    },
+    {
+      "id": "M-WEB-313",
+      "requisito": "R02",
+      "descricao": "O site recebe sempre o endereço do cliente, qualquer que seja a aba",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "    avisarRota(`#${aba}`);",
+          "para": "    avisarRota(\"#cliente\");"
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > trocar de aba avisa o site, com o endereço da aba, só quando a aba muda"
+      ]
+    },
+    {
+      "id": "M-WEB-314",
+      "requisito": "R03",
+      "descricao": "O Try entra com o dispositivo novo (o bloqueio vira preventivo)",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "        await entrar(persona, \"cadastrado\");",
+          "para": "        await entrar(persona, \"novo\");"
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-315",
+      "requisito": "R02",
+      "descricao": "A conversa do Try abre sempre em português, qualquer que seja a frase",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "void iniciar(idiomaDaFrase(pergunta) ?? (lingua === \"pt\" ? \"pt\" : \"es\"))",
+          "para": "void iniciar(\"pt\")"
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-316",
+      "requisito": "R02",
+      "descricao": "O Try não manda a frase à conversa",
+      "trocas": [
+        {
+          "arquivo": "src/App.tsx",
+          "de": "      setPergunta(frase);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-317",
+      "requisito": "R02",
+      "descricao": "O turno não é avisado ao site (o mapa não acende)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      avisarTurno(turno);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-318",
+      "requisito": "R02",
+      "descricao": "O app não ouve a língua escolhida no site",
+      "trocas": [
+        {
+          "arquivo": "src/app/LinguaDoApp.tsx",
+          "de": "  useEffect(() => ouvirLingua(mudarLingua), []);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a língua escolhida no site chega à barra do app aberto na janela dele"
+      ]
+    },
+    {
+      "id": "M-WEB-319",
+      "requisito": "R02",
+      "descricao": "O <html lang> não acompanha a língua escolhida",
+      "trocas": [
+        {
+          "arquivo": "src/app/LinguaDoApp.tsx",
+          "de": "  useEffect(() => marcarDocumento(lingua), [lingua]);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/app/Topo.test.tsx > a língua da barra troca os rótulos e o <html lang>"
+      ]
+    },
+    {
+      "id": "M-WEB-320",
+      "requisito": "R02",
+      "descricao": "O portão fica sempre em inglês",
+      "trocas": [
+        {
+          "arquivo": "src/Acesso.tsx",
+          "de": "traduzir(texto, lingua);",
+          "para": "traduzir(texto, \"en\");"
+        }
+      ],
+      "testes": [
+        "src/Acesso.test.tsx > o portão fala a língua que o site pediu no endereço"
+      ]
+    },
+    {
+      "id": "M-WEB-321",
+      "requisito": "R02",
+      "descricao": "Frase em português lida como espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/frasesDoCliente.ts",
+          "de": "\\sroubaram\\s/.test(s)) return \"pt\";",
+          "para": "\\sroubaram\\s/.test(s)) return \"es\";"
+        }
+      ],
+      "testes": [
+        "src/frasesDoCliente.test.ts > a língua da frase pelas marcas do português e do espanhol, e nada quando não dá para dizer"
+      ]
+    },
+    {
+      "id": "M-WEB-322",
+      "requisito": "R02",
+      "descricao": "A frase do App (Try e Perguntar sobre esta) não chega à conversa",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "  const perguntaAtual = aoPerguntar ? pergunta : perguntaLocal;",
+          "para": "  const perguntaAtual = perguntaLocal;"
+        }
+      ],
+      "testes": [
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
       ]
     }
   ]
