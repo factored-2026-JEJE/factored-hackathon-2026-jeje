@@ -698,7 +698,8 @@
         }
       ],
       "testes": [
-        "src/Atendimento.test.tsx > entrar como persona abre sessão e mostra só as transações dela"
+        "src/Atendimento.test.tsx > entrar como persona abre sessão e mostra só as transações dela",
+        "src/Atendimento.test.tsx > os pedidos de revisão mostram o comércio, o valor e o dia, e a linha da transação leva o protocolo"
       ]
     },
     {
@@ -984,7 +985,7 @@
         }
       ],
       "testes": [
-        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a sessão mostra o escolhido"
+        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai cadastrado, como no design, e a sessão mostra o escolhido"
       ]
     },
     {
@@ -1120,7 +1121,7 @@
         }
       ],
       "testes": [
-        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu",
+        "src/Conversa.test.tsx > por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito",
         "src/Conversa.test.tsx > turno reaberto pelo histórico mostra só a regra e a ação"
       ]
     },
