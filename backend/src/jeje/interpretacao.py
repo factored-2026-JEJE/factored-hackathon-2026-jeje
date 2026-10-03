@@ -557,21 +557,22 @@ TERCEIRO_USOU = Perto(
     # Usar e gastar só com o que é do cliente ("usando mi tarjeta", "gastando com o meu
     # plástico"): "uma pessoa está usando o caixa" não é relato. Transferir fica fora: "alguém
     # transferiu dinheiro para mim" é dinheiro recebido.
-    ("uso mi", "usaba mi", "usaron mi", "usando mi", "usando mis", "utilizo mi", "utilizando mi",
+    # O uso no passado ("alguien usó mi tarjeta") fica no ALGUEM_USOU, só nessa ordem (ACH-201).
+    ("usaba mi", "usando mi", "usando mis", "utilizando mi",
      "gastando con mi", "gastando en mi", "gastaron", "robo", "hizo pagos", "hizo compras",
      "hizo un pago", "hizo una compra", "hizo un retiro", "compro", "saco", "retiro",
      "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
-     "usou meu", "usou minha", "usava meu", "usaram meu", "usaram minha", "usando meu",
-     "usando minha", "usando meus", "utilizou meu", "utilizou minha", "gastando com o meu",
+     "usava meu", "usando meu",
+     "usando minha", "usando meus", "gastando com o meu",
      "gastando com meu", "gastando com a minha", "gastando com minha", "gastou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
      "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou",
      # Contado de outros jeitos ("alguien la utilizó sin autorización", "alguien obtuvo los datos
      # de mi tarjeta", "alguém está usando a minha conta"), sempre com o que é do cliente (o resto
      # do ACH-171, REG-12 no 4c62c69).
-     "la utilizo", "la uso", "la usaron", "la utilizaron", "la esta usando", "la esta utilizando",
-     "la ha utilizado", "la ha usado", "usado mi", "usado meu", "usado minha", "uso la misma",
-     "usando a minha", "usando o meu", "usou a minha", "usou o meu", "usou um cartao meu",
+     "la esta usando", "la esta utilizando",
+     "uso la misma",
+     "usando a minha", "usando o meu", "usou um cartao meu",
      "usou o mesmo cartao", "sido utilizada por", "sido usada por", "fue utilizada por",
      "fue usada por", "foi usado por", "foi usada por", "foi utilizado por", "foi utilizada por",
      "ha accedido a mi cuenta", "accedieron a mi cuenta", "acessaram minha conta",
@@ -701,6 +702,26 @@ ALGUEM_TINHA_USADO = Perto(
                 "pensei", "pensava", "achei", "achava", "perguntou", "perguntei", "se"),
     corrige=False,
 )  # fmt: skip
+# O uso por outro pensado e desfeito, ou a pergunta de alguém (ACH-201): os termos do uso no passado
+# saem do TERCEIRO_USOU, que casa nas duas ordens, e entram no desenho do ALGUEM_TINHA_USADO, só
+# nessa ordem e com o pensar ou a pergunta nas 3 palavras antes desfazendo o par ("Achei que alguém
+# tinha usado meu cartão, mas fui eu mesmo", "Pensé que alguien la usó, pero era un cargo mío",
+# "Minha filha perguntou se alguém tinha usado meu cartão"). O pensar no presente ("creo que alguien
+# usó mi tarjeta") segue relato, e o "si"/"se" sozinho também: a pergunta condicional ("¿qué hago si
+# alguien usó mi tarjeta?") é prevenção, que vai ao atendente. As palavras não entram no corretor.
+ALGUEM_USOU = Perto(
+    TERCEIRO_USOU.um,
+    ("uso mi", "usaron mi", "utilizo mi", "la uso", "la usaron", "la utilizo", "la utilizaron",
+     "la ha usado", "la ha utilizado", "usado mi", "usou meu", "usou minha", "usaram meu",
+     "usaram minha", "utilizou meu", "utilizou minha", "usou a minha", "usou o meu", "usado meu",
+     "usado minha"),
+    fora=TERCEIRO_USOU.fora,
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=("pense", "pensaba", "crei", "creia", "pregunto", "pregunte", "preguntaron",
+                "pensei", "pensava", "achei", "achava", "perguntou", "perguntei"),
+    corrige=False,
+)  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -754,8 +775,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("fraude", ("fraude", "robaron", "robo de", "un robo", "robada", "robado", "roubaram",
                 "roubo", "roubado", "roubada", "clonaron", "clonada", "clonado", "clonaram",
                 "hackearon", "hackearam", "invadiram", "asalt*", "assalt*", PERDA_DE_MEIO,
-                "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
-                "alguem usou meu cartao",
+                # O uso por outro com a pessoa ("alguien usó mi tarjeta") é o ALGUEM_USOU (ACH-201).
+                "usaron mi tarjeta", "usaram meu cartao",
                 "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo",
                 # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
                 # a leitura continua a de hoje.
@@ -780,7 +801,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
                 "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
-                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),
+                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
