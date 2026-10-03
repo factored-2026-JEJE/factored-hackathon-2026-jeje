@@ -567,7 +567,7 @@
         {
           "arquivo": "frontend/src/app/Topo.tsx",
           "de": "onClick={() => mudarLingua(l)}",
-          "para": "onClick={() => {}}"
+          "para": "onClick={() => mudarLingua(lingua)}"
         }
       ],
       "testes": [
@@ -582,7 +582,7 @@
         {
           "arquivo": "frontend/src/app/lingua.ts",
           "de": "  return ehLingua(pedida) ? pedida : \"en\";",
-          "para": "  return \"en\";"
+          "para": "  return ehLingua(pedida) ? \"en\" : \"en\";"
         }
       ],
       "testes": [
