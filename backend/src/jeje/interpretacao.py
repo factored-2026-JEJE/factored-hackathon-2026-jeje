@@ -1435,9 +1435,24 @@ HIPOTESE_OU_CAPACIDADE = (
 )  # fmt: skip
 
 
+# A descrição do cartão que se bloqueia ("mi tarjeta se bloquea cada vez que pago", "¿cómo
+# evito que se bloquee?", "o cartão bloqueia se eu errar a senha?") também espera um sim
+# (ACH-221, REG-52 da validação). O "se bloquee" depois de um verbo de pedido pede ("estoy
+# solicitando que se bloquee mi tarjeta") e fica fora.
+DESCRICAO_DO_BLOQUEIO = re.compile(
+    r"\bse (?:me |le |te |nos )?bloquea(?:n)?\b"
+    r"|\b(?:evit[a-z]*|para|no quiero|nao quero|caus[a-z]*) que (?:no )?"
+    r"(?:[a-z0-9]+ ){0,3}se (?:me |le )?bloquee(?:n)?\b"
+    r"|\b(?:cartao|cartoes)\b(?: [a-z0-9]+){0,2} (?:bloqueia|bloqueiam)\b"
+)
+
+
 def hipotese_ou_capacidade(texto: str) -> bool:
-    """A mensagem pergunta pela hipótese ou pela capacidade, e não pede agora."""
+    """A mensagem pergunta pela hipótese ou pela capacidade, ou descreve o cartão que se
+    bloqueia, e não pede agora."""
     limpo = normalizar(texto)
+    if DESCRICAO_DO_BLOQUEIO.search(limpo):
+        return True
     return any(_casa(t, limpo) for t in HIPOTESE_OU_CAPACIDADE)
 
 
