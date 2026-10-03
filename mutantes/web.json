@@ -2510,6 +2510,201 @@
       "testes": [
         "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
       ]
+    },
+    {
+      "id": "M-WEB-331",
+      "requisito": "R02",
+      "descricao": "O mapa inteiro fica no meio da tela, e não no do retângulo livre",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    ox = (W / 2 - (sr.l + sw / 2)) / W;",
+          "para": "    ox = 0;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > o mapa inteiro fica no meio do retângulo livre (design de 03/10), e em pé quando ele é estreito"
+      ]
+    },
+    {
+      "id": "M-WEB-332",
+      "requisito": "R02",
+      "descricao": "O mapa inteiro vira em pé pela tela, e não pelo retângulo livre",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    const port = rp < rl * 0.9;",
+          "para": "    const port = H > W;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > o mapa inteiro fica no meio do retângulo livre (design de 03/10), e em pé quando ele é estreito"
+      ]
+    },
+    {
+      "id": "M-WEB-333",
+      "requisito": "R02",
+      "descricao": "O foco das paradas ignora a gaveta e o painel abertos",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    const direita = medidas.direita ?? W - 24;",
+          "para": "    const direita = W - 24;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > no computador, cada parada foca entre o conteúdo do bloco e a borda direita livre"
+      ]
+    },
+    {
+      "id": "M-WEB-323",
+      "requisito": "R08",
+      "descricao": "Uma lista com nó desconhecido acende os nós que existem",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "if (nos.length === 0 || nos.length !== rota.length) return null;",
+          "para": "if (nos.length === 0) return null;"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > nó que não existe, rota desconhecida ou lista vazia não acendem nada"
+      ]
+    },
+    {
+      "id": "M-WEB-324",
+      "requisito": "R08",
+      "descricao": "Qualquer texto vale como rota do design",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "if (typeof rota === \"string\" && (ROTAS_DO_DESIGN as readonly string[]).includes(rota)) {",
+          "para": "if (typeof rota === \"string\") {"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > nó que não existe, rota desconhecida ou lista vazia não acendem nada"
+      ]
+    },
+    {
+      "id": "M-WEB-334",
+      "requisito": "R08",
+      "descricao": "O site diz que o cabeçalho é DENY, que deixou de ser verdade",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "          i !== 0\n",
+          "para": "          i !== -1\n"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a entrada diz o cabeçalho que o Caddy manda de verdade: só a própria origem embute o app"
+      ]
+    },
+    {
+      "id": "M-WEB-325",
+      "requisito": "R08",
+      "descricao": "O site aceita mensagens de qualquer origem e janela",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "if (e.origin !== location.origin || !frame || e.source !== frame) return;",
+          "para": "if (!frame) return;"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a janela do app (design de 03/10) > a barra mostra a aba que o app avisa, só da janela dele e da própria origem"
+      ]
+    },
+    {
+      "id": "M-WEB-326",
+      "requisito": "R08",
+      "descricao": "O site manda a língua ao app para qualquer origem ('*', como o design)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "postMessage({ type: \"jeje-lang\", lang: S.lang }, location.origin)",
+          "para": "postMessage({ type: \"jeje-lang\", lang: S.lang }, \"*\")"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a janela do app (design de 03/10) > a língua trocada no site vai para o app aberto, na própria origem"
+      ]
+    },
+    {
+      "id": "M-WEB-327",
+      "requisito": "R02",
+      "descricao": "O ?lang= do endereço é ignorado pelo site",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    if (q === \"pt\" || q === \"es\" || q === \"en\") lang = q;\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a janela do app (design de 03/10) > o ?lang= do endereço vence a língua guardada"
+      ]
+    },
+    {
+      "id": "M-WEB-328",
+      "requisito": "R02",
+      "descricao": "O site abre em português, e não em inglês (o padrão do design de 03/10)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    let lang: Idioma = \"en\";",
+          "para": "    let lang: Idioma = \"pt\";"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
+    },
+    {
+      "id": "M-WEB-329",
+      "requisito": "R02",
+      "descricao": "O Esc não fecha a janela do app",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    if (this.state.appOpen) this.closeApp();\n    else ",
+          "para": "    "
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
+    },
+    {
+      "id": "M-WEB-330",
+      "requisito": "R02",
+      "descricao": "A janela abre o app sem a aba pedida (o guia abre no cliente)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "(this.state.motion ? \"\" : \"&motion=0\") + hash,",
+          "para": "(this.state.motion ? \"\" : \"&motion=0\"),"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
+    },
+    {
+      "id": "M-WEB-352",
+      "requisito": "R02",
+      "descricao": "O turno de verdade chega ao mapa sempre como lido pelas regras (o leitor e o LLM não acendem)",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "    return { nos, humano, leitura: leitura === \"llm\" || leitura === \"leitor\" ? leitura : \"regras\" };",
+          "para": "    return { nos, humano, leitura: \"regras\" };"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > a lista dos nós de verdade vale como veio; um tipo de rota do design vale como a jornada"
+      ]
     }
   ]
 }
