@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { CLIENTE } from "./abas/cliente/textos";
 import {
+  type CartaoDoCliente,
   type Dispositivo,
   type Idioma,
   listarPersonas,
+  meusCartoes,
   meusPreCasos,
   minhasTransacoes,
   type Persona,
@@ -244,6 +246,45 @@ function MeusPedidos({ preCasos, transacoes }: { preCasos: PreCaso[]; transacoes
   );
 }
 
+/** Os cartões do cliente (GET /minhas/cartoes, 2.1 do fechamento): ativo, ou bloqueado por aqui
+ * (completo ou preventivo), com a nota do design. Relidos a cada efeito da conversa (um bloqueio, um
+ * desbloqueio ou um relato de fraude). */
+function MeusCartoes({ token, versao }: { token: string; versao: number }) {
+  const { lingua, t } = useLingua();
+  const [cartoes, setCartoes] = useState<CartaoDoCliente[] | null>(null);
+  useEffect(() => {
+    let ativo = true;
+    meusCartoes(token)
+      .then((lista) => ativo && setCartoes(lista))
+      .catch(() => ativo && setCartoes([]));
+    return () => {
+      ativo = false;
+    };
+  }, [token, versao]);
+  return (
+    <section aria-label={t.side.cards} className="lado-bloco">
+      <div className="lado-cab cartoes-cab">
+        <h2>{t.side.cards}</h2>
+      </div>
+      {cartoes?.length === 0 && <p className="lado-vazio">{traduzir(CLIENTE.semCartoes, lingua)}</p>}
+      <ul className="lado-lista">
+        {cartoes?.map((c) => {
+          const preventivo = c.bloqueio?.tipo === "preventivo";
+          const situacao = c.bloqueio ? (preventivo ? "preventivo" : "completo") : "ativo";
+          return (
+            <li key={c.product_id} className="cartao" data-situacao={situacao}>
+              <span className="cartao-final">•••• {c.ultimos4 ?? "—"}</span>
+              <span className="cartao-produto">{c.produto}</span>
+              <span className="cartao-st">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>
+              {c.bloqueio && <span className="cartao-nota">{preventivo ? t.side.prevNote : t.side.undoNote}</span>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 /** A aba do cliente do design: sem sessão, o acesso; com ela, a conversa ao lado do painel. Abaixo de
  * 900 px, o painel vira abas internas (Chat, Transações, Pedidos e cartões). `aoMudar` avisa que a
  * conversa criou algo (pré-caso, encaminhamento) para a fila e as métricas se atualizarem. `pergunta`
@@ -356,6 +397,7 @@ export function Atendimento({
           </div>
           <div className="cli-pedidos">
             <MeusPedidos preCasos={preCasos} transacoes={transacoes} />
+            <MeusCartoes token={sessao.token} versao={versaoPreCasos} />
           </div>
         </aside>
       </div>
