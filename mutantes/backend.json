@@ -14437,6 +14437,66 @@
       "testes": [
         "tests/test_interpretacao.py::test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem"
       ]
+    },
+    {
+      "id": "M-ITP-258",
+      "requisito": "R04",
+      "descricao": "A transação duplicada deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"duplicad*\",), entre=5, so_nessa_ordem=True,\n                         antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-259",
+      "requisito": "R04",
+      "descricao": "A transação estranha deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"extrano\", \"extrana\", \"extranos\", \"extranas\",\n                                            \"estranho\", \"estranha\", \"estranhos\", \"estranhas\"),\n                         entre=1, so_nessa_ordem=True, antes=NA_MENSAGEM,\n                         fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-260",
+      "requisito": "R04",
+      "descricao": "A transação desconhecida deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"desconocid*\", \"desconhecid*\"), entre=3,\n                         so_nessa_ordem=True, antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-261",
+      "requisito": "R04",
+      "descricao": "Sem a guarda do sinal de golpe, a consequência do golpe vira contestação (REG-68)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SINAL_DE_GOLPE = (\n",
+          "para": "SINAL_DE_GOLPE = ()\n_SINAL_SEM_USO = (\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_consequencia_de_golpe_nao_e_contestacao"
+      ]
     }
   ]
 }
