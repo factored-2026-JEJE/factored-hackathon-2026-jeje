@@ -425,6 +425,10 @@ test("atalho manda a frase pronta em português na conversa em português", asyn
   expect(await atalhoDeBloqueio("pt", "Bloquear cartão")).toEqual(["Quero bloquear meu cartão"]);
 });
 
+test("o atalho do pedido em português segue o rótulo do design e manda a frase que as regras entendem", async () => {
+  expect(await atalhoDeBloqueio("pt", "Meu pedido")).toEqual(["Como está meu pedido de revisão?"]);
+});
+
 test("a oferta do atendente tem rótulos claros e continua mandando sí e no", async () => {
   const oferta = turno({
     regra: "RESUMO",
