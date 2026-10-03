@@ -1423,6 +1423,23 @@ SUSPEITA_SEM_PERDA = (
     "nao informei", "nao forneci nada"
 )  # fmt: skip
 VITIMA = (
+    # A perda contada no passado com artigo ("e eu fiz o pix", "hice la transferencia"), também
+    # com a negação do golpista citada ("'não é golpe', ele falou"), do REG-73 (ACH-222).
+    "fiz o pix", "fiz a transferencia", "fiz o deposito", "fiz o pagamento", "fiz um deposito",
+    "fiz um pagamento", "hice la transferencia", "hice el deposito", "hice el pago",
+    "hice un deposito", "hice un pago",
+    # O cartão entregue ao golpista ou levado por ele, com o objeto logo depois ("o motoboy
+    # recolheu meu cartão", "se llevó mi tarjeta"), do REG-77 (ACH-222).
+    "entreguei o cartao", "entreguei meu cartao", "entreguei o meu cartao", "levou o cartao",
+    "levou meu cartao", "levou o meu cartao", "pegou o cartao", "pegou meu cartao",
+    "pegou o meu cartao", "pegaram o cartao", "pegaram meu cartao", "pegaram o meu cartao",
+    "recolheu o cartao", "recolheu meu cartao", "recolheu o meu cartao", "recolheram o cartao",
+    "recolheram meu cartao", "recolheram o meu cartao", "ficou com o cartao",
+    "ficou com meu cartao", "ficou com o meu cartao", "ficaram com o cartao",
+    "ficaram com meu cartao", "ficaram com o meu cartao", "se llevo la tarjeta",
+    "se llevo mi tarjeta", "se quedo con la tarjeta", "se quedo con mi tarjeta",
+    "se quedaron con la tarjeta", "se quedaron con mi tarjeta", "recogio la tarjeta",
+    "recogio mi tarjeta", "recogieron la tarjeta", "recogieron mi tarjeta",
     "cai", "me aplicaron", "sofri", "sufri", "me estafaron", "estafaron", "fui vitima",
     "fui victima", "foi vitima", "perdi", "me robaron", "roubaram", "me roubaram", "transferi",
     "transfiri", "hice una transferencia", "fiz um pix", "fiz uma transferencia", "me sacaron",
@@ -1438,6 +1455,8 @@ VITIMA = (
     "vaciaron", "esvaziaram", "limparam"
 )  # fmt: skip
 NEGA_A_VITIMA = (
+    # "Ninguém levou meu cartão" não é perda (REG-77 da validação, ACH-222).
+    "ninguem", "nadie",
     "no", "nao", "nunca", "ni", "nem", "jamas", "jamais"
 )  # fmt: skip
 PRONOMES_DA_VITIMA = (
