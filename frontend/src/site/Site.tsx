@@ -43,6 +43,7 @@ import {
   type IdDoNo,
   type Ligacao,
 } from "./mapa";
+import { transacaoDoTurno } from "../porQueDoTurno";
 import { caminhoDaJornada, caminhoDoTurno, caminhoRecebido, type CaminhoDoTurno } from "./turnoNoMapa";
 
 // Só o design (VITE_SO_DESIGN=1): o conteúdo e o mapa do designer, sem a API. É assim que a réplica
@@ -211,14 +212,9 @@ const RESPOSTAS = {
   seguir: frase("Seguir aquí", "Continuar aqui"),
 };
 
-// Como a transação do turno foi achada (o rastro do resolvedor), nos três idiomas do site.
+// O aviso quando a API não responde, nos três idiomas do site. O rastro da transação do turno vem do
+// porQueDoTurno.ts, o mesmo do app.
 const TRANSACAO_AO_VIVO = {
-  possiveis: T("possíveis · pergunta qual", "posibles · pregunta cuál", "candidates · asks which"),
-  filtro: T("filtro exato", "filtro exacto", "exact filter"),
-  ranking: T("ranking com garantia (α = 5%)", "ranking con garantía (α = 5%)", "ranking with a guarantee (α = 5%)"),
-  semGarantia: T("ranking sem garantia: mostra as possíveis", "ranking sin garantía: muestra las posibles", "ranking without a guarantee: shows candidates"),
-  escolha: T("escolhida pelo cliente", "elegida por el cliente", "chosen by the customer"),
-  foco: T("a da proposta", "la de la propuesta", "the proposed one"),
   erro: T(
     "A API não respondeu agora. Mande de novo: a conversa não repete efeitos.",
     "La API no respondió ahora. Vuelve a enviar: la conversación no repite efectos.",
@@ -1339,15 +1335,7 @@ export class Site extends Component<object, Estado> {
     const S = this.state;
     const R = t.receipt;
     const L = S.lang;
-    const res = tr.resolucao;
-    const transacao =
-      tr.opcoes.length > 0
-        ? tr.opcoes.length + " " + TRANSACAO_AO_VIVO.possiveis[L]
-        : res
-          ? res.resolvedor === "ranking"
-            ? (tr.transaction_id ? TRANSACAO_AO_VIVO.ranking : TRANSACAO_AO_VIVO.semGarantia)[L]
-            : TRANSACAO_AO_VIVO[res.resolvedor][L]
-          : (tr.transaction_id ?? "—");
+    const transacao = transacaoDoTurno(tr, L) ?? "—";
     const rows: [string, string][] = [
       [R.f.lang, tr.idioma],
       [R.f.reader, tr.interpretacao],
