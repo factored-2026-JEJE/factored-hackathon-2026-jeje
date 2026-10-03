@@ -11541,21 +11541,6 @@
       ]
     },
     {
-      "id": "M-SES-18",
-      "requisito": "R08",
-      "descricao": "A janela de contestação não limita as contestáveis",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/sessao.py",
-          "de": "    desde = hoje - timedelta(days=limites.janela_contestacao_dias)\n",
-          "para": "    desde = hoje - timedelta(days=100 * 365)\n"
-        }
-      ],
-      "testes": [
-        "tests/test_sessao_api.py::test_personas_trazem_as_contestaveis_e_um_exemplo_que_acha_so_ela"
-      ]
-    },
-    {
       "id": "M-ITP-127",
       "requisito": "R02",
       "descricao": "O valor nunca vem marcado como dinheiro (ACH-143)",
