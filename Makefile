@@ -147,7 +147,7 @@ MODO ?= completo
 # O portão de release com o atacante adaptativo (DEV-021b, NOV-13a). Fora do gate: precisa do Ollama
 # com o qwen2.5:7b e da ponte até ele, e leva alguns minutos. ARGS vai para o atacante (padrão:
 # --rapido; ex.: ARGS="--episodios 8" para a rodada inteira do NOV-13).
-atacar: ## Stack isolada do commit e o atacante da validação: falha se os episódios inseguros passam do limite
+atacar: ## Stack isolada do commit (a variante entregue) e o atacante da validação: falha se os inseguros passam do limite
 	scripts/atacar.sh $(ARGS)
 
 repro: ## Do zero: clone limpo do COMMIT, stack isolada com a fixture, segredos e todos os gates
