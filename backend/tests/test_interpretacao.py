@@ -18,6 +18,7 @@ from jeje.interpretacao import (
     comercio_citado_e_como,
     interpretar,
 )
+from jeje.interpretacao_modelo import entendida
 
 REFERENCIA = date(2026, 3, 1)
 
@@ -370,7 +371,8 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
         "idioma", "intencao", "resposta", "aceita_oferta", "outra", "escolha", "valor",
-        "valor_marcado", "data", "status", "id_digitado", "caso", "ultima", "cortesia", "sinais",
+        "valor_marcado", "data", "status", "id_digitado", "caso", "ultima", "cortesia",
+        "uso_desfeito", "sinais",
     }  # fmt: skip
 
 
@@ -1538,6 +1540,40 @@ def test_o_mais_que_perfeito_pensado_perguntado_ou_de_outra_coisa_nao_e_fraude(t
 )
 def test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude(texto, anterior):
     assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O desfeito antes do pensar e a pergunta depois do "está tudo certo" (REG-45, a ordem
+        # inversa): as regras não leem relato e marcam o uso desfeito, e a mensagem não vai ao
+        # leitor (com o "cargo", ela é consulta).
+        ("Era un cargo mío; pensé que alguien la había usado", "es"),
+        ("Fue la suscripción que olvidé, creí que alguien la había usado", "es"),
+        ("Fui eu mesmo, achei que alguém tinha usado meu cartão", "pt"),
+        ("Está tudo certo, minha filha só perguntou se alguém tinha usado meu cartão", "pt"),
+        ("Achei que alguém tinha usado meu cartão, mas fui eu mesmo", "pt"),
+    ],
+)
+def test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor(texto, anterior):
+    lida = ler(texto, anterior)
+    assert lida.intencao != "fraude" and lida.uso_desfeito
+    assert entendida(lida)
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O relato com o uso antes da pessoa (o segundo adendo do REG-45) segue fraude.
+        ("Usaram minha conta para pagar boletos, foi outra pessoa", "pt"),
+        ("Usaron mi tarjeta sin permiso, fue alguien que no conozco", "es"),
+        ("La usaron para comprar en línea y no fui yo, fue otra persona", "es"),
+        ("Usaram meu cartão sem eu saber, foi alguém que eu não conheço", "pt"),
+    ],
+)
+def test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude(texto, anterior):
+    lida = ler(texto, anterior)
+    assert (lida.intencao, lida.uso_desfeito) == ("fraude", False)
 
 
 @pytest.mark.parametrize(
