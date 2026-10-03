@@ -2585,6 +2585,21 @@
       "testes": [
         "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > nó que não existe, rota desconhecida ou lista vazia não acendem nada"
       ]
+    },
+    {
+      "id": "M-WEB-334",
+      "requisito": "R08",
+      "descricao": "O site diz que o cabeçalho é DENY, que deixou de ser verdade",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "          i !== 0\n",
+          "para": "          i !== -1\n"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a entrada diz o cabeçalho que o Caddy manda de verdade: só a própria origem embute o app"
+      ]
     }
   ]
 }

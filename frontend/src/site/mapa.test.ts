@@ -1,6 +1,7 @@
 // O mapa do site (DEV-032a): o caminho de uma mensagem passa por cada componente na ordem, com a
 // posição de cada um tirada das coordenadas dos componentes (oráculo independente da conta do caminho).
-import { MAPA_DO_MAIN } from "./fatos";
+import { CONTEUDO } from "./conteudo";
+import { CONTEUDO_DO_MAIN, MAPA_DO_MAIN } from "./fatos";
 import { DADOS, MAPA_DO_DESIGN, MENSAGEM, NOS, QUADROS, caminho, construirLigacoes, nosDaRota, pontoNoCaminho, quadro } from "./mapa";
 
 const ligacoes = construirLigacoes(MAPA_DO_DESIGN);
@@ -104,3 +105,13 @@ describe("o mapa do main (fatos.ts)", () => {
   });
 });
 
+describe("os fatos do main no texto do site (fatos.ts)", () => {
+  it("a entrada diz o cabeçalho que o Caddy manda de verdade: só a própria origem embute o app", () => {
+    const entrada = (c: typeof CONTEUDO) => c.stops.find((x) => x.id === "entrada")?.protects?.[0];
+    expect(entrada(CONTEUDO)?.pt).toContain("X-Frame-Options DENY");
+    for (const idioma of ["pt", "es", "en"] as const) {
+      expect(entrada(CONTEUDO_DO_MAIN)?.[idioma]).toContain("X-Frame-Options SAMEORIGIN");
+      expect(entrada(CONTEUDO_DO_MAIN)?.[idioma]).not.toContain("DENY");
+    }
+  });
+});

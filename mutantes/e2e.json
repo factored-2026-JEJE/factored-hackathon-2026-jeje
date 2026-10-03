@@ -357,11 +357,11 @@
     {
       "id": "M-E2E-22",
       "requisito": "R08",
-      "descricao": "Proxy sem a proteção contra clickjacking (página pode ser embutida em outro site)",
+      "descricao": "Proxy sem a proteção contra clickjacking (a página pode ser embutida em qualquer site)",
       "trocas": [
         {
           "arquivo": "frontend/Caddyfile",
-          "de": "\t\tX-Frame-Options DENY\n\t\tContent-Security-Policy \"frame-ancestors 'none'\"\n",
+          "de": "\t\tX-Frame-Options SAMEORIGIN\n\t\tContent-Security-Policy \"frame-ancestors 'self'\"\n",
           "para": ""
         }
       ],
