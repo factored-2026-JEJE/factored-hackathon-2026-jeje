@@ -1,9 +1,9 @@
 // O acesso de teste e a aba do cliente do design (DEV-032b) contra um servidor mínimo na fronteira de
 // rede: as transações só saem com o token emitido pelo POST /api/sessoes. A integração real é
 // conferida no E2E.
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Transacao } from "./api/cliente";
+import type { CartaoDoCliente, Transacao } from "./api/cliente";
 import { LinguaDoAppProvider } from "./app/LinguaDoApp";
 import { SessaoProvider } from "./app/sessao";
 import { Topo } from "./app/Topo";
@@ -62,6 +62,19 @@ function servidor({ tokenValido = true } = {}) {
   const perguntas: string[] = [];
   const idiomas: string[] = [];
   let dispositivo = "novo";
+  // Os cartões da sessão (2.1): um ativo e um já bloqueado por um atendente; o pedido de bloqueio na
+  // conversa bloqueia o primeiro, como a API.
+  let bloqueado = false;
+  const cartoes = (): CartaoDoCliente[] => [
+    {
+      product_id: "P-1", produto: "Visa Clásica", ultimos4: "4821", status: "Active",
+      bloqueio: bloqueado ? { id: "BLQ-1", tipo: "completo", reversivel_ate: "2025-03-17T00:00:00Z" } : null,
+    },
+    {
+      product_id: "P-2", produto: "Mastercard Oro", ultimos4: "7730", status: "Active",
+      bloqueio: { id: "BLQ-2", tipo: "preventivo", reversivel_ate: "2025-03-18T00:00:00Z" },
+    },
+  ];
   const responder = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status });
   vi.stubGlobal(
     "fetch",
@@ -80,6 +93,7 @@ function servidor({ tokenValido = true } = {}) {
       if (auth !== `Bearer ${emitido}` || !valido) return responder(401, { detail: "Sessão ausente" });
       if (url === "/api/sessao") return responder(200, { ...ANA, dispositivo });
       if (url === "/api/minhas/transacoes") return responder(200, TRANSACOES);
+      if (url === "/api/minhas/cartoes") return responder(200, cartoes());
       if (url === "/api/minhas/pre-casos") {
         return responder(200, [{ protocolo: "PC-00000417", transaction_id: "TRX-C2", estado: "recebido", criado_em: "2025-03-11T10:00:00Z" }]);
       }
@@ -89,10 +103,14 @@ function servidor({ tokenValido = true } = {}) {
         return responder(201, { conversa_id: "C1", idioma, estado: "livre", resposta: "Hola." });
       }
       if (url === "/api/conversas/C1/turnos" && init?.method === "POST") {
-        perguntas.push(JSON.parse(String(init.body)).texto);
+        const texto: string = JSON.parse(String(init.body)).texto;
+        perguntas.push(texto);
+        const bloqueia = texto.includes("bloquear");
+        if (bloqueia) bloqueado = true;
         return responder(200, {
-          conversa_id: "C1", numero: 1, idioma: idiomas.at(-1), intencao: "consultar", regra: "POL-CON-03",
-          acao: "responder", estado: "livre", resposta: "respondido", transaction_id: "TRX-C1",
+          conversa_id: "C1", numero: 1, idioma: idiomas.at(-1), intencao: bloqueia ? "bloquear" : "consultar",
+          regra: bloqueia ? "POL-BLQ-02" : "POL-CON-03", acao: bloqueia ? "bloquear_cartao" : "responder",
+          estado: "livre", resposta: bloqueia ? "bloqueado" : "respondido", transaction_id: bloqueia ? null : "TRX-C1",
           opcoes: [], proposta: null, protocolo: null, atendimento: null, bloqueio: null,
           descricao: null, interpretacao: "regras", efeito: null, fontes: [],
         });
@@ -245,4 +263,40 @@ test("os pedidos de revisão mostram o comércio, o valor e o dia, e a linha da 
   expect(within(pedidos).getByText("PC-00000417")).toBeInTheDocument();
   const linha = within(await transacoes()).getByText("Mercado Sol").closest("li");
   expect(linha).toHaveTextContent("PC-00000417");
+});
+
+const cartoesDaSessao = async () => screen.findByRole("region", { name: "Cards" });
+const linhaDoCartao = async (final: string) => {
+  const linha = (await within(await cartoesDaSessao()).findByText(`•••• ${final}`)).closest("li");
+  if (!linha) throw new Error(`sem a linha do cartão ${final}`);
+  return linha;
+};
+
+test("os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design", async () => {
+  servidor();
+  render(comSessao());
+  await entrar();
+  const ativo = await linhaDoCartao("4821");
+  expect(ativo).toHaveTextContent("Visa Clásica");
+  expect(ativo).toHaveTextContent("active");
+  expect(ativo.querySelector(".cartao-nota")).toBeNull();
+  const preventivo = await linhaDoCartao("7730");
+  expect(preventivo).toHaveTextContent("blocked · preventive");
+  expect(preventivo).toHaveTextContent("An agent confirms or undoes this block.");
+  expect(preventivo).toHaveAttribute("data-situacao", "preventivo");
+});
+
+test("um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com a nota de desfazer pela conversa", async () => {
+  const api = servidor();
+  render(comSessao());
+  await entrar();
+  expect(await linhaDoCartao("4821")).toHaveTextContent("active");
+  await userEvent.type(screen.getByLabelText("Write as the customer, in Spanish or Portuguese"), "Quiero bloquear mi tarjeta");
+  await userEvent.click(screen.getByRole("button", { name: "Send" }));
+  expect(await screen.findByText("bloqueado")).toBeInTheDocument();
+  await waitFor(async () => expect(await linhaDoCartao("4821")).toHaveTextContent("blocked · full"));
+  const linha = await linhaDoCartao("4821");
+  expect(linha).toHaveTextContent("Can be undone in the chat within 7 days.");
+  expect(linha).toHaveAttribute("data-situacao", "completo");
+  expect(api.perguntas).toEqual(["Quiero bloquear mi tarjeta"]);
 });
