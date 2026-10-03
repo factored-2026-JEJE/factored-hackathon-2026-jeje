@@ -724,6 +724,21 @@
       "testes": [
         "site.spec.ts > sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404"
       ]
+    },
+    {
+      "id": "M-E2E-51",
+      "requisito": "R03",
+      "descricao": "O painel de cartões não é relido depois do efeito da conversa: o cartão bloqueado pelo chat segue ativo na tela",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Atendimento.tsx",
+          "de": "}, [token, versao]);",
+          "para": "}, [token, versao < 0]);"
+        }
+      ],
+      "testes": [
+        "bloqueio.spec.ts > bloquear o cartão pela conversa e desfazer dentro do prazo, com o console acompanhando"
+      ]
     }
   ]
 }
