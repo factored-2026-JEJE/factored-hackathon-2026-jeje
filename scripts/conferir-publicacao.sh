@@ -27,7 +27,7 @@ conferir() {  # nome, esperado, obtido
 status() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 
 conferir "página" 200 "$(status "$url/")"
-conferir "cabeçalho anti-iframe" "DENY" "$(curl -sI "$url/" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-frame-options"{print $2}')"
+conferir "cabeçalho anti-iframe (só a própria origem)" "SAMEORIGIN" "$(curl -sI "$url/" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-frame-options"{print $2}')"
 conferir "saúde aberta" 200 "$(status "$url/api/health")"
 conferir "personas sem acesso" 401 "$(status "$url/api/personas")"
 conferir "documentação sem acesso" 401 "$(status "$url/api/docs")"
