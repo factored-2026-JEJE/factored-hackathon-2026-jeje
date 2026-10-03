@@ -2510,6 +2510,51 @@
       "testes": [
         "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
       ]
+    },
+    {
+      "id": "M-WEB-331",
+      "requisito": "R02",
+      "descricao": "O mapa inteiro fica no meio da tela, e não no do retângulo livre",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    ox = (W / 2 - (sr.l + sw / 2)) / W;",
+          "para": "    ox = 0;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > o mapa inteiro fica no meio do retângulo livre (design de 03/10), e em pé quando ele é estreito"
+      ]
+    },
+    {
+      "id": "M-WEB-332",
+      "requisito": "R02",
+      "descricao": "O mapa inteiro vira em pé pela tela, e não pelo retângulo livre",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    const port = rp < rl * 0.9;",
+          "para": "    const port = H > W;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > o mapa inteiro fica no meio do retângulo livre (design de 03/10), e em pé quando ele é estreito"
+      ]
+    },
+    {
+      "id": "M-WEB-333",
+      "requisito": "R02",
+      "descricao": "O foco das paradas ignora a gaveta e o painel abertos",
+      "trocas": [
+        {
+          "arquivo": "src/site/mapa.ts",
+          "de": "    const direita = medidas.direita ?? W - 24;",
+          "para": "    const direita = W - 24;"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > quadros da câmera > no computador, cada parada foca entre o conteúdo do bloco e a borda direita livre"
+      ]
     }
   ]
 }
