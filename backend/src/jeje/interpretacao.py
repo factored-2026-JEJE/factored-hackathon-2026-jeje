@@ -210,6 +210,9 @@ PERDA_DE_MEIO = Perto(
 PEDIDO_DE_PESSOA = Perto(
     ("hablar", "falar", "conversar", "comunic*", "comuniq*", "pasame", "pase", "pasas", "pasa",
      "pasenme", "pasen", "passem",
+     "passar para", "me passar para", "passe para", "pasar con", "pasarme con", "pases con",
+     "transfieras con", "transfiera con", "transfira para", "encaminhar para", "encaminhe para",
+     "encaminha para", "puede atender", "pode atender", "pode me atender",
      "passa", "transfer*", "quiero", "quero", "necesito", "preciso", "contactar", "contatar",
      "contacto", "contato", "conect*", "chama", "chame", "chamar", "coloca", "coloque", "colocar",
      "atienda", "atenda", "dame", "deme", "llamame", "llame", "liga", "ligue", "poe", "ponme"),
@@ -254,6 +257,18 @@ PEDIDO_DE_CONTESTACAO = Perto(
 # A transação negada como do cliente ("hay un cobro que no es mío", "essa compra não é minha") é não
 # reconhecer (ACH-120 ampliado, EV-147). A janela é maior porque o valor costuma vir no meio ("un
 # cobro de 30 dólares que no es mío"); sem a transação perto, "ese error no es mío" não decide nada.
+# A transação citada e o sinal de golpe antes dela (ACH-220 da validação): a consequência do golpe
+# ("cliquei num link do banco e tenho cobranças estranhas") fica com o leitor e o LLM.
+TRANSACAO_CITADA = (
+    "pago", "pagos", "cargo", "cargos", "cobro", "cobros", "compra", "compras", "transaccion",
+    "transacciones", "pagamento", "pagamentos", "cobranca", "cobrancas", "transacao", "transacoes",
+)  # fmt: skip
+SINAL_DE_GOLPE = (
+    "enlace*", "link*", "sms", "whatsapp", "mensaje", "mensagem", "app", "aplicacion", "aplicativo",
+    "pagina", "sitio", "site", "correo", "email", "e mail", "llamaron", "ligaram", "llamo", "ligou",
+    "del banco", "do banco", "codigo", "clave", "senha", "datos", "dados", "falso", "falsa",
+    "supuesto", "suposta", "suposto",
+)  # fmt: skip
 TRANSACAO_NEGADA = Perto(
     ("no es mio", "no es mia", "no son mios", "no son mias", "nao e minha", "nao e meu",
      "nao sao minhas", "nao sao meus"),
@@ -296,6 +311,7 @@ CARTAO = ("tarjeta*", "cartao", "cartoes", *PLASTICO)
 PEDIDO_DE_BLOQUEIO = Perto(
     ("bloquear", "bloquearla", "bloquearlo", "bloquea", "bloquee", "bloqueen", "bloqueela",
      "bloqueala", "bloqueenla", "bloqueia", "bloqueie", "bloqueiem", "como bloqueo",
+     "bloqueame", "bloquearme", "bloqueenme", "bloqueeme", "congelame", "congelarme", "congelenme",
      "como bloqueio", "el bloqueo", "o bloqueio", "congelar", "congele", "congelen",
      "congelem", "congelarla", "congelala", "travar", "trave", "travem",
      # "Trava" e "congela" também descrevem o cartão ("meu cartão trava na maquininha", "o
@@ -311,6 +327,7 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
     ("desbloquear", "desbloquearla", "desbloquearlo", "desbloquea", "desbloquee", "desbloqueen",
      "desbloqueela", "desbloqueala", "desbloqueenla", "desbloqueia", "desbloqueie",
      "desbloqueiem", "como desbloqueo", "como desbloqueio", "el desbloqueo", "o desbloqueio",
+     "reactivame", "reactiveme", "reactivenme", "reactivarme",
      "reactivar", "reactiva", "reactive", "reactiven", "reativar", "reativa", "reative",
      "reativem"),
     CARTAO,
@@ -540,21 +557,22 @@ TERCEIRO_USOU = Perto(
     # Usar e gastar só com o que é do cliente ("usando mi tarjeta", "gastando com o meu
     # plástico"): "uma pessoa está usando o caixa" não é relato. Transferir fica fora: "alguém
     # transferiu dinheiro para mim" é dinheiro recebido.
-    ("uso mi", "usaba mi", "usaron mi", "usando mi", "usando mis", "utilizo mi", "utilizando mi",
+    # O uso no passado ("alguien usó mi tarjeta") fica no ALGUEM_USOU, só nessa ordem (ACH-201).
+    ("usaba mi", "usando mi", "usando mis", "utilizando mi",
      "gastando con mi", "gastando en mi", "gastaron", "robo", "hizo pagos", "hizo compras",
      "hizo un pago", "hizo una compra", "hizo un retiro", "compro", "saco", "retiro",
      "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
-     "usou meu", "usou minha", "usava meu", "usaram meu", "usaram minha", "usando meu",
-     "usando minha", "usando meus", "utilizou meu", "utilizou minha", "gastando com o meu",
+     "usava meu", "usando meu",
+     "usando minha", "usando meus", "gastando com o meu",
      "gastando com meu", "gastando com a minha", "gastando com minha", "gastou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
      "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou",
      # Contado de outros jeitos ("alguien la utilizó sin autorización", "alguien obtuvo los datos
      # de mi tarjeta", "alguém está usando a minha conta"), sempre com o que é do cliente (o resto
      # do ACH-171, REG-12 no 4c62c69).
-     "la utilizo", "la uso", "la usaron", "la utilizaron", "la esta usando", "la esta utilizando",
-     "la ha utilizado", "la ha usado", "usado mi", "usado meu", "usado minha", "uso la misma",
-     "usando a minha", "usando o meu", "usou a minha", "usou o meu", "usou um cartao meu",
+     "la esta usando", "la esta utilizando",
+     "uso la misma",
+     "usando a minha", "usando o meu", "usou um cartao meu",
      "usou o mesmo cartao", "sido utilizada por", "sido usada por", "fue utilizada por",
      "fue usada por", "foi usado por", "foi usada por", "foi utilizado por", "foi utilizada por",
      "ha accedido a mi cuenta", "accedieron a mi cuenta", "acessaram minha conta",
@@ -667,6 +685,43 @@ DINHEIRO_SACADO = Perto(
                  "anualidad", "anuidade", "mensalidade", "impuesto", "imposto"),
     corrige=False,
 )  # fmt: skip
+# O uso por outro contado no mais-que-perfeito ("encontré mi tarjeta pero alguien ya la había
+# usado", ACH-199), num termo só nessa ordem: em PT, com o cartão ou a conta do cliente ("uma pessoa
+# perguntou se eu tinha usado meu cupom" não é relato); o pensar ou a pergunta logo antes desfazem o
+# par ("pensé que alguien la había usado, pero era un cargo mío", "mi hija me preguntó si alguien la
+# había usado"). As palavras não entram no corretor.
+ALGUEM_TINHA_USADO = Perto(
+    TERCEIRO_USOU.um,
+    ("la habia usado", "la habian usado", "la habia utilizado", "la habian utilizado",
+     "tinha usado meu cartao", "tinha usado o meu cartao", "tinham usado meu cartao",
+     "tinham usado o meu cartao", "havia usado meu cartao", "havia usado o meu cartao",
+     "tinha usado minha conta", "tinha usado a minha conta"),
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=("pense", "pensaba", "crei", "creia", "pregunto", "pregunte", "preguntaron", "si",
+                "pensei", "pensava", "achei", "achava", "perguntou", "perguntei", "se"),
+    corrige=False,
+)  # fmt: skip
+# O uso por outro pensado e desfeito, ou a pergunta de alguém (ACH-201): os termos do uso no passado
+# saem do TERCEIRO_USOU, que casa nas duas ordens, e entram no desenho do ALGUEM_TINHA_USADO, só
+# nessa ordem e com o pensar ou a pergunta nas 3 palavras antes desfazendo o par ("Achei que alguém
+# tinha usado meu cartão, mas fui eu mesmo", "Pensé que alguien la usó, pero era un cargo mío",
+# "Minha filha perguntou se alguém tinha usado meu cartão"). O pensar no presente ("creo que alguien
+# usó mi tarjeta") segue relato, e o "si"/"se" sozinho também: a pergunta condicional ("¿qué hago si
+# alguien usó mi tarjeta?") é prevenção, que vai ao atendente. As palavras não entram no corretor.
+ALGUEM_USOU = Perto(
+    TERCEIRO_USOU.um,
+    ("uso mi", "usaron mi", "utilizo mi", "la uso", "la usaron", "la utilizo", "la utilizaron",
+     "la ha usado", "la ha utilizado", "usado mi", "usou meu", "usou minha", "usaram meu",
+     "usaram minha", "utilizou meu", "utilizou minha", "usou a minha", "usou o meu", "usado meu",
+     "usado minha"),
+    fora=TERCEIRO_USOU.fora,
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=("pense", "pensaba", "crei", "creia", "pregunto", "pregunte", "preguntaron",
+                "pensei", "pensava", "achei", "achava", "perguntou", "perguntei"),
+    corrige=False,
+)  # fmt: skip
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -702,6 +757,7 @@ VOLTA_DO_BLOQUEADO = Perto(
 NEGACAO = (
     r"(?<![a-z0-9])(?:no|nao|nunca)(?: (?:quiero|quero|necesito|preciso|precisa|precisam"
     r"|hace falta|es necesario|e necessario|vayan a|van a|va a|vao|vai|pueden|podem|puede|pode"
+    r"|que|vayas a|vas a|vuelvan a|vuelva a|vuelvas a|voltem a|volte a|volta a"
     r"|me|te|la|lo|a|o|mi|meu|minha|el|os|as|las|los))* "
 )
 # O bloqueio que o cliente já fez ("ya bloqueé mi tarjeta", "la bloquee por error") conta o que
@@ -719,8 +775,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("fraude", ("fraude", "robaron", "robo de", "un robo", "robada", "robado", "roubaram",
                 "roubo", "roubado", "roubada", "clonaron", "clonada", "clonado", "clonaram",
                 "hackearon", "hackearam", "invadiram", "asalt*", "assalt*", PERDA_DE_MEIO,
-                "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
-                "alguem usou meu cartao",
+                # O uso por outro com a pessoa ("alguien usó mi tarjeta") é o ALGUEM_USOU (ACH-201).
+                "usaron mi tarjeta", "usaram meu cartao",
                 "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo",
                 # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
                 # a leitura continua a de hoje.
@@ -745,7 +801,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
                 "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
-                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),
+                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
@@ -761,7 +817,18 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                    "nao a reconheco", "nao o reconheco", "desconozco", "desconheco", "contestar",
                    "contesto", "disputar", "impugnar", "cobro indebido", "cobranca indevida",
                    "cargo no reconocido", "no hice", "nao fiz", "no autorice", "nao autorizei",
+                   "no lo hice", "no la hice", "no los hice", "no las hice", "nao o fiz",
+                   "nao a fiz", "nao os fiz", "nao as fiz", "no lo autorice", "no la autorice",
+                   "nao o autorizei", "nao a autorizei",
                    COBRANCA_REPETIDA, COBRANCA_A_MAIS, "revisen", "revisem", "reclamar",
+                   Perto(TRANSACAO_CITADA, ("duplicad*",), entre=5, so_nessa_ordem=True,
+                         antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),
+                   Perto(TRANSACAO_CITADA, ("extrano", "extrana", "extranos", "extranas",
+                                            "estranho", "estranha", "estranhos", "estranhas"),
+                         entre=1, so_nessa_ordem=True, antes=NA_MENSAGEM,
+                         fora_antes=SINAL_DE_GOLPE),
+                   Perto(TRANSACAO_CITADA, ("desconocid*", "desconhecid*"), entre=3,
+                         so_nessa_ordem=True, antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),
                    PEDIDO_DE_CONTESTACAO, TRANSACAO_NEGADA)),
     # Reembolso e devolução sozinhos são pergunta sobre a transação: contestar é não reconhecer.
     ("consultar", ("por que", "porque", "rechaz*", "recusad*", "recusaram", "recusou", "negad*",
@@ -1394,6 +1461,23 @@ SUSPEITA_SEM_PERDA = (
     "nao informei", "nao forneci nada"
 )  # fmt: skip
 VITIMA = (
+    # A perda contada no passado com artigo ("e eu fiz o pix", "hice la transferencia"), também
+    # com a negação do golpista citada ("'não é golpe', ele falou"), do REG-73 (ACH-222).
+    "fiz o pix", "fiz a transferencia", "fiz o deposito", "fiz o pagamento", "fiz um deposito",
+    "fiz um pagamento", "hice la transferencia", "hice el deposito", "hice el pago",
+    "hice un deposito", "hice un pago",
+    # O cartão entregue ao golpista ou levado por ele, com o objeto logo depois ("o motoboy
+    # recolheu meu cartão", "se llevó mi tarjeta"), do REG-77 (ACH-222).
+    "entreguei o cartao", "entreguei meu cartao", "entreguei o meu cartao", "levou o cartao",
+    "levou meu cartao", "levou o meu cartao", "pegou o cartao", "pegou meu cartao",
+    "pegou o meu cartao", "pegaram o cartao", "pegaram meu cartao", "pegaram o meu cartao",
+    "recolheu o cartao", "recolheu meu cartao", "recolheu o meu cartao", "recolheram o cartao",
+    "recolheram meu cartao", "recolheram o meu cartao", "ficou com o cartao",
+    "ficou com meu cartao", "ficou com o meu cartao", "ficaram com o cartao",
+    "ficaram com meu cartao", "ficaram com o meu cartao", "se llevo la tarjeta",
+    "se llevo mi tarjeta", "se quedo con la tarjeta", "se quedo con mi tarjeta",
+    "se quedaron con la tarjeta", "se quedaron con mi tarjeta", "recogio la tarjeta",
+    "recogio mi tarjeta", "recogieron la tarjeta", "recogieron mi tarjeta",
     "cai", "me aplicaron", "sofri", "sufri", "me estafaron", "estafaron", "fui vitima",
     "fui victima", "foi vitima", "perdi", "me robaron", "roubaram", "me roubaram", "transferi",
     "transfiri", "hice una transferencia", "fiz um pix", "fiz uma transferencia", "me sacaron",
@@ -1409,6 +1493,8 @@ VITIMA = (
     "vaciaron", "esvaziaram", "limparam"
 )  # fmt: skip
 NEGA_A_VITIMA = (
+    # "Ninguém levou meu cartão" não é perda (REG-77 da validação, ACH-222).
+    "ninguem", "nadie",
     "no", "nao", "nunca", "ni", "nem", "jamas", "jamais"
 )  # fmt: skip
 PRONOMES_DA_VITIMA = (
