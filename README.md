@@ -238,9 +238,10 @@ A publicação roda numa máquina do time. Para ela ficar de pé sem ninguém ol
   O registro fica em `~/.local/state/jeje/vigia.log`. Depois de 16/10, os timers não fazem nada, e
   `scripts/instalar-vigia.sh --desligar` os desliga. Para os timers rodarem sem sessão aberta, quem
   administra liga o `loginctl enable-linger`.
-- **O aviso:** quando uma conferência falha, `scripts/avisar.sh` manda as falhas para o endereço do
-  `AVISO_URL` no `.env`. É um segredo: o tópico de um ntfy ou um webhook que aceite um POST de texto. Sem
-  ele, a falha fica só no registro.
+- **O aviso:** quando uma conferência passa a falhar, `scripts/avisar.sh` manda as falhas para o endereço
+  do `AVISO_URL` no `.env`, e de novo quando ela volta a passar. Enquanto a publicação segue fora, o aviso
+  não se repete a cada 10 min. O endereço é um segredo: o tópico de um ntfy ou um webhook que aceite um
+  POST de texto. Sem ele, a falha fica só no registro.
 - **Plano B, se a máquina cair:** em outra máquina com Docker, clonar o repositório e pôr no `.env` as
   mesmas chaves (as do S3, `SENHA_DOS_JURADOS` e `CLOUDFLARE_TUNNEL_TOKEN`); `make publicar` sobe tudo e
   confere. O túnel é nomeado: o endereço segue para a máquina que estiver com o token, sem mexer no DNS. A
