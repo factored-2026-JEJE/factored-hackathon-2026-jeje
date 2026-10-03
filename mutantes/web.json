@@ -2969,6 +2969,67 @@
       "testes": [
         "src/Conversa.test.tsx > o atalho do pedido em português segue o rótulo do design e manda a frase que as regras entendem"
       ]
+    },
+    {
+      "id": "M-WEB-355",
+      "requisito": "R02",
+      "descricao": "Os cartões não são relidos depois de um efeito da conversa: o bloqueio feito pelo chat não aparece no painel",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "}, [token, versao]);",
+          "para": "}, [token, versao < 0]);"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com a nota de desfazer pela conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-356",
+      "requisito": "R02",
+      "descricao": "O bloqueio preventivo aparece como completo (e o completo como preventivo)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "const preventivo = c.bloqueio?.tipo === \"preventivo\";",
+          "para": "const preventivo = c.bloqueio?.tipo === \"completo\";"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design"
+      ]
+    },
+    {
+      "id": "M-WEB-357",
+      "requisito": "R02",
+      "descricao": "Todo cartão aparece ativo, mesmo bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "<span className=\"cartao-st\">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>",
+          "para": "<span className=\"cartao-st\">{t.side.active}</span>"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design",
+        "src/Atendimento.test.tsx > um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com a nota de desfazer pela conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-358",
+      "requisito": "R02",
+      "descricao": "O cartão bloqueado perde a nota de quem desfaz (o atendente, ou a conversa em 7 dias)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "{c.bloqueio && <span className=\"cartao-nota\">",
+          "para": "{false && <span className=\"cartao-nota\">"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design"
+      ]
     }
   ]
 }
