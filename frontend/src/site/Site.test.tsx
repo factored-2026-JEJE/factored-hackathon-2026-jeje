@@ -223,8 +223,17 @@ describe("a seção de resultados (1.5 do fechamento)", () => {
     const { container } = render(<Site />);
     await waitFor(() => expect(container.querySelector("#resultados")).not.toBeNull());
     const secao = within(container.querySelector("#resultados") as HTMLElement);
-    expect(secao.getAllByText("91.3%")).toHaveLength(9);
-    expect(secao.getAllByText("2 / 80")).toHaveLength(9);
+    // As 9 células de cada linha vêm depois do rótulo dela, na grade.
+    const celulas = (rotulo: string) => {
+      let el: Element | null | undefined = secao.getByText(rotulo).closest("div");
+      return Array.from({ length: 9 }, () => {
+        el = el?.nextElementSibling;
+        return el?.textContent;
+      });
+    };
+    expect(celulas("Baseline · rules only")).toEqual(Array(9).fill("91.3%"));
+    expect(celulas("System · run 1")).toEqual(Array(9).fill("2 / 80"));
+    expect(celulas("System · run 2")).toEqual(Array(9).fill("—"));
     expect(secao.getByText("Done")).toBeInTheDocument();
     expect(secao.getByText(/frozen commit 0123456789ab/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Results" }).length).toBeGreaterThan(0);
