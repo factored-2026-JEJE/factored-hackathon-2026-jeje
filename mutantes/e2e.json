@@ -664,6 +664,36 @@
       "testes": [
         "site.spec.ts > no celular, o menu do cabeçalho leva às seções e fecha"
       ]
+    },
+    {
+      "id": "M-E2E-47",
+      "requisito": "R06",
+      "descricao": "Sem o arquivo, o Caddy devolve a página do app (200) no lugar do 404",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\thandle /resultados/* {\n\t\troot * /srv\n\t\tfile_server\n\t}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "site.spec.ts > sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404"
+      ]
+    },
+    {
+      "id": "M-E2E-48",
+      "requisito": "R06",
+      "descricao": "A seção de resultados aparece com traços no site publicado, antes do teste",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "      mostrarResultados: SO_DESIGN || S.resultados !== null,",
+          "para": "      mostrarResultados: SO_DESIGN || S.resultados === null,"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404"
+      ]
     }
   ]
 }
