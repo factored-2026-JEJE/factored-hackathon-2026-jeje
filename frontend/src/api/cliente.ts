@@ -30,6 +30,15 @@ export async function buscarEda(sinal?: AbortSignal): Promise<IndicadorEda[]> {
   return (await resposta.json()) as IndicadorEda[];
 }
 
+export type MetadadosDoModelo = components["schemas"]["Metadados"];
+
+/** Versão, fontes e métricas por idioma do portão de intenção TF-IDF; 503 sem o artefato. */
+export async function buscarModeloDeIntencao(sinal?: AbortSignal): Promise<MetadadosDoModelo> {
+  const resposta = await fetch("/api/intencao/modelo", { signal: sinal });
+  if (resposta.status !== 200) throw new Error(`HTTP ${resposta.status}`);
+  return (await resposta.json()) as MetadadosDoModelo;
+}
+
 export type Persona = components["schemas"]["Persona"];
 /** Persona da lista de acesso, com as dicas de cada caminho da demonstração (PRD-009). */
 export type PersonaDaDemo = components["schemas"]["PersonaDaDemo"];

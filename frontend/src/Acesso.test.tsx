@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Acesso } from "./Acesso";
 import { listarPersonas } from "./api/cliente";
+import { LinguaDoAppProvider } from "./app/LinguaDoApp";
 
 const CERTA = "senha-certa-dos-jurados";
 
@@ -78,4 +79,19 @@ test("acesso que vence no meio do uso volta para a senha", async () => {
   await expect(listarPersonas()).rejects.toThrow("acesso dos jurados");
   expect(await screen.findByLabelText("Password")).toBeInTheDocument();
   expect(screen.queryByText("demonstração")).not.toBeInTheDocument();
+});
+
+test("o portão fala a língua que o site pediu no endereço", async () => {
+  servidor(true, false);
+  window.history.replaceState(null, "", "/?lang=es");
+  render(
+    <LinguaDoAppProvider>
+      <Acesso>
+        <p>demonstração</p>
+      </Acesso>
+    </LinguaDoAppProvider>,
+  );
+  expect(await screen.findByLabelText("Contraseña")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Entrar" })).toBeDisabled();
+  expect(screen.queryByText("demonstração")).toBeNull();
 });
