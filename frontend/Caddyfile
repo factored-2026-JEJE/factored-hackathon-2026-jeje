@@ -8,11 +8,12 @@
 :8080 {
 	encode gzip
 	# Toda resposta (página e API): sem adivinhar tipo, sem ser embutida em outro site
-	# (clickjacking) e sem vazar o endereço como referer.
+	# (clickjacking) e sem vazar o endereço como referer. Só a própria origem embute: o site em /site/
+	# abre o app de / numa janela (design de 03/10).
 	header {
 		X-Content-Type-Options nosniff
-		X-Frame-Options DENY
-		Content-Security-Policy "frame-ancestors 'none'"
+		X-Frame-Options SAMEORIGIN
+		Content-Security-Policy "frame-ancestors 'self'"
 		Referrer-Policy no-referrer
 	}
 	# Publicação (ACH-115): o Cloudflare diz em X-Forwarded-Proto o esquema em que o visitante
