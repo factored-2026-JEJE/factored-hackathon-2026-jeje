@@ -144,11 +144,11 @@ gate: check e2e mutantes-e2e ## Portão de uma meta: checks, jornadas e mutantes
 # Reprodução do zero (o CI do projeto roda aqui, no build, sem GitHub; PRD-009).
 COMMIT ?= HEAD
 MODO ?= completo
-# O portão de release com o atacante adaptativo (DEV-021b, NOV-13a). Fora do gate: precisa do Ollama
-# com o qwen2.5:7b e da ponte até ele, e leva alguns minutos. ARGS vai para o atacante (padrão:
-# --rapido; ex.: ARGS="--episodios 8" para a rodada inteira do NOV-13).
-atacar: ## Stack isolada do commit (a variante entregue) e o atacante da validação: falha se os inseguros passam do limite
-	scripts/atacar.sh $(ARGS)
-
 repro: ## Do zero: clone limpo do COMMIT, stack isolada com a fixture, segredos e todos os gates
 	scripts/repro.sh $(COMMIT) $(MODO)
+
+# O portão de release com o atacante adaptativo (DEV-021b, NOV-13a). Fica fora do gate: precisa do
+# Ollama com o qwen2.5:7b e o qwen3:4b, da ponte até ele e da GPU livre (de 30 a 45 min). O limite e
+# os episódios ficam no compose.atacar.yaml; ARGS vai por cima (ex.: ARGS="--mecanismos M4 --episodios 2").
+atacar: ## Stack isolada do commit (a variante entregue) e o atacante da validação: falha se os inseguros passam do limite
+	scripts/atacar.sh $(ARGS)
