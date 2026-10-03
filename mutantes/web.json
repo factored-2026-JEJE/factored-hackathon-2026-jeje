@@ -2939,6 +2939,21 @@
       "testes": [
         "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela mostra os números de cada linha e a seção diz que acabou"
       ]
+    },
+    {
+      "id": "M-WEB-353",
+      "requisito": "R06",
+      "descricao": "A nota do teste concluído corta o commit congelado em 7 caracteres: o commit de 12 do arquivo de resultados não aparece inteiro",
+      "trocas": [
+        {
+          "arquivo": "src/site/resultados.ts",
+          "de": "const commit = r.commit.slice(0, 12);",
+          "para": "const commit = r.commit.slice(0, 7);"
+        }
+      ],
+      "testes": [
+        "src/site/resultados.test.ts > depois do teste, a seção diz que acabou, com o commit congelado e a evidência"
+      ]
     }
   ]
 }
