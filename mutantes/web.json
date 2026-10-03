@@ -2954,6 +2954,21 @@
       "testes": [
         "src/site/resultados.test.ts > depois do teste, a seção diz que acabou, com o commit congelado e a evidência"
       ]
+    },
+    {
+      "id": "M-WEB-354",
+      "requisito": "R02",
+      "descricao": "O atalho manda sempre a frase do design: \"Como está meu pedido?\", que as regras não entendem, vai como está",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "onClick={() => void enviar(FRASE_DO_ATALHO[frase] ?? frase)}",
+          "para": "onClick={() => void enviar(frase)}"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > o atalho do pedido em português segue o rótulo do design e manda a frase que as regras entendem"
+      ]
     }
   ]
 }
