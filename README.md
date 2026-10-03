@@ -218,6 +218,36 @@ a documentação e o contrato; só a saúde e o próprio acesso abrem. Quem entr
    mesma conferência do endereço público (ACH-116).
 4. **Tirar do ar:** `make publicacao-down` (o banco fica).
 
+### De pé durante o julgamento (6 a 15/10)
+
+A publicação roda numa máquina do time. Para ela ficar de pé sem ninguém olhar:
+
+- **Volta sozinha:** os quatro serviços do `compose.publicacao.yaml` têm `restart: unless-stopped`, e o
+  Docker sobe com a máquina. A máquina não suspende: na sessão do usuário, a energia fica em "nunca"; na
+  tela de login, quem administra mascara os alvos de suspensão
+  (`sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target`). A volta
+  depois de falta de energia é uma opção da BIOS.
+- **A vigia:** `scripts/instalar-vigia.sh`, no checkout da publicação (o que tem o `.env`), liga dois
+  timers do systemd do usuário:
+  - a conferência rápida a cada 10 min (`scripts/vigiar-publicacao.sh`): a página, o portão, a saúde e os
+    cabeçalhos;
+  - o teste diário às 9h, com uma conversa em espanhol e outra em português
+    (`scripts/conferir-publicacao.sh --conversa`): cada turno tem de responder na língua da conversa e
+    com a regra que decidiu. O teste deixa uma sessão e duas conversas de consulta no banco, sem efeito.
+
+  O registro fica em `~/.local/state/jeje/vigia.log`. Depois de 16/10, os timers não fazem nada, e
+  `scripts/instalar-vigia.sh --desligar` os desliga. Para os timers rodarem sem sessão aberta, quem
+  administra liga o `loginctl enable-linger`.
+- **O aviso:** quando uma conferência passa a falhar, `scripts/avisar.sh` manda as falhas para o endereço
+  do `AVISO_URL` no `.env`, e de novo quando ela volta a passar. Enquanto a publicação segue fora, o aviso
+  não se repete a cada 10 min. O endereço é um segredo: o tópico de um ntfy ou um webhook que aceite um
+  POST de texto. Sem ele, a falha fica só no registro.
+- **Plano B, se a máquina cair:** em outra máquina com Docker, clonar o repositório e pôr no `.env` as
+  mesmas chaves (as do S3, `SENHA_DOS_JURADOS` e `CLOUDFLARE_TUNNEL_TOKEN`); `make publicar` sobe tudo e
+  confere. O túnel é nomeado: o endereço segue para a máquina que estiver com o token, sem mexer no DNS. A
+  nova publicação começa com o banco vazio de conversas (as reviews e os casos de antes ficam na máquina
+  que caiu).
+
 ## Recarga dos dados
 
 Quando a versão dos dados (`data/manifesto/`) ou o código do pipeline mudam, o `make up` recarrega

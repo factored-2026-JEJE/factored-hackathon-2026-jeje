@@ -2692,6 +2692,97 @@
       ]
     },
     {
+      "id": "M-WEB-346",
+      "requisito": "R06",
+      "descricao": "O site aceita um arquivo de resultados com linha de menos ou célula fora da forma",
+      "trocas": [
+        {
+          "arquivo": "src/site/resultados.ts",
+          "de": "    if (!Array.isArray(linha) || linha.length !== COLUNAS || !linha.every(celulaValida)) return null;",
+          "para": "    if (!Array.isArray(linha)) return null;"
+        }
+      ],
+      "testes": [
+        "src/site/resultados.test.ts > o arquivo com as três linhas de nove células entra; outra forma não entra"
+      ]
+    },
+    {
+      "id": "M-WEB-347",
+      "requisito": "R06",
+      "descricao": "A fração sai como fração, e não em porcento",
+      "trocas": [
+        {
+          "arquivo": "src/site/resultados.ts",
+          "de": "  if (\"fracao\" in c) return fixo(c.fracao * 100, 1) + \"%\";",
+          "para": "  if (\"fracao\" in c) return fixo(c.fracao, 1) + \"%\";"
+        }
+      ],
+      "testes": [
+        "src/site/resultados.test.ts > cada célula sai com o separador da língua: vírgula em português e espanhol, ponto em inglês",
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela mostra os números de cada linha e a seção diz que acabou"
+      ]
+    },
+    {
+      "id": "M-WEB-348",
+      "requisito": "R06",
+      "descricao": "O separador decimal é sempre o ponto",
+      "trocas": [
+        {
+          "arquivo": "src/site/resultados.ts",
+          "de": "    x.toLocaleString(lingua === \"en\" ? \"en-US\" : \"pt-BR\", { minimumFractionDigits: casas, maximumFractionDigits: casas });",
+          "para": "    x.toLocaleString(\"en-US\", { minimumFractionDigits: casas, maximumFractionDigits: casas });"
+        }
+      ],
+      "testes": [
+        "src/site/resultados.test.ts > cada célula sai com o separador da língua: vírgula em português e espanhol, ponto em inglês"
+      ]
+    },
+    {
+      "id": "M-WEB-349",
+      "requisito": "R06",
+      "descricao": "A seção de resultados aparece com traços no site publicado, antes do teste",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "      mostrarResultados: SO_DESIGN || S.resultados !== null,",
+          "para": "      mostrarResultados: true,"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > sem o arquivo do teste final, a seção e o link do menu não aparecem"
+      ]
+    },
+    {
+      "id": "M-WEB-350",
+      "requisito": "R06",
+      "descricao": "As linhas da tabela trocadas (a linha de base com os números do sistema)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "        const linha = S.resultados?.linhas[LINHAS_DA_TABELA[i] ?? \"baseline\"];",
+          "para": "        const linha = S.resultados?.linhas[LINHAS_DA_TABELA[2 - i] ?? \"baseline\"];"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela mostra os números de cada linha e a seção diz que acabou"
+      ]
+    },
+    {
+      "id": "M-WEB-351",
+      "requisito": "R06",
+      "descricao": "Depois do teste, a seção segue dizendo que está em andamento",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "    const feito = S.resultados ? estadoConcluido(S.resultados, S.lang) : null;",
+          "para": "    const feito = null as ReturnType<typeof estadoConcluido> | null;"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela mostra os números de cada linha e a seção diz que acabou"
+      ]
+    },
+    {
       "id": "M-WEB-352",
       "requisito": "R02",
       "descricao": "O turno de verdade chega ao mapa sempre como lido pelas regras (o leitor e o LLM não acendem)",

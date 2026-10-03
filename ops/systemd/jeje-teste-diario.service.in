@@ -1,0 +1,8 @@
+# O teste diário da publicação (DEV-021a): a conferência inteira, com uma conversa em ES e outra em PT.
+[Unit]
+Description=JEJE: teste diário da publicação em ES e PT
+
+[Service]
+Type=oneshot
+WorkingDirectory=@REPO@
+ExecStart=@REPO@/scripts/vigiar-publicacao.sh --conversa
