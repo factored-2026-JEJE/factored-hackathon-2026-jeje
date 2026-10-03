@@ -977,6 +977,20 @@ def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
         # A conta esvaziada é perda, mesmo com a suspeita na mesma mensagem (REG-21).
         ("Un supuesto asesor me pidió la clave, no se la di, pero igual vaciaron mi cuenta", False),
         ("Um falso atendente pediu o código, não informei, mas esvaziaram minha conta", False),
+        # A perda contada no passado com artigo é relato, também com a negação do golpista citada
+        # (ACH-222 da validação); negada ou no infinitivo, segue a pergunta.
+        ("'Não é golpe', ele falou, e eu fiz o pix", False),
+        ("A moça disse que não era golpe e eu fiz a transferência", False),
+        ("Me dijo que no era una estafa, así que hice la transferencia", False),
+        ("Era una estafa: hice el pago y nunca llegó nada", False),
+        ("Não fiz o pix, era golpe?", True),
+        ("Ele pediu para eu fazer o pix, é golpe?", True),
+        ("Todavía no hice el pago, ¿será una estafa?", True),
+        # O cartão entregue ao golpista ou levado por ele é perda; "ninguém" e "nadie" negam.
+        ("Era golpe: o falso funcionário levou meu cartão", False),
+        ("Me aseguraron que no era fraude y el mensajero recogió mi tarjeta", False),
+        ("Ninguém levou meu cartão, mas era golpe?", True),
+        ("Nadie se llevó mi tarjeta, pero ¿era una estafa?", True),
     ],
 )
 def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao):
