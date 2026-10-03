@@ -188,12 +188,12 @@ test("o dispositivo simulado é escolhido no acesso: sem escolha vai cadastrado,
 test("recarregar a página mostra o dispositivo guardado pelo servidor", async () => {
   servidor();
   render(comSessao());
-  await userEvent.click(await screen.findByRole("button", { name: /New device/ }));
   await entrar();
-  await screen.findByText("CLI-C · Ana Souza · new device");
+  await screen.findByText("CLI-C · Ana Souza · registered device");
   cleanup();
   render(comSessao());
-  expect(await screen.findByText("CLI-C · Ana Souza · new device")).toBeInTheDocument();
+  // O dispositivo vem da sessão relida no servidor, não de um padrão da tela.
+  expect(await screen.findByText("CLI-C · Ana Souza · registered device")).toBeInTheDocument();
 });
 
 async function perguntarSobreALinha() {

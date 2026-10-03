@@ -500,10 +500,12 @@ test("reabrir a conversa mostra o caso que está com o atendente", async () => {
   const historico = {
     conversa_id: "C1",
     idioma: "es",
-    estado: "com_humano",
+    // O caso já está com o atendente enquanto a conversa pergunta o cartão a bloquear: só o atendimento
+    // relido diz que ele está com uma pessoa.
+    estado: "escolhendo_cartao",
     atendimento: "AT-00000003",
     turnos: [
-      { numero: 1, mensagem: "Me robaron la tarjeta", resposta: "Por seguridad, un agente va a atender este caso.", regra: "POL-HUM-01", acao: "humano", estado: "com_humano", criado_em: "2026-10-01T10:00:00Z" },
+      { numero: 1, mensagem: "Me robaron la tarjeta", resposta: "Por seguridad, un agente va a atender este caso.", regra: "POL-HUM-01", acao: "humano", estado: "escolhendo_cartao", criado_em: "2026-10-01T10:00:00Z" },
     ],
   };
   servidor([], historico);
