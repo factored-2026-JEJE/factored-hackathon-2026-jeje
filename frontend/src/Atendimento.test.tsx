@@ -54,7 +54,7 @@ const TRANSACOES: Transacao[] = [
   },
 ];
 
-function servidor({ tokenValido = true } = {}) {
+function servidor({ tokenValido = true, cartoesFalham = 0 } = {}) {
   const emitido = "tok-ana";
   let valido = tokenValido;
   const pedidos: { url: string; auth: string | null }[] = [];
@@ -93,7 +93,10 @@ function servidor({ tokenValido = true } = {}) {
       if (auth !== `Bearer ${emitido}` || !valido) return responder(401, { detail: "Sessão ausente" });
       if (url === "/api/sessao") return responder(200, { ...ANA, dispositivo });
       if (url === "/api/minhas/transacoes") return responder(200, TRANSACOES);
-      if (url === "/api/minhas/cartoes") return responder(200, cartoes());
+      if (url === "/api/minhas/cartoes") {
+        if (cartoesFalham-- > 0) return responder(500, { detail: "Internal Server Error" });
+        return responder(200, cartoes());
+      }
       if (url === "/api/minhas/pre-casos") {
         return responder(200, [{ protocolo: "PC-00000417", transaction_id: "TRX-C2", estado: "recebido", criado_em: "2025-03-11T10:00:00Z" }]);
       }
@@ -299,4 +302,16 @@ test("um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com 
   expect(linha).toHaveTextContent("Can be undone in the chat within 7 days.");
   expect(linha).toHaveAttribute("data-situacao", "completo");
   expect(api.perguntas).toEqual(["Quiero bloquear mi tarjeta"]);
+});
+
+test("a falha ao ler os cartões avisa que estão indisponíveis e tenta de novo, sem dizer que não há cartões", async () => {
+  servidor({ cartoesFalham: 1 });
+  render(comSessao());
+  await entrar();
+  const painel = await cartoesDaSessao();
+  expect(await within(painel).findByRole("alert")).toHaveTextContent("Cards unavailable right now.");
+  expect(within(painel).queryByText("No cards found.")).toBeNull();
+  // A nova tentativa traz os cartões, e o aviso sai.
+  expect(await within(painel).findByText("•••• 4821", {}, { timeout: 4000 })).toBeInTheDocument();
+  expect(within(painel).queryByRole("alert")).toBeNull();
 });
