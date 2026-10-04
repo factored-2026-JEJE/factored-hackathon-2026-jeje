@@ -4,6 +4,8 @@
 # endereço público (com --conversa, a diária, em ES e PT) e o aviso no canal do .env quando o estado muda:
 # quando ela passa a falhar e quando volta, sem repetir a cada 10 min enquanto a publicação segue fora.
 # Depois de 16/10, não faz nada. O registro e o último estado de cada conferência ficam em ~/.local/state/jeje.
+# Daqui da máquina, confere também a ponte do Ollama (PONTE_URL): sem ela, a publicação segue de pé, mas
+# o LLM do "não entendi" some, e nenhuma conferência pelo endereço público mostra isso.
 #
 #   scripts/vigiar-publicacao.sh [--conversa] [endereço]
 set -u
@@ -13,6 +15,11 @@ registro="${XDG_STATE_HOME:-$HOME/.local/state}/jeje/vigia.log"
 mkdir -p "$(dirname "$registro")"
 saida=$(scripts/conferir-publicacao.sh "$@" 2>&1)
 status=$?
+if ! curl -fsS -m 5 -o /dev/null "${PONTE_URL:-http://172.17.0.1:11434}/api/version"; then
+  saida="$saida
+FALHA ponte do Ollama: ${PONTE_URL:-http://172.17.0.1:11434} não responde (docker compose --profile modelo up -d ollama-ponte)"
+  status=1
+fi
 printf '%s %s status=%s\n%s\n' "$(date -Is)" "$*" "$status" "$saida" >> "$registro"
 ultimo="$(dirname "$registro")/ultimo-status-$(printf '%s' "${*:-rapida}" | tr -c 'a-zA-Z0-9' '_')"
 anterior=$(cat "$ultimo" 2>/dev/null || echo 0)
