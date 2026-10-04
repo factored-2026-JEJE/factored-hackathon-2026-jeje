@@ -16,15 +16,17 @@ test("contestar pela conversa, perder a resposta do sim, ver o protocolo e conte
   await expect(falasDaConversa(page)).toHaveCount(0);
 
   await expect(await dizer(page, contestar(transacao))).toContainText("¿Confirmas?");
-  // A API registra o "sí", mas a resposta não chega à tela: a conexão cai na volta.
-  await page.route(
-    "**/api/conversas/*/turnos",
-    async (rota) => {
-      await rota.fetch();
-      await rota.abort("connectionreset");
-    },
-    { times: 1 },
-  );
+  // A API registra o "sí", mas a resposta não chega à tela: a conexão cai na volta. A rota fica
+  // ligada até o fim e só o primeiro turno perde a resposta: com o `times: 1`, a rota se desligava
+  // durante o abort, e a releitura que a tela manda nesse instante ficava parada na interceptação
+  // (o GET nem saía do navegador, e o abort não terminava).
+  let perdida = false;
+  await page.route("**/api/conversas/*/turnos", async (rota) => {
+    if (perdida) return rota.continue();
+    perdida = true;
+    await rota.fetch();
+    await rota.abort("connectionreset");
+  });
   await page.getByRole("group", { name: UI.es.opcoes }).getByRole("button", { name: "Sí, confirmo" }).click();
   // A tela relê a conversa e mostra o que ficou registrado, sem pedir para reenviar.
   const registrado = falasDaConversa(page).last();
