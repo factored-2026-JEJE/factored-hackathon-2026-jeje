@@ -15,3 +15,4 @@ playwright-report/
 # Os relatórios do atacante (make atacar) ficam fora do Git, senão o make publicar acha a árvore suja;
 # o da versão entregue entra com git add -f.
 resultados/atacante/
+resultados/avaliacao/
