@@ -1776,7 +1776,7 @@ export class Site extends Component<object, Estado> {
         if (this.aoVivo()) this.digitado(msg);
         else this.send("injecao", msg);
       },
-      openHonest: srcBtn("NOV-13"),
+      openHonest: srcBtn(t.pillars.seg.honest.s),
       reproLines,
       reproCursor: S.reproN >= rl.length ? "$ _" : S.reproN === 0 ? "$ _" : "…",
       runRepro: this.runRepro,
@@ -3123,7 +3123,7 @@ export class Site extends Component<object, Estado> {
                   <span style={{ flex: "1 1 240px", fontSize: "14px", lineHeight: "1.45" }}>
                     {I(v.t.pillars.seg.honest.l)}{" "}
                     <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10px", whiteSpace: "nowrap" }}>
-                      {"↗ NOV-13"}
+                      {"↗ " + v.t.pillars.seg.honest.s}
                     </span>
                   </span>
                   {" "}
@@ -3299,6 +3299,14 @@ export class Site extends Component<object, Estado> {
                   {"VAL-019a"}
                 </span>
               </p>
+              {v.t.results.curva ? (
+                <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.5", color: "#57534A", maxWidth: "860px" }}>
+                  {I(v.t.results.curva)}{" "}
+                  <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10.5px", color: "#2B35F0" }}>
+                    {"VAL-019b"}
+                  </span>
+                </p>
+              ) : null}
               {" "}
               <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
                 {" "}

@@ -3369,6 +3369,266 @@
       "testes": [
         "src/Atendimento.test.tsx > a falha ao ler os cartões avisa que estão indisponíveis e tenta de novo, sem dizer que não há cartões"
       ]
+    },
+    {
+      "id": "M-WEB-364",
+      "requisito": "R06",
+      "descricao": "A tabela 2 segue com o texto do design, 'a registrar antes do teste final', depois do resultado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    t2: T(\n      \"Tabela 2 · o componente aprendido, uma vez no congelado",
+          "para": "    t2x: T(\n      \"Tabela 2 · o componente aprendido, uma vez no congelado"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela 2 diz o resultado do VAL-019a como saiu (negativo) e a curva do leitor no limiar entregue"
+      ]
+    },
+    {
+      "id": "M-WEB-365",
+      "requisito": "R06",
+      "descricao": "A curva do limiar do leitor (VAL-019b) não aparece no site",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "{v.t.results.curva ? (",
+          "para": "{false ? ("
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela 2 diz o resultado do VAL-019a como saiu (negativo) e a curva do leitor no limiar entregue"
+      ]
+    },
+    {
+      "id": "M-WEB-366",
+      "requisito": "R06",
+      "descricao": "A fonte da tabela 2 (VAL-019a) segue como pendente depois do resultado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "\"VAL-019a\": [\"evid\", \"evidencias/VAL-019a · EV-277\"],",
+          "para": "\"VAL-019a\": [\"pending\", \"evidencias/VAL-019a · EV-277\"],"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > as fontes do teste final e da tabela 2 são as evidências deles, não mais pendentes"
+      ]
+    },
+    {
+      "id": "M-WEB-367",
+      "requisito": "R06",
+      "descricao": "A fonte do teste final (VAL-019) segue como pendente depois do resultado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "\"VAL-019\": [\"evid\", \"evidencias/VAL-019 · EV-276\"],",
+          "para": "\"VAL-019\": [\"pending\", \"evidencias/VAL-019 · EV-276\"],"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > as fontes do teste final e da tabela 2 são as evidências deles, não mais pendentes"
+      ]
+    },
+    {
+      "id": "M-WEB-368",
+      "requisito": "R06",
+      "descricao": "O placar do atacante segue o de antes do congelamento (1 em 112, NOV-13), não o do portão de release no congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "  pillars: {\n    ...c.pillars,",
+          "para": "  pillarsx: {\n    ...c.pillars,"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
+      ]
+    },
+    {
+      "id": "M-WEB-369",
+      "requisito": "R06",
+      "descricao": "O placar do atacante mostra e abre a fonte fixa do design (NOV-13), não a do conteúdo",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "      openHonest: srcBtn(t.pillars.seg.honest.s),",
+          "para": "      openHonest: srcBtn(\"NOV-13\"),"
+        },
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "{\"↗ \" + v.t.pillars.seg.honest.s}",
+          "para": "{\"↗ NOV-13\"}"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > o placar do atacante é o do portão de release no congelado (1 em 128, ACH-160) e abre a fonte dele"
+      ]
+    },
+    {
+      "id": "M-WEB-370",
+      "requisito": "R06",
+      "descricao": "O tempo das regras segue o da medida do design (2,8 ms), não o do congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "        stat: {\n          v: T(\"2,1 ms\"",
+          "para": "        statx: {\n          v: T(\"2,1 ms\""
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o tempo das regras é o medido no congelado (p50 de 2,1 ms e p95 de 5,2 ms), com a fonte no README"
+      ]
+    },
+    {
+      "id": "M-WEB-371",
+      "requisito": "R06",
+      "descricao": "A fonte do tempo das regras segue a do design (6.568 mensagens), não a do README do congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    LAT: [\"team\", \"README · 14.124 msgs · p50/p95\"],",
+          "para": "    LATx: [\"team\", \"README · 14.124 msgs · p50/p95\"],"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o tempo das regras é o medido no congelado (p50 de 2,1 ms e p95 de 5,2 ms), com a fonte no README"
+      ]
+    },
+    {
+      "id": "M-WEB-372",
+      "requisito": "R06",
+      "descricao": "A fonte do portão de release no congelado (NOV-13a) falta, e o placar não leva à evidência",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · ACH-160\"],",
+          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · ACH-160\"],"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
+      ]
+    },
+    {
+      "id": "M-WEB-373",
+      "requisito": "R06",
+      "descricao": "O turno de exemplo da contestação segue com o tempo das regras do design (2,8 ms)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "  journeys: {\n    ...c.journeys,",
+          "para": "  journeysx: {\n    ...c.journeys,"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o tempo das regras é o medido no congelado (p50 de 2,1 ms e p95 de 5,2 ms), com a fonte no README"
+      ]
+    },
+    {
+      "id": "M-WEB-374",
+      "requisito": "R06",
+      "descricao": "O pilar de confiabilidade segue com as provas do design (639 mutantes, 20 de 22, 29 operações, 4 processos)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    list: c.pillars.list.map((p) =>",
+          "para": "    listx: c.pillars.list.map((p) =>"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o pilar de confiabilidade traz as medidas do congelado, cada uma com a fonte dela"
+      ]
+    },
+    {
+      "id": "M-WEB-375",
+      "requisito": "R06",
+      "descricao": "A prova dos mutantes do congelado aponta para uma fonte que não existe",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "\"ACH-188\": [\"evid\", \"evidencias/V6 · ACH-188\"],",
+          "para": "\"ACH-188x\": [\"evid\", \"evidencias/V6 · ACH-188\"],"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o pilar de confiabilidade traz as medidas do congelado, cada uma com a fonte dela"
+      ]
+    },
+    {
+      "id": "M-WEB-376",
+      "requisito": "R06",
+      "descricao": "A parada do ranking segue com o REG-07 (71% e 0,4% de proposta errada), que contradiz o README e o deck",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    if (s.id === \"qual\")",
+          "para": "    if (s.id === \"qualx\")"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o ranking cita o teste independente da validação (QT-01), como o README e o deck: 72% contra 38%, sem proposta errada"
+      ]
+    },
+    {
+      "id": "M-WEB-377",
+      "requisito": "R06",
+      "descricao": "A ficha do ranking nos modelos segue com o REG-07",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "      if (m.pairs?.[0]?.s === \"REG-07\")",
+          "para": "      if (m.pairs?.[0]?.s === \"REG-07x\")"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o ranking cita o teste independente da validação (QT-01), como o README e o deck: 72% contra 38%, sem proposta errada"
+      ]
+    },
+    {
+      "id": "M-WEB-378",
+      "requisito": "R06",
+      "descricao": "A garantia de fraude segue sem a ressalva do portão do atacante no congelado (ACH-160)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": " No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final.\",",
+          "para": "\","
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a garantia de fraude diz o caso que o portão do atacante achou no congelado (ACH-160)"
+      ]
+    },
+    {
+      "id": "M-WEB-379",
+      "requisito": "R06",
+      "descricao": "O par do LLM não diz que foi medido num commit anterior ao congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "          barsNote: T(\n            \"acerto na primeira fala dos cenários de validação, no fd24539",
+          "para": "          barsNotex: T(\n            \"acerto na primeira fala dos cenários de validação, no fd24539"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o par do LLM diz de que commit é: o fd24539 de 01/10, antes do congelado"
+      ]
+    },
+    {
+      "id": "M-WEB-380",
+      "requisito": "R06",
+      "descricao": "O placar do atacante não diz que o caso inseguro do congelado foi corrigido depois do teste final",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "ficou sem atendente (ACH-160), corrigido depois do teste final. Mostramos.\",",
+          "para": "ficou sem atendente (ACH-160). Mostramos.\","
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
+      ]
     }
   ]
 }

@@ -270,6 +270,8 @@ export interface Conteudo {
     readonly cols: readonly Texto[];
     readonly rows: readonly Traducao[];
     readonly t2: Traducao;
+    /** A curva do limiar do leitor (VAL-019b), que o design não tem: só no site do main (fatos.ts). */
+    readonly curva?: Traducao;
     readonly outTitle: Traducao;
     readonly outIntro: Traducao;
     readonly out: readonly (readonly [string, Traducao, Traducao])[];
