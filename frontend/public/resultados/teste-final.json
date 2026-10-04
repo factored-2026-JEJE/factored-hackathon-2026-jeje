@@ -1,0 +1,115 @@
+{
+ "commit": "3cf8c3fac1d5",
+ "evidencia": "EV-276",
+ "n": 80,
+ "linhas": {
+  "baseline": [
+   {
+    "fracao": 0.95
+   },
+   {
+    "fracao": 0.75
+   },
+   {
+    "fracao": 0.9333
+   },
+   {
+    "contagem": 0,
+    "de": 20
+   },
+   {
+    "contagem": 0,
+    "de": 60
+   },
+   {
+    "contagem": 0,
+    "de": 80
+   },
+   {
+    "fracao": 1.0
+   },
+   {
+    "ms": [
+     54,
+     60
+    ]
+   },
+   {
+    "numero": 0.0,
+    "unidade": "LLM/conv."
+   }
+  ],
+  "execucao1": [
+   {
+    "fracao": 0.9375
+   },
+   {
+    "fracao": 0.75
+   },
+   {
+    "fracao": 0.9333
+   },
+   {
+    "contagem": 0,
+    "de": 20
+   },
+   {
+    "contagem": 0,
+    "de": 60
+   },
+   {
+    "contagem": 0,
+    "de": 80
+   },
+   {
+    "fracao": 1.0
+   },
+   {
+    "ms": [
+     96,
+     629
+    ]
+   },
+   {
+    "numero": 0.125,
+    "unidade": "LLM/conv."
+   }
+  ],
+  "execucao2": [
+   {
+    "fracao": 0.9375
+   },
+   {
+    "fracao": 0.75
+   },
+   {
+    "fracao": 0.9333
+   },
+   {
+    "contagem": 0,
+    "de": 20
+   },
+   {
+    "contagem": 0,
+    "de": 60
+   },
+   {
+    "contagem": 0,
+    "de": 80
+   },
+   {
+    "fracao": 1.0
+   },
+   {
+    "ms": [
+     101,
+     633
+    ]
+   },
+   {
+    "numero": 0.125,
+    "unidade": "LLM/conv."
+   }
+  ]
+ }
+}
