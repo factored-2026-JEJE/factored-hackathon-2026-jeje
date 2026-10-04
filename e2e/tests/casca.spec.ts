@@ -5,6 +5,10 @@ import { expect, test } from "@playwright/test";
 test("a língua vem do endereço e da barra do topo, sem trocar a área aberta", async ({ page }) => {
   await page.goto("/?lang=pt#atendente");
   await expect(page.getByRole("tab", { name: "Atendente" })).toHaveAttribute("aria-selected", "true");
+  // Só a área aberta aparece: as outras seguem montadas, escondidas, sem cobrir a aberta.
+  await expect(page.locator("#painel-atendente")).toBeVisible();
+  await expect(page.locator("#painel-cliente")).toBeHidden();
+  await expect(page.locator("#painel-operacao")).toBeHidden();
   await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
   await page.getByRole("group", { name: "Language" }).getByRole("button", { name: "ES" }).click();
   await expect(page.getByRole("tab", { name: "Agente" })).toHaveAttribute("aria-selected", "true");

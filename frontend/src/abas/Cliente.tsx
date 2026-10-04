@@ -13,9 +13,5 @@ export function AreaDoCliente({
   readonly aoPerguntar: (pergunta: string) => void;
   readonly aoPerguntado: () => void;
 }) {
-  return (
-    <div className="pagina">
-      <Atendimento aoMudar={aoMudar} pergunta={pergunta} aoPerguntar={aoPerguntar} aoPerguntado={aoPerguntado} />
-    </div>
-  );
+  return <Atendimento aoMudar={aoMudar} pergunta={pergunta} aoPerguntar={aoPerguntar} aoPerguntado={aoPerguntado} />;
 }
