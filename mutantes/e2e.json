@@ -256,7 +256,7 @@
       "trocas": [
         {
           "arquivo": "frontend/src/Conversa.tsx",
-          "de": "  const rapidas = RESPOSTAS[situacao.idioma];",
+          "de": "  const rapidas = RESPOSTAS[idiomaDaConversa];",
           "para": "  const rapidas = RESPOSTAS.es;"
         }
       ],
@@ -357,11 +357,11 @@
     {
       "id": "M-E2E-22",
       "requisito": "R08",
-      "descricao": "Proxy sem a proteção contra clickjacking (página pode ser embutida em outro site)",
+      "descricao": "Proxy sem a proteção contra clickjacking (a página pode ser embutida em qualquer site)",
       "trocas": [
         {
           "arquivo": "frontend/Caddyfile",
-          "de": "\t\tX-Frame-Options DENY\n\t\tContent-Security-Policy \"frame-ancestors 'none'\"\n",
+          "de": "\t\tX-Frame-Options SAMEORIGIN\n\t\tContent-Security-Policy \"frame-ancestors 'self'\"\n",
           "para": ""
         }
       ],
@@ -403,16 +403,16 @@
     {
       "id": "M-E2E-25",
       "requisito": "R02",
-      "descricao": "Aba escondida continua aparecendo (o layout vence o hidden)",
+      "descricao": "Aba escondida continua aparecendo: a Operação fica sempre à vista, sobre a área aberta (com a casca, o hidden do navegador já esconde as áreas, e as regras [hidden] do CSS são defesa a mais)",
       "trocas": [
         {
-          "arquivo": "frontend/src/estilo.css",
-          "de": "[hidden] {\n  display: none !important;\n}\n",
-          "para": ""
+          "arquivo": "frontend/src/App.tsx",
+          "de": "hidden={aba !== \"operacao\"}",
+          "para": "hidden={false}"
         }
       ],
       "testes": [
-        "conversa.spec.ts > caminho humano (es): relato de fraude encaminha e aparece na fila do atendente"
+        "casca.spec.ts > a língua vem do endereço e da barra do topo, sem trocar a área aberta"
       ]
     },
     {
@@ -498,7 +498,7 @@
     {
       "id": "M-E2E-31",
       "requisito": "R08",
-      "descricao": "No celular a tabela volta a alargar a página (rola para o lado e o campo cobre o Enviar; ACH-156)",
+      "descricao": "No celular a tabela volta a passar da borda (a raiz do app corta o excesso, e o conteúdo fica fora; ACH-156)",
       "trocas": [
         {
           "arquivo": "frontend/src/estilo.css",
@@ -507,7 +507,7 @@
         }
       ],
       "testes": [
-        "celular.spec.ts > a página cabe na tela e o Enviar recebe o toque"
+        "celular.spec.ts > as tabelas da Operação ficam dentro da tela e rolam por dentro (ACH-156)"
       ]
     },
     {
@@ -587,6 +587,157 @@
       ],
       "testes": [
         "casca.spec.ts > a língua vem do endereço e da barra do topo, sem trocar a área aberta"
+      ]
+    },
+    {
+      "id": "M-E2E-42",
+      "requisito": "R02",
+      "descricao": "O Caddy volta a proibir qualquer iframe: a janela do site não abre o app",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\t\tX-Frame-Options SAMEORIGIN\n\t\tContent-Security-Policy \"frame-ancestors 'self'\"\n",
+          "para": "\t\tX-Frame-Options DENY\n\t\tContent-Security-Policy \"frame-ancestors 'none'\"\n"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > o site abre em /site/, ao lado do app, e leva ao app e ao guia"
+      ]
+    },
+    {
+      "id": "M-E2E-43",
+      "requisito": "R02",
+      "descricao": "O app não avisa a aba ao site: a barra da janela fica no endereço de abertura",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/App.tsx",
+          "de": "    avisarRota(`#${aba}`);\n",
+          "para": "    avisarRota(\"#cliente\");\n"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > o site abre em /site/, ao lado do app, e leva ao app e ao guia"
+      ]
+    },
+    {
+      "id": "M-E2E-44",
+      "requisito": "R02",
+      "descricao": "O site ignora as mensagens do app da janela",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "if (e.origin !== location.origin || !frame || e.source !== frame) return;",
+          "para": "if (frame) return;"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > o site abre em /site/, ao lado do app, e leva ao app e ao guia",
+        "site.spec.ts > a conversa feita no app da janela acende o caminho do turno no mapa do site"
+      ]
+    },
+    {
+      "id": "M-E2E-45",
+      "requisito": "R02",
+      "descricao": "O app não avisa o turno ao site: o mapa não acende",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Conversa.tsx",
+          "de": "      avisarTurno(turno);\n",
+          "para": "      if (turno.regra === \"NUNCA\") avisarTurno(turno);\n"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > a conversa feita no app da janela acende o caminho do turno no mapa do site"
+      ]
+    },
+    {
+      "id": "M-E2E-46",
+      "requisito": "R02",
+      "descricao": "O menu do cabeçalho não abre no celular",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "toggleMenu: () => this.setState({ menuOpen: !S.menuOpen }),",
+          "para": "toggleMenu: () => {},"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > no celular, o menu do cabeçalho leva às seções e fecha"
+      ]
+    },
+    {
+      "id": "M-E2E-49",
+      "requisito": "R03",
+      "descricao": "Sem escolha, o acesso marca o dispositivo novo, e não o cadastrado do design",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Atendimento.tsx",
+          "de": "useState<Dispositivo>(\"cadastrado\")",
+          "para": "useState<Dispositivo>(\"novo\")"
+        }
+      ],
+      "testes": [
+        "acesso.spec.ts > entrar como persona mostra na tela exatamente as transações da sessão"
+      ]
+    },
+    {
+      "id": "M-E2E-50",
+      "requisito": "R02",
+      "descricao": "No celular, a conversa continua na tela quando a aba interna é a das transações",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/abas/cliente/cliente.css",
+          "de": "  .cli:not([data-painel=\"0\"]) .cli-conversa { display: none; }\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "celular.spec.ts > a página cabe na tela e o Enviar recebe o toque"
+      ]
+    },
+    {
+      "id": "M-E2E-47",
+      "requisito": "R06",
+      "descricao": "Sem o arquivo, o Caddy devolve a página do app (200) no lugar do 404",
+      "trocas": [
+        {
+          "arquivo": "frontend/Caddyfile",
+          "de": "\thandle /resultados/* {\n\t\troot * /srv\n\t\tfile_server\n\t}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "site.spec.ts > sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404"
+      ]
+    },
+    {
+      "id": "M-E2E-48",
+      "requisito": "R06",
+      "descricao": "A seção de resultados aparece com traços no site publicado, antes do teste",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/site/Site.tsx",
+          "de": "      mostrarResultados: SO_DESIGN || S.resultados !== null,",
+          "para": "      mostrarResultados: SO_DESIGN || S.resultados === null,"
+        }
+      ],
+      "testes": [
+        "site.spec.ts > sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404"
+      ]
+    },
+    {
+      "id": "M-E2E-51",
+      "requisito": "R03",
+      "descricao": "O painel de cartões não é relido depois do efeito da conversa: o cartão bloqueado pelo chat segue ativo na tela",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Atendimento.tsx",
+          "de": "}, [token, versao]);",
+          "para": "}, [token, versao < 0]);"
+        }
+      ],
+      "testes": [
+        "bloqueio.spec.ts > bloquear o cartão pela conversa e desfazer dentro do prazo, com o console acompanhando"
       ]
     }
   ]

@@ -1,0 +1,33 @@
+# A avaliação verificável (make avaliar, 2.11, VAL-019 e EXP-002). Fica por cima do compose.ci.yaml (a
+# fixture) e do mutantes/compose.mutantes.yaml (sem portas no host, imagens com tag própria).
+#
+# O seed carrega a base de avaliação (avaliacao/base.py: a fixture mais 24 clientes sintéticos), com
+# 40 personas. A API sobe na variante pedida (AVALIAR_VARIANTE; a entregue é a leitor_modelo). O
+# avaliador da validação roda na imagem da API, na rede da stack, com o banco pelo psycopg, e
+# grava as rodadas e a tabela em resultados/avaliacao/. O scripts/avaliar.sh dá o caminho da base
+# (AVALIAR_BASE) e o commit.
+services:
+  seed:
+    environment:
+      PERSONAS_QUANTIDADE: "40"
+    volumes: !override
+      - ${AVALIAR_BASE:?defina AVALIAR_BASE}:/fixture
+  api:
+    environment:
+      INTERPRETADOR: ${AVALIAR_VARIANTE:-leitor_modelo}
+  avaliador:
+    image: jeje-mut-api:${MUTANTE_TAG:?defina MUTANTE_TAG}
+    profiles: ["avaliar"]
+    working_dir: /pacote
+    environment:
+      PYTHONPATH: /pacote
+      PYTHONDONTWRITEBYTECODE: "1"
+    entrypoint: ["python", "-m", "avaliacao.avaliar"]
+    volumes:
+      - ./avaliacao:/pacote/avaliacao:ro
+      - ./data/fixture:/produto/data/fixture:ro
+      - ./contrato:/produto/contrato:ro
+      - ./resultados/avaliacao:/saida
+    depends_on:
+      web:
+        condition: service_healthy

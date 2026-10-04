@@ -1,6 +1,7 @@
 // O mapa do site (DEV-032a): o caminho de uma mensagem passa por cada componente na ordem, com a
 // posição de cada um tirada das coordenadas dos componentes (oráculo independente da conta do caminho).
-import { MAPA_DO_MAIN } from "./fatos";
+import { CONTEUDO } from "./conteudo";
+import { CONTEUDO_DO_MAIN, MAPA_DO_MAIN } from "./fatos";
 import { DADOS, MAPA_DO_DESIGN, MENSAGEM, NOS, QUADROS, caminho, construirLigacoes, nosDaRota, pontoNoCaminho, quadro } from "./mapa";
 
 const ligacoes = construirLigacoes(MAPA_DO_DESIGN);
@@ -48,7 +49,7 @@ describe("quadros da câmera", () => {
     expect(celular.r).toBeCloseTo(27 * 1.5, 12);
     expect(celular.ox).toBe(0);
     expect(computador.r).toBe(27);
-    expect(computador.oy).toBe(-0.17);
+    expect(computador.oy).toBe(-0.26);
   });
 
   it("o mapa inteiro (último quadro) olha de cima, de frente no computador e girado na tela em pé", () => {
@@ -61,6 +62,24 @@ describe("quadros da câmera", () => {
     expect(quadro(3, 1440, 900, msg, dados).node).toBe("portao");
     expect(quadro(5, 1440, 900, msg, dados).node).toBe("regras");
     expect(quadro(10, 1440, 900, msg, dados).tg).toEqual([NOS.banco.x, 0.35, NOS.banco.y]);
+  });
+  it("o mapa inteiro fica no meio do retângulo livre (design de 03/10), e em pé quando ele é estreito", () => {
+    // Livre à direita do cartão do mapa: o centro do mapa desloca para a direita (ox negativo).
+    const livre = { l: 440, t: 70, r: 1416, b: 884 };
+    const deitado = quadro(16, 1440, 900, msg, dados, NOS, { livre });
+    expect(deitado.ox).toBeCloseTo((720 - (440 + (1416 - 440) / 2)) / 1440, 12);
+    expect(deitado.oy).toBeCloseTo((450 - (70 + (884 - 70) / 2)) / 900, 12);
+    expect(deitado.th).toBe(0);
+    // Um retângulo livre estreito e alto vira o mapa em pé, mesmo na tela deitada.
+    expect(quadro(16, 1440, 900, msg, dados, NOS, { livre: { l: 1000, t: 70, r: 1416, b: 884 } }).th).toBe(90);
+  });
+
+  it("no computador, cada parada foca entre o conteúdo do bloco e a borda direita livre", () => {
+    const bordaDoBloco = [0, 0, 0, 600];
+    const q = quadro(3, 1440, 900, msg, dados, NOS, { bordaDoBloco, direita: 1000 });
+    expect(q.ox).toBeCloseTo((720 - (624 + 1000) / 2) / 1440, 12);
+    // No celular, a parada fica centrada, sem as medidas.
+    expect(quadro(3, 390, 844, msg, dados, NOS, { bordaDoBloco, direita: 300 }).ox).toBe(0);
   });
 });
 
@@ -83,5 +102,16 @@ describe("o mapa do main (fatos.ts)", () => {
     const { plan, ...doDesign } = MAPA_DO_DESIGN.nos.llm;
     expect(plan).toBe(1);
     expect(MAPA_DO_MAIN.nos.llm).toEqual(doDesign);
+  });
+});
+
+describe("os fatos do main no texto do site (fatos.ts)", () => {
+  it("a entrada diz o cabeçalho que o Caddy manda de verdade: só a própria origem embute o app", () => {
+    const entrada = (c: typeof CONTEUDO) => c.stops.find((x) => x.id === "entrada")?.protects?.[0];
+    expect(entrada(CONTEUDO)?.pt).toContain("X-Frame-Options DENY");
+    for (const idioma of ["pt", "es", "en"] as const) {
+      expect(entrada(CONTEUDO_DO_MAIN)?.[idioma]).toContain("X-Frame-Options SAMEORIGIN");
+      expect(entrada(CONTEUDO_DO_MAIN)?.[idioma]).not.toContain("DENY");
+    }
   });
 });
