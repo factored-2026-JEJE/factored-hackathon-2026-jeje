@@ -2,7 +2,7 @@
 // site mostra só o que existe, com o planejado marcado como planejado; cada troca abaixo tem a
 // evidência ao lado, e o resto é o conteúdo do designer, sem mudança. Com VITE_SO_DESIGN=1 o site
 // mostra só o design: é assim que a réplica é comparada com o HTML do designer.
-import { CONTEUDO, T, type Conteudo } from "./conteudo";
+import { CONTEUDO, T, type Conteudo, type Traducao } from "./conteudo";
 import { LIGACOES, NOS, type Mapa } from "./mapa";
 
 // DEV-042 (PR #60, PRD-010): o LLM do "não entendi" está ligado na demonstração e na publicação
@@ -14,6 +14,43 @@ export const MAPA_DO_MAIN: Mapa = {
 };
 
 const c = CONTEUDO;
+
+// O pilar de confiabilidade com as medidas do congelado 3cf8c3f (VAL-021 da validação, 04/10): cada prova do
+// design trocada, pela fonte dela, pela medida do congelado, com a fonte nova.
+const CONFIABILIDADE_DO_CONGELADO: Readonly<Record<string, readonly [Traducao, string]>> = {
+  "EV-182": [
+    T(
+      "No congelado, 1.031 de 1.035 mutantes do backend se comportaram como esperado.",
+      "En el congelado, 1.031 de 1.035 mutantes del backend se comportaron como se esperaba.",
+      "On the frozen commit, 1,031 of 1,035 backend mutants behaved as expected.",
+    ),
+    "ACH-188",
+  ],
+  "EV-250": [
+    T(
+      "No navegador, 22 jornadas pegaram 30 de 30 defeitos plantados, no congelado.",
+      "En el navegador, 22 recorridos atraparon 30 de 30 defectos plantados, en el congelado.",
+      "In the browser, 22 journeys caught 30 of 30 planted defects on the frozen commit.",
+    ),
+    "NAV-01",
+  ],
+  "CON-01": [
+    T(
+      "Contrato da API testado com entradas geradas: nenhuma falha em 31 operações, no congelado.",
+      "Contrato de la API probado con entradas generadas: ninguna falla en 31 operaciones, en el congelado.",
+      "API contract tested with generated inputs: zero failures across 31 operations on the frozen commit.",
+    ),
+    "CON-01",
+  ],
+  "EXP-008": [
+    T(
+      "Com 1 processo e 8 clientes ao mesmo tempo, p95 de 83 ms nas regras e de 139 ms com o leitor, no congelado.",
+      "Con 1 proceso y 8 clientes a la vez, p95 de 83 ms en las reglas y de 139 ms con el lector, en el congelado.",
+      "With 1 worker and 8 concurrent clients, p95 of 83 ms on the rules and 139 ms with the reader, on the frozen commit.",
+    ),
+    "EXP-008",
+  ],
+};
 
 export const CONTEUDO_DO_MAIN: Conteudo = {
   ...c,
@@ -31,6 +68,12 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     // O portão de release (make atacar) no congelado, rodado pela validação no V6
     // (NOV-13a-20261004T132513-1da3): 1 inseguro em 128, o ACH-160.
     "NOV-13a": ["evid", "evidencias/NOV-13a · ACH-160"],
+    // As medidas do congelado no pilar de confiabilidade e no ranking (VAL-021 da validação, 04/10).
+    "ACH-188": ["evid", "evidencias/V6 · ACH-188"],
+    "NAV-01": ["evid", "evidencias/NAV-01 · EV-274"],
+    "CON-01": ["evid", "evidencias/CON-01 · 20261004T071739"],
+    "EXP-008": ["evid", "evidencias/EXP-008 · 04/10"],
+    "QT-01": ["evid", "evidencias/QT-01"],
   },
   ui: {
     ...c.ui,
@@ -69,6 +112,20 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
           s: "LAT",
         },
       };
+    // O ranking com o teste independente da validação (QT-01), o mesmo que o README e o deck citam.
+    if (s.id === "qual")
+      return {
+        ...s,
+        stat: {
+          v: "72%",
+          l: T(
+            "dos pedidos com pista resolvidos direto, contra 38% do filtro exato; 0% de proposta errada",
+            "de los pedidos con pista resueltos directo, contra 38% del filtro exacto; 0% de propuesta errada",
+            "of requests with a clue solved directly, vs 38% for the exact filter; 0% wrong proposals",
+          ),
+          s: "QT-01",
+        },
+      };
     // A janela do app no site (design de 03/10): o Caddy deixa só a própria origem embutir a página
     // (frontend/Caddyfile, conferido no seguranca.spec.ts e no scripts/conferir-publicacao.sh).
     if (s.id === "entrada")
@@ -89,14 +146,44 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
   nodes: { ...c.nodes, llm: { n: c.nodes.llm.n, s: "qwen3:4b", stop: c.nodes.llm.stop, model: c.nodes.llm.model } },
   models: {
     ...c.models,
-    list: c.models.list.map((m) =>
-      m.planned ? { ...m, planned: false, role: T("só no “não entendi”", "solo en el “no entendí”", "only on “didn’t get it”") } : m,
-    ),
+    list: c.models.list.map((m) => {
+      // O par do LLM é o do VAL-003 de validação (EV-221), medido no fd24539 (0d811eb antes da limpeza do
+      // histórico), de 01/10: o commit fica dito, porque o do congelado é a tabela 2.
+      if (m.planned)
+        return {
+          ...m,
+          planned: false,
+          role: T("só no “não entendi”", "solo en el “no entendí”", "only on “didn’t get it”"),
+          barsNote: T(
+            "acerto na primeira fala dos cenários de validação, no fd24539 de 01/10, antes do congelado; chamado em 9% a 23% das mensagens, ~0,5 s cada",
+            "acierto en la primera frase de los escenarios de validación, en el fd24539 del 01/10, antes del congelado; llamado en 9% a 23% de los mensajes, ~0,5 s cada uno",
+            "first-turn accuracy on validation scenarios, at fd24539 (Oct 1), before the frozen commit; called on 9%–23% of messages, ~0.5 s each",
+          ),
+        };
+      // O ranking com o QT-01, como o README e o deck.
+      if (m.pairs?.[0]?.s === "REG-07")
+        return {
+          ...m,
+          pairs: [
+            { ...m.pairs[0], l: T("validação · QT-01", "validación · QT-01", "validation · QT-01"), a: 72, s: "QT-01" },
+            ...m.pairs.slice(1),
+          ],
+          barsNote: T(
+            "resolvidos direto; 0% de proposta errada no teste da validação",
+            "resueltos directo; 0% de propuesta errada en el test de la validación",
+            "solved directly; 0% wrong proposals in the validation test",
+          ),
+        };
+      return m;
+    }),
   },
   // O placar do atacante: o do portão de release no congelado (128 episódios), não o do NOV-13 de antes do
   // congelamento (1 em 112), e o caso inseguro dito como saiu.
   pillars: {
     ...c.pillars,
+    list: c.pillars.list.map((p) =>
+      p.id !== "conf" ? p : { ...p, proofs: p.proofs.map((prova) => CONFIABILIDADE_DO_CONGELADO[prova[1]] ?? prova) },
+    ),
     seg: {
       ...c.pillars.seg,
       honest: {
@@ -118,9 +205,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
         : ([
             "DEV-046",
             T(
-              "Garantia de que a fraude chega ao atendente: entrou. No REG-22, de 65,1% para 89,9% (ES) e de 59,6% para 87,7% (PT), sem bloqueio a mais.",
-              "Garantía de que el fraude llega al agente: entró. En el REG-22, de 65,1% a 89,9% (ES) y de 59,6% a 87,7% (PT), sin bloqueos de más.",
-              "Guarantee that fraud reaches an agent: shipped. In REG-22, from 65.1% to 89.9% (ES) and 59.6% to 87.7% (PT), with no extra blocks.",
+              "Garantia de que a fraude chega ao atendente: entrou. No REG-22, de 65,1% para 89,9% (ES) e de 59,6% para 87,7% (PT), sem bloqueio a mais. No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160).",
+              "Garantía de que el fraude llega al agente: entró. En el REG-22, de 65,1% a 89,9% (ES) y de 59,6% a 87,7% (PT), sin bloqueos de más. En el gate del atacante, en el congelado, 1 reporte de fraude en 128 conversaciones quedó sin agente (ACH-160).",
+              "Guarantee that fraud reaches an agent: shipped. In REG-22, from 65.1% to 89.9% (ES) and 59.6% to 87.7% (PT), with no extra blocks. At the attacker gate, on the frozen commit, 1 fraud report in 128 conversations went without an agent (ACH-160).",
             ),
             T("entrou", "entró", "in"),
           ] as const),
@@ -138,6 +225,14 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
       "El umbral del lector, descriptivo: en el umbral entregado, 0,80, el sistema automatiza el 81,6% de las primeras frases en ES y el 78,9% en PT; de las automatizadas, falla 3 de 31 (ES) y 2 de 30 (PT); la acción indebida es 1 de 21 en las dos lenguas.",
       "The reader threshold, descriptive: at the delivered threshold, 0.80, the system automates 81.6% of first messages in ES and 78.9% in PT; of those automated, it gets 3 of 31 wrong (ES) and 2 of 30 (PT); undue actions are 1 of 21 in both languages.",
     ),
+  },
+  // O turno de exemplo da contestação diz o tempo das regras do congelado, como a parada da leitura.
+  journeys: {
+    ...c.journeys,
+    contestar: {
+      ...c.journeys.contestar,
+      turn: { ...c.journeys.contestar.turn, reader: T("regras · 2,1 ms", "reglas · 2,1 ms", "rules · 2.1 ms") },
+    },
   },
   footer: {
     ...c.footer,
