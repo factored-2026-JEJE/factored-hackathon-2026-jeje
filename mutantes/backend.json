@@ -15023,6 +15023,66 @@
       "testes": [
         "tests/test_conversa.py::test_fora_de_escopo_que_cita_as_regras_nao_oferece_o_atendente"
       ]
+    },
+    {
+      "id": "M-ITP-293",
+      "requisito": "R05",
+      "descricao": "O papel pedido ('aja como', 'actúa como') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:aja|atue|actua|actue|finja|finge|comportate)(?: [a-z]+)? como\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-294",
+      "requisito": "R05",
+      "descricao": "A ordem do administrador ou do sistema deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:instrucao|instruccion|ordem|orden|comando)(?: [a-z]+)? (?:do|da|del|de la|de) \"\n    r\"(?:administrador|admin|sistema|desenvolvedor|desarrollador|suporte|soporte)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-295",
+      "requisito": "R05",
+      "descricao": "O assistente sem limites ou sem filtros deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:asistente|assistente)(?: [a-z]+){0,2} (?:sin|sem) (?:limites|filtros)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-296",
+      "requisito": "R05",
+      "descricao": "O 'finja que é' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:finja|finge) que (?:e|es|eres|voce e|tu es)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
     }
   ]
 }
