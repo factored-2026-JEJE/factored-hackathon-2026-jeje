@@ -33,6 +33,7 @@ const PASSO: Readonly<Record<string, number>> = {
   escolhendo_cartao: 1,
   confirmando: 2,
   confirmando_desbloqueio: 2,
+  confirmando_bloqueio: 2,
 };
 
 type Fala = { id: number; autor: "cliente" | "assistente"; texto: string; motivo?: Motivo };
