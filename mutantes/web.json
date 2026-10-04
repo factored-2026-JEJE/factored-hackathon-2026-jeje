@@ -1116,7 +1116,7 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "              {f.motivo && <PorQue motivo={f.motivo} />}\n",
+          "de": "              {f.motivo && <PorQue motivo={f.motivo} versaoCarregada={versaoCarregada} />}\n",
           "para": ""
         }
       ],
