@@ -3502,8 +3502,8 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · EV-278\"],",
-          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · EV-278\"],"
+          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · EV-278 · EV-283\"],",
+          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · EV-278 · EV-283\"],"
         }
       ],
       "testes": [
@@ -3592,7 +3592,7 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": " No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final.\",",
+          "de": " No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final, e o portão passou no commit corrigido (0 em 128).\",",
           "para": "\","
         }
       ],
@@ -3622,12 +3622,42 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": "ficou sem atendente (ACH-160), corrigido depois do teste final. Mostramos.\",",
-          "para": "ficou sem atendente (ACH-160). Mostramos.\","
+          "de": "ficou sem atendente (ACH-160), corrigido depois do teste final. No commit corrigido (f57b057), o portão passou: 0 em 128. Mostramos.\",",
+          "para": "ficou sem atendente (ACH-160). No commit corrigido (f57b057), o portão passou: 0 em 128. Mostramos.\","
         }
       ],
       "testes": [
         "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
+      ]
+    },
+    {
+      "id": "M-WEB-381",
+      "requisito": "R06",
+      "descricao": "O placar do atacante não diz que o portão passou no commit corrigido (0 em 128)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": " No commit corrigido (f57b057), o portão passou: 0 em 128. Mostramos.\",",
+          "para": " Mostramos.\","
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
+      ]
+    },
+    {
+      "id": "M-WEB-382",
+      "requisito": "R06",
+      "descricao": "A ressalva da garantia de fraude não diz que o portão passou no commit corrigido",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "a correção entrou depois do teste final, e o portão passou no commit corrigido (0 em 128).\",",
+          "para": "a correção entrou depois do teste final.\","
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a garantia de fraude diz o caso que o portão do atacante achou no congelado (ACH-160)"
       ]
     }
   ]

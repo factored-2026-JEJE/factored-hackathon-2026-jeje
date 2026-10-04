@@ -66,8 +66,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     // O tempo das regras medido no congelado, nas mensagens dos conjuntos da validação (o README do 2.14).
     LAT: ["team", "README · 14.124 msgs · p50/p95"],
     // O portão de release (make atacar) no congelado, rodado pela validação no V6
-    // (NOV-13a-20261004T132513-1da3, EV-278): 1 inseguro em 128, o ACH-160.
-    "NOV-13a": ["evid", "evidencias/NOV-13a · EV-278"],
+    // (NOV-13a-20261004T132513-1da3, EV-278): 1 inseguro em 128, o ACH-160. No commit corrigido f57b057
+    // (NOV-13a-20261004T155705-ba89, EV-283), 0 em 128.
+    "NOV-13a": ["evid", "evidencias/NOV-13a · EV-278 · EV-283"],
     // As medidas do congelado no pilar de confiabilidade e no ranking (VAL-021 da validação, 04/10). Os
     // mutantes do congelado vêm da bateria do V6 (STACK-03-20261004T075636-d431, EV-275).
     "ACH-188": ["evid", "evidencias/V6 · EV-275 · ACH-188"],
@@ -190,9 +191,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
       honest: {
         v: "1/128",
         l: T(
-          "resultado inseguro em 128 conversas com um cliente adversário simulado por LLM, no portão de release do commit congelado: um relato de fraude dentro de uma contestação ficou sem atendente (ACH-160), corrigido depois do teste final. Mostramos.",
-          "resultado inseguro en 128 conversaciones con un cliente adversario simulado por LLM, en el gate de release del commit congelado: un reporte de fraude dentro de una impugnación quedó sin agente (ACH-160), corregido después de la prueba final. Lo mostramos.",
-          "unsafe outcome in 128 conversations with an LLM-simulated adversarial customer, at the frozen commit’s release gate: a fraud report inside a dispute went without an agent (ACH-160), fixed after the final test. We show it.",
+          "resultado inseguro em 128 conversas com um cliente adversário simulado por LLM, no portão de release do commit congelado: um relato de fraude dentro de uma contestação ficou sem atendente (ACH-160), corrigido depois do teste final. No commit corrigido (f57b057), o portão passou: 0 em 128. Mostramos.",
+          "resultado inseguro en 128 conversaciones con un cliente adversario simulado por LLM, en el gate de release del commit congelado: un reporte de fraude dentro de una impugnación quedó sin agente (ACH-160), corregido después de la prueba final. En el commit corregido (f57b057), el gate pasó: 0 de 128. Lo mostramos.",
+          "unsafe outcome in 128 conversations with an LLM-simulated adversarial customer, at the frozen commit’s release gate: a fraud report inside a dispute went without an agent (ACH-160), fixed after the final test. On the fixed commit (f57b057), the gate passed: 0 of 128. We show it.",
         ),
         s: "NOV-13a",
       },
@@ -206,9 +207,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
         : ([
             "DEV-046",
             T(
-              "Garantia de que a fraude chega ao atendente: entrou. No REG-22, de 65,1% para 89,9% (ES) e de 59,6% para 87,7% (PT), sem bloqueio a mais. No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final.",
-              "Garantía de que el fraude llega al agente: entró. En el REG-22, de 65,1% a 89,9% (ES) y de 59,6% a 87,7% (PT), sin bloqueos de más. En el gate del atacante, en el congelado, 1 reporte de fraude en 128 conversaciones quedó sin agente (ACH-160); la corrección entró después de la prueba final.",
-              "Guarantee that fraud reaches an agent: shipped. In REG-22, from 65.1% to 89.9% (ES) and 59.6% to 87.7% (PT), with no extra blocks. At the attacker gate, on the frozen commit, 1 fraud report in 128 conversations went without an agent (ACH-160); the fix went in after the final test.",
+              "Garantia de que a fraude chega ao atendente: entrou. No REG-22, de 65,1% para 89,9% (ES) e de 59,6% para 87,7% (PT), sem bloqueio a mais. No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final, e o portão passou no commit corrigido (0 em 128).",
+              "Garantía de que el fraude llega al agente: entró. En el REG-22, de 65,1% a 89,9% (ES) y de 59,6% a 87,7% (PT), sin bloqueos de más. En el gate del atacante, en el congelado, 1 reporte de fraude en 128 conversaciones quedó sin agente (ACH-160); la corrección entró después de la prueba final, y el gate pasó en el commit corregido (0 de 128).",
+              "Guarantee that fraud reaches an agent: shipped. In REG-22, from 65.1% to 89.9% (ES) and 59.6% to 87.7% (PT), with no extra blocks. At the attacker gate, on the frozen commit, 1 fraud report in 128 conversations went without an agent (ACH-160); the fix went in after the final test, and the gate passed on the fixed commit (0 of 128).",
             ),
             T("entrou", "entró", "in"),
           ] as const),
