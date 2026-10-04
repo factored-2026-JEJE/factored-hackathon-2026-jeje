@@ -22,7 +22,7 @@ test("stack sobe pronta com exatamente a versão de dados do manifesto versionad
   expect(prontidao.dataset.version).toBe(esperada);
 
   // Na prontidão da aba da operação, no formato do design: a origem e a versão encurtada.
-  await page.goto("/#operacao");
+  await page.goto("/#operations");
   const grupo = page.getByRole("group", { name: "Readiness" });
   await expect(grupo.getByText("ready", { exact: true })).toBeVisible();
   const versao = `${prontidao.dataset.source} · ${esperada.slice(0, 4)}…${esperada.slice(-4)}`;

@@ -39,8 +39,8 @@ describe("sem a API (o site público)", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Safe by design,");
     await userEvent.click(screen.getAllByRole("button", { name: /Open the app/ })[0] as HTMLElement);
     const janela = screen.getByRole("dialog", { name: "JEJE app" });
-    expect(within(janela).getByTitle("JEJE app")).toHaveAttribute("src", "/?lang=en&tab=cliente#cliente");
-    expect(within(janela).getByRole("link", { name: /New tab/ })).toHaveAttribute("href", "/#cliente");
+    expect(within(janela).getByTitle("JEJE app")).toHaveAttribute("src", "/?lang=en&tab=cliente#customer");
+    expect(within(janela).getByRole("link", { name: /New tab/ })).toHaveAttribute("href", "/#customer");
     await userEvent.click(within(janela).getByRole("button", { name: /Close/ }));
     expect(screen.queryByRole("dialog", { name: "JEJE app" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: /How to test/ }));
@@ -183,12 +183,12 @@ describe("a janela do app (design de 03/10)", () => {
   it("a barra mostra a aba que o app avisa, só da janela dele e da própria origem", async () => {
     const app = await abrir();
     const janela = screen.getByRole("dialog", { name: "JEJE app" });
-    expect(within(janela).getByText("#cliente")).toBeInTheDocument();
-    await doApp(app, { type: "jeje-app-route", hash: "#atendente" }, "https://outro.example");
-    await doApp(window, { type: "jeje-app-route", hash: "#atendente" });
-    expect(within(janela).getByText("#cliente")).toBeInTheDocument();
-    await doApp(app, { type: "jeje-app-route", hash: "#atendente" });
-    expect(within(janela).getByText("#atendente")).toBeInTheDocument();
+    expect(within(janela).getByText("#customer")).toBeInTheDocument();
+    await doApp(app, { type: "jeje-app-route", hash: "#agent" }, "https://outro.example");
+    await doApp(window, { type: "jeje-app-route", hash: "#agent" });
+    expect(within(janela).getByText("#customer")).toBeInTheDocument();
+    await doApp(app, { type: "jeje-app-route", hash: "#agent" });
+    expect(within(janela).getByText("#agent")).toBeInTheDocument();
   }, LONGO);
 
   it("a língua trocada no site vai para o app aberto, na própria origem", async () => {

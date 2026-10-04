@@ -40,13 +40,13 @@ test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ 
   const janela = page.getByRole("dialog", { name: "JEJE app" });
   const app = page.frameLocator('iframe[title="JEJE app"]');
   await expect(app.getByRole("tab", { name: "Cliente" })).toHaveAttribute("aria-selected", "true");
-  await expect(janela.getByRole("link", { name: /Nova aba/ })).toHaveAttribute("href", "/#cliente");
+  await expect(janela.getByRole("link", { name: /Nova aba/ })).toHaveAttribute("href", "/#customer");
   // Trocar de aba no app muda o endereço na barra da janela (jeje-app-route).
   await app.getByRole("tab", { name: "Atendente" }).click();
-  await expect(janela.getByText("#atendente", { exact: true })).toBeVisible();
+  await expect(janela.getByText("#agent", { exact: true })).toBeVisible();
   // O Esc é do site: com o foco dentro do app, a tecla vai para o app (como no design). Um toque na
   // barra da janela devolve o foco ao site.
-  await janela.getByText("#atendente", { exact: true }).click();
+  await janela.getByText("#agent", { exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(janela).toBeHidden();
   // O guia dos jurados abre na mesma janela, na aba dele.

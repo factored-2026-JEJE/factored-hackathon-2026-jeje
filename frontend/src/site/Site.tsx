@@ -258,7 +258,7 @@ export class Site extends Component<object, Estado> {
     acesso: SO_DESIGN ? "fechado" : "verificando",
     appOpen: false,
     appSrc: "",
-    appHash: "#cliente",
+    appHash: "#customer",
     menuOpen: false,
     resultados: null,
   };
@@ -1097,7 +1097,7 @@ export class Site extends Component<object, Estado> {
    */
   private openApp(tab: "cliente" | "guia") {
     const l = this.state.lang;
-    const hash = tab === "guia" ? "#how-to-test" : "#cliente";
+    const hash = tab === "guia" ? "#how-to-test" : "#customer";
     this.setState({
       appOpen: true,
       menuOpen: false,

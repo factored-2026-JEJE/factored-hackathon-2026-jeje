@@ -4,7 +4,7 @@ import { AreaDoCliente } from "./abas/Cliente";
 import { AreaComoTestar } from "./abas/ComoTestar";
 import { AreaDaOperacao } from "./abas/Operacao";
 import { listarPersonas } from "./api/cliente";
-import { type Aba, abaDoEndereco } from "./app/abas";
+import { type Aba, ENDERECO, abaDoEndereco } from "./app/abas";
 import { avisarRota } from "./app/ponte";
 import { SessaoProvider, useSessao } from "./app/sessao";
 import { Topo } from "./app/Topo";
@@ -12,7 +12,7 @@ import { escolherPersona } from "./personas";
 import "./app/app.css";
 
 // A casca do app (DEV-032b, design de 03/10): a barra do topo e quatro áreas, cada uma com endereço
-// próprio (#cliente, #atendente, #operacao e #how-to-test). Sem endereço, abre a do cliente. As áreas
+// próprio (#customer, #agent, #operations e #how-to-test; os de antes em português abrem a mesma). Sem endereço, abre a do cliente. As áreas
 // escondidas continuam montadas: a conversa não se perde, e a fila, os bloqueios e as métricas seguem
 // sendo atualizados enquanto o cliente conversa.
 function Casca() {
@@ -30,7 +30,7 @@ function Casca() {
   useEffect(() => {
     if (anterior.current === aba) return;
     anterior.current = aba;
-    avisarRota(`#${aba}`);
+    avisarRota(`#${ENDERECO[aba]}`);
   }, [aba]);
 
   // A frase que vai para a conversa: a do "Perguntar sobre esta" ou a do "Try in ES/PT" das outras
@@ -45,7 +45,7 @@ function Casca() {
         if (!persona) return;
         await entrar(persona, "cadastrado");
       }
-      window.location.hash = "#cliente";
+      window.location.hash = `#${ENDERECO.cliente}`;
       setAba("cliente");
       setPergunta(frase);
     },

@@ -34,7 +34,7 @@ for (const nome of ["Pixel 7", "iPhone 13"] as const) {
       // A raiz do app corta o que passa da borda (overflow: hidden): a largura da página não mostra uma
       // tabela larga. Na Operação do design (2.10), cada tabela fica numa caixa da largura da tela, e
       // é a caixa que rola para o lado; sem a rolagem, o fim da tabela ficaria fora de alcance.
-      await page.goto("/#operacao");
+      await page.goto("/#operations");
       const caixas = page.locator("#painel-operacao .cn-rolavel");
       await expect(caixas.first()).toBeVisible();
       const direita = await caixas.evaluateAll((cs) => Math.max(...cs.map((c) => c.getBoundingClientRect().right)));

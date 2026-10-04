@@ -26,7 +26,7 @@ test("o turno feito agora está nos eventos com o request_id, e a aba mostra os 
   for (const e of eventos) expect(Object.keys(e).sort()).toEqual(["acao", "criado_em", "efeito", "regra", "requisicao"]);
 
   const daPagina = page.waitForResponse((r) => r.url().includes("/api/metricas/eventos"));
-  await page.goto("/#operacao");
+  await page.goto("/#operations");
   const mostrados: Evento[] = await (await daPagina).json();
   expect(mostrados.length).toBeGreaterThan(0);
   const linhas = page.getByRole("region", { name: "Last events" }).getByText(/^\d\d:\d\d:\d\d · request_id=/);

@@ -66,7 +66,7 @@ test("o Try entra sozinho com a persona da demonstração e o dispositivo cadast
   await userEvent.click(await screen.findByRole("button", { name: "Try in ES" }));
   expect(await screen.findByText("Te paso con un agente.")).toBeVisible();
   expect(screen.getByRole("tab", { name: "Customer" })).toHaveAttribute("aria-selected", "true");
-  expect(window.location.hash).toBe("#cliente");
+  expect(window.location.hash).toBe("#customer");
   const sessao = pedidos.find((p) => p.url === "/api/sessoes");
   expect(sessao?.corpo).toEqual({ customer_id: "CLI-B", dispositivo: "cadastrado" });
   expect(pedidos.find((p) => p.url === "/api/conversas")?.corpo).toEqual({ idioma: "es" });

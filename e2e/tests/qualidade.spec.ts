@@ -37,7 +37,7 @@ test("painel de qualidade mostra os números da API e fecha a conta de cada tabe
   expect(tabelas.length).toBeGreaterThan(0);
 
   // O título diz a origem real dos dados: a fixture sintética do design ou a base do desafio.
-  await page.goto("/#operacao");
+  await page.goto("/#operations");
   const titulo = prontidao.dataset.source === "fixture" ? "Data quality · synthetic fixture" : "Data quality · challenge dataset";
   const tabela = page.getByRole("table", { name: titulo });
   await expect(tabela).toBeVisible();

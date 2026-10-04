@@ -171,7 +171,7 @@ export const UI = {
 /** Entra pela tela de acesso do design: o cartão da persona, o dispositivo e o "Entrar como". */
 export async function entrarPeloAcesso(page: Page, nome: string, idioma: "es" | "pt", dispositivo: "cadastrado" | "novo" = "cadastrado") {
   const u = UI[idioma];
-  await page.goto(`/?lang=${idioma}#cliente`);
+  await page.goto(`/?lang=${idioma}#customer`);
   await page.locator(".acc-persona").filter({ hasText: nome }).first().click();
   await page.getByRole("button", { name: dispositivo === "cadastrado" ? u.cadastrado : u.novo }).click();
   await page.getByRole("button", { name: u.entrar(nome), exact: true }).click();

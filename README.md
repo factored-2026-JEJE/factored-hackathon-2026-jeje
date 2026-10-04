@@ -87,6 +87,9 @@ commit's; the final set does not run again.
   version replace older ones.
 - **The site's headline.** "Not a chatbot. A customer-service system." became "Safe by design,
   fast by default.", text only.
+- **The app's addresses in English.** The tabs moved to `#customer`, `#agent` and `#operations` (with
+  `#how-to-test` as before), matching the judges' site; the old Portuguese addresses (`#cliente`,
+  `#atendente`, `#operacao`) still open the same tab, so links already shared keep working.
 - **ACH-189, kept.** The fraud guarantee (DEV-046) asks the LLM even when the rules understand the
   message, and it sent "a purchase I didn't make" to the queue as possible fraud (POL-HUM-01),
   without the transaction attached. The oracle expected the review of a night digital charge above
@@ -181,10 +184,11 @@ make up                # ou: docker compose --profile modelo up -d --build --wai
 
 Abra **http://localhost:8080**, entre como um cliente de demonstração e converse. O app abre em
 inglês (espanhol e português na barra do topo) e tem quatro abas, cada uma com endereço próprio:
-**Customer** (`#cliente`: o acesso, a conversa, as transações, os pedidos e os cartões), **Agent**
-(`#atendente`: o caso pronto na fila e os bloqueios de cartão), **Operations** (`#operacao`: a
+**Customer** (`#customer`: o acesso, a conversa, as transações, os pedidos e os cartões), **Agent**
+(`#agent`: o caso pronto na fila e os bloqueios de cartão), **Operations** (`#operations`: a
 prontidão, as métricas, os últimos turnos, a qualidade dos dados e a EDA) e **How to test**
-(`#how-to-test`: os três caminhos, com o "Try" que manda a frase para a conversa).
+(`#how-to-test`: os três caminhos, com o "Try" que manda a frase para a conversa). Os endereços
+em português de antes (`#cliente`, `#atendente`, `#operacao`) abrem a mesma aba.
 
 Na primeira vez o `make up` baixa o dataset dos organizadores (~1,6 GB, ~5 min), confere cada
 arquivo pelo manifesto versionado em `data/manifesto/` e carrega o banco. O build da imagem também

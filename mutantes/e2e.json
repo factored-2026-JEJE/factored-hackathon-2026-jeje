@@ -407,8 +407,8 @@
       "trocas": [
         {
           "arquivo": "frontend/src/app/abas.ts",
-          "de": "  return ABAS.find(([id]) => id === pedida)?.[0] ?? \"cliente\";\n",
-          "para": "  return ABAS.find(([id]) => id === pedida && id !== \"how-to-test\")?.[0] ?? \"cliente\";\n"
+          "de": "  return ABAS.find(([id]) => ENDERECO[id] === pedida || id === pedida)?.[0] ?? \"cliente\";\n",
+          "para": "  return ABAS.find(([id]) => (ENDERECO[id] === pedida || id === pedida) && id !== \"how-to-test\")?.[0] ?? \"cliente\";\n"
         },
         {
           "arquivo": "frontend/src/app/Topo.tsx",
@@ -566,7 +566,7 @@
       "trocas": [
         {
           "arquivo": "frontend/src/App.tsx",
-          "de": "    avisarRota(`#${aba}`);\n",
+          "de": "    avisarRota(`#${ENDERECO[aba]}`);\n",
           "para": "    avisarRota(\"#cliente\");\n"
         }
       ],

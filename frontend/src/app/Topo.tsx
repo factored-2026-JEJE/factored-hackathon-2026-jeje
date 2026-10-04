@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { filaDoAtendimento } from "../api/cliente";
-import { type Aba, ABAS } from "./abas";
+import { type Aba, ABAS, ENDERECO } from "./abas";
 import { useLingua } from "./LinguaDoApp";
 import { LINGUAS } from "./lingua";
 import { useSessao } from "./sessao";
@@ -36,7 +36,7 @@ export function Topo({ aba, versao, aoEscolher }: { aba: Aba; versao: number; ao
         {ABAS.map(([id, chave]) => (
           <a
             key={id}
-            href={`#${id}`}
+            href={`#${ENDERECO[id]}`}
             role="tab"
             id={`aba-${id}`}
             aria-selected={aba === id}

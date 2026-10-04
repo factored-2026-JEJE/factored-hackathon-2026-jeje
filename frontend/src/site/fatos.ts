@@ -66,6 +66,8 @@ const SEGURANCA_DO_CONGELADO: Readonly<Record<string, readonly [Traducao, string
 
 export const CONTEUDO_DO_MAIN: Conteudo = {
   ...c,
+  // Os endereços do app em inglês, a língua do site dos jurados (os de antes seguem abrindo a mesma aba).
+  appUrl: "/#customer",
   sources: {
     ...c.sources,
     // A medida do LLM é a do conjunto de validação do VAL-003 (EV-221); a garantia de fraude está no
