@@ -20,9 +20,9 @@ const c = CONTEUDO;
 const CONFIABILIDADE_DO_CONGELADO: Readonly<Record<string, readonly [Traducao, string]>> = {
   "EV-182": [
     T(
-      "No congelado, 1.031 de 1.035 mutantes do backend se comportaram como esperado.",
-      "En el congelado, 1.031 de 1.035 mutantes del backend se comportaron como se esperaba.",
-      "On the frozen commit, 1,031 of 1,035 backend mutants behaved as expected.",
+      "No congelado, 1.031 de 1.035 mutantes do backend se comportaram como esperado; com os testes do ACH-188 (#132), 1.035 de 1.035 do backend e 220 de 220 do web.",
+      "En el congelado, 1.031 de 1.035 mutantes del backend se comportaron como se esperaba; con los tests del ACH-188 (#132), 1.035 de 1.035 del backend y 220 de 220 del web.",
+      "On the frozen commit, 1,031 of 1,035 backend mutants behaved as expected; with the ACH-188 tests (#132), 1,035 of 1,035 backend and 220 of 220 web mutants caught.",
     ),
     "ACH-188",
   ],
@@ -71,7 +71,7 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     "NOV-13a": ["evid", "evidencias/NOV-13a · EV-278 · EV-283"],
     // As medidas do congelado no pilar de confiabilidade e no ranking (VAL-021 da validação, 04/10). Os
     // mutantes do congelado vêm da bateria do V6 (STACK-03-20261004T075636-d431, EV-275).
-    "ACH-188": ["evid", "evidencias/V6 · EV-275 · ACH-188"],
+    "ACH-188": ["evid", "evidencias/V6 · EV-275 · ACH-188 · REG-83"],
     "NAV-01": ["evid", "evidencias/NAV-01 · EV-274"],
     "CON-01": ["evid", "evidencias/CON-01 · 20261004T071739"],
     "EXP-008": ["evid", "evidencias/EXP-008 · 04/10"],
