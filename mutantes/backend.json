@@ -13167,8 +13167,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_USOU)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -13422,8 +13422,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -13467,8 +13467,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n",
-          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -14731,8 +14731,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
-          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
+          "de": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
+          "para": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
         }
       ],
       "testes": [
@@ -14746,8 +14746,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),",
-          "para": "DINHEIRO_SACADO, ALGUEM_TINHA_USADO)),"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO,\n"
         }
       ],
       "testes": [
@@ -14866,8 +14866,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "        lida.outra,\n        lida.instrucao,\n    )\n",
-          "para": "        lida.outra,\n    )\n"
+          "de": "        lida.uso_desfeito,\n        lida.instrucao,\n    )\n",
+          "para": "        lida.uso_desfeito,\n    )\n"
         }
       ],
       "testes": [
@@ -14881,8 +14881,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/garantia_fraude.py",
-          "de": "lida.id_digitado, lida.instrucao)",
-          "para": "lida.id_digitado)"
+          "de": "        lida.uso_desfeito,\n        lida.instrucao,\n    )\n",
+          "para": "        lida.uso_desfeito,\n    )\n"
         }
       ],
       "testes": [
@@ -15082,6 +15082,186 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-API-18",
+      "requisito": "R08",
+      "descricao": "Os cartões de um cliente fixo, e não os do cliente da sessão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio.cartoes_do_cliente(conexao, ativa.customer_id)",
+          "para": "bloqueio.cartoes_do_cliente(conexao, \"CLI-A\")"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-19",
+      "requisito": "R07",
+      "descricao": "O cartão bloqueado pelo canal aparece sem o bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio=_do_bloqueio(ativos.get(c.bloqueio)),",
+          "para": "bloqueio=None,"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-20",
+      "requisito": "R07",
+      "descricao": "O bloqueio preventivo aparece como completo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "tipo=ativo.tipo,",
+          "para": "tipo=\"completo\","
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-21",
+      "requisito": "R07",
+      "descricao": "O prazo para desfazer o bloqueio vira a hora em que ele foi feito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "reversivel_ate=ativo.reversivel_ate)",
+          "para": "reversivel_ate=ativo.criado_em)"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-EVT-11",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos incluem o efeito feito fora de um turno (o atendente)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo IN ('turno', 'acao') ORDER BY id DESC LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-EVT-12",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos saem do mais antigo para o mais recente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo = 'turno' ORDER BY id LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-MET-11",
+      "requisito": "R08",
+      "descricao": "Os últimos eventos ficam abertos fora do modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "@router.get(\"/metricas/eventos\", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)",
+          "para": "@router.get(\"/metricas/eventos\", responses=RESPOSTAS_DEMO)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
+    },
+    {
+      "id": "M-MET-12",
+      "requisito": "R06",
+      "descricao": "O limite dos últimos eventos aceita zero",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "Query(ge=1, le=50)",
+          "para": "Query(ge=0, le=50)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
+    },
+    {
+      "id": "M-ITP-277",
+      "requisito": "R03",
+      "descricao": "O relato com o uso antes da pessoa deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                USOU_ALGUEM)),\n",
+          "para": "                )),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-278",
+      "requisito": "R03",
+      "descricao": "O uso por outro desfeito deixa de ser marcado e volta ao leitor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"uso_desfeito\": _uso_desfeito(limpo),\n",
+          "para": "        \"uso_desfeito\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-LLM-42",
+      "requisito": "R03",
+      "descricao": "O uso desfeito volta a ser lido pelo leitor e pelo LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.outra,\n        lida.uso_desfeito,\n",
+          "para": "        lida.outra,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-GAR-19",
+      "requisito": "R03",
+      "descricao": "O uso desfeito passa pela garantia de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        lida.id_digitado,\n        lida.uso_desfeito,\n",
+          "para": "        lida.id_digitado,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
       ]
     }
   ]

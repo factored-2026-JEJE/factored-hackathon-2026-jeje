@@ -2,7 +2,7 @@
 // designer escreveu para cada tipo de turno (as jornadas de exemplo), que servem de oráculo.
 import type { ResultadoDoTurno } from "../api/cliente";
 import { nosDaRota } from "./mapa";
-import { caminhoDoTurno, leituraDe } from "./turnoNoMapa";
+import { caminhoDoTurno, caminhoRecebido, leituraDe } from "./turnoNoMapa";
 
 type Turno = Parameters<typeof caminhoDoTurno>[0];
 const turno = (t: Partial<Turno>): Turno => ({
@@ -63,5 +63,25 @@ describe("o caminho do turno é o da rota do design", () => {
     expect(c.nos).toContain("leitor");
     expect(c.nos).toContain("llm");
     expect(c.leitura).toBe("llm");
+  });
+});
+
+describe("o caminho que chega do app aberto na janela (jeje-turn)", () => {
+  it("a lista dos nós de verdade vale como veio; um tipo de rota do design vale como a jornada", () => {
+    expect(caminhoRecebido(["navegador", "regras", "leitor"], true, "leitor")).toEqual({
+      nos: ["navegador", "regras", "leitor"],
+      humano: true,
+      leitura: "leitor",
+    });
+    expect(caminhoRecebido("ask", false, undefined)?.nos).toEqual(nosDaRota("ask", ""));
+  });
+
+  it("nó que não existe, rota desconhecida ou lista vazia não acendem nada", () => {
+    expect(caminhoRecebido(["navegador", "invasor"], false, "regras")).toBeNull();
+    expect(caminhoRecebido([], false, "regras")).toBeNull();
+    expect(caminhoRecebido("tudo", false, "regras")).toBeNull();
+    expect(caminhoRecebido(undefined, false, "regras")).toBeNull();
+    // Uma leitura desconhecida vira "regras" (não acende o leitor nem o LLM).
+    expect(caminhoRecebido(["navegador"], false, "outra")?.leitura).toBe("regras");
   });
 });

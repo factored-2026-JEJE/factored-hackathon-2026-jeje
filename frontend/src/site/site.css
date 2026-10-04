@@ -34,4 +34,6 @@ html, body { height: 100%; margin: 0; }
 .dc-h12:hover{background:#FFFDF7 !important}
 .dc-h13:hover{background:#16150F !important;color:#fff !important}
 .dc-h14:hover{background:#fff !important;color:#2B35F0 !important}
-.dc-h15:hover{background:#F0ECE3 !important;color:#16150F !important;border-color:#16150F !important}
+.dc-h15:hover{border-color:#F0ECE3 !important;color:#fff !important}
+.dc-h16:hover{background:#FF5520 !important}
+.dc-h17:hover{background:#F0ECE3 !important;color:#16150F !important;border-color:#16150F !important}

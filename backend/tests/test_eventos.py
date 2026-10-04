@@ -140,3 +140,44 @@ def test_evento_guarda_a_versao_dos_dados_em_vigor_e_o_antigo_nao_muda(cenario_c
             .all()
         )
     assert versoes == ["versao-antiga", "versao-nova"]
+
+
+def test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto(cenario_conversa):
+    """A Operação do app (DEV-032): os últimos turnos, o mais recente primeiro, só com a hora, o id
+    da requisição, a regra, a ação e o efeito. O efeito feito fora de um turno (o atendente assumir)
+    não é turno e não entra."""
+    with cliente(cenario_conversa) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        enviados = [
+            http.post(f"/conversas/{conversa}/turnos", json={"texto": texto}, headers=auth)
+            for texto in (PEDIDO, "sí", "me robaron la tarjeta")
+        ]
+        caso = enviados[-1].json()["atendimento"]
+        assert http.post(f"/atendimento/fila/{caso}/assumir").status_code == 200
+        ultimos = http.get("/metricas/eventos", params={"limite": 2})
+        padrao = http.get("/metricas/eventos").json()
+    assert ultimos.status_code == 200
+    assert [set(e) for e in ultimos.json()] == [
+        {"criado_em", "requisicao", "regra", "acao", "efeito"}
+    ] * 2
+    roubo, sim = ultimos.json()
+    assert (roubo["regra"], roubo["acao"], roubo["efeito"]) == ("POL-HUM-01", "humano", caso)
+    assert (sim["acao"], sim["efeito"]) == ("registrar_pre_caso", enviados[1].json()["protocolo"])
+    assert [e["requisicao"] for e in ultimos.json()] == [
+        enviados[2].headers["X-Request-ID"], enviados[1].headers["X-Request-ID"]
+    ]  # fmt: skip
+    assert len(padrao) == 3  # os três turnos, sem o evento do atendente
+    token = auth["Authorization"].removeprefix("Bearer ")
+    for proibido in (token, "CLI-A", "Rocío", PEDIDO, "robaron"):
+        assert proibido not in ultimos.text, proibido
+
+
+def test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite(cenario_conversa):
+    with cliente(cenario_conversa) as http:
+        fora_do_limite = [
+            http.get("/metricas/eventos", params={"limite": n}).status_code for n in (0, 51)
+        ]
+    with cliente(cenario_conversa.model_copy(update={"modo_demo": False})) as http:
+        desligado = http.get("/metricas/eventos").status_code
+    assert (fora_do_limite, desligado) == ([422, 422], 404)
