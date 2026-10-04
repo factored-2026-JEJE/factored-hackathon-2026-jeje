@@ -418,6 +418,34 @@ test("a oferta do atendente tem rótulos claros e continua mandando sí e no", a
   expect(enviados).toEqual(["algo", "No", "Sí"]);
 });
 
+test("pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim", async () => {
+  const pergunta = turno({
+    intencao: "bloquear",
+    regra: "POL-BLQ-07",
+    acao: "esclarecer",
+    estado: "confirmando_bloqueio",
+    resposta: "Puedo bloquear tu tarjeta ahora mismo por aquí. ¿Quieres que la bloquee ahora? Responde sí o no.",
+    transaction_id: null,
+    proposta: null,
+  });
+  const feito = turno({
+    intencao: "desconhecida",
+    regra: "POL-BLQ-02",
+    acao: "bloquear_cartao",
+    estado: "livre",
+    resposta: "Bloqueé tu tarjeta de crédito terminada en 1111.",
+    transaction_id: null,
+    proposta: null,
+    bloqueio: "BL-00000002",
+  });
+  const { enviados } = servidor([{ status: 200, corpo: pergunta }, { status: 200, corpo: feito }]);
+  montar();
+  await abrirEPedir("¿cómo bloqueo la tarjeta si la pierdo?");
+  await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
+  expect(await screen.findByText(/Bloqueé tu tarjeta/)).toBeInTheDocument();
+  expect(enviados).toEqual(["¿cómo bloqueo la tarjeta si la pierdo?", "Sí, confirmo"]);
+});
+
 test("desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o console", async () => {
   const proposta = turno({
     intencao: "desbloquear",

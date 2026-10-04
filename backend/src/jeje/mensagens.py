@@ -220,6 +220,12 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "pt": "Qual cartão você quer bloquear?\n{opcoes}\nResponda com o número da opção ou com "
         "os 4 últimos dígitos.",
     },
+    "POL-BLQ-07": {
+        "es": "Puedo bloquear tu tarjeta ahora mismo por aquí. ¿Quieres que la bloquee ahora? "
+        "Responde sí o no.",
+        "pt": "Posso bloquear o seu cartão agora mesmo por aqui. Quer que eu bloqueie agora? "
+        "Responda sim ou não.",
+    },
     "POL-BLQ-06-DESBLOQUEIO": {
         "es": "¿Cuál tarjeta quieres desbloquear?\n{opcoes}\nResponde con el número de la opción "
         "o con los 4 últimos dígitos.",
