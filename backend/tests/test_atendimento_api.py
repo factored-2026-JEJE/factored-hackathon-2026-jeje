@@ -39,6 +39,21 @@ def test_fila_mostra_os_encaminhamentos_com_o_resumo_na_ordem(cenario_conversa):
     ]
 
 
+def test_o_caso_da_conversa_leva_o_dispositivo_da_sessao(cenario_conversa):
+    """2.1c: o dispositivo escolhido no acesso chega ao caso, e a sessão sem escolha é "novo"."""
+    with cliente(cenario_conversa) as http:
+        token = http.post("/sessoes", json={"customer_id": "CLI-A", "dispositivo": "cadastrado"})
+        cadastrado = {"Authorization": f"Bearer {token.json()['token']}"}
+        novo = autenticar(http, "CLI-A")
+        pessoa = "Quiero hablar con una persona"
+        dizer(http, cadastrado, abrir_conversa(http, cadastrado, "es"), pessoa)
+        dizer(http, novo, abrir_conversa(http, novo, "pt"), "Quero falar com um atendente")
+        fila = http.get("/atendimento/fila").json()
+    assert [(e["regra"], e["dispositivo"]) for e in fila] == [
+        ("POL-HUM-03", "cadastrado"), ("POL-HUM-03", "novo")
+    ]  # fmt: skip
+
+
 def test_fila_nao_existe_fora_do_modo_demo(cenario_conversa):
     with cliente(cenario_conversa.model_copy(update={"modo_demo": False})) as http:
         resposta = http.get("/atendimento/fila")
