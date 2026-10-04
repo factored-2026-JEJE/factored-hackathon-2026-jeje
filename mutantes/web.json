@@ -3429,6 +3429,86 @@
       "testes": [
         "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > as fontes do teste final e da tabela 2 são as evidências deles, não mais pendentes"
       ]
+    },
+    {
+      "id": "M-WEB-368",
+      "requisito": "R06",
+      "descricao": "O placar do atacante segue o de antes do congelamento (1 em 112, NOV-13), não o do portão de release no congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "  pillars: {\n    ...c.pillars,",
+          "para": "  pillarsx: {\n    ...c.pillars,"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
+      ]
+    },
+    {
+      "id": "M-WEB-369",
+      "requisito": "R06",
+      "descricao": "O placar do atacante mostra e abre a fonte fixa do design (NOV-13), não a do conteúdo",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "      openHonest: srcBtn(t.pillars.seg.honest.s),",
+          "para": "      openHonest: srcBtn(\"NOV-13\"),"
+        },
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "{\"↗ \" + v.t.pillars.seg.honest.s}",
+          "para": "{\"↗ NOV-13\"}"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > o placar do atacante é o do portão de release no congelado (1 em 128, ACH-160) e abre a fonte dele"
+      ]
+    },
+    {
+      "id": "M-WEB-370",
+      "requisito": "R06",
+      "descricao": "O tempo das regras segue o da medida do design (2,8 ms), não o do congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "        stat: {\n          v: T(\"2,1 ms\"",
+          "para": "        statx: {\n          v: T(\"2,1 ms\""
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o tempo das regras é o medido no congelado (p50 de 2,1 ms e p95 de 5,2 ms), com a fonte no README"
+      ]
+    },
+    {
+      "id": "M-WEB-371",
+      "requisito": "R06",
+      "descricao": "A fonte do tempo das regras segue a do design (6.568 mensagens), não a do README do congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    LAT: [\"team\", \"README · 14.124 msgs · p50/p95\"],",
+          "para": "    LATx: [\"team\", \"README · 14.124 msgs · p50/p95\"],"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o tempo das regras é o medido no congelado (p50 de 2,1 ms e p95 de 5,2 ms), com a fonte no README"
+      ]
+    },
+    {
+      "id": "M-WEB-372",
+      "requisito": "R06",
+      "descricao": "A fonte do portão de release no congelado (NOV-13a) falta, e o placar não leva à evidência",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · ACH-160\"],",
+          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · ACH-160\"],"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
+      ]
     }
   ]
 }
