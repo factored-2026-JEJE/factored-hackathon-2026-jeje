@@ -405,8 +405,8 @@ ui: {
 
 hero: {
   kicker: T('Atendimento bancário em espanhol e português', 'Atención bancaria en español y portugués', 'Banking support in Spanish and Portuguese'),
-  t1: T('Não é um chatbot.', 'No es un chatbot.', 'Not a chatbot.'),
-  t2: T('É um sistema de atendimento.', 'Es un sistema de atención.', 'A customer-service system.'),
+  t1: T('Seguro por desenho,', 'Seguro por diseño,', 'Safe by design,'),
+  t2: T('rápido por padrão.', 'rápido por defecto.', 'fast by default.'),
   lede: T('O cliente pergunta por que uma compra foi recusada, contesta uma cobrança, bloqueia o cartão. Quem decide é uma política em código, com fatos do banco. O modelo só lê. E cada resposta sai com recibo.',
           'El cliente pregunta por qué rechazaron una compra, impugna un cobro, bloquea la tarjeta. Quien decide es una política en código, con hechos del banco. El modelo solo lee. Y cada respuesta sale con recibo.',
           'Customers ask why a purchase was declined, dispute a charge, block a card. A policy written in code decides, using facts from the database. The model only reads. And every answer comes with a receipt.'),

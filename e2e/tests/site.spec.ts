@@ -34,7 +34,7 @@ test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ 
   expect(semBarra.status()).toBe(308);
   expect(semBarra.headers()["location"]).toMatch(/\/site\/$/);
   await page.goto("/site/?lang=pt");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Não é um chatbot.");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Seguro por desenho,");
   // O app abre numa janela dentro do site: o app de verdade, na mesma origem, na língua do site.
   await page.getByRole("button", { name: /Abrir o app/ }).first().click();
   const janela = page.getByRole("dialog", { name: "JEJE app" });
