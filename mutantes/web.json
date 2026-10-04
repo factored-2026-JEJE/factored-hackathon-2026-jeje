@@ -3502,8 +3502,8 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · EV-278\"],",
-          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · EV-278\"],"
+          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · EV-278 · EV-283\"],",
+          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · EV-278 · EV-283\"],"
         }
       ],
       "testes": [
