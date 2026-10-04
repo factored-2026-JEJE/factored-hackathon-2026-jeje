@@ -330,12 +330,17 @@
     {
       "id": "M-WEB-25",
       "requisito": "R08",
-      "descricao": "Sessão recusada vira erro genérico em vez de voltar ao acesso",
+      "descricao": "Sessão recusada vira erro genérico em vez de voltar ao acesso (nas transações e nos cartões, os dois painéis que a leem)",
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
           "de": "        if (e instanceof SessaoExpirada) aoExpirar();\n        else setErro(String(e));",
           "para": "        setErro(String(e));"
+        },
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "        if (e instanceof SessaoExpirada) return aoExpirar();\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -2436,8 +2441,8 @@
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
-          "de": "}, [token, versao]);",
-          "para": "}, [token, versao < 0]);"
+          "de": "}, [token, versao, tentativa, aoExpirar]);",
+          "para": "}, [token, versao < 0, tentativa, aoExpirar]);"
         }
       ],
       "testes": [
@@ -3333,6 +3338,36 @@
       ],
       "testes": [
         "src/Conversa.test.tsx > sem recibo, o porquê mostra a versão do conjunto carregado na API"
+      ]
+    },
+    {
+      "id": "M-WEB-362",
+      "requisito": "DEV-032b",
+      "descricao": "A falha ao ler os cartões não avisa nada: o painel fica em branco",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "{falhou && cartoes === null && <p role=\"alert\">",
+          "para": "{false && <p role=\"alert\">"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > a falha ao ler os cartões avisa que estão indisponíveis e tenta de novo, sem dizer que não há cartões"
+      ]
+    },
+    {
+      "id": "M-WEB-363",
+      "requisito": "DEV-032b",
+      "descricao": "Depois de uma falha, o painel de cartões não tenta de novo",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "        if (tentativa < NOVAS_TENTATIVAS) espera = setTimeout(() => setTentativa((n) => n + 1), ESPERA_DA_NOVA_TENTATIVA_MS);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > a falha ao ler os cartões avisa que estão indisponíveis e tenta de novo, sem dizer que não há cartões"
       ]
     }
   ]

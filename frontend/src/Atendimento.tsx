@@ -246,26 +246,45 @@ function MeusPedidos({ preCasos, transacoes }: { preCasos: PreCaso[]; transacoes
   );
 }
 
+const NOVAS_TENTATIVAS = 3;
+const ESPERA_DA_NOVA_TENTATIVA_MS = 1500;
+
 /** Os cartões do cliente (GET /minhas/cartoes, 2.1 do fechamento): ativo, ou bloqueado por aqui
  * (completo ou preventivo), com a nota do design. Relidos a cada efeito da conversa (um bloqueio, um
  * desbloqueio ou um relato de fraude). */
-function MeusCartoes({ token, versao }: { token: string; versao: number }) {
+function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: number; aoExpirar: () => void }) {
   const { lingua, t } = useLingua();
   const [cartoes, setCartoes] = useState<CartaoDoCliente[] | null>(null);
+  // Uma falha da leitura não é "sem cartões": o painel avisa e tenta de novo algumas vezes, como o resto
+  // da aba relê a cada efeito da conversa.
+  const [falhou, setFalhou] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
   useEffect(() => {
     let ativo = true;
+    let espera: ReturnType<typeof setTimeout> | undefined;
     meusCartoes(token)
-      .then((lista) => ativo && setCartoes(lista))
-      .catch(() => ativo && setCartoes([]));
+      .then((lista) => {
+        if (!ativo) return;
+        setCartoes(lista);
+        setFalhou(false);
+      })
+      .catch((e: unknown) => {
+        if (!ativo) return;
+        if (e instanceof SessaoExpirada) return aoExpirar();
+        setFalhou(true);
+        if (tentativa < NOVAS_TENTATIVAS) espera = setTimeout(() => setTentativa((n) => n + 1), ESPERA_DA_NOVA_TENTATIVA_MS);
+      });
     return () => {
       ativo = false;
+      clearTimeout(espera);
     };
-  }, [token, versao]);
+  }, [token, versao, tentativa, aoExpirar]);
   return (
     <section aria-label={t.side.cards} className="lado-bloco">
       <div className="lado-cab cartoes-cab">
         <h2>{t.side.cards}</h2>
       </div>
+      {falhou && cartoes === null && <p role="alert">{traduzir(CLIENTE.cartoesIndisponiveis, lingua)}</p>}
       {cartoes?.length === 0 && <p className="lado-vazio">{traduzir(CLIENTE.semCartoes, lingua)}</p>}
       <ul className="lado-lista">
         {cartoes?.map((c) => {
@@ -397,7 +416,7 @@ export function Atendimento({
           </div>
           <div className="cli-pedidos">
             <MeusPedidos preCasos={preCasos} transacoes={transacoes} />
-            <MeusCartoes token={sessao.token} versao={versaoPreCasos} />
+            <MeusCartoes token={sessao.token} versao={versaoPreCasos} aoExpirar={expirou} />
           </div>
         </aside>
       </div>
