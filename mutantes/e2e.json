@@ -453,12 +453,12 @@
     {
       "id": "M-E2E-31",
       "requisito": "R08",
-      "descricao": "No celular a tabela volta a passar da borda (a raiz do app corta o excesso, e o conteúdo fica fora; ACH-156)",
+      "descricao": "No celular a tabela da Operação deixa de rolar dentro da caixa (a raiz do app corta o excesso, e o fim da tabela fica fora de alcance; ACH-156)",
       "trocas": [
         {
-          "arquivo": "frontend/src/estilo.css",
-          "de": "@media (max-width: 860px) { table { display: block; overflow-x: auto; max-width: 100%; } }\n",
-          "para": ""
+          "arquivo": "frontend/src/abas/console.css",
+          "de": ".cn-rolavel { overflow-x: auto; border: 1px solid #16150F; background: #F7F4EC; }",
+          "para": ".cn-rolavel { border: 1px solid #16150F; background: #F7F4EC; }"
         }
       ],
       "testes": [
