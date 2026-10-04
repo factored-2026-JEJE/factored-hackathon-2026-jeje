@@ -66,7 +66,7 @@
         }
       ],
       "testes": [
-        "status.spec.ts > página de status mostra exatamente o estado que a API reporta"
+        "status.spec.ts > a prontidão mostra exatamente o estado que a API reporta"
       ]
     },
     {
@@ -81,7 +81,7 @@
         }
       ],
       "testes": [
-        "status.spec.ts > página de status mostra exatamente o estado que a API reporta"
+        "status.spec.ts > a prontidão mostra exatamente o estado que a API reporta"
       ]
     },
     {
@@ -93,21 +93,6 @@
           "arquivo": "compose.yaml",
           "de": "      DATASET_TABLES: *dataset-tables\n      DATASET_SOURCE: s3",
           "para": "      DATASET_TABLES: branches,customers,products,service_agents,marketing_campaigns,daily_exchange_rates,transactions,call_center_interactions,call_transcripts,satisfaction_surveys,complaints\n      DATASET_SOURCE: s3"
-        }
-      ],
-      "testes": [
-        "dados.spec.ts > stack sobe pronta com exatamente a versão de dados do manifesto versionado"
-      ]
-    },
-    {
-      "id": "M-E2E-04",
-      "requisito": "R06",
-      "descricao": "Página exibe a versão truncada em 8 caracteres",
-      "trocas": [
-        {
-          "arquivo": "frontend/src/StatusDoSistema.tsx",
-          "de": "`versão ${dataset.version.slice(0, 12)} (${dataset.source})",
-          "para": "`versão ${dataset.version.slice(0, 8)} (${dataset.source})"
         }
       ],
       "testes": [
@@ -130,21 +115,6 @@
       ]
     },
     {
-      "id": "M-E2E-06",
-      "requisito": "R04",
-      "descricao": "Painel mostra curados na coluna de registros",
-      "trocas": [
-        {
-          "arquivo": "frontend/src/QualidadeDosDados.tsx",
-          "de": "              <td>{numero(t.raw)}</td>",
-          "para": "              <td>{numero(t.curado)}</td>"
-        }
-      ],
-      "testes": [
-        "qualidade.spec.ts > painel de qualidade mostra os números da API e fecha a conta de cada tabela"
-      ]
-    },
-    {
       "id": "M-E2E-07",
       "requisito": "R01",
       "descricao": "Status das transações contados na raw (inclui revisão substituída e quarentena)",
@@ -157,21 +127,6 @@
       ],
       "testes": [
         "eda.spec.ts > EDA bate com o oráculo independente da origem carregada"
-      ]
-    },
-    {
-      "id": "M-E2E-08",
-      "requisito": "R01",
-      "descricao": "Página arredonda participações sem casa decimal",
-      "trocas": [
-        {
-          "arquivo": "frontend/src/IndicadoresDaEda.tsx",
-          "de": "minimumFractionDigits: 1, maximumFractionDigits: 1",
-          "para": "minimumFractionDigits: 0, maximumFractionDigits: 0"
-        }
-      ],
-      "testes": [
-        "eda.spec.ts > seção da EDA mostra exatamente os números e as consultas da API"
       ]
     },
     {
@@ -301,8 +256,8 @@
       "trocas": [
         {
           "arquivo": "frontend/src/abas/Atendente.tsx",
-          "de": "      <FilaDoAtendimento versao={versao} />",
-          "para": "      <FilaDoAtendimento versao={0} />"
+          "de": "  }, [versao, recarga]);",
+          "para": "  }, [recarga]);"
         }
       ],
       "testes": [
@@ -392,8 +347,8 @@
       "trocas": [
         {
           "arquivo": "frontend/src/abas/Atendente.tsx",
-          "de": "      <BloqueiosDoAtendimento versao={versao} />",
-          "para": "      <BloqueiosDoAtendimento versao={0} />"
+          "de": "        setBloqueios(ativos);",
+          "para": "        setBloqueios((atual) => atual ?? ativos);"
         }
       ],
       "testes": [
@@ -693,6 +648,96 @@
       ],
       "testes": [
         "site.spec.ts > sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404"
+      ]
+    },
+    {
+      "id": "M-E2E-60",
+      "requisito": "R06",
+      "descricao": "A prontidão encurta a versão dos dados fora do formato do design",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/abas/Operacao.tsx",
+          "de": "`${versao.slice(0, 4)}…${versao.slice(-4)}`",
+          "para": "`${versao.slice(0, 4)}…${versao.slice(-3)}`"
+        }
+      ],
+      "testes": [
+        "dados.spec.ts > stack sobe pronta com exatamente a versão de dados do manifesto versionado"
+      ]
+    },
+    {
+      "id": "M-E2E-61",
+      "requisito": "R04",
+      "descricao": "A qualidade mostra os curados na coluna de registros",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/abas/Operacao.tsx",
+          "de": "{[q.raw, q.curado, q.quarentena",
+          "para": "{[q.curado, q.curado, q.quarentena"
+        }
+      ],
+      "testes": [
+        "qualidade.spec.ts > painel de qualidade mostra os números da API e fecha a conta de cada tabela"
+      ]
+    },
+    {
+      "id": "M-E2E-62",
+      "requisito": "R01",
+      "descricao": "A EDA arredonda as proporções sem casa decimal",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/abas/formato.ts",
+          "de": "{ style: \"percent\", minimumFractionDigits: 1, maximumFractionDigits: 1 }",
+          "para": "{ style: \"percent\", minimumFractionDigits: 0, maximumFractionDigits: 0 }"
+        }
+      ],
+      "testes": [
+        "eda.spec.ts > seção da EDA mostra exatamente os números e as consultas da API"
+      ]
+    },
+    {
+      "id": "M-E2E-63",
+      "requisito": "R08",
+      "descricao": "O Try do guia não leva à conversa",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/abas/ComoTestar.tsx",
+          "de": "onClick={() => experimentar(c.es)}",
+          "para": "onClick={() => undefined}"
+        }
+      ],
+      "testes": [
+        "guia.spec.ts > o guia dos jurados abre pelo endereço e leva à aba do cliente"
+      ]
+    },
+    {
+      "id": "M-E2E-64",
+      "requisito": "R09",
+      "descricao": "Os eventos da operação deixam os turnos de fora",
+      "trocas": [
+        {
+          "arquivo": "backend/src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo = 'erro' ORDER BY id DESC LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "operacao.spec.ts > o turno feito agora está nos eventos com o request_id, e a aba mostra os que a API deu"
+      ]
+    },
+    {
+      "id": "M-E2E-65",
+      "requisito": "R09",
+      "descricao": "Os últimos turnos na tela perdem a regra",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/abas/Operacao.tsx",
+          "de": "<span className=\"cn-regra-evento\">{e.regra ?? \"—\"}</span>",
+          "para": "<span className=\"cn-regra-evento\">—</span>"
+        }
+      ],
+      "testes": [
+        "operacao.spec.ts > o turno feito agora está nos eventos com o request_id, e a aba mostra os que a API deu"
       ]
     }
   ]
