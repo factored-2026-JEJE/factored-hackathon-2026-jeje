@@ -23,6 +23,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     // main desde o PR #76 (GARANTIA_DE_FRAUDE=true), medida no REG-22 e, sem bloqueio a mais, no REG-22b.
     "DEV-042": ["evid", "evidencias/EV-221 · VAL-003"],
     "DEV-046": ["evid", "evidencias/REG-22 · REG-22b"],
+    // O teste final rodou uma vez no congelado 3cf8c3f (EV-276), e a tabela 2 também (EV-277).
+    "VAL-019": ["evid", "evidencias/VAL-019 · EV-276"],
+    "VAL-019a": ["evid", "evidencias/VAL-019a · EV-277"],
   },
   ui: {
     ...c.ui,
@@ -86,6 +89,19 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
             ),
             T("entrou", "entró", "in"),
           ] as const),
+    ),
+    // A tabela 2 (VAL-019a, EXP-002a-20261004T124023-3dfd, EV-277) como saiu: negativa, pelo critério escrito
+    // antes do teste; e o ponto de operação da curva do leitor (VAL-019b, NOV-40-20261004T124038-3623),
+    // descritivo. Os números vêm de resultados/tabela-2-3cf8c3f.json e evidencias/medicoes.csv da validação.
+    t2: T(
+      "Tabela 2 · o componente aprendido, uma vez no congelado, num conjunto novo e selado antes do teste: em PT, com 237 mensagens, o acerto na primeira fala vai de 71,3% só com as regras a 79,3% com o sistema (+8,0 p.p. [+4,2; +12,2]). A ação indevida sobe +0,5 p.p. [+0,0; +1,6], e o limite passa de 1 ponto: o critério escrito antes do teste não foi cumprido, e o resultado fica como saiu. O ES não foi medido (menos de 20 mensagens em alguma intenção).",
+      "Tabla 2 · el componente aprendido, una vez en el congelado, en un conjunto nuevo y sellado antes de la prueba: en PT, con 237 mensajes, el acierto en la primera frase va de 71,3% solo con las reglas a 79,3% con el sistema (+8,0 p.p. [+4,2; +12,2]). La acción indebida sube +0,5 p.p. [+0,0; +1,6], y el límite pasa de 1 punto: el criterio escrito antes de la prueba no se cumplió, y el resultado queda como salió. El ES no se midió (menos de 20 mensajes en alguna intención).",
+      "Table 2 · the learned component, run once on the frozen commit, on a new set sealed before the test: in PT, over 237 messages, first-turn accuracy goes from 71.3% with rules only to 79.3% with the system (+8.0 pp [+4.2; +12.2]). Undue actions rise +0.5 pp [+0.0; +1.6], and the bound exceeds 1 point: the criterion written before the test was not met, and the result stands as it came out. ES was not measured (fewer than 20 messages in some intent).",
+    ),
+    curva: T(
+      "O limiar do leitor, descritivo: no limiar entregue, 0,80, o sistema automatiza 81,6% das primeiras falas em ES e 78,9% em PT; das automatizadas, erra 3 de 31 (ES) e 2 de 30 (PT); a ação indevida é 1 de 21 nas duas línguas.",
+      "El umbral del lector, descriptivo: en el umbral entregado, 0,80, el sistema automatiza el 81,6% de las primeras frases en ES y el 78,9% en PT; de las automatizadas, falla 3 de 31 (ES) y 2 de 30 (PT); la acción indebida es 1 de 21 en las dos lenguas.",
+      "The reader threshold, descriptive: at the delivered threshold, 0.80, the system automates 81.6% of first messages in ES and 78.9% in PT; of those automated, it gets 3 of 31 wrong (ES) and 2 of 30 (PT); undue actions are 1 of 21 in both languages.",
     ),
   },
   footer: {
