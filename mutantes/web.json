@@ -3592,7 +3592,7 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": " No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160).\",",
+          "de": " No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final.\",",
           "para": "\","
         }
       ],
@@ -3613,6 +3613,21 @@
       ],
       "testes": [
         "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o par do LLM diz de que commit é: o fd24539 de 01/10, antes do congelado"
+      ]
+    },
+    {
+      "id": "M-WEB-380",
+      "requisito": "R06",
+      "descricao": "O placar do atacante não diz que o caso inseguro do congelado foi corrigido depois do teste final",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "ficou sem atendente (ACH-160), corrigido depois do teste final. Mostramos.\",",
+          "para": "ficou sem atendente (ACH-160). Mostramos.\","
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
       ]
     }
   ]
