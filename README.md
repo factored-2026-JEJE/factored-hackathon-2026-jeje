@@ -35,10 +35,11 @@ _The final test: 80 held-out scenarios, run once on the frozen commit `3cf8c3fac
   each language: Portuguese ties, so it holds there, and Spanish falls one scenario short (−2.5
   points, −7.5 to 0). The case is ACH-189.
 - **Cost and latency:** the LLM read 10 turns per run (the Cost column: LLM calls per conversation,
-  0.125 shown rounded). The turns that reach the e5 reader and the LLM raise the p50 to about
-  100 ms and the p95 to about 630 ms, against 54 and 60 ms with the rules alone.
-- **Shared misses:** both variants miss two cases. One is a status question answered without the
-  case protocol. The other is a correction read as a question instead of a dispute.
+  0.125 shown rounded). The delivered system's turns have a p50 of about 100 ms and a p95 of about
+  630 ms, against 54 and 60 ms with the rules alone; the cause of each part was not measured.
+- **Shared misses:** both variants miss the same two cases, in both languages (4 of 80). One is a
+  status question answered without the case protocol. The other is a correction read as a question
+  instead of a dispute.
 
 **Table 2 · the learned component** (VAL-019a, run once on the frozen commit,
 `EXP-002a-20261004T124023-3dfd`): accuracy on the first message, on a new set never used for tuning,
