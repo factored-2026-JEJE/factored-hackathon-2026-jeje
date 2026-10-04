@@ -49,15 +49,21 @@ def _transacao_json(t: TransacaoVerificada | None) -> str | None:
     )
 
 
+# A fala em que o cliente pede uma pessoa entra antes das outras (ACH-186): é a razão do caso, e no
+# limite curto as falas do canal e do quando a deixavam de fora.
+PRIMEIRO = "pedido:humano"
+
+
 def texto_por_campos(
     falas: Sequence[str],
     campos_de: Callable[[str], frozenset[str]],
     limite: int = LIMITE_PEDIDO,
 ) -> str:
     """O texto do pedido para o atendente (DEV-036, NOV-11): das falas do cliente no pedido, entra
-    primeiro a que cabe e acrescenta mais campos novos (no empate, a mais curta), até nenhuma
-    acrescentar; as escolhidas vão na ordem em que foram ditas. Sem campo em nenhuma, vai a
-    primeira, como antes. Só falas do próprio cliente: nada de fora da conversa."""
+    primeiro o pedido de uma pessoa, se houver e couber, e depois a que cabe e acrescenta mais
+    campos novos (no empate, a mais curta), até nenhuma acrescentar; as escolhidas vão na ordem em
+    que foram ditas. Sem campo em nenhuma, vai a primeira, como antes. Só falas do próprio cliente:
+    nada de fora da conversa."""
     falas = [" ".join(f.split()) for f in falas]
     campos = [campos_de(f) for f in falas]
     escolhidas: list[int] = []
@@ -71,7 +77,14 @@ def texto_por_campos(
         ]
         if not candidatas:
             break
-        melhor = max(candidatas, key=lambda i: (len(campos[i] - cobertos), -len(falas[i])))
+        melhor = max(
+            candidatas,
+            key=lambda i: (
+                PRIMEIRO in campos[i] - cobertos,
+                len(campos[i] - cobertos),
+                -len(falas[i]),
+            ),
+        )
         escolhidas.append(melhor)
         cobertos |= campos[melhor]
         usado += 1 + len(falas[melhor])
