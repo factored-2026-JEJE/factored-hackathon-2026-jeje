@@ -1,5 +1,41 @@
 # factored-hackathon-2026-jeje
 
+**For the jury.** A bank customer chats, in Spanish or Portuguese, about their own card
+transactions: why a purchase was declined or is pending, and a review request (pre-case) for a
+charge they do not recognize, recorded only after an explicit yes. Fraud, a request for a person and
+anything outside the rules go to a human queue with the case ready. A deterministic policy decides
+with facts from the bank's data; the customer's text never changes a permission, and the local
+models only read the message, never act.
+
+- **Live:** https://jeje.jaderlouis.com.br (the access password is in the submission). The site
+  explains the system; the app is the demo itself.
+- **Run it yourself:** `make up-fixture` (only Docker, synthetic data) and open
+  http://localhost:8080. With the challenge data: `make up` (details in "Ligar tudo" below).
+
+<!-- tabela-do-teste-final:inicio -->
+_The final test table (the frozen version against the sealed scenarios, VAL-019) goes here once it
+runs._
+<!-- tabela-do-teste-final:fim -->
+
+**Test it in 2 minutes** (the app opens in English; the conversation is in Spanish or Portuguese):
+
+1. **Customer:** pick a persona, keep **Registered device** and click **Enter as …**.
+2. **Normal path:** send the sentence that the **How to test** tab gives for that persona ("No
+   reconozco el cobro de … del …"). The assistant finds the transaction, proposes a review request
+   and records it only after **Sí, confirmo**, with a protocol.
+3. **Ambiguous path:** "¿Por qué rechazaron mi compra?" lists the customer's declines, asks which
+   one and explains its ISO 8583 code.
+4. **Human path:** "Me robaron la tarjeta" goes to an agent at once and blocks the card (simulated).
+   In **Agent**, the case arrives with the request, the facts, the actions and the pending step;
+   **Take case**.
+5. Under any reply, **Why this answer?** shows the rule, the action, the effect and the receipt
+   (source file and line) of every fact. **Operations** shows the counters move with every turn.
+
+The architecture map is in "Como funciona", right below; the rest of this README (in Portuguese) is
+how to run, test and audit the system.
+
+---
+
 Atendimento bancário em espanhol e português do time **JEJE** (Jader, Erik, João e Enzo) —
 Factored AI & Data Hackathon 2026.
 
@@ -14,8 +50,8 @@ Medido na base do desafio (seção “Por que este fluxo” da interface, com a 
 `GET /dados/eda`):
 
 - Contatos de motivo **transacional** são **35,0%** dos 686.296 atendimentos e **24,0%** do tempo
-  total de atendimento, e **91,5%** se resolvem no primeiro contato: são perguntas com resposta nos
-  dados.
+  total de atendimento, e **91,5%** deles terminam resolvidos: são perguntas com resposta nos dados
+  (a base marca se o atendimento resolveu, não se foi no primeiro contato).
 - Das 4.425.008 transações, 5,0% foram recusadas, 2,0% estão pendentes e 1,0% foram estornadas;
   95% das recusas trazem código de resposta.
 - Das reclamações sobre transações (20,2% de 67.095), **90,6%** são “Cargo no reconocido”.
@@ -61,10 +97,12 @@ cp .env.example .env   # cole as chaves do dataset (página 2 do dicionário)
 make up                # ou: docker compose --profile modelo up -d --build --wait
 ```
 
-Abra **http://localhost:8080**, entre como um cliente de demonstração e converse. A página tem três
-abas, cada uma com endereço próprio: **Cliente** (`#cliente`: acesso, conversa, transações e
-pré-casos), **Atendente** (`#atendente`: fila e bloqueios de cartão) e **Operação** (`#operacao`:
-métricas, status, qualidade dos dados e EDA).
+Abra **http://localhost:8080**, entre como um cliente de demonstração e converse. O app abre em
+inglês (espanhol e português na barra do topo) e tem quatro abas, cada uma com endereço próprio:
+**Customer** (`#cliente`: o acesso, a conversa, as transações, os pedidos e os cartões), **Agent**
+(`#atendente`: o caso pronto na fila e os bloqueios de cartão), **Operations** (`#operacao`: a
+prontidão, as métricas, os últimos turnos, a qualidade dos dados e a EDA) e **How to test**
+(`#how-to-test`: os três caminhos, com o "Try" que manda a frase para a conversa).
 
 Na primeira vez o `make up` baixa o dataset dos organizadores (~1,6 GB, ~5 min), confere cada
 arquivo pelo manifesto versionado em `data/manifesto/` e carrega o banco. O build da imagem também
@@ -147,8 +185,9 @@ Os números vêm de dois testes, e cada um vale para as suas frases:
   solto, a possível vira opção) e 5% a pergunta pelo campo. Pede dados de novo em 0,04%, contra
   40%. Nos históricos densos (10 clientes juntos), 72% contra 53%.
 - **Teste independente da validação** (QT-01, outro gerador de frases, no `d9dfad0`): 72,2% (es)
-  e 71,7% (pt) direto, contra 38,5% do filtro exato, com 0% de proposta errada; o conjunto cobre a
-  certa em 99,7% das vezes.
+  e 71,7% (pt) direto, contra 38,5% (es) e 38,0% (pt) do filtro exato, com 0% de proposta errada; a
+  certa está entre as devolvidas (a proposta ou as opções) em 99,7% das vezes, e o conjunto
+  conformal, onde o ranking decide, cobre a certa em 96,3%.
 - **Limite** (QT-04): quando a transação descrita não está entre as do cliente, a conversa ainda
   propõe outra direto em 9,2% (es) e 8,9% (pt) dos pedidos (antes da regra R2, 28%). A proposta só
   vira pré-caso com o "sim" do cliente sobre a transação mostrada.
@@ -626,9 +665,11 @@ make test-avaliacao                                # os testes do oráculo, sem 
   que o termo composto deixou de procurar o segundo grupo sem o primeiro; eram 2,8 ms antes disso
   e ~100 ms antes de cada expressão ser compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
-- Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor):
-  um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez (ACH-107), aguenta 8
-  clientes com p95 de 430 ms; com 4 processos, 129 ms (antes da correção eram 2.065 e 767 ms).
+- Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor, no
+  `42db34a` de 01/10): um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez
+  (ACH-107), aguenta 8 clientes com p95 de 430 ms; com 4 processos, 129 ms (antes da correção eram
+  2.065 e 767 ms). No `68fee3a`, com 8 clientes, o p95 foi de 150 ms com o leitor e 78 ms só com as
+  regras; o número da versão entregue sai da bateria do congelado.
   `WEB_CONCURRENCY` no `compose.yaml` define quantos processos sobem: 1 na máquina de quem
   desenvolve, 2 nas stacks de teste com a fixture (as jornadas provam que nada depende da memória
   de um processo) e 4 na publicação, como folga, ao custo de ~3 GB de RAM (cada processo carrega o
