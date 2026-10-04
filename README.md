@@ -83,9 +83,10 @@ commit's; the final set does not run again.
 - **The site (#131).** Table 2, the reader threshold curve and the numbers measured on the frozen
   version replace older ones.
 - **ACH-189, kept.** The fraud guarantee (DEV-046) asks the LLM even when the rules understand the
-  message, and it sent "a purchase I didn't make" to the fraud queue. The customer still reached a
-  person, with no block and no pre-case, but the oracle expected the dispute handoff for a charge
-  above the limit. Narrowing the guarantee would trade fraud recall for the label, so it stays.
+  message, and it sent "a purchase I didn't make" to the queue as possible fraud (POL-HUM-01),
+  without the transaction attached. The oracle expected the review of a night digital charge above
+  the limit (POL-HUM-04), with the transaction. The customer still reached a person, with no block
+  and no pre-case. Narrowing the guarantee would trade fraud recall for the label, so it stays.
 
 **Test it in 2 minutes** (the app opens in English; the conversation is in Spanish or Portuguese):
 
