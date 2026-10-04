@@ -25,10 +25,10 @@ test("abre na aba do cliente e troca de área pelas abas, com endereço próprio
   render(<App />);
   expect(await screen.findByRole("heading", { name: "Acesso de teste" })).toBeVisible();
   expect(screen.getByRole("tab", { name: "Customer" })).toHaveAttribute("aria-selected", "true");
-  expect(screen.getByRole("heading", { name: "Fila do atendimento humano", hidden: true })).not.toBeVisible();
+  expect(screen.getByRole("heading", { name: "The case arrives ready.", hidden: true })).not.toBeVisible();
   await userEvent.click(screen.getByRole("tab", { name: "Agent" }));
-  expect(screen.getByRole("heading", { name: "Fila do atendimento humano" })).toBeVisible();
-  expect(screen.getByRole("heading", { name: "Bloqueios de cartão" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "The case arrives ready." })).toBeVisible();
+  expect(screen.getByRole("region", { name: "Card blocks" })).toBeVisible();
   expect(screen.getByRole("heading", { name: "Acesso de teste", hidden: true })).not.toBeVisible();
   expect(window.location.hash).toBe("#atendente");
 });
@@ -48,7 +48,7 @@ test("o guia dos jurados tem aba e endereço próprios (#how-to-test)", async ()
   window.history.replaceState(null, "", "/#how-to-test");
   render(<App />);
   expect(await screen.findByRole("tab", { name: "How to test" })).toHaveAttribute("aria-selected", "true");
-  expect(screen.getByRole("heading", { name: "How to test this demo" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Three paths, in Spanish and Portuguese." })).toBeVisible();
   expect(document.getElementById("painel-cliente")).not.toBeVisible();
 });
 
