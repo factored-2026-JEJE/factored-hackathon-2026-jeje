@@ -200,6 +200,7 @@ MANTER = (
         ("libera meu cartão por favor", "pt"),
         ("quiero volver a usar mi tarjeta", "es"),
         ("ya la encontré, quiero volver a usarla", "es"),
+        ("ya apareció, deshazlo por favor", "es"),
     ],
 )
 def test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer(exemplos, texto, idioma):
