@@ -9,7 +9,7 @@ carrega identidade de cliente nem ID de transação: identificador digitado no c
 import re
 import unicodedata
 from collections.abc import Iterable, Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
 from functools import lru_cache
@@ -56,6 +56,8 @@ class Interpretacao:
     cortesia: Cortesia | None = None  # a mensagem inteira é cumprimento ou agradecimento
     instrucao: bool = False  # tenta mudar as regras do assistente (injeção, ACH-203)
     cita_as_regras: bool = False  # fala das regras, da política, das instruções ou do sistema
+    # O uso por outro que o cliente pensou e desfez, ou a pergunta de alguém (ACH-201).
+    uso_desfeito: bool = False
     sinais: tuple[str, ...] = ()  # termos que decidiram a intenção (auditoria)
 
 
@@ -724,6 +726,22 @@ ALGUEM_USOU = Perto(
                 "pensei", "pensava", "achei", "achava", "perguntou", "perguntei"),
     corrige=False,
 )  # fmt: skip
+# O relato na outra ordem, o uso e depois a pessoa ("usaram minha conta para pagar boletos, foi
+# outra pessoa", o segundo adendo do REG-45), com a mesma guarda antes do verbo.
+USOU_ALGUEM = Perto(
+    ALGUEM_USOU.outro,
+    TERCEIRO_USOU.um,
+    entre=6,
+    fora=TERCEIRO_USOU.fora,
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=ALGUEM_USOU.fora_antes,
+    corrige=False,
+)
+# O par do uso por outro que a guarda desfez (ACH-201): está na mensagem, mas o pensar ou a pergunta
+# antes o desfazem. A mensagem não é relato nem vai ao leitor e ao LLM, que a liam como fraude.
+USO_POR_OUTRO = (ALGUEM_TINHA_USADO, ALGUEM_USOU, USOU_ALGUEM)
+USO_POR_OUTRO_SEM_A_GUARDA = tuple(replace(t, fora_antes=()) for t in USO_POR_OUTRO)
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -803,7 +821,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
                 "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
-                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU)),
+                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,
+                USOU_ALGUEM)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
@@ -1328,6 +1347,13 @@ def corrigir(texto: str) -> tuple[str, tuple[str, ...]]:
     return "".join(pedacos), tuple(trocas)
 
 
+def _uso_desfeito(limpo: str) -> bool:
+    """O par do uso por outro está na mensagem, e só a guarda do pensar ou da pergunta o desfez."""
+    return any(_casou(t, limpo) for t in USO_POR_OUTRO_SEM_A_GUARDA) and not any(
+        _casou(t, limpo) for t in USO_POR_OUTRO
+    )
+
+
 def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interpretacao:
     texto, corrigidas = corrigir(texto)
     limpo = normalizar(texto)
@@ -1350,6 +1376,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "cortesia": _cortesia(limpo),
         "instrucao": INSTRUCAO.search(limpo) is not None,
         "cita_as_regras": CITA_AS_REGRAS.search(limpo) is not None,
+        "uso_desfeito": _uso_desfeito(limpo),
     }
     oracoes = _oracoes(texto)
     for intencao, termos in TERMOS:

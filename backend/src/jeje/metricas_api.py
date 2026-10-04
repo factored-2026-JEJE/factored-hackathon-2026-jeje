@@ -1,10 +1,16 @@
-"""Métricas do atendimento recomputadas dos eventos (G11): só agregados, sem dado de cliente."""
+"""Métricas do atendimento recomputadas dos eventos (G11): só agregados, sem dado de cliente. E os
+últimos turnos, para a Operação do app (só com MODO_DEMO, como o console do atendente)."""
 
-from fastapi import APIRouter
+from dataclasses import asdict
+from datetime import datetime
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
-from jeje import metricas
+from jeje import eventos, metricas
 from jeje.db import EngineDep
+from jeje.sessao_api import RESPOSTAS_DEMO, exige_modo_demo
 
 router = APIRouter()
 
@@ -41,3 +47,19 @@ class Metricas(BaseModel):
 def calcular_metricas(engine: EngineDep) -> Metricas:
     with engine.connect() as conexao:
         return Metricas(**metricas.calcular(conexao))
+
+
+class EventoRecente(BaseModel):
+    criado_em: datetime
+    requisicao: str | None
+    regra: str | None
+    acao: str | None
+    efeito: str | None
+
+
+@router.get("/metricas/eventos", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)
+def eventos_recentes(
+    engine: EngineDep, limite: Annotated[int, Query(ge=1, le=50)] = 8
+) -> list[EventoRecente]:
+    with engine.connect() as conexao:
+        return [EventoRecente(**asdict(e)) for e in eventos.recentes(conexao, limite)]

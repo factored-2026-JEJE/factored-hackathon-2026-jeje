@@ -45,11 +45,26 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
       ),
     },
   },
-  stops: c.stops.map((s) =>
-    s.id !== "leitura" || !s.cascade
-      ? s
-      : { ...s, cascade: s.cascade.map((x) => (x.st === "plan" ? { ...x, st: "off" as const } : x)) },
-  ),
+  stops: c.stops.map((s) => {
+    if (s.id === "leitura" && s.cascade)
+      return { ...s, cascade: s.cascade.map((x) => (x.st === "plan" ? { ...x, st: "off" as const } : x)) };
+    // A janela do app no site (design de 03/10): o Caddy deixa só a própria origem embutir a página
+    // (frontend/Caddyfile, conferido no seguranca.spec.ts e no scripts/conferir-publicacao.sh).
+    if (s.id === "entrada")
+      return {
+        ...s,
+        protects: s.protects?.map((p, i) =>
+          i !== 0
+            ? p
+            : T(
+                "Cabeçalhos nosniff, X-Frame-Options SAMEORIGIN, frame-ancestors self e no-referrer: só o próprio site embute o app.",
+                "Cabeceras nosniff, X-Frame-Options SAMEORIGIN, frame-ancestors self y no-referrer: solo el propio sitio incrusta la app.",
+                "nosniff, X-Frame-Options SAMEORIGIN, frame-ancestors self and no-referrer headers: only the site itself can frame the app.",
+              ),
+        ),
+      };
+    return s;
+  }),
   nodes: { ...c.nodes, llm: { n: c.nodes.llm.n, s: "qwen3:4b", stop: c.nodes.llm.stop, model: c.nodes.llm.model } },
   models: {
     ...c.models,
