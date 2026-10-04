@@ -672,7 +672,11 @@ make test-avaliacao                                # os testes do oráculo, sem 
 Os números do atendimento podem ser refeitos por quem tiver o repositório. Os cenários de
 desenvolvimento e de validação (`avaliacao/cenarios.json`) foram escritos pela validação, e cada um
 é julgado pelo estado final no banco: pré-casos, a fila do atendente, os bloqueios e o que foi dito
-ao cliente. O conjunto final do teste não está aqui: ele roda uma vez, na versão congelada.
+ao cliente. O conjunto final do teste entrou depois do teste final (EV-276), num arquivo à parte,
+`avaliacao/cenarios-final.json`, com os 80 cenários. Ele rodou uma vez, na versão congelada; rodar
+de novo não mede mais o produto, porque o conjunto já foi visto, mas confere o avaliador
+(`avaliacao/avaliar.py rodar` aceita `--cenarios avaliacao/cenarios-final.json --conjuntos final`).
+O `make avaliar` segue com os de desenvolvimento e de validação.
 
 ```bash
 make avaliar                      # a variante entregue (o leitor e5 com o LLM do "não entendi")
