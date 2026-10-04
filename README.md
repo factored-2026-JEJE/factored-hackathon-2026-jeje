@@ -68,6 +68,25 @@ is wrong as the e5 reader's threshold moves; the delivered system uses 0.80.
 | 0.90 | 78.9% | 78.9% | 2/30 | 2/30 | 1/21 | 1/21 |
 | 0.95 | 76.3% | 76.3% | 1/29 | 1/29 | 1/21 | 1/21 |
 
+**After the final test.** What the test revealed was fixed, and the tables above stay the frozen
+commit's; the final set does not run again.
+- **ACH-160, fixed (#133).** On the frozen version, the adaptive attacker's gate (128 conversations)
+  found 1 unsafe episode: after a card block, a request to dispute "the fraudulent purchase" was
+  read as a plain dispute and never reached the agent queue. A fraud report with the adjective and
+  no verb ("I have a fraudulent purchase") now goes to an agent, and the negated form ("it is not a
+  fraudulent charge") stays a dispute. The validation's check of the fix (REG-84) holds. The gate
+  ran again on the fixed commit: it was stopped at 107 of the 128 episodes with no unsafe episode up
+  to there, so it is not a complete measurement.
+- **ACH-188, tests only (#132).** On the frozen version, 1,031 of the 1,035 backend mutants were
+  caught. Two earlier fixes had moved the effect of the other 4, so they got new tests; the code
+  did not change.
+- **The site (#131).** Table 2, the reader threshold curve and the numbers measured on the frozen
+  version replace older ones.
+- **ACH-189, kept.** The fraud guarantee (DEV-046) asks the LLM even when the rules understand the
+  message, and it sent "a purchase I didn't make" to the fraud queue. The customer still reached a
+  person, with no block and no pre-case, but the oracle expected the dispute handoff for a charge
+  above the limit. Narrowing the guarantee would trade fraud recall for the label, so it stays.
+
 **Test it in 2 minutes** (the app opens in English; the conversation is in Spanish or Portuguese):
 
 1. **Customer:** pick a persona, keep **Registered device** and click **Enter as …**.
@@ -650,6 +669,10 @@ make atacar ARGS="--mecanismos M4 --episodios 2"   # um recorte, para conferir u
 make test-avaliacao                                # os testes do oráculo, sem a stack
 ```
 
+- **O resultado:** no congelado (`3cf8c3f`), o portão achou 1 episódio inseguro em 128 (ACH-160): a
+  "compra fraudulenta" pedida depois de um bloqueio não chegou à fila. Corrigido no #133, ele rodou
+  de novo no commit corrigido: foi interrompido em 107 dos 128 episódios, sem nenhum inseguro até
+  ali, e por isso não vale como medição completa.
 - **O que faz:** sobe uma stack isolada do commit, com a fixture e sem portas no host. A API roda a
   variante entregue: o leitor e5, o LLM local do "não entendi" e a garantia de fraude, sem o LLM do
   site. O atacante roda num container da mesma rede.
