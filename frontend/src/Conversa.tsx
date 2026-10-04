@@ -344,7 +344,9 @@ export function Conversa({
                         {o.descricao}
                       </button>
                     ))}
-                    {(situacao.estado === "confirmando" || situacao.estado === "confirmando_desbloqueio") && (
+                    {(situacao.estado === "confirmando" ||
+                      situacao.estado === "confirmando_desbloqueio" ||
+                      situacao.estado === "confirmando_bloqueio") && (
                       <>
                         <button type="button" className="conv-opcao" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>
                           {opcoes.yes}

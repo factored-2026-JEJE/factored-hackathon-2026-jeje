@@ -9,7 +9,7 @@ carrega identidade de cliente nem ID de transação: identificador digitado no c
 import re
 import unicodedata
 from collections.abc import Iterable, Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
 from functools import lru_cache
@@ -54,6 +54,8 @@ class Interpretacao:
     caso: bool = False  # pergunta pelo pedido de revisão já registrado (POL-CASO-*)
     ultima: bool = False  # "la última", "a mais recente": das que casarem, a mais recente
     cortesia: Cortesia | None = None  # a mensagem inteira é cumprimento ou agradecimento
+    # O uso por outro que o cliente pensou e desfez, ou a pergunta de alguém (ACH-201).
+    uso_desfeito: bool = False
     sinais: tuple[str, ...] = ()  # termos que decidiram a intenção (auditoria)
 
 
@@ -557,21 +559,22 @@ TERCEIRO_USOU = Perto(
     # Usar e gastar só com o que é do cliente ("usando mi tarjeta", "gastando com o meu
     # plástico"): "uma pessoa está usando o caixa" não é relato. Transferir fica fora: "alguém
     # transferiu dinheiro para mim" é dinheiro recebido.
-    ("uso mi", "usaba mi", "usaron mi", "usando mi", "usando mis", "utilizo mi", "utilizando mi",
+    # O uso no passado ("alguien usó mi tarjeta") fica no ALGUEM_USOU, só nessa ordem (ACH-201).
+    ("usaba mi", "usando mi", "usando mis", "utilizando mi",
      "gastando con mi", "gastando en mi", "gastaron", "robo", "hizo pagos", "hizo compras",
      "hizo un pago", "hizo una compra", "hizo un retiro", "compro", "saco", "retiro",
      "se hizo pasar", "accedio", "entro a mi cuenta", "clono",
-     "usou meu", "usou minha", "usava meu", "usaram meu", "usaram minha", "usando meu",
-     "usando minha", "usando meus", "utilizou meu", "utilizou minha", "gastando com o meu",
+     "usava meu", "usando meu",
+     "usando minha", "usando meus", "gastando com o meu",
      "gastando com meu", "gastando com a minha", "gastando com minha", "gastou", "roubou",
      "fez pagamentos", "fez compras", "fez um pagamento", "fez uma compra", "fez um saque",
      "comprou", "sacou", "tirou", "se passou", "acessou", "entrou na minha conta", "clonou",
      # Contado de outros jeitos ("alguien la utilizó sin autorización", "alguien obtuvo los datos
      # de mi tarjeta", "alguém está usando a minha conta"), sempre com o que é do cliente (o resto
      # do ACH-171, REG-12 no 4c62c69).
-     "la utilizo", "la uso", "la usaron", "la utilizaron", "la esta usando", "la esta utilizando",
-     "la ha utilizado", "la ha usado", "usado mi", "usado meu", "usado minha", "uso la misma",
-     "usando a minha", "usando o meu", "usou a minha", "usou o meu", "usou um cartao meu",
+     "la esta usando", "la esta utilizando",
+     "uso la misma",
+     "usando a minha", "usando o meu", "usou um cartao meu",
      "usou o mesmo cartao", "sido utilizada por", "sido usada por", "fue utilizada por",
      "fue usada por", "foi usado por", "foi usada por", "foi utilizado por", "foi utilizada por",
      "ha accedido a mi cuenta", "accedieron a mi cuenta", "acessaram minha conta",
@@ -684,6 +687,59 @@ DINHEIRO_SACADO = Perto(
                  "anualidad", "anuidade", "mensalidade", "impuesto", "imposto"),
     corrige=False,
 )  # fmt: skip
+# O uso por outro contado no mais-que-perfeito ("encontré mi tarjeta pero alguien ya la había
+# usado", ACH-199), num termo só nessa ordem: em PT, com o cartão ou a conta do cliente ("uma pessoa
+# perguntou se eu tinha usado meu cupom" não é relato); o pensar ou a pergunta logo antes desfazem o
+# par ("pensé que alguien la había usado, pero era un cargo mío", "mi hija me preguntó si alguien la
+# había usado"). As palavras não entram no corretor.
+ALGUEM_TINHA_USADO = Perto(
+    TERCEIRO_USOU.um,
+    ("la habia usado", "la habian usado", "la habia utilizado", "la habian utilizado",
+     "tinha usado meu cartao", "tinha usado o meu cartao", "tinham usado meu cartao",
+     "tinham usado o meu cartao", "havia usado meu cartao", "havia usado o meu cartao",
+     "tinha usado minha conta", "tinha usado a minha conta"),
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=("pense", "pensaba", "crei", "creia", "pregunto", "pregunte", "preguntaron", "si",
+                "pensei", "pensava", "achei", "achava", "perguntou", "perguntei", "se"),
+    corrige=False,
+)  # fmt: skip
+# O uso por outro pensado e desfeito, ou a pergunta de alguém (ACH-201): os termos do uso no passado
+# saem do TERCEIRO_USOU, que casa nas duas ordens, e entram no desenho do ALGUEM_TINHA_USADO, só
+# nessa ordem e com o pensar ou a pergunta nas 3 palavras antes desfazendo o par ("Achei que alguém
+# tinha usado meu cartão, mas fui eu mesmo", "Pensé que alguien la usó, pero era un cargo mío",
+# "Minha filha perguntou se alguém tinha usado meu cartão"). O pensar no presente ("creo que alguien
+# usó mi tarjeta") segue relato, e o "si"/"se" sozinho também: a pergunta condicional ("¿qué hago si
+# alguien usó mi tarjeta?") é prevenção, que vai ao atendente. As palavras não entram no corretor.
+ALGUEM_USOU = Perto(
+    TERCEIRO_USOU.um,
+    ("uso mi", "usaron mi", "utilizo mi", "la uso", "la usaron", "la utilizo", "la utilizaron",
+     "la ha usado", "la ha utilizado", "usado mi", "usou meu", "usou minha", "usaram meu",
+     "usaram minha", "utilizou meu", "utilizou minha", "usou a minha", "usou o meu", "usado meu",
+     "usado minha"),
+    fora=TERCEIRO_USOU.fora,
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=("pense", "pensaba", "crei", "creia", "pregunto", "pregunte", "preguntaron",
+                "pensei", "pensava", "achei", "achava", "perguntou", "perguntei"),
+    corrige=False,
+)  # fmt: skip
+# O relato na outra ordem, o uso e depois a pessoa ("usaram minha conta para pagar boletos, foi
+# outra pessoa", o segundo adendo do REG-45), com a mesma guarda antes do verbo.
+USOU_ALGUEM = Perto(
+    ALGUEM_USOU.outro,
+    TERCEIRO_USOU.um,
+    entre=6,
+    fora=TERCEIRO_USOU.fora,
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=ALGUEM_USOU.fora_antes,
+    corrige=False,
+)
+# O par do uso por outro que a guarda desfez (ACH-201): está na mensagem, mas o pensar ou a pergunta
+# antes o desfazem. A mensagem não é relato nem vai ao leitor e ao LLM, que a liam como fraude.
+USO_POR_OUTRO = (ALGUEM_TINHA_USADO, ALGUEM_USOU, USOU_ALGUEM)
+USO_POR_OUTRO_SEM_A_GUARDA = tuple(replace(t, fora_antes=()) for t in USO_POR_OUTRO)
 # O cartão que "se robó" ("mi tarjeta se robó anoche", REG-12).
 CARTAO_SE_ROUBOU = Perto(
     ("se robo", "se roubou"), ("tarjeta*", "cartao", "cartoes", "cartera", "carteira", "billetera")
@@ -737,8 +793,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     ("fraude", ("fraude", "robaron", "robo de", "un robo", "robada", "robado", "roubaram",
                 "roubo", "roubado", "roubada", "clonaron", "clonada", "clonado", "clonaram",
                 "hackearon", "hackearam", "invadiram", "asalt*", "assalt*", PERDA_DE_MEIO,
-                "usaron mi tarjeta", "usaram meu cartao", "alguien uso mi tarjeta",
-                "alguem usou meu cartao",
+                # O uso por outro com a pessoa ("alguien usó mi tarjeta") é o ALGUEM_USOU (ACH-201).
+                "usaron mi tarjeta", "usaram meu cartao",
                 "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo",
                 # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
                 # a leitura continua a de hoje.
@@ -763,7 +819,8 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 "hackeo", "clonou", "usurpacion", "enganado", "enganada", "enganaram",
                 "me enganaron", "robados", "robadas", "roubados", "roubadas", "site errado",
                 "sitio equivocado", "pagina errada", "pagina equivocada", "link errado",
-                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),
+                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,
+                USOU_ALGUEM)),
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
@@ -1249,6 +1306,13 @@ def corrigir(texto: str) -> tuple[str, tuple[str, ...]]:
     return "".join(pedacos), tuple(trocas)
 
 
+def _uso_desfeito(limpo: str) -> bool:
+    """O par do uso por outro está na mensagem, e só a guarda do pensar ou da pergunta o desfez."""
+    return any(_casou(t, limpo) for t in USO_POR_OUTRO_SEM_A_GUARDA) and not any(
+        _casou(t, limpo) for t in USO_POR_OUTRO
+    )
+
+
 def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interpretacao:
     texto, corrigidas = corrigir(texto)
     limpo = normalizar(texto)
@@ -1269,6 +1333,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "caso": _caso(limpo),
         "ultima": ULTIMA.search(limpo) is not None,
         "cortesia": _cortesia(limpo),
+        "uso_desfeito": _uso_desfeito(limpo),
     }
     oracoes = _oracoes(texto)
     for intencao, termos in TERMOS:
@@ -1471,6 +1536,37 @@ def _vitima(limpo: str) -> bool:
             if not _negado(limpo[: achado.start()]):
                 return True
     return False
+
+
+# Pergunta hipotética ou de capacidade sobre bloquear ("¿cómo bloqueo la tarjeta si la pierdo?",
+# "dá para bloquear pelo app?"): a lista Q2 do REG-20 da validação. O pedido assim não bloqueia
+# na hora; a conversa confirma antes (POL-BLQ-07).
+HIPOTESE_OU_CAPACIDADE = (
+    "si la pierdo", "si lo pierdo", "si pierdo", "en caso de", "em caso de", "caso eu",
+    "se eu perder", "quero saber se", "quiero saber si", "se puede", "e possivel", "da para",
+    "que pasa si", "o que acontece se", "como funciona",
+)  # fmt: skip
+
+
+# A descrição do cartão que se bloqueia ("mi tarjeta se bloquea cada vez que pago", "¿cómo
+# evito que se bloquee?", "o cartão bloqueia se eu errar a senha?") também espera um sim
+# (ACH-221, REG-52 da validação). O "se bloquee" depois de um verbo de pedido pede ("estoy
+# solicitando que se bloquee mi tarjeta") e fica fora.
+DESCRICAO_DO_BLOQUEIO = re.compile(
+    r"\bse (?:me |le |te |nos )?bloquea(?:n)?\b"
+    r"|\b(?:evit[a-z]*|para|no quiero|nao quero|caus[a-z]*) que (?:no )?"
+    r"(?:[a-z0-9]+ ){0,3}se (?:me |le )?bloquee(?:n)?\b"
+    r"|\b(?:cartao|cartoes)\b(?: [a-z0-9]+){0,2} (?:bloqueia|bloqueiam)\b"
+)
+
+
+def hipotese_ou_capacidade(texto: str) -> bool:
+    """A mensagem pergunta pela hipótese ou pela capacidade, ou descreve o cartão que se
+    bloqueia, e não pede agora."""
+    limpo = normalizar(texto)
+    if DESCRICAO_DO_BLOQUEIO.search(limpo):
+        return True
+    return any(_casa(t, limpo) for t in HIPOTESE_OU_CAPACIDADE)
 
 
 def prevencao(texto: str) -> bool:
