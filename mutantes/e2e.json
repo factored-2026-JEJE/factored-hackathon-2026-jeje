@@ -739,6 +739,36 @@
       "testes": [
         "bloqueio.spec.ts > bloquear o cartão pela conversa e desfazer dentro do prazo, com o console acompanhando"
       ]
+    },
+    {
+      "id": "M-E2E-52",
+      "requisito": "DEV-032b",
+      "descricao": "Os botões do app voltam a ter os cantos arredondados da tela antiga, que o design não tem",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/app/app.css",
+          "de": ".app-pagina :is(button, input, select, textarea) { border-radius: 0; }\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "casca.spec.ts > a língua vem do endereço e da barra do topo, sem trocar a área aberta"
+      ]
+    },
+    {
+      "id": "M-E2E-53",
+      "requisito": "DEV-032b",
+      "descricao": "A linha do cartão volta a se chamar .cartao e herda a caixa arredondada da tela antiga",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/Atendimento.tsx",
+          "de": "className=\"cli-cartao\"",
+          "para": "className=\"cartao\""
+        }
+      ],
+      "testes": [
+        "bloqueio.spec.ts > bloquear o cartão pela conversa e desfazer dentro do prazo, com o console acompanhando"
+      ]
     }
   ]
 }
