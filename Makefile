@@ -9,7 +9,8 @@ rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	metricas exportar-reviews avaliar-leitor calibrar-transacao contrato contrato-explorar testar-modelo check gate repro \
-	e2e-pelo-portao publicar publicacao-down voltar limpar demo-limpar atacar test-avaliacao
+	e2e-pelo-portao publicar publicacao-down voltar limpar demo-limpar atacar test-avaliacao avaliar \
+	tabela-do-readme
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -92,9 +93,14 @@ test-web: build
 
 # Os testes do oráculo da avaliação (avaliacao/tests, NOV-13a): só a biblioteca padrão do Python.
 PYTHON_AVALIACAO := python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
-test-avaliacao: ## Os testes do oráculo do atacante (avaliacao/tests), sem a stack
+test-avaliacao: ## Os testes do oráculo do atacante e da tabela do README (avaliacao/tests), sem a stack
 	docker run --rm --network none -e PYTHONDONTWRITEBYTECODE=1 -v "$$PWD":/repo:ro -w /repo $(PYTHON_AVALIACAO) \
 		python -m unittest discover -s avaliacao/tests -t .
+
+# Depois do teste final (2.14): a tabela do README sai do mesmo arquivo que o site mostra.
+tabela-do-readme: ## A tabela do teste final no topo do README, do frontend/public/resultados/teste-final.json
+	docker run --rm --network none -e PYTHONDONTWRITEBYTECODE=1 --user "$$(id -u):$$(id -g)" -v "$$PWD":/repo -w /repo \
+		$(PYTHON_AVALIACAO) python -m avaliacao.readme
 
 test: test-backend test-web test-avaliacao
 
@@ -154,3 +160,9 @@ repro: ## Do zero: clone limpo do COMMIT, stack isolada com a fixture, segredos 
 # os episódios ficam no compose.atacar.yaml; ARGS vai por cima (ex.: ARGS="--mecanismos M4 --episodios 2").
 atacar: ## Stack isolada do commit (a variante entregue) e o atacante da validação: falha se os inseguros passam do limite
 	scripts/atacar.sh $(ARGS)
+
+# A avaliação verificável (2.11): os cenários de desenvolvimento e de validação, julgados pelo estado
+# final no banco, numa stack isolada com a base de avaliação. VARIANTE=regras roda sem o LLM.
+VARIANTE ?= leitor_modelo
+avaliar: ## Os cenários de dev e de validação numa stack isolada do commit; a tabela em resultados/avaliacao/
+	scripts/avaliar.sh $(VARIANTE)
