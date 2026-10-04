@@ -14936,6 +14936,36 @@
       ]
     },
     {
+      "id": "M-CONV-116",
+      "requisito": "R07",
+      "descricao": "O sí sem nada pendente volta a contar como não entendido e leva à oferta do atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.resposta is not None:\n            # O \"sí\" ou o \"no\" sem nada pendente",
+          "para": "        if False:\n            # O \"sí\" ou o \"no\" sem nada pendente"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_sim_sem_nada_pendente_nao_conta_como_nao_entendido"
+      ]
+    },
+    {
+      "id": "M-CONV-117",
+      "requisito": "R07",
+      "descricao": "O sí sem nada pendente soma à contagem dos esclarecimentos",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            contexto = {**self._em_curso(), \"esclarecimentos\": pedidos_de_novo}\n",
+          "para": "            contexto = {**self._em_curso(), \"esclarecimentos\": pedidos_de_novo + 1}\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_sim_sem_nada_pendente_nao_conta_como_nao_entendido"
+      ]
+    },
+    {
       "id": "M-ITP-279",
       "requisito": "R08",
       "descricao": "A mudança antes do alvo ('nuevas reglas', 'desactiva la política') deixa de ser instrução",
