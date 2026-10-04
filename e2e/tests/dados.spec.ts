@@ -21,7 +21,10 @@ test("stack sobe pronta com exatamente a versão de dados do manifesto versionad
   expect(prontidao.status).toBe("ready");
   expect(prontidao.dataset.version).toBe(esperada);
 
+  // Na prontidão da aba da operação, no formato do design: a origem e a versão encurtada.
   await page.goto("/#operacao");
-  await expect(page.getByRole("heading", { name: "Pronto para atender" })).toBeVisible();
-  await expect(page.getByText(`versão ${esperada.slice(0, 12)} (${prontidao.dataset.source})`)).toBeVisible();
+  const grupo = page.getByRole("group", { name: "Readiness" });
+  await expect(grupo.getByText("ready", { exact: true })).toBeVisible();
+  const versao = `${prontidao.dataset.source} · ${esperada.slice(0, 4)}…${esperada.slice(-4)}`;
+  await expect(grupo.getByText(versao, { exact: true })).toBeVisible();
 });

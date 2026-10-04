@@ -32,13 +32,18 @@ for (const nome of ["Pixel 7", "iPhone 13"] as const) {
 
     test("as tabelas da Operação ficam dentro da tela e rolam por dentro (ACH-156)", async ({ page }) => {
       // A raiz do app corta o que passa da borda (overflow: hidden): a largura da página não mostra uma
-      // tabela larga, a borda direita dela mostra. O design de 03/10 não tem tabela; até o 2.10 trocar a
-      // Operação, as dela são as que sobram no app.
+      // tabela larga. Na Operação do design (2.10), cada tabela fica numa caixa da largura da tela, e
+      // é a caixa que rola para o lado; sem a rolagem, o fim da tabela ficaria fora de alcance.
       await page.goto("/#operacao");
-      const tabelas = page.locator("#painel-operacao table");
-      await expect(tabelas.first()).toBeVisible();
-      const direita = await tabelas.evaluateAll((ts) => Math.max(...ts.map((t) => t.getBoundingClientRect().right)));
+      const caixas = page.locator("#painel-operacao .cn-rolavel");
+      await expect(caixas.first()).toBeVisible();
+      const direita = await caixas.evaluateAll((cs) => Math.max(...cs.map((c) => c.getBoundingClientRect().right)));
       expect(direita).toBeLessThanOrEqual(viewport.width);
+      const rolou = await caixas.first().evaluate((c) => {
+        c.scrollLeft = 10_000;
+        return c.scrollLeft;
+      });
+      expect(rolou).toBeGreaterThan(0);
     });
   });
 }

@@ -1634,6 +1634,22 @@
             "type": "string",
             "format": "date-time",
             "title": "Criado Em"
+          },
+          "dispositivo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cadastrado",
+                  "novo"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dispositivo",
+            "description": "Dispositivo da sessão quando o caso foi aberto (simulação, PRD-007); nulo nos casos de antes"
           }
         },
         "type": "object",
@@ -1647,7 +1663,8 @@
           "acoes",
           "pendencias",
           "estado",
-          "criado_em"
+          "criado_em",
+          "dispositivo"
         ],
         "title": "Encaminhamento"
       },

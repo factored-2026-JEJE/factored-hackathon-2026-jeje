@@ -32,6 +32,8 @@ class Encaminhamento:
     transacao: TransacaoVerificada | None = None
     acoes: tuple[Acao, ...] = ()
     pendencias: tuple[str, ...] = field(default=())
+    # O dispositivo da sessão (simulação, PRD-007): um dos fatos do caso no design (2.1c).
+    dispositivo: str | None = None
 
 
 def _transacao_json(t: TransacaoVerificada | None) -> str | None:
@@ -99,9 +101,9 @@ def registrar(conexao: Connection, e: Encaminhamento) -> str:
     return conexao.execute(
         text(
             "INSERT INTO app.handoffs (id, customer_id, regra, idioma, pedido, transacao, acoes,"
-            " pendencias) VALUES ('AT-' || lpad(nextval('app.handoff_seq')::text, 8, '0'),"
-            " :cliente, :regra, :idioma, :pedido, CAST(:transacao AS jsonb),"
-            " CAST(:acoes AS jsonb), CAST(:pendencias AS jsonb)) RETURNING id"
+            " pendencias, dispositivo) VALUES ('AT-' || lpad(nextval('app.handoff_seq')::text, 8,"
+            " '0'), :cliente, :regra, :idioma, :pedido, CAST(:transacao AS jsonb),"
+            " CAST(:acoes AS jsonb), CAST(:pendencias AS jsonb), :dispositivo) RETURNING id"
         ),
         {
             "cliente": e.customer_id,
@@ -111,6 +113,7 @@ def registrar(conexao: Connection, e: Encaminhamento) -> str:
             "transacao": _transacao_json(e.transacao),
             "acoes": json.dumps([asdict(a) for a in e.acoes]),
             "pendencias": json.dumps(list(e.pendencias)),
+            "dispositivo": e.dispositivo,
         },
     ).scalar_one()
 
@@ -135,7 +138,10 @@ class JaAssumido(Exception):
     """Outro atendente já assumiu este encaminhamento."""
 
 
-COLUNAS = "id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado, criado_em"
+COLUNAS = (
+    "id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado, criado_em,"
+    " dispositivo"
+)
 
 
 def assumir(conexao: Connection, handoff_id: str) -> dict:

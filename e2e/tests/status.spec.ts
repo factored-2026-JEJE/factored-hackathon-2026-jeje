@@ -1,27 +1,26 @@
 import { expect, test } from "@playwright/test";
 
-// Especificação dos rótulos exibidos para cada estado do banco (não importa código da UI).
-const ROTULO_ESPERADO = {
-  ok: "conectado",
-  unreachable: "inacessível",
-  not_migrated: "sem migrations aplicadas",
-  reloading: "recarregando os dados",
+// A prontidão da aba da operação (2.10) nos rótulos do design, em inglês, a língua padrão do app
+// (especificação escrita aqui, sem importar código da UI).
+const ROTULO_DO_BANCO = {
+  ok: "ready",
+  unreachable: "unreachable",
+  not_migrated: "not migrated",
+  reloading: "reloading",
 } as const;
 
-test("página de status mostra exatamente o estado que a API reporta", async ({ page, request }) => {
+const curta = (versao: string) => (versao.length > 12 ? `${versao.slice(0, 4)}…${versao.slice(-4)}` : versao);
+
+test("a prontidão mostra exatamente o estado que a API reporta", async ({ page, request }) => {
   const resposta = await request.get("/api/health/ready");
   expect([200, 503]).toContain(resposta.status());
   const prontidao = await resposta.json();
 
   await page.goto("/#operacao");
 
-  const titulo = prontidao.status === "ready" ? "Pronto para atender" : "Indisponível";
-  await expect(page.getByRole("heading", { name: titulo })).toBeVisible();
-  const rotulo = ROTULO_ESPERADO[prontidao.database as keyof typeof ROTULO_ESPERADO];
-  await expect(page.getByText(rotulo, { exact: true })).toBeVisible();
-  if (prontidao.dataset === null) {
-    await expect(page.getByText("nenhum dataset carregado")).toBeVisible();
-  } else {
-    await expect(page.getByText(`versão ${prontidao.dataset.version.slice(0, 12)}`, { exact: false })).toBeVisible();
-  }
+  const grupo = page.getByRole("group", { name: "Readiness" });
+  const rotulo = ROTULO_DO_BANCO[prontidao.database as keyof typeof ROTULO_DO_BANCO];
+  await expect(grupo.getByText(rotulo, { exact: true })).toBeVisible();
+  const versao = prontidao.dataset === null ? "no data loaded" : `${prontidao.dataset.source} · ${curta(prontidao.dataset.version)}`;
+  await expect(grupo.getByText(versao, { exact: true })).toBeVisible();
 });

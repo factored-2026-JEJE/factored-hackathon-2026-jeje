@@ -1161,6 +1161,7 @@ class _Turno:
                 transacao=t,
                 acoes=tuple(self.acoes),
                 pendencias=(pendencia,),
+                dispositivo=self.dispositivo,
             ),
         )
         if decisao.regra in CASOS_DE_BLOQUEIO:

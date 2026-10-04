@@ -73,7 +73,7 @@ function Casca() {
           <AreaDaOperacao {...area} />
         </div>
         <div role="tabpanel" id="painel-how-to-test" aria-labelledby="aba-how-to-test" hidden={aba !== "how-to-test"} className="app-area">
-          <AreaComoTestar />
+          <AreaComoTestar {...area} />
         </div>
       </main>
     </div>
