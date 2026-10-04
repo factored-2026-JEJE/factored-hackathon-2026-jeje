@@ -15038,6 +15038,96 @@
       "testes": [
         "tests/test_conversa.py::test_caso_leva_o_canal_e_o_quando_que_o_cliente_contou"
       ]
+    },
+    {
+      "id": "M-ITP-284",
+      "requisito": "R05",
+      "descricao": "A compra presencial ('pagando con la tarjeta') deixa de ser canal citado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|pag(?:ando|ue|o|uei) (?:con|com) (?:la |el |mi |o |a |meu |minha )?(?:tarjeta|cartao)\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_canal_e_quando_relativo_citados_para_o_texto_do_caso"
+      ]
+    },
+    {
+      "id": "M-ITP-285",
+      "requisito": "R05",
+      "descricao": "A loja e o presencial deixam de ser canal citado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|en (?:la )?tienda|na loja|presencial(?:mente)?)\\b\"\n",
+          "para": "    r\")\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_canal_e_quando_relativo_citados_para_o_texto_do_caso"
+      ]
+    },
+    {
+      "id": "M-ITP-286",
+      "requisito": "R05",
+      "descricao": "O ramo do comércio nunca é citado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return RAMO_CITADO.search(normalizar(texto)) is not None\n",
+          "para": "    return False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_ramo_do_comercio_citado_para_o_texto_do_caso"
+      ]
+    },
+    {
+      "id": "M-ITP-287",
+      "requisito": "R05",
+      "descricao": "'Há algumas semanas' e 'hace varios días' deixam de ser quando relativo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|algunos|algunas|alguns|algumas|varios|varias|pocos|pocas|poucos|poucas)\"\n",
+          "para": "    r\")\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_canal_e_quando_relativo_citados_para_o_texto_do_caso"
+      ]
+    },
+    {
+      "id": "M-CONV-121",
+      "requisito": "R05",
+      "descricao": "A fala com o ramo do comércio fica fora do texto do caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if comercio_citado(fala, self._comercios) is not None or ramo_citado(fala):\n",
+          "para": "        if comercio_citado(fala, self._comercios) is not None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_caso_leva_o_ramo_e_a_compra_presencial_que_o_cliente_contou"
+      ]
+    },
+    {
+      "id": "M-HO-15",
+      "requisito": "R03",
+      "descricao": "No limite curto, o pedido de uma pessoa disputa o espaço com as outras falas",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "                PRIMEIRO in campos[i] - cobertos,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_no_limite_o_pedido_de_uma_pessoa_entra_antes_das_outras_falas"
+      ]
     }
   ]
 }
