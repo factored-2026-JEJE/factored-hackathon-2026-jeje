@@ -195,7 +195,7 @@ Os números vêm de dois testes, e cada um vale para as suas frases:
   pedidos com pista, contra 58% do filtro exato sozinho. Outros 15% viram botões (com o número
   solto, a possível vira opção) e 5% a pergunta pelo campo. Pede dados de novo em 0,04%, contra
   40%. Nos históricos densos (10 clientes juntos), 72% contra 53%.
-- **Teste independente da validação** (QT-01, outro gerador de frases, no `d9dfad0`): 72,2% (es)
+- **Teste independente da validação** (QT-01, outro gerador de frases, no `7347218`): 72,2% (es)
   e 71,7% (pt) direto, contra 38,5% (es) e 38,0% (pt) do filtro exato, com 0% de proposta errada; a
   certa está entre as devolvidas (a proposta ou as opções) em 99,7% das vezes, e o conjunto
   conformal, onde o ranking decide, cobre a certa em 96,3%.
@@ -719,9 +719,9 @@ make avaliar VARIANTE=regras      # sem modelo nenhum
   e ~100 ms antes de cada expressão ser compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
 - Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor, no
-  `42db34a` de 01/10): um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez
+  `511dde7` de 01/10): um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez
   (ACH-107), aguenta 8 clientes com p95 de 430 ms; com 4 processos, 129 ms (antes da correção eram
-  2.065 e 767 ms). No `68fee3a`, com 8 clientes, o p95 foi de 150 ms com o leitor e 78 ms só com as
+  2.065 e 767 ms). No `1f8c640`, com 8 clientes, o p95 foi de 150 ms com o leitor e 78 ms só com as
   regras; o número da versão entregue sai da bateria do congelado.
   `WEB_CONCURRENCY` no `compose.yaml` define quantos processos sobem: 1 na máquina de quem
   desenvolve, 2 nas stacks de teste com a fixture (as jornadas provam que nada depende da memória
