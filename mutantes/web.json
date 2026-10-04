@@ -330,12 +330,17 @@
     {
       "id": "M-WEB-25",
       "requisito": "R08",
-      "descricao": "Sessão recusada vira erro genérico em vez de voltar ao acesso",
+      "descricao": "Sessão recusada vira erro genérico em vez de voltar ao acesso (nas transações e nos cartões, os dois painéis que a leem)",
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
           "de": "        if (e instanceof SessaoExpirada) aoExpirar();\n        else setErro(String(e));",
           "para": "        setErro(String(e));"
+        },
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "        if (e instanceof SessaoExpirada) return aoExpirar();\n",
+          "para": ""
         }
       ],
       "testes": [
