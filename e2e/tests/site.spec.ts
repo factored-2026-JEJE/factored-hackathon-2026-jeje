@@ -178,11 +178,21 @@ test("sem movimento, o mapa é o 2D e o recibo aparece inteiro", async ({ page }
   await expect.poll(recorte).toBe(0);
 });
 
-test("sem o arquivo do teste final, a seção de resultados e o link do menu não aparecem, e o arquivo dá 404", async ({ page, request }) => {
-  // O 404 de verdade (e não a página do app): é por ele que o site sabe que o teste ainda não rodou.
-  expect((await request.get("/resultados/teste-final.json")).status()).toBe(404);
+test("com o arquivo do teste final, a seção de resultados e o link do menu aparecem, com o commit congelado e a evidência", async ({ page, request }) => {
+  // O arquivo do repositório (2.14), servido como está: a seção diz que o teste acabou, no commit dele.
+  const arquivo = await request.get("/resultados/teste-final.json");
+  expect(arquivo.status()).toBe(200);
+  const r = (await arquivo.json()) as { commit: string; evidencia: string; n: number };
   await page.goto("/site/?lang=pt");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Não é um chatbot.");
-  await expect(page.locator("#resultados")).toHaveCount(0);
-  await expect(page.getByRole("navigation").getByRole("link", { name: "Resultados" })).toHaveCount(0);
+  const secao = page.locator("#resultados");
+  await expect(secao).toHaveCount(1);
+  await expect(page.getByRole("navigation").getByRole("link", { name: "Resultados" })).toHaveCount(1);
+  await expect(secao).toContainText("Concluído");
+  await expect(secao).toContainText(`no commit congelado ${r.commit.slice(0, 12)}, nos ${r.n} cenários reservados`);
+  await expect(secao).toContainText(r.evidencia);
+});
+
+test("um arquivo que não existe em /resultados/ dá 404, e não a página do app", async ({ request }) => {
+  // O 404 de verdade é o que faz o site esconder a seção quando o arquivo falta (resultados.ts).
+  expect((await request.get("/resultados/nao-existe.json")).status()).toBe(404);
 });
