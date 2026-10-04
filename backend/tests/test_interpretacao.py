@@ -47,6 +47,9 @@ def ler(texto: str, anterior: str = "es") -> Interpretacao:
         ("hola", "desconhecida"),
         # "robô" sem acento é "robo": não é relato de roubo.
         ("estou falando com um robô?", "desconhecida"),
+        # O uso contado sem quem usou também é fraude (M-ITP-19, ACH-204 da validação).
+        ("Usaron mi tarjeta sin permiso", "fraude"),
+        ("Usaram meu cartão", "fraude"),
     ],
 )
 def test_intencao_por_lingua(texto, intencao):
@@ -78,6 +81,11 @@ def test_intencao_por_lingua(texto, intencao):
         ("perdi o prazo do pagamento do cartão", "consultar"),
         ("No encuentro la compra en mi tarjeta", "consultar"),
         ("não encontro a transação no meu cartão", "consultar"),
+        # A perda longe do cartão é outra coisa, e a perda a 3 palavras dele é relato (M-ITP-22 e
+        # M-ITP-24, ACH-204 da validação).
+        ("Perdí la conexión cuando pagaba con mi tarjeta", "desconhecida"),
+        ("Perdí ayer mi nueva tarjeta", "fraude"),
+        ("Perdi ontem o meu cartão", "fraude"),
     ],
 )
 def test_perda_assalto_e_cargo_de_quem_atende(texto, intencao):
@@ -621,6 +629,9 @@ def test_pedido_de_volta_com_o_bloqueio_contado_e_desbloqueio(texto):
         "Dado que mi PIN está bloqueado, ¿me ayudarías a desbloquearlo?",
         "Meu cartão de débito foi encerrado e perdi a senha, como faço para reativá-lo?",
         "Mi tarjeta está bloqueada y no quiero liberarla todavía",  # negado
+        # Reativar sem o bloqueio na frase não pede desbloqueio (M-ITP-98, ACH-204 da validação).
+        "O cartão se encerrou, como reativo?",
+        "Quero reativar a conta, não o cartão",
     ],
 )
 def test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio(texto):
@@ -688,6 +699,10 @@ def test_golpe_de_engenharia_social_e_relato_de_fraude(texto):
         # O estranho hipotético e a compra não feita continuam o que eram.
         ("No quiero problemas con movimientos extraños, quiero bloquear mi tarjeta", "bloquear"),
         ("Me cobraron una compra que no hice", "contestar"),
+        # O "disse que era" sem quem disse ser logo depois não é golpe (M-ITP-119, ACH-204 da
+        # validação).
+        ("Mi hermano dijo que era mejor ir al banco", "desconhecida"),
+        ("Ele disse que era coisa do banco", "desconhecida"),
     ],
 )
 def test_palavras_perto_do_golpe_nao_viram_relato_de_fraude(texto, intencao):
@@ -962,6 +977,20 @@ def test_negar_ou_perguntar_nao_aceita_a_oferta(texto):
         # A conta esvaziada é perda, mesmo com a suspeita na mesma mensagem (REG-21).
         ("Un supuesto asesor me pidió la clave, no se la di, pero igual vaciaron mi cuenta", False),
         ("Um falso atendente pediu o código, não informei, mas esvaziaram minha conta", False),
+        # A perda contada no passado com artigo é relato, também com a negação do golpista citada
+        # (ACH-222 da validação); negada ou no infinitivo, segue a pergunta.
+        ("'Não é golpe', ele falou, e eu fiz o pix", False),
+        ("A moça disse que não era golpe e eu fiz a transferência", False),
+        ("Me dijo que no era una estafa, así que hice la transferencia", False),
+        ("Era una estafa: hice el pago y nunca llegó nada", False),
+        ("Não fiz o pix, era golpe?", True),
+        ("Ele pediu para eu fazer o pix, é golpe?", True),
+        ("Todavía no hice el pago, ¿será una estafa?", True),
+        # O cartão entregue ao golpista ou levado por ele é perda; "ninguém" e "nadie" negam.
+        ("Era golpe: o falso funcionário levou meu cartão", False),
+        ("Me aseguraron que no era fraude y el mensajero recogió mi tarjeta", False),
+        ("Ninguém levou meu cartão, mas era golpe?", True),
+        ("Nadie se llevó mi tarjeta, pero ¿era una estafa?", True),
     ],
 )
 def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao):
@@ -984,6 +1013,8 @@ def test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima(texto, prevencao
         ("meu cartão pessoal foi recusado", "consultar"),
         ("¿estoy hablando con un robot?", "desconhecida"),
         ("A loja precisa de um gerente novo", "desconhecida"),  # "precisa" não vira "preciso"
+        # "tienda" não vira "atienda" (M-ITP-142, ACH-204 da validação).
+        ("La tienda necesita un gerente", "desconhecida"),
     ],
 )
 def test_erro_de_digitacao_na_palavra_de_intencao(texto, intencao):
@@ -1058,6 +1089,9 @@ def test_so_a_forma_de_erro_de_digitacao_e_corrigida(digitada, termo, erro):
         "Cuando revisan mi identificación, ¿cuáles son los pasos involucrados?",
         # Uma só candidata antes da forma: "desbloqueei" não vira "desbloqueie".
         "Já desbloqueei meu cartão pelo app",
+        # A palavra do vocabulário a uma letra de um termo de fraude fica como está: "sobrar" não
+        # vira "cobrar" (M-ITP-143, ACH-204 da validação).
+        "Me va a sobrar plata este mes",
     ],
 )
 def test_frase_comum_nao_e_corrigida_para_termo_de_acao(texto):
@@ -1072,9 +1106,14 @@ def test_frases_do_pedido_de_segredo_ou_dinheiro_ficam_fora_do_corretor():
 
 
 def test_palavra_com_menos_de_6_letras_nao_e_corrigida():
-    """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe"."""
-    texto = "paguei a aula de golfe com o cartão"
-    assert interpretacao.corrigir(texto) == (texto, ())
+    """Corrigir palavra curta troca demais (NOV-23): "golfe" não vira "golpe", "traga" não vira
+    "trava" e "libre" não vira "libere" (ACH-204 da validação)."""
+    for texto in (
+        "paguei a aula de golfe com o cartão",
+        "El cajero se traga la tarjeta",
+        "Quiero el día libre para ir al banco",
+    ):
+        assert interpretacao.corrigir(texto) == (texto, ())
 
 
 def test_a_correcao_de_digitacao_fica_nos_sinais():
@@ -1612,6 +1651,10 @@ def test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe(texto, anterior):
         ("Me llamaron diciendo que era del banco y me pidieron el código", "es"),
         # A Caixa é banco, não loja.
         ("Ligaram da Caixa dizendo que era do banco e pediram a senha", "pt"),
+        # Sem a senha pedida, só a Caixa fora das lojas faz o golpe (M-ITP-223, ACH-204 da
+        # validação).
+        ("Ligaram da Caixa dizendo que era do banco", "pt"),
+        ("Uma moça da Caixa disse que era do banco", "pt"),
     ],
 )
 def test_quem_disse_que_era_do_banco_fora_da_loja_continua_golpe(texto, anterior):
@@ -1666,6 +1709,10 @@ def test_uso_por_outra_pessoa_contado_de_outros_jeitos_e_fraude(texto):
         "O caixa pediu a senha duas vezes",
         "Minha mãe não conseguiu trocar a senha",
         "Ele não conseguiu minha senha, eu desliguei antes",
+        # A senha de outra coisa conseguida por alguém não é a do cliente (M-ITP-177, ACH-204 da
+        # validação).
+        "O técnico conseguiu a senha do wi-fi",
+        "Mi hijo consiguió la clave del wifi",
     ],
 )
 def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
@@ -1806,3 +1853,33 @@ def test_plural_de_termo_nao_e_corrigido_para_o_termo():
     texto = "Estoy preocupado con tantas estafas y golpes"
     assert interpretacao.corrigir(texto) == (texto, ())
     assert ler("No reconosco un cargo").intencao == "contestar"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # A transação "duplicada", "extraña" ou "desconocida" é contestação (ACH-220 da validação).
+        ("La compra de 80 dólares está duplicada", "es"),
+        ("Meu pagamento de 50 reais está duplicado", "pt"),
+        ("Tengo un cargo extraño en mi tarjeta", "es"),
+        ("Apareceu uma cobrança estranha no meu cartão", "pt"),
+        ("Hay un cargo desconocido en mi tarjeta", "es"),
+        ("Tem uma compra desconhecida no meu cartão", "pt"),
+    ],
+)
+def test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao(texto, anterior):
+    assert ler(texto, anterior).intencao == "contestar"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # Com o sinal de golpe antes, a consequência não decide: o relato fica com o leitor e o LLM
+        # (REG-68 e REG-69 da validação).
+        ("Hice clic en un enlace del banco que me llegó por mensaje y tengo cobros extraños", "es"),
+        ("Cliquei num link do banco que chegou por mensagem e tenho cobranças estranhas", "pt"),
+        ("Me llegó un SMS del banco, puse mis datos y ahora tengo cargos desconocidos", "es"),
+    ],
+)
+def test_consequencia_de_golpe_nao_e_contestacao(texto, anterior):
+    assert ler(texto, anterior).intencao != "contestar"
