@@ -281,7 +281,11 @@ termos compostos, com as duas partes perto e na ordem da história:
 - o segredo entregue ("le di el código", "passei a senha");
 - outra pessoa que usou o cartão ou entrou na conta ("alguien utilizó mi tarjeta"), salvo a pessoa
   do próprio banco ou do suporte ("alguien del soporte entró a mi cuenta para restablecer la
-  contraseña", ACH-194), e quem ligou ou disse ser do banco e tirou o dinheiro (ACH-192, REG-33);
+  contraseña", ACH-194), e quem ligou ou disse ser do banco e tirou o dinheiro (ACH-192, REG-33).
+  Também no mais-que-perfeito ("encontré mi tarjeta pero alguien ya la había usado", ACH-199). O
+  uso pensado e desfeito, ou a pergunta de alguém, não é relato ("pensé que alguien la usó, pero era
+  un cargo mío", "minha filha perguntou se alguém tinha usado meu cartão", ACH-201). Esse uso
+  desfeito não vai ao leitor nem ao LLM, que o liam como fraude;
 - a conta esvaziada ("me vaciaron la cuenta");
 - a perda do cartão, também o cartão que não se achou ("no encontré mi tarjeta"); quem achou o cartão
   e quer reativá-lo pede o desbloqueio ("encontré la tarjeta que perdí, ¿cómo la reactivo?",
@@ -301,7 +305,10 @@ A exceção é a **guarda de prevenção** (ACH-144, `prevencao`): a pergunta de
 caer en una estafa?", "quais cuidados para não cair em golpe?") e a suspeita sem perda ("me llamó un
 supuesto gerente pidiendo la clave, no se la di") vão ao atendente sem bloquear, com "prevenção ou
 suspeita sem perda; nada bloqueado" no caso. Um termo de vítima não negado desfaz a guarda: com ",
-pero vaciaron mi cuenta" no fim, a mesma suspeita bloqueia.
+pero vaciaron mi cuenta" no fim, a mesma suspeita bloqueia. O dinheiro mandado ao golpista ("'não é
+golpe', ele falou, e eu fiz o pix") e o cartão entregue a ele também desfazem a guarda (ACH-222,
+REG-77). A contestação dita como cobrança "extraña", "desconocida", "duplicada" ou "que no realicé"
+é contestação, não consulta (ACH-220).
 
 Erro de digitação (DEV-060): a palavra de 6 letras ou mais que o vocabulário não conhece (menos de
 2 ocorrências no BANKING77 de treino ES/PT), a uma edição de exatamente um termo de contestar,
