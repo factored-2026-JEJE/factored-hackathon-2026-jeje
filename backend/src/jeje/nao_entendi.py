@@ -13,6 +13,7 @@ esquema: a mensagem segue não entendida, com o motivo no trace.
 
 import contextlib
 import logging
+import re
 import threading
 from dataclasses import replace
 from pathlib import Path
@@ -21,7 +22,7 @@ from typing import Literal, get_args
 import numpy as np
 from pydantic import BaseModel, ConfigDict
 
-from jeje.interpretacao import Interpretacao
+from jeje.interpretacao import NEGACAO, Interpretacao, normalizar
 from jeje.interpretacao_modelo import SINAL_DO_MODELO, Leitura, Ollama
 from jeje.leitor.vizinhos import Vizinhos
 from jeje.mensagens import Idioma
@@ -88,6 +89,26 @@ FIXOS: dict[Idioma, tuple[tuple[str, IntencaoDoLLM], ...]] = {
         ("Me passa para um atendente, por favor.", "humano"),
     ),
 }
+
+
+# O desbloqueio que só o LLM leu precisa de um verbo de desfazer na mensagem, sem negação logo antes
+# (ACH-183): "Já está bloqueado. [...] Preciso só desse bloqueio agora mesmo" não pede o
+# desbloqueio, e a proposta de desfazê-lo, com um "sim" por reflexo, desbloquearia o cartão. Sem o
+# verbo, a mensagem segue não entendida, com o sinal no trace.
+DESFAZER = re.compile(
+    r"(?<![a-z0-9])(?:desbloque|desfa[zc]|deshac|deshaz|deshag|reactiv|reativ|liber|destrav"
+    r"|destrab"
+    r"|(?:volver|voltar) a usar|usar(?:la|lo)? de (?:nuevo|novo)"
+    r"|(?:tir|quit|sac|retir|remov)\w* (?:\w+ )?bloque)"
+)
+DESFAZER_NEGADO = re.compile(NEGACAO + "$")
+SEM_DESFAZER = "modelo:desbloquear-sem-desfazer"
+
+
+def pede_desfazer(texto: str) -> bool:
+    """A mensagem tem um verbo de desfazer o bloqueio que não vem negado ("não desbloqueia")."""
+    limpo = normalizar(texto)
+    return any(not DESFAZER_NEGADO.search(limpo[: m.start()]) for m in DESFAZER.finditer(limpo))
 
 
 def prompt(vizinhos: dict[str, list[str]], idioma: Idioma) -> str:
@@ -164,6 +185,9 @@ class NaoEntendi:
             )
             fallback = f"regras (fallback: {type(erro).__name__})"
             return Leitura(lido, fallback, self.ollama.chamada(inicio, uso), vetor)
-        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))
         fonte = f"ollama:{self.ollama.modelo}"
+        if intencao == "desbloquear" and not pede_desfazer(texto):
+            lida = replace(lido, sinais=(*lido.sinais, SEM_DESFAZER))
+            return Leitura(lida, fonte, self.ollama.chamada(inicio, uso), vetor)
+        lida = replace(lido, intencao=intencao, sinais=(*lido.sinais, SINAL_DO_MODELO))
         return Leitura(lida, fonte, self.ollama.chamada(inicio, uso), vetor)
