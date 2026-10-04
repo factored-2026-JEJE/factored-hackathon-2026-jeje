@@ -5,7 +5,9 @@
 # quando ela passa a falhar e quando volta, sem repetir a cada 10 min enquanto a publicação segue fora.
 # Depois de 16/10, não faz nada. O registro e o último estado de cada conferência ficam em ~/.local/state/jeje.
 # Daqui da máquina, confere também a ponte do Ollama (PONTE_URL): sem ela, a publicação segue de pé, mas
-# o LLM do "não entendi" some, e nenhuma conferência pelo endereço público mostra isso.
+# o LLM do "não entendi" some, e nenhuma conferência pelo endereço público mostra isso. E confere se o
+# modelo carregado está na GPU (OLLAMA_LOCAL, /api/ps): depois do reinício de 03/10, o Ollama subiu antes
+# do driver e rodou na CPU, lento a ponto de estourar o tempo do "não entendi".
 #
 #   scripts/vigiar-publicacao.sh [--conversa] [endereço]
 set -u
@@ -18,6 +20,18 @@ status=$?
 if ! curl -fsS -m 5 -o /dev/null "${PONTE_URL:-http://172.17.0.1:11434}/api/version"; then
   saida="$saida
 FALHA ponte do Ollama: ${PONTE_URL:-http://172.17.0.1:11434} não responde (docker compose --profile modelo up -d ollama-ponte)"
+  status=1
+fi
+na_cpu=$(curl -fsS -m 5 "${OLLAMA_LOCAL:-http://127.0.0.1:11434}/api/ps" 2>/dev/null | python3 -c '
+import json, sys
+try:
+    print(" ".join(m["name"] for m in json.load(sys.stdin).get("models", []) if not m.get("size_vram")))
+except ValueError:
+    pass
+')
+if [ -n "$na_cpu" ]; then
+  saida="$saida
+FALHA o LLM roda na CPU, sem a GPU: $na_cpu (sudo systemctl restart ollama)"
   status=1
 fi
 printf '%s %s status=%s\n%s\n' "$(date -Is)" "$*" "$status" "$saida" >> "$registro"
