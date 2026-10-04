@@ -138,7 +138,7 @@ describe("os fatos do main no texto do site (fatos.ts)", () => {
       "Com 1 processo e 8 clientes ao mesmo tempo, p95 de 83 ms nas regras e de 139 ms com o leitor, no congelado.",
     ]);
     expect(provas[4]?.[0].en).toBe("With 1 worker and 8 concurrent clients, p95 of 83 ms on the rules and 139 ms with the reader, on the frozen commit.");
-    expect(CONTEUDO_DO_MAIN.sources["ACH-188"]).toEqual(["evid", "evidencias/V6 · ACH-188"]);
+    expect(CONTEUDO_DO_MAIN.sources["ACH-188"]).toEqual(["evid", "evidencias/V6 · EV-275 · ACH-188"]);
     expect(CONTEUDO_DO_MAIN.sources["NAV-01"]).toEqual(["evid", "evidencias/NAV-01 · EV-274"]);
     expect(CONTEUDO_DO_MAIN.sources["CON-01"]).toEqual(["evid", "evidencias/CON-01 · 20261004T071739"]);
     expect(CONTEUDO_DO_MAIN.sources["EXP-008"]).toEqual(["evid", "evidencias/EXP-008 · 04/10"]);
@@ -176,6 +176,6 @@ describe("os fatos do main no texto do site (fatos.ts)", () => {
     for (const idioma of ["pt", "es", "en"] as const) expect(placar.l[idioma]).toContain("(ACH-160)");
     expect(placar.l.pt).toContain("um relato de fraude dentro de uma contestação ficou sem atendente (ACH-160), corrigido depois do teste final");
     expect(placar.s).toBe("NOV-13a");
-    expect(CONTEUDO_DO_MAIN.sources["NOV-13a"]).toEqual(["evid", "evidencias/NOV-13a · ACH-160"]);
+    expect(CONTEUDO_DO_MAIN.sources["NOV-13a"]).toEqual(["evid", "evidencias/NOV-13a · EV-278"]);
   });
 });

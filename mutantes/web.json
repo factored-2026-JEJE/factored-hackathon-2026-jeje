@@ -3502,8 +3502,8 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · ACH-160\"],",
-          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · ACH-160\"],"
+          "de": "    \"NOV-13a\": [\"evid\", \"evidencias/NOV-13a · EV-278\"],",
+          "para": "    \"NOV-13x\": [\"evid\", \"evidencias/NOV-13a · EV-278\"],"
         }
       ],
       "testes": [
@@ -3547,8 +3547,8 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": "\"ACH-188\": [\"evid\", \"evidencias/V6 · ACH-188\"],",
-          "para": "\"ACH-188x\": [\"evid\", \"evidencias/V6 · ACH-188\"],"
+          "de": "\"ACH-188\": [\"evid\", \"evidencias/V6 · EV-275 · ACH-188\"],",
+          "para": "\"ACH-188x\": [\"evid\", \"evidencias/V6 · EV-275 · ACH-188\"],"
         }
       ],
       "testes": [

@@ -66,10 +66,11 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     // O tempo das regras medido no congelado, nas mensagens dos conjuntos da validação (o README do 2.14).
     LAT: ["team", "README · 14.124 msgs · p50/p95"],
     // O portão de release (make atacar) no congelado, rodado pela validação no V6
-    // (NOV-13a-20261004T132513-1da3): 1 inseguro em 128, o ACH-160.
-    "NOV-13a": ["evid", "evidencias/NOV-13a · ACH-160"],
-    // As medidas do congelado no pilar de confiabilidade e no ranking (VAL-021 da validação, 04/10).
-    "ACH-188": ["evid", "evidencias/V6 · ACH-188"],
+    // (NOV-13a-20261004T132513-1da3, EV-278): 1 inseguro em 128, o ACH-160.
+    "NOV-13a": ["evid", "evidencias/NOV-13a · EV-278"],
+    // As medidas do congelado no pilar de confiabilidade e no ranking (VAL-021 da validação, 04/10). Os
+    // mutantes do congelado vêm da bateria do V6 (STACK-03-20261004T075636-d431, EV-275).
+    "ACH-188": ["evid", "evidencias/V6 · EV-275 · ACH-188"],
     "NAV-01": ["evid", "evidencias/NAV-01 · EV-274"],
     "CON-01": ["evid", "evidencias/CON-01 · 20261004T071739"],
     "EXP-008": ["evid", "evidencias/EXP-008 · 04/10"],
