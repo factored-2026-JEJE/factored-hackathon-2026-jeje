@@ -23,8 +23,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "          <button type=\"button\" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>",
-          "para": "          <button type=\"button\" disabled={enviando} onClick={() => { setSituacao({ ...situacao, protocolo: \"PC-00000009\" }); void enviar(rapidas.confirmar); }}>"
+          "de": "onClick={() => void enviar(rapidas.confirmar)}",
+          "para": "onClick={() => { setSituacao(situacao && { ...situacao, protocolo: \"PC-00000009\" }); void enviar(rapidas.confirmar); }}"
         }
       ],
       "testes": [
@@ -68,13 +68,18 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "    if (!conversaId || enviando || limpa === \"\") return;",
-          "para": "    if (!conversaId || limpa === \"\") return;"
+          "de": "    if (enviando || limpa === \"\") return;",
+          "para": "    if (limpa === \"\") return;"
         },
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "          <button type=\"button\" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>",
-          "para": "          <button type=\"button\" onClick={() => void enviar(rapidas.confirmar)}>"
+          "de": "f.autor === \"assistente\" && !enviando && situacao !== null",
+          "para": "f.autor === \"assistente\" && situacao !== null"
+        },
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "className=\"conv-opcao\" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}",
+          "para": "className=\"conv-opcao\" onClick={() => void enviar(rapidas.confirmar)}"
         }
       ],
       "testes": [
@@ -133,12 +138,12 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "  const rapidas = RESPOSTAS[situacao.idioma];",
+          "de": "  const rapidas = RESPOSTAS[idiomaDaConversa];",
           "para": "  const rapidas = RESPOSTAS.es;"
         }
       ],
       "testes": [
-        "src/Conversa.test.tsx > recarregar reabre a conversa guardada pelo histórico, sem enviar nada"
+        "src/Conversa.test.tsx > a confirmação vai na língua da conversa: em português, o sim que vai é o 'Sim, confirmo'"
       ]
     },
     {
@@ -208,7 +213,7 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "      {encerrada && (\n        <p role=\"status\" className=\"aviso\">\n          Conversa encerrada: os dados foram atualizados. Abra uma nova conversa.\n        </p>\n      )}\n",
+          "de": "        {encerrada && (\n          <p role=\"status\" className=\"conv-aviso\">\n            {traduzir(CLIENTE.encerrada, lingua)}\n          </p>\n        )}\n",
           "para": ""
         }
       ],
@@ -303,7 +308,8 @@
         }
       ],
       "testes": [
-        "src/Atendimento.test.tsx > entrar como persona abre sessão e mostra só as transações dela"
+        "src/Atendimento.test.tsx > entrar como persona abre sessão e mostra só as transações dela",
+        "src/Atendimento.test.tsx > os pedidos de revisão mostram o comércio, o valor e o dia, e a linha da transação leva o protocolo"
       ]
     },
     {
@@ -388,8 +394,8 @@
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
-          "de": "  Declined: \"Recusada\",",
-          "para": "  Declined: \"Aprovada\","
+          "de": "  Declined: \"recusada\",",
+          "para": "  Declined: \"aprovada\","
         }
       ],
       "testes": [
@@ -589,22 +595,22 @@
         }
       ],
       "testes": [
-        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a sessão mostra o escolhido"
+        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai cadastrado, como no design, e a sessão mostra o escolhido"
       ]
     },
     {
       "id": "M-WEB-71",
       "requisito": "R08",
-      "descricao": "Sem escolha, o acesso vai como dispositivo cadastrado (o lado não conservador)",
+      "descricao": "Sem escolha, o acesso vai como dispositivo novo, e não cadastrado como no design",
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
-          "de": "useState<Dispositivo>(\"novo\")",
-          "para": "useState<Dispositivo>(\"cadastrado\")"
+          "de": "useState<Dispositivo>(\"cadastrado\")",
+          "para": "useState<Dispositivo>(\"novo\")"
         }
       ],
       "testes": [
-        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai novo, e a sessão mostra o escolhido"
+        "src/Atendimento.test.tsx > o dispositivo simulado é escolhido no acesso: sem escolha vai cadastrado, como no design, e a sessão mostra o escolhido"
       ]
     },
     {
@@ -634,7 +640,7 @@
         }
       ],
       "testes": [
-        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu",
+        "src/Conversa.test.tsx > por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito",
         "src/Conversa.test.tsx > turno reaberto pelo histórico mostra só a regra e a ação"
       ]
     },
@@ -644,13 +650,13 @@
       "descricao": "\"Por que\" sem o que a regra quer dizer",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "<dd>{motivo.descricao ? `${motivo.regra}: ${motivo.descricao}` : motivo.regra}</dd>",
-          "para": "<dd>{motivo.regra}</dd>"
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "    [t.rc.meaning, significado(tr.regra, lingua, tr.descricao)],",
+          "para": "    [t.rc.meaning, \"—\"],"
         }
       ],
       "testes": [
-        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu"
+        "src/Conversa.test.tsx > por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito"
       ]
     },
     {
@@ -659,13 +665,13 @@
       "descricao": "\"Por que\" sem o efeito criado no turno",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "        {motivo.efeito && (\n",
-          "para": "        {false && motivo.efeito && (\n"
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "    [t.rc.effect, efeito],",
+          "para": "    [t.rc.effect, \"—\"],"
         }
       ],
       "testes": [
-        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu"
+        "src/Conversa.test.tsx > por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito"
       ]
     },
     {
@@ -681,21 +687,6 @@
       ],
       "testes": [
         "src/Conversa.test.tsx > turno reaberto pelo histórico mostra só a regra e a ação"
-      ]
-    },
-    {
-      "id": "M-WEB-83",
-      "requisito": "R09",
-      "descricao": "\"Por que\" sem as fontes dos fatos",
-      "trocas": [
-        {
-          "arquivo": "src/Conversa.tsx",
-          "de": "        {motivo.fontes && motivo.fontes.length > 0 && (\n",
-          "para": "        {false && (\n"
-        }
-      ],
-      "testes": [
-        "src/Conversa.test.tsx > por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu"
       ]
     },
     {
@@ -750,7 +741,7 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "{ATALHOS[situacao.idioma].map(",
+          "de": "{ATALHOS[idiomaDaConversa].map(",
           "para": "{ATALHOS.pt.map("
         }
       ],
@@ -765,7 +756,7 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "{ATALHOS[situacao.idioma].map(",
+          "de": "{ATALHOS[idiomaDaConversa].map(",
           "para": "{ATALHOS.es.map("
         }
       ],
@@ -795,27 +786,12 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "        situacao.estado === \"confirmando_desbloqueio\" ||\n",
+          "de": "                      situacao.estado === \"confirmando_desbloqueio\" ||\n",
           "para": ""
         }
       ],
       "testes": [
         "src/Conversa.test.tsx > desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o console"
-      ]
-    },
-    {
-      "id": "M-WEB-91",
-      "requisito": "R02",
-      "descricao": "\"Perguntar sobre esta\" aparece sem conversa aberta",
-      "trocas": [
-        {
-          "arquivo": "src/Atendimento.tsx",
-          "de": "              {idioma && (\n",
-          "para": "              {(idioma ?? \"es\") && (\n"
-        }
-      ],
-      "testes": [
-        "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em espanhol as pistas da linha, nunca o identificador"
       ]
     },
     {
@@ -825,8 +801,8 @@
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
-          "de": "    return `¿Qué pasó con la transacción de ${quantia} del ${data}${t.merchant_name ? ` en ${t.merchant_name}` : \"\"}?`;",
-          "para": "    return `¿Qué pasó con la transacción ${t.transaction_id} de ${quantia} del ${data}${t.merchant_name ? ` en ${t.merchant_name}` : \"\"}?`;"
+          "de": "    return `¿Qué pasó con el cobro de ${quantia} del ${data}${t.merchant_name ? ` en ${t.merchant_name}` : \"\"}?`;",
+          "para": "    return `¿Qué pasó con el cobro ${t.transaction_id} de ${quantia} del ${data}${t.merchant_name ? ` en ${t.merchant_name}` : \"\"}?`;"
         }
       ],
       "testes": [
@@ -855,8 +831,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "    aoPerguntado();\n    void enviar(pergunta);\n  }, [pergunta, aoPerguntado, conversaId, carregando]);",
-          "para": "    aoPerguntado();\n  }, [pergunta, aoPerguntado, conversaId, carregando]);"
+          "de": "    aoPerguntado();\n    void enviar(pergunta);\n  }, [pergunta, aoPerguntado, carregando]);",
+          "para": "    aoPerguntado();\n  }, [pergunta, aoPerguntado, carregando]);"
         }
       ],
       "testes": [
@@ -991,8 +967,8 @@
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
-          "de": "              cartões para bloquear: {persona.cartoes_bloqueaveis} · recusas: {persona.transacoes_recusadas} · pré-casos\n",
-          "para": "              cartões para bloquear: ? · recusas: {persona.transacoes_recusadas} · pré-casos\n"
+          "de": "<span className=\"acc-numero\">{p.cartoes_bloqueaveis}</span>",
+          "para": "<span className=\"acc-numero\">?</span>"
         }
       ],
       "testes": [
@@ -1020,9 +996,9 @@
       "descricao": "O Por que esta resposta? não mostra como a transação foi achada (DEV-071)",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "            <dd>{comoAchou(motivo.resolucao, Boolean(motivo.transaction_id))}</dd>\n",
-          "para": "            <dd>{motivo.resolucao.resolvedor}</dd>\n"
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "  if (transacao) linhas.push([t.rc.txn, transacao + detalheDoRanking(tr, lingua)]);\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -1035,9 +1011,9 @@
       "descricao": "A escolha sem garantia aparece como escolhida com garantia estatística (DEV-037a)",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "    return escolhida\n      ? `escolhida com garantia estatística de ${NIVEL_DA_GARANTIA}: o conjunto conformal ficou só com ela (${detalhe})`\n      : `sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (${detalhe})`;",
-          "para": "    return escolhida\n      ? `sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (${detalhe})`\n      : `escolhida com garantia estatística de ${NIVEL_DA_GARANTIA}: o conjunto conformal ficou só com ela (${detalhe})`;"
+          "arquivo": "src/porQueDoTurno.ts",
+          "de": "  ranking: { pt: \"ranking com garantia (α = 5%)\", es: \"ranking con garantía (α = 5%)\", en: \"ranking with a guarantee (α = 5%)\" },",
+          "para": "  ranking: { pt: \"ranking sem garantia: mostra as possíveis\", es: \"ranking sin garantía: muestra las posibles\", en: \"ranking without a guarantee: shows candidates\" },"
         }
       ],
       "testes": [
@@ -1050,9 +1026,9 @@
       "descricao": "O \"Por que esta resposta?\" diz que a transação achada pelo filtro exato foi escolhida pelo cliente (DEV-071)",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "  const como = { filtro: \"pelo filtro exato\", escolha: \"escolhida pelo cliente na lista\", foco: \"a que já estava em curso\" };",
-          "para": "  const como = { filtro: \"escolhida pelo cliente na lista\", escolha: \"pelo filtro exato\", foco: \"a que já estava em curso\" };"
+          "arquivo": "src/porQueDoTurno.ts",
+          "de": "  filtro: { pt: \"filtro exato\", es: \"filtro exacto\", en: \"exact filter\" },",
+          "para": "  filtro: { pt: \"escolhida pelo cliente\", es: \"elegida por el cliente\", en: \"chosen by the customer\" },"
         }
       ],
       "testes": [
@@ -1065,9 +1041,9 @@
       "descricao": "As opções ordenadas pelo ranking aparecem como escolhidas com garantia",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "Boolean(motivo.transaction_id))}",
-          "para": "true)}"
+          "arquivo": "src/porQueDoTurno.ts",
+          "de": "return (turno.transaction_id ? COMO_ACHOU.ranking : COMO_ACHOU.semGarantia)[lingua];",
+          "para": "return COMO_ACHOU.ranking[lingua];"
         }
       ],
       "testes": [
@@ -1080,13 +1056,13 @@
       "descricao": "A probabilidade sai com ponto decimal",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "r.probabilidade.toFixed(2).replace(\".\", \",\")",
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "r.probabilidade.toFixed(2).replace(\".\", L.decimal)",
           "para": "r.probabilidade.toFixed(2)"
         }
       ],
       "testes": [
-        "src/Conversa.test.tsx > por que esta resposta diz como a transação foi achada (DEV-071): o ranking escolheu"
+        "src/Conversa.test.tsx > por que esta resposta na língua da interface: em português, os rótulos do design e a probabilidade com vírgula"
       ]
     },
     {
@@ -1095,9 +1071,9 @@
       "descricao": "O Por que esta resposta? esconde a origem do fato (DEV-044)",
       "trocas": [
         {
-          "arquivo": "src/Conversa.tsx",
-          "de": "        {motivo.recibo && (",
-          "para": "        {false && motivo.recibo && ("
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "  if (tr.recibo) linhas.push([t.rc.file, tr.recibo.arquivo], [t.rc.line, String(tr.recibo.linha)]);\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -1111,8 +1087,8 @@
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
-          "de": " · contestáveis: {persona.contestaveis}",
-          "para": ""
+          "de": "<span className=\"acc-numero\">{p.contestaveis}</span>",
+          "para": "<span className=\"acc-numero\" />"
         }
       ],
       "testes": [
@@ -1857,8 +1833,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "void iniciar(idiomaDaFrase(pergunta) ?? (lingua === \"pt\" ? \"pt\" : \"es\"))",
-          "para": "void iniciar(\"pt\")"
+          "de": "      const idioma = idiomaDaFrase(limpa) ?? (lingua === \"pt\" ? \"pt\" : \"es\");",
+          "para": "      const idioma: Idioma = \"pt\";"
         }
       ],
       "testes": [
@@ -2151,6 +2127,188 @@
       ]
     },
     {
+      "id": "M-WEB-335",
+      "requisito": "R02",
+      "descricao": "O passo 2 (a transação) não acende enquanto a API pergunta qual",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  esclarecendo: 1,",
+          "para": "  esclarecendo: 0,"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > opções da API viram botões que enviam o número escolhido"
+      ]
+    },
+    {
+      "id": "M-WEB-336",
+      "requisito": "R02",
+      "descricao": "O passo 3 (a confirmação) não acende com a proposta",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  confirmando: 2,",
+          "para": "  confirmando: 1,"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > opções da API viram botões que enviam o número escolhido"
+      ]
+    },
+    {
+      "id": "M-WEB-337",
+      "requisito": "R06",
+      "descricao": "O X-Request-ID da resposta não chega ao Por que esta resposta?",
+      "trocas": [
+        {
+          "arquivo": "src/api/cliente.ts",
+          "de": "  return { ...turno, requestId: resposta.headers.get(\"X-Request-ID\") };",
+          "para": "  return { ...turno, requestId: null };"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito"
+      ]
+    },
+    {
+      "id": "M-WEB-338",
+      "requisito": "R02",
+      "descricao": "A intenção contestar aparece como consulta",
+      "trocas": [
+        {
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "  contestar: \"dispute\",",
+          "para": "  contestar: \"consult\","
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito"
+      ]
+    },
+    {
+      "id": "M-WEB-339",
+      "requisito": "R02",
+      "descricao": "A ação de propor aparece como registro",
+      "trocas": [
+        {
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "  propor_pre_caso: \"propose\",",
+          "para": "  propor_pre_caso: \"record\","
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito",
+        "src/Conversa.test.tsx > turno reaberto pelo histórico mostra só a regra e a ação"
+      ]
+    },
+    {
+      "id": "M-WEB-340",
+      "requisito": "R02",
+      "descricao": "Os pedidos de revisão mostram só o identificador da transação",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "          const tr = transacoes.find((x) => x.transaction_id === p.transaction_id);",
+          "para": "          const tr = undefined as Transacao | undefined;"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os pedidos de revisão mostram o comércio, o valor e o dia, e a linha da transação leva o protocolo"
+      ]
+    },
+    {
+      "id": "M-WEB-341",
+      "requisito": "R02",
+      "descricao": "A linha da transação não mostra o protocolo do pedido de revisão",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "{pc && <span className=\"trx-pc\">{pc.protocolo}</span>}",
+          "para": "{null}"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os pedidos de revisão mostram o comércio, o valor e o dia, e a linha da transação leva o protocolo"
+      ]
+    },
+    {
+      "id": "M-WEB-342",
+      "requisito": "R02",
+      "descricao": "O cartão da persona não traz a frase de exemplo",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "            const frase = p.exemplo ? frasesDoExemplo(p.exemplo)[lingua === \"pt\" ? 1 : 0] : null;",
+          "para": "            const frase: string | null = null;"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > cada persona traz quantas contestáveis tem e a frase pronta com uma compra dela"
+      ]
+    },
+    {
+      "id": "M-WEB-343",
+      "requisito": "R02",
+      "descricao": "A fala nova não rola até ficar à vista (ACH-209)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "    if (ultima && typeof ultima.scrollIntoView === \"function\") ultima.scrollIntoView({ block: \"nearest\" });\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > a fala nova rola até ficar à vista, pelo mínimo (ACH-209)"
+      ]
+    },
+    {
+      "id": "M-WEB-344",
+      "requisito": "R02",
+      "descricao": "O caso reaberto pelo histórico não mostra que está com uma pessoa",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "(f.motivo.acao === \"humano\" || Boolean(f.motivo.turno?.atendimento))",
+          "para": "Boolean(f.motivo.turno?.atendimento)"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > reabrir a conversa mostra o caso que está com o atendente"
+      ]
+    },
+    {
+      "id": "M-WEB-345",
+      "requisito": "R02",
+      "descricao": "Sem conversa aberta, a frase de fora não é enviada (o Try e o Ask about this one)",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "      const conversa = conversaId ?? (await abrir(idioma));",
+          "para": "      const conversa = conversaId;"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > perguntar sobre esta manda à conversa em espanhol as pistas da linha, nunca o identificador",
+        "src/App.experimentar.test.tsx > o Try entra sozinho com a persona da demonstração e o dispositivo cadastrado, e a frase vai para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-352",
+      "requisito": "R02",
+      "descricao": "O turno de verdade chega ao mapa sempre como lido pelas regras (o leitor e o LLM não acendem)",
+      "trocas": [
+        {
+          "arquivo": "src/site/turnoNoMapa.ts",
+          "de": "    return { nos, humano, leitura: leitura === \"llm\" || leitura === \"leitor\" ? leitura : \"regras\" };",
+          "para": "    return { nos, humano, leitura: \"regras\" };"
+        }
+      ],
+      "testes": [
+        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > a lista dos nós de verdade vale como veio; um tipo de rota do design vale como a jornada"
+      ]
+    },
+    {
       "id": "M-WEB-346",
       "requisito": "R06",
       "descricao": "O site aceita um arquivo de resultados com linha de menos ou célula fora da forma",
@@ -2242,18 +2400,94 @@
       ]
     },
     {
-      "id": "M-WEB-352",
-      "requisito": "R02",
-      "descricao": "O turno de verdade chega ao mapa sempre como lido pelas regras (o leitor e o LLM não acendem)",
+      "id": "M-WEB-353",
+      "requisito": "R06",
+      "descricao": "A nota do teste concluído corta o commit congelado em 7 caracteres: o commit de 12 do arquivo de resultados não aparece inteiro",
       "trocas": [
         {
-          "arquivo": "src/site/turnoNoMapa.ts",
-          "de": "    return { nos, humano, leitura: leitura === \"llm\" || leitura === \"leitor\" ? leitura : \"regras\" };",
-          "para": "    return { nos, humano, leitura: \"regras\" };"
+          "arquivo": "src/site/resultados.ts",
+          "de": "const commit = r.commit.slice(0, 12);",
+          "para": "const commit = r.commit.slice(0, 7);"
         }
       ],
       "testes": [
-        "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > a lista dos nós de verdade vale como veio; um tipo de rota do design vale como a jornada"
+        "src/site/resultados.test.ts > depois do teste, a seção diz que acabou, com o commit congelado e a evidência"
+      ]
+    },
+    {
+      "id": "M-WEB-354",
+      "requisito": "R02",
+      "descricao": "O atalho manda sempre a frase do design: \"Como está meu pedido?\", que as regras não entendem, vai como está",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "onClick={() => void enviar(FRASE_DO_ATALHO[frase] ?? frase)}",
+          "para": "onClick={() => void enviar(frase)}"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > o atalho do pedido em português segue o rótulo do design e manda a frase que as regras entendem"
+      ]
+    },
+    {
+      "id": "M-WEB-355",
+      "requisito": "R02",
+      "descricao": "Os cartões não são relidos depois de um efeito da conversa: o bloqueio feito pelo chat não aparece no painel",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "}, [token, versao]);",
+          "para": "}, [token, versao < 0]);"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com a nota de desfazer pela conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-356",
+      "requisito": "R02",
+      "descricao": "O bloqueio preventivo aparece como completo (e o completo como preventivo)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "const preventivo = c.bloqueio?.tipo === \"preventivo\";",
+          "para": "const preventivo = c.bloqueio?.tipo === \"completo\";"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design"
+      ]
+    },
+    {
+      "id": "M-WEB-357",
+      "requisito": "R02",
+      "descricao": "Todo cartão aparece ativo, mesmo bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "<span className=\"cartao-st\">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>",
+          "para": "<span className=\"cartao-st\">{t.side.active}</span>"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design",
+        "src/Atendimento.test.tsx > um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com a nota de desfazer pela conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-358",
+      "requisito": "R02",
+      "descricao": "O cartão bloqueado perde a nota de quem desfaz (o atendente, ou a conversa em 7 dias)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "{c.bloqueio && <span className=\"cartao-nota\">",
+          "para": "{false && <span className=\"cartao-nota\">"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design"
       ]
     },
     {
@@ -3002,8 +3236,23 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "        situacao.estado === \"confirmando_bloqueio\") && (",
-          "para": "        situacao.estado === \"nenhum\") && ("
+          "de": "                      situacao.estado === \"confirmando_bloqueio\") && (",
+          "para": "                      situacao.estado === \"nenhum\") && ("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim"
+      ]
+    },
+    {
+      "id": "M-WEB-359",
+      "requisito": "R02",
+      "descricao": "A pergunta antes de bloquear (confirmando_bloqueio) aparece no passo 2, não no 3 da confirmação",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  confirmando_bloqueio: 2,",
+          "para": "  confirmando_bloqueio: 1,"
         }
       ],
       "testes": [

@@ -148,14 +148,18 @@ export async function abrirConversa(token: string, idioma: Idioma): Promise<Conv
   return json<ConversaAberta>(resposta, 201);
 }
 
-export async function enviarMensagem(token: string, conversaId: string, texto: string): Promise<ResultadoDoTurno> {
+/** O turno com o X-Request-ID da resposta, que o "Por que esta resposta?" mostra (o mesmo do log da API). */
+export type TurnoComRequisicao = ResultadoDoTurno & { readonly requestId: string | null };
+
+export async function enviarMensagem(token: string, conversaId: string, texto: string): Promise<TurnoComRequisicao> {
   const resposta = await fetch(`/api/conversas/${encodeURIComponent(conversaId)}/turnos`, {
     method: "POST",
     headers: jsonComToken(token),
     body: JSON.stringify({ texto }),
   });
   if (resposta.status === 503) throw new NaoRegistrado(((await resposta.json()) as { detail: string }).detail);
-  return json<ResultadoDoTurno>(resposta, 200);
+  const turno = await json<ResultadoDoTurno>(resposta, 200);
+  return { ...turno, requestId: resposta.headers.get("X-Request-ID") };
 }
 
 /** Histórico da conversa guardada nesta aba; `null` se ela não existe (ou não é desta sessão). */

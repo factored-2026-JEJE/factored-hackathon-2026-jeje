@@ -67,12 +67,12 @@ test("a conversa feita no app da janela acende o caminho do turno no mapa do sit
   await expect.poll(() => sombra(page, "qual"), { timeout: 15_000 }).toContain(ACESO);
   await page.getByRole("button", { name: /Abrir o app/ }).last().click();
   const app = page.frameLocator('iframe[title="JEJE app"]');
-  await app.getByRole("button", { name: /^Entrar como / }).first().click();
-  await app.getByRole("button", { name: "Conversar em español" }).click();
+  // O app da janela abre na língua do site (pt): entra pela primeira persona, com o dispositivo cadastrado.
+  await app.getByRole("button", { name: /^Entrar como .* →$/ }).click();
   // Uma mensagem sem transação: o caminho do turno não passa pelo "Qual", e passa pela política.
   const resposta = turnoDaApi(page);
-  await app.getByLabel("Mensagem").fill("xyz");
-  await app.getByRole("button", { name: "Enviar" }).click();
+  await app.getByLabel("Escreva como cliente, em espanhol ou português").fill("xyz");
+  await app.getByRole("button", { name: "Enviar", exact: true }).click();
   const turno: Turno = await (await resposta).json();
   expect(turno.opcoes).toEqual([]);
   await expect.poll(() => sombra(page, "qual"), { timeout: 15_000 }).toBe("none");

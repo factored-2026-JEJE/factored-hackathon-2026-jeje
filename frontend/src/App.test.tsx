@@ -23,13 +23,13 @@ afterEach(() => {
 
 test("abre na aba do cliente e troca de área pelas abas, com endereço próprio", async () => {
   render(<App />);
-  expect(await screen.findByRole("heading", { name: "Acesso de teste" })).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "Talk to the bank about your transactions." })).toBeVisible();
   expect(screen.getByRole("tab", { name: "Customer" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("heading", { name: "The case arrives ready.", hidden: true })).not.toBeVisible();
   await userEvent.click(screen.getByRole("tab", { name: "Agent" }));
   expect(screen.getByRole("heading", { name: "The case arrives ready." })).toBeVisible();
   expect(screen.getByRole("region", { name: "Card blocks" })).toBeVisible();
-  expect(screen.getByRole("heading", { name: "Acesso de teste", hidden: true })).not.toBeVisible();
+  expect(screen.getByRole("heading", { name: "Talk to the bank about your transactions.", hidden: true })).not.toBeVisible();
   expect(window.location.hash).toBe("#atendente");
 });
 
@@ -41,7 +41,7 @@ test("o endereço escolhe a aba ao abrir, e a aba escondida continua montada", a
   expect(screen.getByRole("tabpanel", { name: "Operations" })).toBeVisible();
   expect(document.getElementById("painel-cliente")).not.toBeVisible();
   // O acesso (e a conversa, depois de entrar) não é desmontado ao trocar de aba.
-  expect(await screen.findByRole("button", { name: "Entrar como Ana Souza", hidden: true })).not.toBeVisible();
+  expect(await screen.findByRole("button", { name: "Enter as Ana Souza →", hidden: true })).not.toBeVisible();
 });
 
 test("o guia dos jurados tem aba e endereço próprios (#how-to-test)", async () => {
@@ -57,7 +57,7 @@ test("trocar de aba avisa o site, com o endereço da aba, só quando a aba muda"
   const postMessage = vi.fn();
   vi.stubGlobal("parent", { postMessage });
   render(<App />);
-  await screen.findByRole("heading", { name: "Acesso de teste" });
+  await screen.findByRole("heading", { name: "Talk to the bank about your transactions." });
   expect(postMessage).not.toHaveBeenCalled();
   await userEvent.click(screen.getByRole("tab", { name: "Agent" }));
   expect(postMessage).toHaveBeenCalledExactlyOnceWith({ type: "jeje-app-route", hash: "#atendente" }, window.location.origin);

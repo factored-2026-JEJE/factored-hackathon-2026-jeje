@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useLingua } from "./app/LinguaDoApp";
-import { avisarTurno } from "./app/ponte";
-import { AvaliarConversa } from "./AvaliarConversa";
+import { CLIENTE, FRASE_DO_ATALHO } from "./abas/cliente/textos";
+import { linhasDoPorQue, type Motivo } from "./abas/cliente/porQue";
 import {
   abrirConversa,
   enviarMensagem,
@@ -11,126 +10,33 @@ import {
   type ResultadoDoTurno,
   SessaoExpirada,
 } from "./api/cliente";
+import { ATALHOS, OPCOES } from "./app/conteudo";
+import { useLingua } from "./app/LinguaDoApp";
+import { avisarTurno } from "./app/ponte";
+import { traduzir } from "./app/textos";
+import { AvaliarConversa } from "./AvaliarConversa";
 import { idiomaDaFrase } from "./frasesDoCliente";
 
 const CHAVE_CONVERSA = "jeje.conversa";
 
-// Respostas rápidas na língua da conversa: enviam o mesmo texto que o cliente digitaria, e quem
-// decide o que ele significa é a API (a tela não confirma nada sozinha).
+// O que vai para a API quando o cliente toca numa resposta rápida: o mesmo texto que ele digitaria, e
+// quem decide o que ele significa é a API (a tela não confirma nada sozinha). Na oferta do atendente,
+// os rótulos são os do design, e o que vai é o sí/sim e o no/não.
 const RESPOSTAS: Record<Idioma, { sim: string; nao: string; confirmar: string }> = {
   es: { sim: "Sí", nao: "No", confirmar: "Sí, confirmo" },
   pt: { sim: "Sim", nao: "Não", confirmar: "Sim, confirmo" },
 };
 
-// "Por que esta resposta?" (DEV-031): o que a API disse do turno. No turno reaberto pelo
-// histórico, só a regra e a ação.
-type Motivo = Pick<ResultadoDoTurno, "regra" | "acao"> &
-  Partial<
-    Pick<ResultadoDoTurno, "descricao" | "efeito" | "fontes" | "interpretacao" | "resolucao" | "recibo" | "transaction_id">
-  >;
-
-type Fala = { id: number; autor: "cliente" | "assistente"; texto: string; motivo?: Motivo };
-
-// Atalhos (PRD-006): mandam uma frase pronta, na língua da conversa, que as regras reconhecem. O
-// assistente trata como se o cliente tivesse digitado; nada é decidido na tela.
-const ATALHOS: Record<Idioma, [string, string][]> = {
-  es: [
-    ["Consultar uma transação", "Quiero consultar una transacción"],
-    ["Contestar uma cobrança", "Quiero contestar un cobro"],
-    ["Status do meu pedido", "¿Cómo va mi solicitud?"],
-    ["Bloquear cartão", "Quiero bloquear mi tarjeta"],
-    ["Pedir um atendente", "Quiero hablar con un agente"],
-  ],
-  pt: [
-    ["Consultar uma transação", "Quero consultar uma transação"],
-    ["Contestar uma cobrança", "Quero contestar uma cobrança"],
-    ["Status do meu pedido", "Como está o meu pedido de revisão?"],
-    ["Bloquear cartão", "Quero bloquear meu cartão"],
-    ["Pedir um atendente", "Quero falar com um atendente"],
-  ],
+// Os passos do design (1 · Pedido, 2 · Transação, 3 · Confirmação) pelo estado da conversa na API.
+const PASSO: Readonly<Record<string, number>> = {
+  esclarecendo: 1,
+  escolhendo_cartao: 1,
+  confirmando: 2,
+  confirmando_desbloqueio: 2,
+  confirmando_bloqueio: 2,
 };
 
-const motivoDo = (t: ResultadoDoTurno): Motivo => ({
-  regra: t.regra,
-  acao: t.acao,
-  descricao: t.descricao,
-  efeito: t.efeito,
-  fontes: t.fontes,
-  interpretacao: t.interpretacao,
-  resolucao: t.resolucao,
-  recibo: t.recibo,
-  transaction_id: t.transaction_id,
-});
-
-// De onde veio o fato (DEV-044): o arquivo e a linha do CSV de origem e a versão dos dados.
-function origem(r: NonNullable<ResultadoDoTurno["recibo"]>): string {
-  const versao = r.versao_dos_dados ? `, dados ${r.versao_dos_dados.slice(0, 12)}` : "";
-  return `${r.transaction_id}: ${r.arquivo}, linha ${r.linha}${versao}`;
-}
-
-// O nível da garantia da escolha pelo ranking (DEV-037): 1 - alfa, com o alfa da calibração
-// versionada (backend/src/jeje/qual_transacao.json, alfa = 0,05), cuja versão aparece ao lado.
-const NIVEL_DA_GARANTIA = "95%";
-
-// Como a transação do turno foi achada (DEV-071, DEV-037a): pelo ranking com garantia estatística, a
-// escolhida, o nível, a probabilidade, quantas podiam ser e a versão da calibração; sem a garantia,
-// o assistente mostrou as possíveis em vez de propor uma.
-function comoAchou(r: NonNullable<ResultadoDoTurno["resolucao"]>, escolhida: boolean): string {
-  if (r.resolvedor === "ranking") {
-    const p = r.probabilidade === null ? "" : `probabilidade ${r.probabilidade.toFixed(2).replace(".", ",")}; `;
-    const detalhe = `${p}${r.possiveis ?? "?"} possíveis; calibração ${r.calibracao ?? "?"}`;
-    return escolhida
-      ? `escolhida com garantia estatística de ${NIVEL_DA_GARANTIA}: o conjunto conformal ficou só com ela (${detalhe})`
-      : `sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (${detalhe})`;
-  }
-  const como = { filtro: "pelo filtro exato", escolha: "escolhida pelo cliente na lista", foco: "a que já estava em curso" };
-  return como[r.resolvedor];
-}
-
-/** A regra que decidiu a resposta, o que ela quer dizer, o efeito criado e de onde vieram os fatos. */
-function PorQue({ motivo }: { motivo: Motivo }) {
-  return (
-    <details className="por-que">
-      <summary>Por que esta resposta?</summary>
-      <dl>
-        <dt>Regra</dt>
-        <dd>{motivo.descricao ? `${motivo.regra}: ${motivo.descricao}` : motivo.regra}</dd>
-        <dt>Ação</dt>
-        <dd>{motivo.acao}</dd>
-        {motivo.efeito && (
-          <>
-            <dt>Efeito</dt>
-            <dd>{motivo.efeito}</dd>
-          </>
-        )}
-        {motivo.fontes && motivo.fontes.length > 0 && (
-          <>
-            <dt>Fontes</dt>
-            <dd>{motivo.fontes.join(", ")}</dd>
-          </>
-        )}
-        {motivo.interpretacao && (
-          <>
-            <dt>Leitura</dt>
-            <dd>{motivo.interpretacao}</dd>
-          </>
-        )}
-        {motivo.resolucao && (
-          <>
-            <dt>Transação</dt>
-            <dd>{comoAchou(motivo.resolucao, Boolean(motivo.transaction_id))}</dd>
-          </>
-        )}
-        {motivo.recibo && (
-          <>
-            <dt>Origem</dt>
-            <dd>{origem(motivo.recibo)}</dd>
-          </>
-        )}
-      </dl>
-    </details>
-  );
-}
+type Fala = { id: number; autor: "cliente" | "assistente"; texto: string; motivo?: Motivo };
 
 type Situacao = {
   idioma: Idioma;
@@ -160,7 +66,30 @@ function guardar(conversaId: string | null) {
 // Efeitos que o console do atendente precisa ver: pré-caso, encaminhamento, bloqueio e desbloqueio.
 const AVISAM_O_CONSOLE = ["registrar_pre_caso", "humano", "bloquear_cartao", "desbloquear_cartao"];
 
-/** Conversa com o assistente (sem modelo): cada resposta, opção e protocolo vêm da API. */
+/** O "Por que esta resposta?" de uma fala, com as linhas do design (ui.rc) lidas do turno da API. */
+function PorQue({ motivo }: { motivo: Motivo }) {
+  const { lingua, t } = useLingua();
+  const [aberto, setAberto] = useState(false);
+  return (
+    <>
+      <button type="button" className="conv-porque" aria-expanded={aberto} onClick={() => setAberto(!aberto)}>
+        {t.conv.why} {aberto ? "↑" : "↓"}
+      </button>
+      {aberto && (
+        <dl className="conv-recibo">
+          {linhasDoPorQue(motivo, t, lingua).map(([k, v]) => (
+            <div key={k} className="conv-recibo-linha">
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </>
+  );
+}
+
+/** Conversa com o assistente: cada resposta, opção, passo e protocolo vêm da API. */
 export function Conversa({
   token,
   aoExpirar,
@@ -168,6 +97,7 @@ export function Conversa({
   aoIdioma = () => {},
   pergunta = null,
   aoPerguntado = () => {},
+  exemplo = null,
 }: {
   token: string;
   aoExpirar: () => void;
@@ -177,7 +107,10 @@ export function Conversa({
   aoIdioma?: (idioma: Idioma | null) => void;
   pergunta?: string | null;
   aoPerguntado?: () => void;
+  /** A frase de exemplo da persona, nas duas línguas da conversa ([espanhol, português]). */
+  exemplo?: readonly [string, string] | null;
 }) {
+  const { lingua, t } = useLingua();
   const [conversaId, setConversaId] = useState<string | null>(null);
   const [falas, setFalas] = useState<Fala[]>([]);
   const [situacao, setSituacao] = useState<Situacao | null>(null);
@@ -192,6 +125,13 @@ export function Conversa({
     texto: conteudo,
     motivo,
   });
+  // A fala nova fica inteira à vista (ACH-209 da validação): a caixa das falas e a página rolam até
+  // ela, pelo mínimo. O jsdom dos testes não tem scrollIntoView.
+  const log = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const ultima = log.current?.querySelector(".conv-falas > li:last-child");
+    if (ultima && typeof ultima.scrollIntoView === "function") ultima.scrollIntoView({ block: "nearest" });
+  }, [falas, enviando]);
 
   // Recarregar a página reabre a conversa desta aba pelo histórico: nada é reenviado.
   useEffect(() => {
@@ -234,46 +174,45 @@ export function Conversa({
   useEffect(() => {
     aoIdioma(idiomaAberto);
   }, [idiomaAberto, aoIdioma]);
-  // A frase de fora ("Perguntar sobre esta" ou o "Try in ES/PT" das outras abas): sem conversa aberta,
-  // abre uma na língua da frase (ou na da interface: português ou, senão, espanhol) e manda quando ela
-  // abrir.
-  const { lingua } = useLingua();
-  const abrindo = useRef(false);
+  // A frase de fora ("Perguntar sobre esta" ou o "Try in ES/PT" das outras abas) vai como mensagem do
+  // cliente; sem conversa aberta, o envio abre uma.
   useEffect(() => {
     if (!pergunta || carregando) return;
-    if (!conversaId) {
-      if (abrindo.current) return;
-      abrindo.current = true;
-      void iniciar(idiomaDaFrase(pergunta) ?? (lingua === "pt" ? "pt" : "es")).finally(() => {
-        abrindo.current = false;
-      });
-      return;
-    }
     aoPerguntado();
     void enviar(pergunta);
-  }, [pergunta, aoPerguntado, conversaId, carregando]);
+  }, [pergunta, aoPerguntado, carregando]);
 
-  async function iniciar(idioma: Idioma) {
+  // Sem conversa aberta, a primeira mensagem abre uma na língua da frase (ou na da interface: português
+  // ou, senão, espanhol). A saudação da API não aparece: o estado vazio do design faz esse papel.
+  async function abrir(idioma: Idioma): Promise<string | null> {
     try {
-      const aberta = await abrirConversa(token, idioma);
-      guardar(aberta.conversa_id);
-      setConversaId(aberta.conversa_id);
-      setFalas([fala("assistente", aberta.resposta)]);
-      setSituacao({ idioma: aberta.idioma, estado: aberta.estado, opcoes: [], protocolo: null, atendimento: null });
+      const nova = await abrirConversa(token, idioma);
+      guardar(nova.conversa_id);
+      setConversaId(nova.conversa_id);
+      setSituacao({ idioma: nova.idioma, estado: nova.estado, opcoes: [], protocolo: null, atendimento: null });
+      return nova.conversa_id;
     } catch (e) {
       if (e instanceof SessaoExpirada) aoExpirar();
-      else setFalha({ mensagem: "", detalhe: "Não foi possível abrir a conversa. Tente de novo." });
+      else setFalha({ mensagem: "", detalhe: traduzir(CLIENTE.naoAbriu, lingua) });
+      return null;
     }
   }
 
   async function enviar(mensagem: string) {
     const limpa = mensagem.trim();
-    if (!conversaId || enviando || limpa === "") return;
+    if (enviando || limpa === "") return;
     setEnviando(true);
     setFalha(null);
     try {
-      const turno = await enviarMensagem(token, conversaId, limpa);
-      setFalas((atuais) => [...atuais, fala("cliente", limpa), fala("assistente", turno.resposta, motivoDo(turno))]);
+      const idioma = idiomaDaFrase(limpa) ?? (lingua === "pt" ? "pt" : "es");
+      const conversa = conversaId ?? (await abrir(idioma));
+      if (!conversa) return;
+      const turno = await enviarMensagem(token, conversa, limpa);
+      setFalas((atuais) => [
+        ...atuais,
+        fala("cliente", limpa),
+        fala("assistente", turno.resposta, { regra: turno.regra, acao: turno.acao, turno }),
+      ]);
       setSituacao({
         idioma: turno.idioma,
         estado: turno.estado,
@@ -290,7 +229,7 @@ export function Conversa({
       if (e instanceof SessaoExpirada) aoExpirar();
       else if (e instanceof NaoRegistrado) setFalha({ mensagem: limpa, detalhe: e.message });
       else if (!(await jaProcessada(limpa)))
-        setFalha({ mensagem: limpa, detalhe: "Sem resposta do servidor. Reenviar é seguro: a conversa não repete efeitos." });
+        setFalha({ mensagem: limpa, detalhe: traduzir(CLIENTE.semResposta, lingua) });
     } finally {
       setEnviando(false);
     }
@@ -333,134 +272,161 @@ export function Conversa({
     setFalha(null);
   }
 
-  if (carregando) return <p role="status">Carregando conversa…</p>;
+  if (carregando) return <p role="status">{traduzir(CLIENTE.carregandoConversa, lingua)}</p>;
 
-  if (!conversaId || !situacao) {
-    return (
-      <section aria-label="Conversa" className="cartao conversa">
-        <h3>Conversar com o assistente</h3>
-        <p>Consulta de transações e pedido de revisão de cobrança, em espanhol ou português.</p>
-        <div className="acoes">
-          <button type="button" onClick={() => void iniciar("es")}>
-            Conversar em español
-          </button>
-          <button type="button" onClick={() => void iniciar("pt")}>
-            Conversar em português
-          </button>
-        </div>
-        {falha && <p role="alert">{falha.detalhe}</p>}
-      </section>
-    );
-  }
-
-  const rapidas = RESPOSTAS[situacao.idioma];
+  const idiomaDaConversa: Idioma = situacao?.idioma ?? (lingua === "pt" ? "pt" : "es");
+  const rapidas = RESPOSTAS[idiomaDaConversa];
+  const opcoes = OPCOES[idiomaDaConversa];
   // A recarga dos dados encerrou a conversa: nada do contexto vale mais, só uma nova conversa.
-  const encerrada = situacao.estado === "encerrada";
+  const encerrada = situacao?.estado === "encerrada";
+  const passo = situacao ? (PASSO[situacao.estado] ?? 0) : 0;
+  const ultima = falas.at(-1);
+  // A fala que passou o caso para uma pessoa: o selo e a borda laranja do design (também no histórico).
+  const comPessoa = (f: Fala) => f.motivo !== undefined && (f.motivo.acao === "humano" || Boolean(f.motivo.turno?.atendimento));
+  // As opções ficam só na última resposta, e somem enquanto a próxima não chega.
+  const opcoesDaUltima = (f: Fala) => f === ultima && f.autor === "assistente" && !enviando && situacao !== null;
+
   return (
-    <section aria-label="Conversa" className="cartao conversa">
-      <div className="cabecalho">
-        <h3>Conversa</h3>
-        <button type="button" className="secundario" onClick={novaConversa}>
-          Nova conversa
-        </button>
-      </div>
-      <div role="log" aria-label="Mensagens" className="mensagens">
-        <ol>
-          {falas.map((f) => (
-            <li key={f.id} className={`fala fala-${f.autor}`}>
-              <span className="autor">{f.autor === "cliente" ? "Você" : "Assistente"}</span>
-              <p>{f.texto}</p>
-              {f.motivo && <PorQue motivo={f.motivo} />}
+    <section aria-label={t.conv.title} className="conv">
+      <div className="conv-cab">
+        <span className="conv-titulo">{t.conv.title}</span>
+        <span className="conv-lingua">{idiomaDaConversa.toUpperCase()}</span>
+        <ol className="conv-passos" aria-label={t.conv.title}>
+          {t.conv.steps.map((rotulo, i) => (
+            <li key={rotulo} className={i === passo ? "atual" : i < passo ? "feito" : undefined} aria-current={i === passo ? "step" : undefined}>
+              {rotulo}
             </li>
           ))}
         </ol>
-      </div>
-      {enviando && <p role="status">Enviando…</p>}
-      {situacao.protocolo && (
-        <p role="status" className="sucesso">
-          Pré-caso recebido: protocolo {situacao.protocolo}
-        </p>
-      )}
-      {comAtendente && (
-        <p role="status" className="aviso">
-          Com atendimento humano{situacao.atendimento ? ` (${situacao.atendimento})` : ""}.
-        </p>
-      )}
-      {encerrada && (
-        <p role="status" className="aviso">
-          Conversa encerrada: os dados foram atualizados. Abra uma nova conversa.
-        </p>
-      )}
-      {situacao.opcoes.length > 0 && (
-        <div role="group" aria-label="Opções" className="acoes coluna">
-          {situacao.opcoes.map((o) => (
-            <button key={o.numero} type="button" disabled={enviando} onClick={() => void enviar(String(o.numero))}>
-              {o.numero}. {o.descricao}
-            </button>
-          ))}
-        </div>
-      )}
-      {(situacao.estado === "confirmando" ||
-        situacao.estado === "confirmando_desbloqueio" ||
-        situacao.estado === "confirmando_bloqueio") && (
-        <div role="group" aria-label="Confirmação" className="acoes">
-          <button type="button" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>
-            {rapidas.confirmar}
-          </button>
-          <button type="button" className="secundario" disabled={enviando} onClick={() => void enviar(rapidas.nao)}>
-            {rapidas.nao}
-          </button>
-        </div>
-      )}
-      {situacao.estado === "oferecendo_humano" && (
-        <div role="group" aria-label="Atendente" className="acoes">
-          {/* Rótulos claros; o que vai para a API continua sendo o sí/sim e o no/não. */}
-          <button type="button" disabled={enviando} onClick={() => void enviar(rapidas.sim)}>
-            Falar com um atendente
-          </button>
-          <button type="button" className="secundario" disabled={enviando} onClick={() => void enviar(rapidas.nao)}>
-            Continuar aqui
-          </button>
-        </div>
-      )}
-      {!encerrada && !comAtendente && (
-        <div role="group" aria-label="Atalhos" className="acoes atalhos">
-          {ATALHOS[situacao.idioma].map(([rotulo, frase]) => (
-            <button key={rotulo} type="button" className="secundario" disabled={enviando} onClick={() => void enviar(frase)}>
-              {rotulo}
-            </button>
-          ))}
-        </div>
-      )}
-      {falha && (
-        <div role="alert" className="erro">
-          <p>{falha.detalhe}</p>
-          <button type="button" disabled={enviando} onClick={() => void reenviar(falha.mensagem)}>
-            Reenviar
-          </button>
-        </div>
-      )}
-      <form
-        className="envio"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void enviar(texto);
-        }}
-      >
-        <label htmlFor="mensagem">Mensagem</label>
-        <input
-          id="mensagem"
-          value={texto}
-          maxLength={500}
-          disabled={enviando || encerrada}
-          onChange={(e) => setTexto(e.target.value)}
-          placeholder={situacao.idioma === "es" ? "Escribe tu mensaje" : "Escreva sua mensagem"}
-        />
-        <button type="submit" disabled={enviando || encerrada || texto.trim() === ""}>
-          Enviar
+        <button type="button" className="conv-nova" onClick={novaConversa}>
+          {t.conv.newConv}
         </button>
-      </form>
-      {falas.length > 1 && <AvaliarConversa key={conversaId} token={token} conversaId={conversaId} aoExpirar={aoExpirar} />}
+      </div>
+      <div role="log" aria-label={t.conv.title} className="conv-log" ref={log}>
+        {falas.length === 0 && (
+          <div className="conv-vazia">
+            <p>{t.conv.empty}</p>
+            {exemplo && (
+              <>
+                <span className="conv-mono">{t.conv.tryThis}</span>
+                <button type="button" className="conv-exemplo" disabled={enviando} onClick={() => void enviar(exemplo[idiomaDaConversa === "es" ? 0 : 1])}>
+                  “{exemplo[idiomaDaConversa === "es" ? 0 : 1]}”
+                </button>
+              </>
+            )}
+          </div>
+        )}
+        <ol className="conv-falas">
+          {falas.map((f) =>
+            f.autor === "cliente" ? (
+              <li key={f.id} className="conv-fala conv-cliente">
+                <span className="conv-mono">{t.conv.you}</span>
+                <p>{f.texto}</p>
+              </li>
+            ) : (
+              <li key={f.id} className={"conv-fala conv-sistema" + (comPessoa(f) ? " humano" : "")}>
+                <span className="conv-mono">
+                  <span>JEJE</span>
+                  {f.motivo && <span className="conv-regra">{f.motivo.regra}</span>}
+                </span>
+                <div className="conv-balao">
+                  {comPessoa(f) && <span className="conv-humano">{t.conv.human}</span>}
+                  <p>{f.texto}</p>
+                  {f === ultima && situacao?.protocolo && (
+                    <span role="status" className="conv-protocolo">
+                      {situacao.protocolo} · {traduzir(CLIENTE.recebido, lingua)}
+                    </span>
+                  )}
+                </div>
+                {opcoesDaUltima(f) && situacao && (
+                  <div role="group" aria-label={traduzir(CLIENTE.opcoes, lingua)} className="conv-opcoes">
+                    {situacao.opcoes.map((o) => (
+                      <button key={o.numero} type="button" className="conv-opcao" disabled={enviando} onClick={() => void enviar(String(o.numero))}>
+                        {o.descricao}
+                      </button>
+                    ))}
+                    {(situacao.estado === "confirmando" ||
+                      situacao.estado === "confirmando_desbloqueio" ||
+                      situacao.estado === "confirmando_bloqueio") && (
+                      <>
+                        <button type="button" className="conv-opcao" disabled={enviando} onClick={() => void enviar(rapidas.confirmar)}>
+                          {opcoes.yes}
+                        </button>
+                        <button type="button" className="conv-opcao" disabled={enviando} onClick={() => void enviar(rapidas.nao)}>
+                          {opcoes.no}
+                        </button>
+                      </>
+                    )}
+                    {situacao.estado === "oferecendo_humano" && (
+                      <>
+                        {/* Rótulos do design; o que vai para a API continua sendo o sí/sim e o no/não. */}
+                        <button type="button" className="conv-opcao" disabled={enviando} onClick={() => void enviar(rapidas.sim)}>
+                          {opcoes.agent}
+                        </button>
+                        <button type="button" className="conv-opcao" disabled={enviando} onClick={() => void enviar(rapidas.nao)}>
+                          {opcoes.stay}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+                {f.motivo && <PorQue motivo={f.motivo} />}
+              </li>
+            ),
+          )}
+          {enviando && (
+            <li className="conv-lendo" role="status">
+              {t.conv.reading} · {t.rd.rules} …
+            </li>
+          )}
+        </ol>
+        {encerrada && (
+          <p role="status" className="conv-aviso">
+            {traduzir(CLIENTE.encerrada, lingua)}
+          </p>
+        )}
+        {falha && (
+          <div role="alert" className="conv-erro">
+            <p>{falha.detalhe}</p>
+            {falha.mensagem && (
+              <button type="button" disabled={enviando} onClick={() => void reenviar(falha.mensagem)}>
+                {traduzir(CLIENTE.reenviar, lingua)}
+              </button>
+            )}
+          </div>
+        )}
+        {conversaId && falas.length > 1 && <AvaliarConversa key={conversaId} token={token} conversaId={conversaId} aoExpirar={aoExpirar} />}
+      </div>
+      <div className="conv-envio">
+        {!encerrada && !comAtendente && (
+          <div role="group" aria-label={traduzir(CLIENTE.atalhos, lingua)} className="conv-atalhos">
+            {ATALHOS[idiomaDaConversa].map(([rotulo, frase]) => (
+              <button key={rotulo} type="button" disabled={enviando} onClick={() => void enviar(FRASE_DO_ATALHO[frase] ?? frase)}>
+                {rotulo}
+              </button>
+            ))}
+          </div>
+        )}
+        <form
+          className="conv-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void enviar(texto);
+          }}
+        >
+          <input
+            value={texto}
+            maxLength={500}
+            disabled={enviando || encerrada}
+            onChange={(e) => setTexto(e.target.value)}
+            placeholder={t.conv.ph}
+            aria-label={t.conv.ph}
+          />
+          <button type="submit" disabled={enviando || encerrada || texto.trim() === ""}>
+            {t.conv.send}
+          </button>
+        </form>
+      </div>
     </section>
   );
 }
