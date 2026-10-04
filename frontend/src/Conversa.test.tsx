@@ -471,7 +471,10 @@ test("pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim", 
   const { enviados } = servidor([{ status: 200, corpo: pergunta }, { status: 200, corpo: feito }]);
   montar();
   await abrirEPedir("¿cómo bloqueo la tarjeta si la pierdo?");
-  await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
+  const confirmar = await screen.findByRole("button", { name: "Sí, confirmo" });
+  // A pergunta antes de bloquear é o passo 3 do design (a confirmação), como a do pré-caso.
+  expect(screen.getByText("3 · Confirmation")).toHaveAttribute("aria-current", "step");
+  await userEvent.click(confirmar);
   expect(await screen.findByText(/Bloqueé tu tarjeta/)).toBeInTheDocument();
   expect(enviados).toEqual(["¿cómo bloqueo la tarjeta si la pierdo?", "Sí, confirmo"]);
 });

@@ -3045,6 +3045,21 @@
       "testes": [
         "src/Conversa.test.tsx > pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim"
       ]
+    },
+    {
+      "id": "M-WEB-359",
+      "requisito": "R02",
+      "descricao": "A pergunta antes de bloquear (confirmando_bloqueio) aparece no passo 2, não no 3 da confirmação",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "  confirmando_bloqueio: 2,",
+          "para": "  confirmando_bloqueio: 1,"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim"
+      ]
     }
   ]
 }
