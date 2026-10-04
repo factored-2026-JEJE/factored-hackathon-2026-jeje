@@ -257,7 +257,7 @@
         {
           "arquivo": "frontend/src/abas/Atendente.tsx",
           "de": "  }, [versao, recarga]);",
-          "para": "  }, [recarga]);"
+          "para": "  }, [recarga, versao < 0]);"
         }
       ],
       "testes": [
