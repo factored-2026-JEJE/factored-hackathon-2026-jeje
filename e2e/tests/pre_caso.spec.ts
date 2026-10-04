@@ -28,9 +28,11 @@ test("contestar pela conversa, perder a resposta do sim, ver o protocolo e conte
     await rota.abort("connectionreset");
   });
   await page.getByRole("group", { name: UI.es.opcoes }).getByRole("button", { name: "Sí, confirmo" }).click();
-  // A tela relê a conversa e mostra o que ficou registrado, sem pedir para reenviar.
+  // A tela relê a conversa e mostra o que ficou registrado, sem pedir para reenviar. A releitura é
+  // mais uma ida à API depois do erro de rede; com a máquina carregada (o E2E inteiro ao lado de outras
+  // stacks), a volta toda passou dos 5 s do expect, e a última fala ainda era a proposta.
   const registrado = falasDaConversa(page).last();
-  await expect(registrado).toContainText("Registré la solicitud con el protocolo PC-");
+  await expect(registrado).toContainText("Registré la solicitud con el protocolo PC-", { timeout: 20_000 });
   await expect(page.getByRole("button", { name: UI.es.reenviar })).toHaveCount(0);
   const protocolo = (await registrado.textContent())!.match(/PC-\d+/)![0];
 
