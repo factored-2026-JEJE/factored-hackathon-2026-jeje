@@ -96,7 +96,8 @@ FIXOS: dict[Idioma, tuple[tuple[str, IntencaoDoLLM], ...]] = {
 # desbloqueio, e a proposta de desfazê-lo, com um "sim" por reflexo, desbloquearia o cartão. Sem o
 # verbo, a mensagem segue não entendida, com o sinal no trace.
 DESFAZER = re.compile(
-    r"(?<![a-z0-9])(?:desbloque|desfaz|deshac|reactiv|reativ|liber|destrav|destrab"
+    r"(?<![a-z0-9])(?:desbloque|desfa[zc]|deshac|deshaz|deshag|reactiv|reativ|liber|destrav"
+    r"|destrab"
     r"|(?:volver|voltar) a usar|usar(?:la|lo)? de (?:nuevo|novo)"
     r"|(?:tir|quit|sac|retir|remov)\w* (?:\w+ )?bloque)"
 )

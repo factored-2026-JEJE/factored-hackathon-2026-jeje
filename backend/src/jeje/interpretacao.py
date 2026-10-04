@@ -336,12 +336,15 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
 )  # fmt: skip
 # O cartão achado ("ya apareció mi tarjeta", "achei meu cartão"): o cartão logo depois do verbo.
 # "Encontré un pago con tarjeta no autorizado" é outra coisa.
-# Tirar o bloqueio é pedir o desbloqueio ("pode tirar o bloqueio do cartão?", "quítale el bloqueo a
-# mi tarjeta"): antes, o "bloqueio" levava ao pedido de bloqueio. Negado logo antes, não casa.
+# Tirar ou desfazer o bloqueio é pedir o desbloqueio ("pode tirar o bloqueio do cartão?", "¿puedes
+# deshacer el bloqueo de mi tarjeta?", ACH-187): antes, o "bloqueio" levava ao pedido de bloqueio.
+# Negado logo antes, não casa.
 TIRAR_O_BLOQUEIO = Perto(
     ("tirar", "tira", "tire", "tirem", "quitar", "quita", "quite", "quiten", "quitale", "quitarle",
      "quitenle", "sacar", "saca", "sacale", "saquen", "retirar", "retira", "retire", "remover",
-     "remova", "levantar", "levanta", "levante"),
+     "remova", "levantar", "levanta", "levante", "desfazer", "desfaz", "desfaca", "desfacam",
+     "deshacer", "deshaz", "deshaga", "deshagan", "cancelar", "cancela", "cancele", "anular",
+     "anula", "anule"),
     ("bloqueo", "bloqueio"),
     entre=2,
     so_nessa_ordem=True,
@@ -798,8 +801,8 @@ NEGACOES = {
     # "Não tire o bloqueio" também não pede bloqueio: pede para manter o que já está.
     "bloquear": re.compile(
         NEGACAO + "(?:bloque|congel|trav)|(?<![a-z0-9])(?:no|nao|nunca)(?: (?:me|te|le|les|la|lo"
-        r"|o|a|quiero|quero|vayan a|vao))* (?:tir|quit|sac|retir|remov|levant)[a-z]*"
-        r" (?:[a-z]+ )?bloque"
+        r"|o|a|quiero|quero|vayan a|vao))*"
+        r" (?:tir|quit|sac|retir|remov|levant|desfa|desha|cancel|anul)[a-z]* (?:[a-z]+ )?bloque"
     ),
     "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ|liber)"),
 }
