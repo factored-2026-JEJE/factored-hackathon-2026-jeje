@@ -506,6 +506,27 @@ make test-avaliacao                                # os testes do oráculo, sem 
   - a ponte até ele, a do `make up` (`docker compose --profile modelo up -d ollama-ponte`);
   - a GPU livre: com 8 GB, os 128 episódios levam de 30 a 45 minutos.
 
+### A avaliação verificável (`make avaliar`)
+
+Os números do atendimento podem ser refeitos por quem tiver o repositório. Os cenários de
+desenvolvimento e de validação (`avaliacao/cenarios.json`) foram escritos pela validação, e cada um
+é julgado pelo estado final no banco: pré-casos, a fila do atendente, os bloqueios e o que foi dito
+ao cliente. O conjunto final do teste não está aqui: ele roda uma vez, na versão congelada.
+
+```bash
+make avaliar                      # a variante entregue (o leitor e5 com o LLM do "não entendi")
+make avaliar VARIANTE=regras      # sem modelo nenhum
+```
+
+- **O que faz:**
+  - gera a base de avaliação, que é a fixture mais 24 clientes sintéticos, com o manifesto regenerado pelo produto;
+  - sobe uma stack isolada do commit, sem portas no host, com essa base e 40 personas;
+  - roda o avaliador da validação na rede da stack;
+  - a tabela fica em `resultados/avaliacao/avaliacao-<commit>.json` e `.md`, com a resolução segura, os inseguros e os turnos lidos pelo LLM. Fica fora do Git, e a da versão entregue entra com `git add -f`.
+- **Quando falha:** sai com 2 sem a stack, sem o Ollama ou, na variante entregue, quando nenhum
+  turno chega ao LLM.
+- **O alvo:** só o web da stack isolada, nunca a publicação.
+
 ## Onde fica cada coisa
 
 - `compose.yaml` — **toda** a configuração não secreta (flags, limites, portas, testes);
