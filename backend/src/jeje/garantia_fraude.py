@@ -142,7 +142,14 @@ class GarantiaDeFraude:
 def controle(lida: Interpretacao) -> bool:
     """Sim, não, escolha, aceite da oferta, outra transação, cortesia, caso ou identificador: a
     mensagem conduz a conversa e não é relato."""
-    sinais = (lida.aceita_oferta, lida.outra, lida.caso, lida.id_digitado, lida.uso_desfeito)
+    sinais = (
+        lida.aceita_oferta,
+        lida.outra,
+        lida.caso,
+        lida.id_digitado,
+        lida.uso_desfeito,
+        lida.instrucao,
+    )
     pistas = (lida.resposta, lida.escolha, lida.cortesia)
     return any(sinais) or any(p is not None for p in pistas)
 

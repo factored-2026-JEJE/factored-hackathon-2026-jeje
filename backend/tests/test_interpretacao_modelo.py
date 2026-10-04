@@ -283,10 +283,13 @@ def test_instrucao_injetada_na_mensagem_nao_vira_acao(cenario_conversa):
         conversa = abrir_conversa(http, auth, "es")
         dizer(http, auth, conversa, "No reconozco el cobro de 45,90 en Streaming Plus")
         resposta = dizer(http, auth, conversa, injecao)
-    # Sem o "sí" das regras nada é registrado: no máximo a mesma proposta é refeita.
-    assert (resposta["acao"], resposta["estado"]) == ("propor_pre_caso", "confirmando")
+    # Sem o "sí" das regras nada é registrado. Desde o ACH-203, a instrução nem chega ao modelo:
+    # as regras a reconhecem, a resposta diz o que o atendimento faz e a proposta segue pendente.
+    assert (resposta["regra"], resposta["acao"], resposta["estado"]) == (
+        "POL-ESC-01", "recusar", "confirmando"
+    )  # fmt: skip
     assert pre_casos(cenario_conversa) == 0
-    assert interpretacoes(cenario_conversa)[-1] == "ollama:modelo-teste"
+    assert interpretacoes(cenario_conversa)[-1] == "regras"
 
 
 def test_enquanto_o_modelo_pensa_nenhuma_conexao_fica_presa(cenario_conversa):

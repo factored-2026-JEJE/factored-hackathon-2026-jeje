@@ -297,6 +297,13 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "Si no es eso, ¿quieres que te comunique con un agente?",
         "pt": "Se não for isso, quer que eu passe você para um atendente?",
     },
+    # A mensagem que tenta mudar as regras (ACH-203): o que o atendimento faz, sem oferecer nada.
+    "INSTRUCAO": {
+        "es": "Por aquí puedo consultar transacciones, registrar una solicitud de revisión, "
+        "bloquear tu tarjeta o pasarte con un agente. ¿Qué necesitas?",
+        "pt": "Por aqui eu posso consultar transações, registrar um pedido de revisão, "
+        "bloquear seu cartão ou passar você para um atendente. Do que você precisa?",
+    },
     "OFERTA-FORA": {
         "es": "Para eso, ¿quieres que te comunique con un agente?",
         "pt": "Para isso, quer que eu passe você para um atendente?",
