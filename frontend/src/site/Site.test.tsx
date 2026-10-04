@@ -60,6 +60,7 @@ describe("sem a API (o site público)", () => {
     render(<Site />);
     const placar = screen.getByRole("button", { name: /^1\/128/ });
     expect(placar).toHaveTextContent("a fraud report inside a dispute went without an agent (ACH-160)");
+    expect(placar).toHaveTextContent("On the fixed commit (f57b057), the gate passed: 0 of 128.");
     expect(placar).toHaveTextContent("↗ NOV-13a");
     await userEvent.click(placar);
     expect(await screen.findByText("evidencias/NOV-13a · EV-278")).toBeInTheDocument();
