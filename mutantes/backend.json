@@ -4183,12 +4183,12 @@
     {
       "id": "M-MIG-05",
       "requisito": "R08",
-      "descricao": "A lista de estados vigente (a da última migration que recria a CHECK, hoje a 0020) não aceita encerrada: a recarga não consegue encerrar as conversas",
+      "descricao": "A lista de estados vigente (a da última migration que recria a CHECK, hoje a 0026) não aceita encerrada: a recarga não consegue encerrar as conversas",
       "trocas": [
         {
-          "arquivo": "migrations/versions/0020_conversa_confirmando_desbloqueio.py",
-          "de": "    \"livre\", \"esclarecendo\", \"confirmando\", \"oferecendo_humano\", \"com_humano\", \"encerrada\",\n    \"escolhendo_cartao\",\n)  # fmt: skip",
-          "para": "    \"livre\", \"esclarecendo\", \"confirmando\", \"oferecendo_humano\", \"com_humano\",\n    \"escolhendo_cartao\",\n)  # fmt: skip"
+          "arquivo": "migrations/versions/0026_conversa_confirmando_bloqueio.py",
+          "de": "    \"livre\", \"esclarecendo\", \"confirmando\", \"oferecendo_humano\", \"com_humano\", \"encerrada\",\n",
+          "para": "    \"livre\", \"esclarecendo\", \"confirmando\", \"oferecendo_humano\", \"com_humano\",\n"
         }
       ],
       "testes": [
@@ -5026,7 +5026,7 @@
     {
       "id": "M-LLM-11",
       "requisito": "R03",
-      "descricao": "Leitura do modelo vale como confirmação (instrução injetada registra o pré-caso)",
+      "descricao": "Leitura do modelo vale como confirmação (com a proposta pendente, o que só o modelo leu registra o pré-caso)",
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
@@ -5035,7 +5035,7 @@
         }
       ],
       "testes": [
-        "tests/test_interpretacao_modelo.py::test_instrucao_injetada_na_mensagem_nao_vira_acao"
+        "tests/test_interpretacao_modelo.py::test_com_a_proposta_pendente_a_leitura_do_modelo_nao_confirma"
       ]
     },
     {
@@ -8743,12 +8743,12 @@
     {
       "id": "M-MIG-13",
       "requisito": "R03",
-      "descricao": "A lista de estados vigente (a da última migration que recria a CHECK, hoje a 0020) não aceita a escolha do cartão",
+      "descricao": "A lista de estados vigente (a da última migration que recria a CHECK, hoje a 0026) não aceita a escolha do cartão",
       "trocas": [
         {
-          "arquivo": "migrations/versions/0020_conversa_confirmando_desbloqueio.py",
-          "de": "    \"escolhendo_cartao\",\n)  # fmt: skip",
-          "para": ")  # fmt: skip"
+          "arquivo": "migrations/versions/0026_conversa_confirmando_bloqueio.py",
+          "de": "    \"escolhendo_cartao\", \"confirmando_desbloqueio\",\n",
+          "para": "    \"confirmando_desbloqueio\",\n"
         }
       ],
       "testes": [
@@ -8758,12 +8758,12 @@
     {
       "id": "M-MIG-14",
       "requisito": "R03",
-      "descricao": "A migration 0020 não aceita o estado da confirmação do desbloqueio",
+      "descricao": "A lista de estados vigente (a da última migration que recria a CHECK, hoje a 0026) não aceita a confirmação do desbloqueio",
       "trocas": [
         {
-          "arquivo": "migrations/versions/0020_conversa_confirmando_desbloqueio.py",
-          "de": "DEPOIS = (*ANTES, \"confirmando_desbloqueio\")",
-          "para": "DEPOIS = ANTES"
+          "arquivo": "migrations/versions/0026_conversa_confirmando_bloqueio.py",
+          "de": "    \"escolhendo_cartao\", \"confirmando_desbloqueio\",\n",
+          "para": "    \"escolhendo_cartao\",\n"
         }
       ],
       "testes": [
