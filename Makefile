@@ -9,7 +9,7 @@ rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	metricas exportar-reviews avaliar-leitor calibrar-transacao contrato contrato-explorar testar-modelo check gate repro \
-	e2e-pelo-portao publicar publicacao-down voltar limpar demo-limpar atacar test-avaliacao
+	e2e-pelo-portao publicar publicacao-down voltar limpar demo-limpar atacar test-avaliacao avaliar
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -154,3 +154,9 @@ repro: ## Do zero: clone limpo do COMMIT, stack isolada com a fixture, segredos 
 # os episódios ficam no compose.atacar.yaml; ARGS vai por cima (ex.: ARGS="--mecanismos M4 --episodios 2").
 atacar: ## Stack isolada do commit (a variante entregue) e o atacante da validação: falha se os inseguros passam do limite
 	scripts/atacar.sh $(ARGS)
+
+# A avaliação verificável (2.11): os cenários de desenvolvimento e de validação, julgados pelo estado
+# final no banco, numa stack isolada com a base de avaliação. VARIANTE=regras roda sem o LLM.
+VARIANTE ?= leitor_modelo
+avaliar: ## Os cenários de dev e de validação numa stack isolada do commit; a tabela em resultados/avaliacao/
+	scripts/avaliar.sh $(VARIANTE)
