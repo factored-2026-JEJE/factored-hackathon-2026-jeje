@@ -5,6 +5,7 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { PersonaDaDemo, ResultadoDoTurno } from "../api/cliente";
+import { CONTEUDO_DO_MAIN } from "./fatos";
 import { Site, escolherPersona } from "./Site";
 
 const persona = (p: Partial<PersonaDaDemo>): PersonaDaDemo => ({
@@ -238,4 +239,20 @@ describe("a seção de resultados (1.5 do fechamento)", () => {
     expect(secao.getByText(/frozen commit 0123456789ab/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Results" }).length).toBeGreaterThan(0);
   }, LONGO);
+
+  it("com o arquivo, a tabela 2 diz o resultado do VAL-019a como saiu (negativo) e a curva do leitor no limiar entregue", async () => {
+    servir(ARQUIVO);
+    const { container } = render(<Site />);
+    await waitFor(() => expect(container.querySelector("#resultados")).not.toBeNull());
+    const secao = container.querySelector("#resultados") as HTMLElement;
+    expect(secao).toHaveTextContent("first-turn accuracy goes from 71.3% with rules only to 79.3% with the system");
+    expect(secao).toHaveTextContent("Undue actions rise +0.5 pp [+0.0; +1.6], and the bound exceeds 1 point: the criterion written before the test was not met");
+    expect(secao).toHaveTextContent("the system automates 81.6% of first messages in ES and 78.9% in PT");
+    expect(within(secao).getByText("VAL-019b")).toBeInTheDocument();
+  }, LONGO);
+
+  it("as fontes do teste final e da tabela 2 são as evidências deles, não mais pendentes", () => {
+    expect(CONTEUDO_DO_MAIN.sources["VAL-019"]).toEqual(["evid", "evidencias/VAL-019 · EV-276"]);
+    expect(CONTEUDO_DO_MAIN.sources["VAL-019a"]).toEqual(["evid", "evidencias/VAL-019a · EV-277"]);
+  });
 });
