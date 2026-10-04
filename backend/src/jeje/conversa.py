@@ -41,6 +41,7 @@ from jeje.interpretacao import (
     cita_cartao,
     comercio_citado,
     comercio_citado_e_como,
+    hipotese_ou_capacidade,
     interpretar,
     prevencao,
 )
@@ -279,6 +280,13 @@ class _Turno:
                 mantido = texto("DESBLOQUEIO-CANCELADO", self.idioma)
                 return Saida("CANCELADO", "responder", (mantido,), "livre", {})
             self.estado, self.contexto = "livre", {}  # outro pedido: o desbloqueio fica para trás
+        if self.estado == "confirmando_bloqueio":
+            if self.lida.resposta == "sim":
+                return self._pedido_de_bloqueio(confirmado=True)
+            if self.lida.resposta == "nao":
+                nada = texto("BLOQUEIO-CANCELADO", self.idioma)
+                return Saida("CANCELADO", "responder", (nada,), "livre", {})
+            self.estado, self.contexto = "livre", {}  # outro pedido: a pergunta fica para trás
         if self.lida.intencao == "bloquear":
             return self._pedido_de_bloqueio()
         if self.lida.intencao == "desbloquear":
@@ -811,12 +819,20 @@ class _Turno:
             return texto("BLOQUEIO-EXISTENTE", self.idioma, cartao=dito, bloqueio=citado.bloqueio)
         return texto("CARTAO-INATIVO", self.idioma, cartao=dito)
 
-    def _pedido_de_bloqueio(self) -> Saida:
+    def _pedido_de_bloqueio(self, confirmado: bool = False) -> Saida:
         """Pedido de bloqueio: o cartão citado ou o único bloqueável; vários, pergunta qual;
         nenhum, só informa, com os já bloqueados por aqui. Citado que não dá para bloquear: diz por
-        quê ou pergunta qual, sem bloquear outro no lugar."""
+        quê ou pergunta qual, sem bloquear outro no lugar. A pergunta hipotética ou de capacidade
+        ("¿cómo bloqueo la tarjeta si la pierdo?") espera um sim antes (POL-BLQ-07, REG-20)."""
         cartoes = self._cartoes()
         bloqueaveis = politica.bloqueaveis(cartoes)
+        hipotese = not confirmado and hipotese_ou_capacidade(self.mensagem)
+        if hipotese:
+            decisao = politica.decidir_bloqueio(len(bloqueaveis), self.dispositivo, hipotese)
+            if decisao.regra == "POL-BLQ-07":
+                self._anotar("avaliar_bloqueio", decisao.regra)
+                pergunta = texto(decisao.regra, self.idioma)
+                return Saida(decisao.regra, decisao.acao, (pergunta,), "confirmando_bloqueio", {})
         candidatos = self._alvos(bloqueaveis)
         if candidatos is None:
             if (razao := self._por_que_nao(cartoes)) is not None:

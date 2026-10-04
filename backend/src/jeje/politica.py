@@ -269,13 +269,16 @@ def bloqueaveis(cartoes: list[Cartao]) -> list[Cartao]:
     return [c for c in cartoes if c.status == "Active" and c.bloqueio is None]
 
 
-def decidir_bloqueio(quantos_bloqueaveis: int, dispositivo: str) -> Decisao:
+def decidir_bloqueio(quantos_bloqueaveis: int, dispositivo: str, hipotese: bool = False) -> Decisao:
     """Pedido de bloqueio (ou relato de roubo e perda): nenhum cartão bloqueável só informa
-    (POL-BLQ-03); vários, pergunta qual, sem escolher sozinho (POL-BLQ-06); um só, bloqueia na hora,
-    completo com dispositivo cadastrado, que só aparece no console (POL-BLQ-02), ou preventivo e com
-    encaminhamento, com dispositivo novo (POL-BLQ-01)."""
+    (POL-BLQ-03); pergunta hipotética ou de capacidade ("si la pierdo", "dá para") confirma antes
+    de bloquear (POL-BLQ-07, REG-20); vários, pergunta qual, sem escolher sozinho (POL-BLQ-06); um
+    só, bloqueia na hora, completo com dispositivo cadastrado, que só aparece no console
+    (POL-BLQ-02), ou preventivo e com encaminhamento, com dispositivo novo (POL-BLQ-01)."""
     if quantos_bloqueaveis == 0:
         return Decisao("POL-BLQ-03", "responder", "nenhum cartão ativo para bloquear")
+    if hipotese:
+        return Decisao("POL-BLQ-07", "esclarecer", "pergunta, não pedido: confirma antes")
     if quantos_bloqueaveis > 1:
         return Decisao("POL-BLQ-06", "esclarecer")
     if dispositivo == "cadastrado":
@@ -347,6 +350,8 @@ DESCRICOES: dict[str, str] = {
     "POL-BLQ-05": "Desbloqueio fora do prazo ou de cartão sem bloqueio feito por aqui: fica com o "
     "atendente.",
     "POL-BLQ-06": "Vários cartões ativos: o assistente pergunta qual, sem escolher sozinho.",
+    "POL-BLQ-07": "Pergunta sobre bloquear (se perder, dá para, como funciona): o assistente "
+    "confirma com um sim antes de bloquear.",
     "AJUDA": "Mensagem não entendida: o assistente pede de novo e, depois do limite, oferece um "
     "atendente.",
     "CANCELADO": "O cliente disse não: nada foi registrado.",

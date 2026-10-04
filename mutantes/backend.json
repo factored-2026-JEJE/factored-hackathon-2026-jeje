@@ -8038,6 +8038,37 @@
       ]
     },
     {
+      "id": "M-POL-52",
+      "requisito": "R03",
+      "descricao": "Pergunta hipotética sobre bloquear bloqueia na hora (REG-20)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear",
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
+      ]
+    },
+    {
+      "id": "M-POL-53",
+      "requisito": "R03",
+      "descricao": "A pergunta sem cartão bloqueável pede confirmação em vez de só informar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if quantos_bloqueaveis == 0:\n        return Decisao(\"POL-BLQ-03\", \"responder\", \"nenhum cartão ativo para bloquear\")\n    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n",
+          "para": "    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n    if quantos_bloqueaveis == 0:\n        return Decisao(\"POL-BLQ-03\", \"responder\", \"nenhum cartão ativo para bloquear\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear"
+      ]
+    },
+    {
       "id": "M-PRE-16",
       "requisito": "R03",
       "descricao": "A avaliação não passa o \"hoje\" dos dados: a janela nunca vale pela API",
@@ -9312,6 +9343,51 @@
       "testes": [
         "tests/test_bloqueio_conversa.py::test_cliente_desfaz_em_ate_7_dias_o_bloqueio_do_relato_de_roubo_e_o_caso_fica_sabendo",
         "tests/test_bloqueio_conversa.py::test_atendente_desfaz_no_console_e_o_caso_ligado_ao_bloqueio_fica_sabendo"
+      ]
+    },
+    {
+      "id": "M-BLQ-16",
+      "requisito": "R03",
+      "descricao": "O sim depois da pergunta (POL-BLQ-07) não bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando_bloqueio\":\n            if self.lida.resposta == \"sim\":\n                return self._pedido_de_bloqueio(confirmado=True)\n            if self.lida.resposta == \"nao\":\n                nada = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n                return Saida(\"CANCELADO\", \"responder\", (nada,), \"livre\", {})\n            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
+      ]
+    },
+    {
+      "id": "M-BLQ-17",
+      "requisito": "R03",
+      "descricao": "O não depois da pergunta (POL-BLQ-07) não cancela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if self.lida.resposta == \"nao\":\n                nada = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n                return Saida(\"CANCELADO\", \"responder\", (nada,), \"livre\", {})\n            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n",
+          "para": "            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_com_nao_nao_bloqueia"
+      ]
+    },
+    {
+      "id": "M-BLQ-18",
+      "requisito": "R03",
+      "descricao": "A conversa ignora a pergunta hipotética e bloqueia na hora",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        hipotese = not confirmado and hipotese_ou_capacidade(self.mensagem)",
+          "para": "        hipotese = False"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
       ]
     },
     {
@@ -12564,6 +12640,36 @@
       ]
     },
     {
+      "id": "M-ITP-208",
+      "requisito": "R03",
+      "descricao": "Nenhuma pergunta é hipotética ou de capacidade",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return any(_casa(t, limpo) for t in HIPOTESE_OU_CAPACIDADE)",
+          "para": "    return False"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_hipotetica_ou_de_capacidade"
+      ]
+    },
+    {
+      "id": "M-ITP-257",
+      "requisito": "R03",
+      "descricao": "A descrição do cartão que se bloqueia bloqueia na hora (ACH-221)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if DESCRICAO_DO_BLOQUEIO.search(limpo):\n        return True\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_descricao_do_cartao_que_se_bloqueia_pede_confirmacao"
+      ]
+    },
+    {
       "id": "M-ITP-190",
       "requisito": "R07",
       "descricao": "A suspeita sem prejuízo com \"no se la di\" lida como fraude bloqueia o cartão (REG-21)",
@@ -14361,6 +14467,21 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_cada_downgrade_desfaz_exatamente_o_seu_upgrade"
+      ]
+    },
+    {
+      "id": "M-MIG-18",
+      "requisito": "R03",
+      "descricao": "A migration 0026 não aceita o estado confirmando_bloqueio",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0026_conversa_confirmando_bloqueio.py",
+          "de": "DEPOIS = (*ANTES, \"confirmando_bloqueio\")",
+          "para": "DEPOIS = ANTES"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
       ]
     },
     {
