@@ -16,7 +16,7 @@ test("a prontidão mostra exatamente o estado que a API reporta", async ({ page,
   expect([200, 503]).toContain(resposta.status());
   const prontidao = await resposta.json();
 
-  await page.goto("/#operacao");
+  await page.goto("/#operations");
 
   const grupo = page.getByRole("group", { name: "Readiness" });
   const rotulo = ROTULO_DO_BANCO[prontidao.database as keyof typeof ROTULO_DO_BANCO];

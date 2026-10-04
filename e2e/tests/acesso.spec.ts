@@ -25,7 +25,7 @@ async function transacoes(request: APIRequestContext, tok: string): Promise<Tran
 test("entrar como persona mostra na tela exatamente as transações da sessão", async ({ page, request }) => {
   const [primeira] = await personas(request);
   // Como no design, o dispositivo vem marcado em "cadastrado" (o bloqueio completo).
-  await page.goto("/?lang=pt#cliente");
+  await page.goto("/?lang=pt#customer");
   await expect(page.getByRole("button", { name: UI.pt.cadastrado })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: UI.pt.novo })).toHaveAttribute("aria-pressed", "false");
   // O acesso no tipo do design: as classes dele vencem as regras de contexto da casca (o "Entrar como…"

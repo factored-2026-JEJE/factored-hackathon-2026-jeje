@@ -29,7 +29,7 @@ async function indicadores(request: import("@playwright/test").APIRequestContext
 
 test("seção da EDA mostra exatamente os números e as consultas da API", async ({ page, request }) => {
   const todos = await indicadores(request);
-  await page.goto("/#operacao");
+  await page.goto("/#operations");
   const secao = page.getByRole("region", { name: "Why this flow · from the data" });
   await expect(secao).toBeVisible();
   // Na base real as consultas varrem milhões de linhas e disputam o banco com as outras

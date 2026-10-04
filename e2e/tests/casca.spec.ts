@@ -3,7 +3,7 @@
 import { expect, test } from "@playwright/test";
 
 test("a língua vem do endereço e da barra do topo, sem trocar a área aberta", async ({ page }) => {
-  await page.goto("/?lang=pt#atendente");
+  await page.goto("/?lang=pt#agent");
   await expect(page.getByRole("tab", { name: "Atendente" })).toHaveAttribute("aria-selected", "true");
   // Só a área aberta aparece: as outras seguem montadas, escondidas, sem cobrir a aberta.
   await expect(page.locator("#painel-atendente")).toBeVisible();
@@ -18,5 +18,5 @@ test("a língua vem do endereço e da barra do topo, sem trocar a área aberta",
   // O design não tem canto arredondado: os botões do app não herdam os 8 px da tela antiga.
   await expect(page.getByRole("group", { name: "Language" }).getByRole("button", { name: "EN" })).toHaveCSS("border-top-left-radius", "0px");
   await expect(page.getByRole("tab", { name: "Agent" })).toHaveAttribute("aria-selected", "true");
-  await expect(page).toHaveURL(/#atendente$/);
+  await expect(page).toHaveURL(/#agent$/);
 });
