@@ -83,6 +83,8 @@ commit's; the final set does not run again.
   did not change.
 - **The site (#131).** Table 2, the reader threshold curve and the numbers measured on the frozen
   version replace older ones.
+- **The site's headline.** "Not a chatbot. A customer-service system." became "Safe by design,
+  fast by default.", text only.
 - **ACH-189, kept.** The fraud guarantee (DEV-046) asks the LLM even when the rules understand the
   message, and it sent "a purchase I didn't make" to the queue as possible fraud (POL-HUM-01),
   without the transaction attached. The oracle expected the review of a night digital charge above

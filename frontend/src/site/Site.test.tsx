@@ -36,7 +36,7 @@ describe("sem a API (o site público)", () => {
   it("leva ao app e ao guia, e troca o idioma do site", async () => {
     render(<Site />);
     // O inglês é o padrão (design de 03/10); o app abre numa janela dentro do site, com o app de verdade.
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Not a chatbot.");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Safe by design,");
     await userEvent.click(screen.getAllByRole("button", { name: /Open the app/ })[0] as HTMLElement);
     const janela = screen.getByRole("dialog", { name: "JEJE app" });
     expect(within(janela).getByTitle("JEJE app")).toHaveAttribute("src", "/?lang=en&tab=cliente#cliente");
@@ -51,7 +51,7 @@ describe("sem a API (o site público)", () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog", { name: "JEJE app" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "ES" }));
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("No es un chatbot.");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seguro por diseño,");
     expect(localStorage.getItem("jeje.site.locale")).toBe("es");
     expect(document.documentElement.lang).toBe("es");
   }, LONGO);
@@ -202,7 +202,7 @@ describe("a janela do app (design de 03/10)", () => {
     localStorage.setItem("jeje.site.locale", "pt");
     window.history.replaceState(null, "", "/site/?lang=es");
     render(<Site />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("No es un chatbot.");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Seguro por diseño,");
     window.history.replaceState(null, "", "/");
   }, LONGO);
 });
