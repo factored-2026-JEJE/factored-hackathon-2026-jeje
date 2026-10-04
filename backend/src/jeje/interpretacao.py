@@ -336,6 +336,17 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
 )  # fmt: skip
 # O cartão achado ("ya apareció mi tarjeta", "achei meu cartão"): o cartão logo depois do verbo.
 # "Encontré un pago con tarjeta no autorizado" é outra coisa.
+# Tirar o bloqueio é pedir o desbloqueio ("pode tirar o bloqueio do cartão?", "quítale el bloqueo a
+# mi tarjeta"): antes, o "bloqueio" levava ao pedido de bloqueio. Negado logo antes, não casa.
+TIRAR_O_BLOQUEIO = Perto(
+    ("tirar", "tira", "tire", "tirem", "quitar", "quita", "quite", "quiten", "quitale", "quitarle",
+     "quitenle", "sacar", "saca", "sacale", "saquen", "retirar", "retira", "retire", "remover",
+     "remova", "levantar", "levanta", "levante"),
+    ("bloqueo", "bloqueio"),
+    entre=2,
+    so_nessa_ordem=True,
+    negavel=True,
+)  # fmt: skip
 CARTAO_ACHADO = Perto(
     ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"),
     CARTAO,
@@ -784,7 +795,12 @@ NEGACAO = (
 # me la bloquee" pede).
 BLOQUEIO_CONTADO = re.compile(r"\bbloqueé\b|(?<!que )(?<!que me )\b(?:ya|yo|la|lo|me|le) bloquee\b")
 NEGACOES = {
-    "bloquear": re.compile(NEGACAO + "(?:bloque|congel|trav)"),
+    # "Não tire o bloqueio" também não pede bloqueio: pede para manter o que já está.
+    "bloquear": re.compile(
+        NEGACAO + "(?:bloque|congel|trav)|(?<![a-z0-9])(?:no|nao|nunca)(?: (?:me|te|le|les|la|lo"
+        r"|o|a|quiero|quero|vayan a|vao))* (?:tir|quit|sac|retir|remov|levant)[a-z]*"
+        r" (?:[a-z]+ )?bloque"
+    ),
     "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ|liber)"),
 }
 
@@ -824,7 +840,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
-                     VOLTA_DO_BLOQUEADO)),
+                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
     ("humano", (PEDIDO_DE_PESSOA, "persona real", "pessoa de verdade", SEM_ROBO)),
     # "Tarjeta de crédito" é comum numa contestação: crédito sozinho não é fora de escopo.
