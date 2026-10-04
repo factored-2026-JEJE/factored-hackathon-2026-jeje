@@ -82,7 +82,7 @@ function AcessoDoCliente({ aviso }: { aviso: string | null }) {
           {t.acc.kicker}
         </p>
         <h1>{t.acc.title}</h1>
-        <p>{t.acc.body}</p>
+        <p className="acc-corpo">{t.acc.body}</p>
         <p className="acc-nota">{t.acc.note}</p>
       </div>
       <div className="acc-escolha">
@@ -272,7 +272,7 @@ function MeusCartoes({ token, versao }: { token: string; versao: number }) {
           const preventivo = c.bloqueio?.tipo === "preventivo";
           const situacao = c.bloqueio ? (preventivo ? "preventivo" : "completo") : "ativo";
           return (
-            <li key={c.product_id} className="cartao" data-situacao={situacao}>
+            <li key={c.product_id} className="cli-cartao" data-situacao={situacao}>
               <span className="cartao-final">•••• {c.ultimos4 ?? "—"}</span>
               <span className="cartao-produto">{c.produto}</span>
               <span className="cartao-st">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>

@@ -635,7 +635,7 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "              {f.motivo && <PorQue motivo={f.motivo} />}\n",
+          "de": "              {f.motivo && <PorQue motivo={f.motivo} versaoCarregada={versaoCarregada} />}\n",
           "para": ""
         }
       ],
@@ -3303,6 +3303,36 @@
       ],
       "testes": [
         "src/abas/Atendente.test.tsx > a regra que o design não desenhou e a desconhecida"
+      ]
+    },
+    {
+      "id": "M-WEB-360",
+      "requisito": "R02",
+      "descricao": "A avaliação do time fica sempre em português, qualquer que seja a língua da interface",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "const tr = (texto: Traducao) => traduzir(texto, lingua);",
+          "para": "const tr = (texto: Traducao) => traduzir(texto, \"pt\");"
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > a avaliação segue a língua da interface"
+      ]
+    },
+    {
+      "id": "M-WEB-361",
+      "requisito": "DEV-032b",
+      "descricao": "Sem recibo, o porquê fica sem a versão dos dados (o conjunto carregado na API não entra)",
+      "trocas": [
+        {
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "(tr.recibo?.versao_dos_dados ?? versaoCarregada)?.slice(0, 12)",
+          "para": "tr.recibo?.versao_dos_dados?.slice(0, 12)"
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > sem recibo, o porquê mostra a versão do conjunto carregado na API"
       ]
     }
   ]

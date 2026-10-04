@@ -30,6 +30,8 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
   // O painel de cartões da sessão relê o cartão (2.1): bloqueado, completo, com a nota de desfazer.
   const cartao = page.getByRole("region", { name: UI.es.cartoes }).getByRole("listitem").filter({ hasText: "•••• 9876" });
   await expect(cartao).toContainText("bloqueada · completo");
+  // A linha do design só tem a borda de baixo, sem a caixa arredondada da tela antiga.
+  await expect(cartao).toHaveCSS("border-top-width", "0px");
   await expect(cartao).toContainText("Se puede deshacer por el chat en hasta 7 días.");
 
   // O aviso ao atendente é o bloqueio no console.

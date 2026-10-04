@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
+import { AVALIACAO } from "./abas/cliente/textos";
 import { avaliarConversa, listarTestadores, type ReviewRegistrada, SessaoExpirada } from "./api/cliente";
+import type { Traducao } from "./app/conteudo";
+import { useLingua } from "./app/LinguaDoApp";
+import { traduzir } from "./app/textos";
 
 const CHAVE_TESTADOR = "jeje.testador";
 const NOTAS = [1, 2, 3, 4, 5] as const;
 const RESOLVEU = [
-  { valor: "sim", rotulo: "Resolveu" },
-  { valor: "parcial", rotulo: "Em parte" },
-  { valor: "nao", rotulo: "Não resolveu" },
+  { valor: "sim", rotulo: AVALIACAO.sim },
+  { valor: "parcial", rotulo: AVALIACAO.parcial },
+  { valor: "nao", rotulo: AVALIACAO.nao },
 ] as const;
 
 function lerTestador(): string {
@@ -26,7 +30,8 @@ function guardarTestador(testador: string) {
 }
 
 /** Avaliação da conversa por alguém do time de teste (só no modo de demonstração): a review fica
- * no banco ligada à conversa e, com o GitHub configurado, vira uma Issue com a transcrição. */
+ * no banco ligada à conversa e, com o GitHub configurado, vira uma Issue com a transcrição. O design
+ * não a tem: ela segue a língua da interface e a linguagem dele (cliente.css). */
 export function AvaliarConversa({
   token,
   conversaId,
@@ -36,6 +41,8 @@ export function AvaliarConversa({
   conversaId: string;
   aoExpirar: () => void;
 }) {
+  const { lingua } = useLingua();
+  const tr = (texto: Traducao) => traduzir(texto, lingua);
   const [testadores, setTestadores] = useState<string[]>([]);
   const [avaliador, setAvaliador] = useState(lerTestador);
   const [nota, setNota] = useState<number | null>(null);
@@ -59,11 +66,11 @@ export function AvaliarConversa({
 
   if (enviada) {
     return (
-      <p role="status" className="sucesso">
-        Review enviada, obrigado.{" "}
+      <p role="status" className="cli-avaliacao-ok">
+        {tr(AVALIACAO.enviada)}{" "}
         {enviada.issue_url && (
           <a href={enviada.issue_url} target="_blank" rel="noreferrer">
-            Ver a Issue
+            {tr(AVALIACAO.issue)}
           </a>
         )}
       </p>
@@ -89,18 +96,18 @@ export function AvaliarConversa({
 
   return (
     <form
-      aria-label="Avaliar esta conversa"
-      className="avaliacao"
+      aria-label={tr(AVALIACAO.titulo)}
+      className="cli-avaliacao"
       onSubmit={(e) => {
         e.preventDefault();
         void enviar();
       }}
     >
-      <h4>Avaliar esta conversa</h4>
+      <h4>{tr(AVALIACAO.titulo)}</h4>
       <label>
-        Quem está testando
+        {tr(AVALIACAO.quem)}
         <select value={avaliador} onChange={(e) => setAvaliador(e.target.value)}>
-          <option value="">Escolha</option>
+          <option value="">{tr(AVALIACAO.escolha)}</option>
           {testadores.map((t) => (
             <option key={t} value={t}>
               {t}
@@ -108,28 +115,28 @@ export function AvaliarConversa({
           ))}
         </select>
       </label>
-      <div role="group" aria-label="Nota" className="acoes">
+      <div role="group" aria-label={tr(AVALIACAO.nota)} className="cli-avaliacao-opcoes">
         {NOTAS.map((n) => (
           <button key={n} type="button" aria-pressed={nota === n} onClick={() => setNota(n)}>
             {n}
           </button>
         ))}
       </div>
-      <div role="group" aria-label="O assistente resolveu?" className="acoes">
+      <div role="group" aria-label={tr(AVALIACAO.resolveu)} className="cli-avaliacao-opcoes">
         {RESOLVEU.map((r) => (
           <button key={r.valor} type="button" aria-pressed={resolveu === r.valor} onClick={() => setResolveu(r.valor)}>
-            {r.rotulo}
+            {tr(r.rotulo)}
           </button>
         ))}
       </div>
       <label>
-        O que deu errado ou como deveria ter sido
+        {tr(AVALIACAO.comentario)}
         <textarea value={comentario} maxLength={2000} rows={3} onChange={(e) => setComentario(e.target.value)} />
       </label>
       <button type="submit" disabled={!pronta || enviando}>
-        Registrar avaliação
+        {tr(AVALIACAO.registrar)}
       </button>
-      {falha && <p role="alert">Não foi possível enviar a review. Tente de novo.</p>}
+      {falha && <p role="alert">{tr(AVALIACAO.falhou)}</p>}
     </form>
   );
 }
