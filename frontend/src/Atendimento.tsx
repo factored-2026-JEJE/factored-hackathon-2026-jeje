@@ -272,7 +272,7 @@ function MeusCartoes({ token, versao }: { token: string; versao: number }) {
           const preventivo = c.bloqueio?.tipo === "preventivo";
           const situacao = c.bloqueio ? (preventivo ? "preventivo" : "completo") : "ativo";
           return (
-            <li key={c.product_id} className="cartao" data-situacao={situacao}>
+            <li key={c.product_id} className="cli-cartao" data-situacao={situacao}>
               <span className="cartao-final">•••• {c.ultimos4 ?? "—"}</span>
               <span className="cartao-produto">{c.produto}</span>
               <span className="cartao-st">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>
