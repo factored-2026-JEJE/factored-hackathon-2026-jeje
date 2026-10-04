@@ -29,8 +29,8 @@ test("o caminho normal com a frase do exemplo da persona, e o Try manda cada fra
   const experimentar = vi.fn();
   render(<AreaComoTestar versao={0} aoMudar={() => {}} experimentar={experimentar} />);
   const normal = within(screen.getByRole("article", { name: "Normal: dispute a charge" }));
-  expect(await normal.findByText("“No reconozco el cobro de 1.234,50 del 14/03”")).toBeInTheDocument();
-  expect(normal.getByText("“Não reconheço a cobrança de 1.234,50 do dia 14/03”")).toBeInTheDocument();
+  expect(await normal.findByText("No reconozco el cobro de 1.234,50 del 14/03")).toBeInTheDocument();
+  expect(normal.getByText("Não reconheço a cobrança de 1.234,50 do dia 14/03")).toBeInTheDocument();
   await userEvent.click(normal.getByRole("button", { name: "Try in ES →" }));
   await userEvent.click(normal.getByRole("button", { name: "Try in PT →" }));
   const humano = within(screen.getByRole("article", { name: "Human: a stolen card" }));
@@ -46,9 +46,9 @@ test("sem persona com exemplo, as frases do design; e o que conferir", async () 
   servidor([{ ...COM_EXEMPLO, exemplo: null }]);
   render(<AreaComoTestar versao={0} aoMudar={() => {}} experimentar={() => {}} />);
   const ambiguo = within(screen.getByRole("article", { name: "Ambiguous: a declined purchase" }));
-  expect(ambiguo.getByText("“¿Por qué rechazaron mi compra?”")).toBeInTheDocument();
+  expect(ambiguo.getByText("¿Por qué rechazaron mi compra?")).toBeInTheDocument();
   const normal = within(screen.getByRole("article", { name: "Normal: dispute a charge" }));
-  expect(await normal.findByText("“No reconozco el cobro de 45,90 del 10/03”")).toBeInTheDocument();
+  expect(await normal.findByText("No reconozco el cobro de 45,90 del 10/03")).toBeInTheDocument();
   const conferir = within(screen.getByRole("region", { name: "What to check" }));
   expect(conferir.getAllByRole("listitem")).toHaveLength(3);
   expect(screen.getAllByRole("article")).toHaveLength(3);
