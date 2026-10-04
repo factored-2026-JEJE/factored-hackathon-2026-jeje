@@ -15016,8 +15016,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        lida_fora = self.lida.intencao == \"fora_de_escopo\" and self.lida.cita_as_regras\n",
-          "para": "        lida_fora = False\n"
+          "de": "        lida_fora = fora and (self.lida.cita_as_regras or pelo_modelo(self.lida))\n",
+          "para": "        lida_fora = fora and pelo_modelo(self.lida)\n"
         }
       ],
       "testes": [
@@ -15262,6 +15262,51 @@
       ],
       "testes": [
         "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-CONV-123",
+      "requisito": "R08",
+      "descricao": "O fora de escopo que só o LLM leu volta a oferecer o atendente (a instrução com outra redação encaminha com o sim)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        lida_fora = fora and (self.lida.cita_as_regras or pelo_modelo(self.lida))\n",
+          "para": "        lida_fora = fora and self.lida.cita_as_regras\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_fora_de_escopo_que_so_o_llm_leu_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-297",
+      "requisito": "R08",
+      "descricao": "O objetivo ou o papel novo dado ao assistente deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:tu|su|seu|teu) (?:nuevo|novo) (?:objetivo|papel|rol|trabajo|trabalho)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-298",
+      "requisito": "R08",
+      "descricao": "As regras que 'não valem' ou 'no aplican' deixam de ser mudança",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "|romp[ae]|quebr[ae]|no aplican|nao valem|nao se aplicam)\"",
+          "para": "|romp[ae]|quebr[ae])\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
       ]
     }
   ]
