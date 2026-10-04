@@ -1121,9 +1121,9 @@
       "descricao": "Abrir o app leva ao endereço de rascunho do design, fora do app",
       "trocas": [
         {
-          "arquivo": "src/site/conteudo.ts",
-          "de": "appUrl: '/#cliente',",
-          "para": "appUrl: 'https://jeje.example/#cliente',"
+          "arquivo": "src/site/fatos.ts",
+          "de": "  appUrl: \"/#customer\",",
+          "para": "  appUrl: \"https://jeje.example/#customer\","
         }
       ],
       "testes": [
@@ -1808,7 +1808,7 @@
       "trocas": [
         {
           "arquivo": "src/App.tsx",
-          "de": "    avisarRota(`#${aba}`);",
+          "de": "    avisarRota(`#${ENDERECO[aba]}`);",
           "para": "    avisarRota(\"#cliente\");"
         }
       ],
@@ -3673,6 +3673,21 @@
       ],
       "testes": [
         "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o pilar de confiabilidade traz as medidas do congelado, cada uma com a fonte dela"
+      ]
+    },
+    {
+      "id": "M-WEB-384",
+      "requisito": "R02",
+      "descricao": "Os endereços em português de antes deixam de abrir a aba (os links citados quebram)",
+      "trocas": [
+        {
+          "arquivo": "src/app/abas.ts",
+          "de": "ENDERECO[id] === pedida || id === pedida",
+          "para": "ENDERECO[id] === pedida"
+        }
+      ],
+      "testes": [
+        "src/App.test.tsx > os endereços em português de antes abrem a mesma aba, para não quebrar os links citados"
       ]
     }
   ]
