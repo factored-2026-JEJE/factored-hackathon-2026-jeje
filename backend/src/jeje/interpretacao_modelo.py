@@ -129,6 +129,7 @@ def entendida(lida: Interpretacao) -> bool:
         lida.aceita_oferta,
         lida.outra,
         lida.uso_desfeito,
+        lida.instrucao,
     )
     return lida.intencao != "desconhecida" or any(sinais) or any(p is not None for p in pistas)
 

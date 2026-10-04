@@ -14651,6 +14651,441 @@
       ]
     },
     {
+      "id": "M-ITP-258",
+      "requisito": "R04",
+      "descricao": "A transação duplicada deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"duplicad*\",), entre=5, so_nessa_ordem=True,\n                         antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-259",
+      "requisito": "R04",
+      "descricao": "A transação estranha deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"extrano\", \"extrana\", \"extranos\", \"extranas\",\n                                            \"estranho\", \"estranha\", \"estranhos\", \"estranhas\"),\n                         entre=1, so_nessa_ordem=True, antes=NA_MENSAGEM,\n                         fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-260",
+      "requisito": "R04",
+      "descricao": "A transação desconhecida deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"desconocid*\", \"desconhecid*\"), entre=3,\n                         so_nessa_ordem=True, antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-261",
+      "requisito": "R04",
+      "descricao": "Sem a guarda do sinal de golpe, a consequência do golpe vira contestação (REG-68)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SINAL_DE_GOLPE = (\n",
+          "para": "SINAL_DE_GOLPE = ()\n_SINAL_SEM_USO = (\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_consequencia_de_golpe_nao_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-264",
+      "requisito": "R03",
+      "descricao": "O uso por outro pensado ou perguntado volta a ser fraude: o ALGUEM_USOU sem o pensar e a pergunta antes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\",\n                \"pensei\", \"pensava\", \"achei\", \"achava\", \"perguntou\", \"perguntei\"),\n",
+          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-265",
+      "requisito": "R03",
+      "descricao": "O ALGUEM_USOU casa nas duas ordens, e o pensar antes do par deixa de desfazê-lo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
+          "para": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-266",
+      "requisito": "R03",
+      "descricao": "O uso por outro contado no passado deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-267",
+      "requisito": "R08",
+      "descricao": "A mensagem 'sin reglas' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"\\b(?:sin reglas|sem regras|sin restricciones|sem restricoes)\\b\"\n",
+          "para": "    r\"\\b(?:sin restricciones|sem restricoes)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-268",
+      "requisito": "R08",
+      "descricao": "Nenhuma mensagem é instrução: a injeção segue para o leitor e o LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"instrucao\": INSTRUCAO.search(limpo) is not None,\n",
+          "para": "        \"instrucao\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-269",
+      "requisito": "R08",
+      "descricao": "O 'ignora todo lo anterior' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|restricoes|todo lo anterior|tudo o que)\\b\"\n",
+          "para": "    r\"|restricoes|tudo o que)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-270",
+      "requisito": "R08",
+      "descricao": "O 'ignore' (PT) deixa de ser verbo de instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?:ignora|ignore|ignorar|olvida|olvidar|esquece|esqueca|esquecer|desconsidera)",
+          "para": "(?:ignora|ignorar|olvida|olvidar|esquece|esqueca|esquecer|desconsidera)"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-271",
+      "requisito": "R02",
+      "descricao": "Quem se corrige ('ignore a mensagem anterior') vira instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|restricoes|todo lo anterior|tudo o que)\\b\"\n",
+          "para": "    r\"|restricoes|todo lo anterior|tudo o que|anterior)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_que_nao_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-272",
+      "requisito": "R08",
+      "descricao": "O 'eres un asistente' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:eres|voce e) (?:un|una|um|uma) (?:asistente|assistente)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-273",
+      "requisito": "R08",
+      "descricao": "O 'modo desarrollador' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:modo desarrollador|modo desenvolvedor|system prompt|prompt|jailbreak)\\b\"\n",
+          "para": "    r\"|\\b(?:modo desenvolvedor|system prompt|prompt|jailbreak)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-LLM-41",
+      "requisito": "R08",
+      "descricao": "A instrução volta a ser lida pelo modelo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.uso_desfeito,\n        lida.instrucao,\n    )\n",
+          "para": "        lida.uso_desfeito,\n    )\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_instrucao_injetada_na_mensagem_nao_vira_acao"
+      ]
+    },
+    {
+      "id": "M-GAR-18",
+      "requisito": "R08",
+      "descricao": "A instrução passa pela garantia de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        lida.uso_desfeito,\n        lida.instrucao,\n    )\n",
+          "para": "        lida.uso_desfeito,\n    )\n"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-CONV-114",
+      "requisito": "R08",
+      "descricao": "A instrução segue o fluxo comum, e o fora de escopo oferece o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.lida.instrucao or lida_fora:\n",
+          "para": "        if lida_fora:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_a_instrucao_para_mudar_as_regras_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-115",
+      "requisito": "R03",
+      "descricao": "A instrução no meio da confirmação desfaz a proposta pendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "return Saida(\"POL-ESC-01\", \"recusar\", (limite,), self.estado, self.contexto)",
+          "para": "return Saida(\"POL-ESC-01\", \"recusar\", (limite,), \"livre\", {})"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao_modelo.py::test_instrucao_injetada_na_mensagem_nao_vira_acao"
+      ]
+    },
+    {
+      "id": "M-MSG-14",
+      "requisito": "R02",
+      "descricao": "A resposta à instrução não pergunta o que o cliente precisa",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "\"bloquear tu tarjeta o pasarte con un agente. ¿Qué necesitas?\",",
+          "para": "\"bloquear tu tarjeta o pasarte con un agente.\","
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_a_instrucao_para_mudar_as_regras_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-279",
+      "requisito": "R08",
+      "descricao": "A mudança antes do alvo ('nuevas reglas', 'desactiva la política') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    rf\"|\\b{MUDANCA}(?: [a-z]+){{0,3}} {ALVO_DA_INSTRUCAO}\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-280",
+      "requisito": "R08",
+      "descricao": "O alvo antes da mudança ('as regras mudaram') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    rf\"|\\b{ALVO_DA_INSTRUCAO}(?: [a-z]+){{0,3}} {MUDANCA}\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-281",
+      "requisito": "R08",
+      "descricao": "O papel no começo ('SISTEMA: ...') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|^(?:sistema|system|admin|administrador)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-282",
+      "requisito": "R02",
+      "descricao": "O sistema citado em qualquer lugar ('el sistema me cobró') vira instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|^(?:sistema|system|admin|administrador)\\b\"\n",
+          "para": "    r\"|\\b(?:sistema|system|admin|administrador)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_que_nao_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-283",
+      "requisito": "R08",
+      "descricao": "Nenhuma mensagem cita as regras: o fora de escopo que as cita volta a oferecer o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"cita_as_regras\": CITA_AS_REGRAS.search(limpo) is not None,\n",
+          "para": "        \"cita_as_regras\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_fora_de_escopo_que_cita_as_regras_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-120",
+      "requisito": "R08",
+      "descricao": "O fora de escopo que cita a política volta a oferecer o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        lida_fora = fora and (self.lida.cita_as_regras or pelo_modelo(self.lida))\n",
+          "para": "        lida_fora = fora and pelo_modelo(self.lida)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_fora_de_escopo_que_cita_as_regras_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-293",
+      "requisito": "R05",
+      "descricao": "O papel pedido ('aja como', 'actúa como') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:aja|atue|actua|actue|finja|finge|comportate)(?: [a-z]+)? como\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-294",
+      "requisito": "R05",
+      "descricao": "A ordem do administrador ou do sistema deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:instrucao|instruccion|ordem|orden|comando)(?: [a-z]+)? (?:do|da|del|de la|de) \"\n    r\"(?:administrador|admin|sistema|desenvolvedor|desarrollador|suporte|soporte)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-295",
+      "requisito": "R05",
+      "descricao": "O assistente sem limites ou sem filtros deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:asistente|assistente)(?: [a-z]+){0,2} (?:sin|sem) (?:limites|filtros)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-296",
+      "requisito": "R05",
+      "descricao": "O 'finja que é' deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:finja|finge) que (?:e|es|eres|voce e|tu es)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
       "id": "M-API-18",
       "requisito": "R08",
       "descricao": "Os cartões de um cliente fixo, e não os do cliente da sessão",
@@ -14771,111 +15206,6 @@
       ]
     },
     {
-      "id": "M-ITP-258",
-      "requisito": "R04",
-      "descricao": "A transação duplicada deixa de ser contestação (ACH-220)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "                   Perto(TRANSACAO_CITADA, (\"duplicad*\",), entre=5, so_nessa_ordem=True,\n                         antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
-      ]
-    },
-    {
-      "id": "M-ITP-259",
-      "requisito": "R04",
-      "descricao": "A transação estranha deixa de ser contestação (ACH-220)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "                   Perto(TRANSACAO_CITADA, (\"extrano\", \"extrana\", \"extranos\", \"extranas\",\n                                            \"estranho\", \"estranha\", \"estranhos\", \"estranhas\"),\n                         entre=1, so_nessa_ordem=True, antes=NA_MENSAGEM,\n                         fora_antes=SINAL_DE_GOLPE),\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
-      ]
-    },
-    {
-      "id": "M-ITP-260",
-      "requisito": "R04",
-      "descricao": "A transação desconhecida deixa de ser contestação (ACH-220)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "                   Perto(TRANSACAO_CITADA, (\"desconocid*\", \"desconhecid*\"), entre=3,\n                         so_nessa_ordem=True, antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
-      ]
-    },
-    {
-      "id": "M-ITP-261",
-      "requisito": "R04",
-      "descricao": "Sem a guarda do sinal de golpe, a consequência do golpe vira contestação (REG-68)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "SINAL_DE_GOLPE = (\n",
-          "para": "SINAL_DE_GOLPE = ()\n_SINAL_SEM_USO = (\n"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_consequencia_de_golpe_nao_e_contestacao"
-      ]
-    },
-    {
-      "id": "M-ITP-264",
-      "requisito": "R03",
-      "descricao": "O uso por outro pensado ou perguntado volta a ser fraude: o ALGUEM_USOU sem o pensar e a pergunta antes",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\",\n                \"pensei\", \"pensava\", \"achei\", \"achava\", \"perguntou\", \"perguntei\"),\n",
-          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
-      ]
-    },
-    {
-      "id": "M-ITP-265",
-      "requisito": "R03",
-      "descricao": "O ALGUEM_USOU casa nas duas ordens, e o pensar antes do par deixa de desfazê-lo",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
-          "para": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
-      ]
-    },
-    {
-      "id": "M-ITP-266",
-      "requisito": "R03",
-      "descricao": "O uso por outro contado no passado deixa de ser fraude",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO,\n"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
-      ]
-    },
-    {
       "id": "M-ITP-277",
       "requisito": "R03",
       "descricao": "O relato com o uso antes da pessoa deixa de ser fraude",
@@ -14912,8 +15242,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "        lida.outra,\n        lida.uso_desfeito,\n    )\n",
-          "para": "        lida.outra,\n    )\n"
+          "de": "        lida.outra,\n        lida.uso_desfeito,\n",
+          "para": "        lida.outra,\n"
         }
       ],
       "testes": [
@@ -14927,12 +15257,57 @@
       "trocas": [
         {
           "arquivo": "src/jeje/garantia_fraude.py",
-          "de": "lida.id_digitado, lida.uso_desfeito)",
-          "para": "lida.id_digitado)"
+          "de": "        lida.id_digitado,\n        lida.uso_desfeito,\n",
+          "para": "        lida.id_digitado,\n"
         }
       ],
       "testes": [
         "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-CONV-123",
+      "requisito": "R08",
+      "descricao": "O fora de escopo que só o LLM leu volta a oferecer o atendente (a instrução com outra redação encaminha com o sim)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        lida_fora = fora and (self.lida.cita_as_regras or pelo_modelo(self.lida))\n",
+          "para": "        lida_fora = fora and self.lida.cita_as_regras\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_fora_de_escopo_que_so_o_llm_leu_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-297",
+      "requisito": "R08",
+      "descricao": "O objetivo ou o papel novo dado ao assistente deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:tu|su|seu|teu) (?:nuevo|novo) (?:objetivo|papel|rol|trabajo|trabalho)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-298",
+      "requisito": "R08",
+      "descricao": "As regras que 'não valem' ou 'no aplican' deixam de ser mudança",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "|romp[ae]|quebr[ae]|no aplican|nao valem|nao se aplicam)\"",
+          "para": "|romp[ae]|quebr[ae])\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
       ]
     },
     {
