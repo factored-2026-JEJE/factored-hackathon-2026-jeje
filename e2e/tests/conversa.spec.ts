@@ -2,13 +2,12 @@
 // português. O esperado vem do texto aprovado + fatos da API, e todo efeito mostrado na tela é
 // conferido na API (pré-caso, encaminhamento, histórico da conversa).
 import { expect, type Page, test } from "@playwright/test";
-import { auth, dataTexto, descricao, elegivel, personas, sessao, type Transacao, transacoes, valorTexto } from "./comum";
+import { auth, dataTexto, descricao, dizerNaConversa, elegivel, entrarPeloAcesso, falasDaConversa, personas, sessao, type Transacao, transacoes, UI, valorTexto } from "./comum";
 
 type Idioma = "es" | "pt";
 
 const TEXTOS = {
   es: {
-    abrir: "Conversar em español",
     contestar: (t: Transacao) =>
       `No reconozco el cobro de ${valorTexto(t.amount)} del ${dataTexto(t.transaction_date)}` +
       (t.merchant_name ? ` en ${t.merchant_name}` : ""),
@@ -26,7 +25,6 @@ const TEXTOS = {
     comHumano: (a: string) => `Tu caso ya está con un agente (referencia ${a}); la conversación sigue con esa persona.`,
   },
   pt: {
-    abrir: "Conversar em português",
     contestar: (t: Transacao) =>
       `Não reconheço a cobrança de ${valorTexto(t.amount)} do dia ${dataTexto(t.transaction_date)}` +
       (t.merchant_name ? ` na ${t.merchant_name}` : ""),
@@ -53,21 +51,14 @@ const MOTIVO: Record<string, Record<Idioma, string>> = {
   "05": { es: "no autorizada por el emisor", pt: "não autorizada pelo emissor" },
 };
 
+// O app abre na língua da conversa (os rótulos do design ficam previsíveis), e a conversa abre na
+// primeira mensagem, na língua dela.
 async function entrarEConversar(page: Page, nome: string, idioma: Idioma) {
-  await page.goto("/");
-  await page.getByRole("button", { name: `Entrar como ${nome}` }).click();
-  await page.getByRole("button", { name: TEXTOS[idioma].abrir }).click();
-  await expect(page.getByRole("log", { name: "Mensagens" }).locator("li")).toHaveCount(1);
+  await entrarPeloAcesso(page, nome, idioma);
+  await expect(falasDaConversa(page)).toHaveCount(0);
 }
 
-async function dizer(page: Page, mensagem: string) {
-  const falas = page.getByRole("log", { name: "Mensagens" }).locator("li");
-  const antes = await falas.count();
-  await page.getByLabel("Mensagem").fill(mensagem);
-  await page.getByRole("button", { name: "Enviar" }).click();
-  await expect(falas).toHaveCount(antes + 2);
-  return falas.last();
-}
+const dizer = (page: Page, mensagem: string, idioma: Idioma) => dizerNaConversa(page, mensagem, idioma);
 
 async function historico(page: Page, token: string) {
   const conversa = await page.evaluate(() => sessionStorage.getItem("jeje.conversa"));
@@ -86,23 +77,27 @@ for (const idioma of ["es", "pt"] as const) {
     const { persona, transacao, token } = await elegivel(request, `conversa-${idioma}`, info, unica);
     await entrarEConversar(page, persona.nome, idioma);
 
-    const proposta = await dizer(page, t.contestar(transacao));
+    const proposta = await dizer(page, t.contestar(transacao), idioma);
     await expect(proposta).toContainText(t.proposta(descricao(transacao, idioma)));
     const doCliente = async () =>
       ((await (await request.get("/api/minhas/pre-casos", { headers: auth(token) })).json()) as { protocolo: string; transaction_id: string }[])
         .filter((p) => p.transaction_id === transacao.transaction_id);
     expect(await doCliente()).toEqual([]); // proposta não é efeito
 
-    await page.getByRole("group", { name: "Confirmação" }).getByRole("button", { name: t.confirmar }).click();
-    const recebido = page.getByRole("status").filter({ hasText: "Pré-caso recebido" });
-    await expect(recebido).toContainText(/Pré-caso recebido: protocolo PC-\d+/);
+    await page.getByRole("group", { name: UI[idioma].opcoes }).getByRole("button", { name: t.confirmar }).click();
+    const recebido = page.getByRole("status").filter({ hasText: UI[idioma].recebido });
+    await expect(recebido).toContainText(new RegExp(`PC-\\d+ · ${UI[idioma].recebido}`));
+    // A fala do cliente é o sim da língua da conversa, e a resposta nova fica inteira à vista (ACH-209).
+    await expect(falasDaConversa(page)).toHaveCount(4);
+    await expect(falasDaConversa(page).nth(2)).toContainText(t.confirmar);
+    await expect(falasDaConversa(page).last()).toBeInViewport({ ratio: 1 });
     const protocolo = (await recebido.textContent())!.match(/PC-\d+/)![0];
     expect(await doCliente()).toEqual([expect.objectContaining({ protocolo })]);
-    await expect(page.getByRole("region", { name: "Meus pré-casos" })).toContainText(protocolo);
+    await expect(page.getByRole("region", { name: UI[idioma].pedidos })).toContainText(protocolo);
 
     // Recarregar reabre a conversa pelo histórico: nada é reenviado nem duplicado.
     await page.reload();
-    await expect(page.getByRole("log", { name: "Mensagens" })).toContainText(protocolo);
+    await expect(page.getByRole("log")).toContainText(protocolo);
     expect(await doCliente()).toEqual([expect.objectContaining({ protocolo })]);
     const acoes = (await historico(page, token)).turnos.map((x) => x.acao);
     expect(acoes).toEqual(["propor_pre_caso", "registrar_pre_caso"]);
@@ -123,19 +118,22 @@ for (const idioma of ["es", "pt"] as const) {
     const { nome, token, recusadas } = achado!;
     await entrarEConversar(page, nome, idioma);
 
-    await dizer(page, t.recusada);
-    const opcoes = page.getByRole("group", { name: "Opções" }).getByRole("button");
-    await expect(opcoes).toHaveText(recusadas.slice(0, 5).map((x, i) => `${i + 1}. ${descricao(x, idioma)}`));
+    await dizer(page, t.recusada, idioma);
+    // O passo 2 do design (a transação), enquanto a API pergunta qual.
+    await expect(page.getByRole("listitem").filter({ hasText: /^2 · / })).toHaveAttribute("aria-current", "step");
+    const opcoes = page.getByRole("group", { name: UI[idioma].opcoes }).getByRole("button");
+    await expect(opcoes).toHaveText(recusadas.slice(0, 5).map((x) => descricao(x, idioma)));
 
     const escolhida = recusadas[0]!;
     const situacao = await (await request.get(`/api/minhas/transacoes/${escolhida.transaction_id}/situacao`, { headers: auth(token) })).json();
     await opcoes.first().click();
-    const falas = page.getByRole("log", { name: "Mensagens" }).locator("li");
+    const falas = falasDaConversa(page);
     const d = descricao(escolhida, idioma);
     const esperado = situacao.decisao.regra === "POL-CON-03"
       ? t.comCodigo(d, escolhida.response_code!, MOTIVO[escolhida.response_code!]![idioma])
       : t.semMotivo(d);
     await expect(falas.last()).toContainText(esperado);
+    await expect(falas.last()).toBeInViewport({ ratio: 1 });
     const turnos = (await historico(page, token)).turnos;
     expect(turnos.map((x) => [x.acao, x.regra])).toEqual([["esclarecer", "POL-CON-02"], ["responder", situacao.decisao.regra]]);
   });
@@ -143,7 +141,7 @@ for (const idioma of ["es", "pt"] as const) {
   test(`caminho humano (${idioma}): relato de fraude encaminha e aparece na fila do atendente`, async ({ page, request }) => {
     const [primeira] = await personas(request);
     await entrarEConversar(page, primeira!.nome, idioma);
-    let relato = await dizer(page, t.fraude);
+    let relato = await dizer(page, t.fraude, idioma);
     // Com vários cartões ativos, o caso já vai ao atendente e o assistente pergunta qual cartão
     // bloquear agora; a resposta bloqueia e anota no mesmo caso (PRD-009: encaminha já).
     const primeiro = (await relato.textContent())!;
@@ -151,21 +149,24 @@ for (const idioma of ["es", "pt"] as const) {
       const caso = primeiro.match(/AT-\d+/)![0];
       const naHora: { id: string }[] = await (await request.get("/api/atendimento/fila?limite=100")).json();
       expect(naHora.map((e) => e.id)).toContain(caso);
-      relato = await dizer(page, "1");
+      relato = await dizer(page, "1", idioma);
     }
-    const comHumano = page.getByRole("status").filter({ hasText: "Com atendimento humano" });
-    await expect(comHumano).toContainText(/AT-\d+/);
-    const atendimento = (await comHumano.textContent())!.match(/AT-\d+/)![0];
+    // O balão diz que o caso passou para uma pessoa; o caso é o da conversa, lido na API.
+    await expect(relato).toContainText(UI[idioma].humano);
+    const token = (await page.evaluate(() => sessionStorage.getItem("jeje.sessao")))!;
+    const atendimento = ((await (await request.get(`/api/conversas/${await page.evaluate(() => sessionStorage.getItem("jeje.conversa"))}`, { headers: auth(token) })).json()) as { atendimento: string }).atendimento;
+    expect(atendimento).toMatch(/^AT-\d+$/);
     // O texto do encaminhamento, lido agora: depois vêm o lembrete e a troca de aba.
     const encaminhamento = (await relato.textContent())!;
 
     // Depois do encaminhamento, a automação só lembra quem está com o caso.
-    const lembrete = await dizer(page, t.depois);
+    const lembrete = await dizer(page, t.depois, idioma);
     await expect(lembrete).toContainText(t.comHumano(atendimento));
+    await expect(lembrete).toBeInViewport({ ratio: 1 });
 
     // O atendente fica na aba dele; só a área escolhida aparece.
-    await page.getByRole("tab", { name: "Atendente" }).click();
-    await expect(page.getByRole("region", { name: "Conversa" })).toBeHidden();
+    await page.getByRole("tab", { name: UI[idioma].agente }).click();
+    await expect(page.getByRole("region", { name: UI[idioma].conversa })).toBeHidden();
     await expect(page.getByRole("heading", { name: "Qualidade dos dados" })).toBeHidden();
     const naFila = page.getByRole("region", { name: "Fila do atendimento humano" }).getByRole("listitem", { name: `Encaminhamento ${atendimento}` });
     await expect(naFila).toContainText("POL-HUM-01");

@@ -404,6 +404,36 @@
         }
       }
     },
+    "/minhas/cartoes": {
+      "get": {
+        "summary": "Meus Cartoes",
+        "operationId": "meus_cartoes_minhas_cartoes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CartaoDoCliente"
+                  },
+                  "type": "array",
+                  "title": "Response Meus Cartoes Minhas Cartoes Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/minhas/transacoes/{transaction_id}/contestacao/proposta": {
       "post": {
         "summary": "Propor",
@@ -745,6 +775,55 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Metricas"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metricas/eventos": {
+      "get": {
+        "summary": "Eventos Recentes",
+        "operationId": "eventos_recentes_metricas_eventos_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 8,
+              "title": "Limite"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventoRecente"
+                  },
+                  "title": "Response Eventos Recentes Metricas Eventos Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Modo demo desligado ou persona não provisionada"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1320,6 +1399,77 @@
         "title": "BloqueioDeCartao",
         "description": "Bloqueio simulado: o cartão aparece só pelo tipo e pelos 4 últimos dígitos."
       },
+      "BloqueioDoCartao": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "reversivel_ate": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Reversivel Ate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tipo",
+          "reversivel_ate"
+        ],
+        "title": "BloqueioDoCartao",
+        "description": "O bloqueio ativo: completo (o cliente desfaz pela conversa até o prazo) ou preventivo (um\natendente confirma ou desfaz)."
+      },
+      "CartaoDoCliente": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "title": "Product Id"
+          },
+          "produto": {
+            "type": "string",
+            "title": "Produto"
+          },
+          "ultimos4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimos4"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "bloqueio": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BloqueioDoCartao"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "produto",
+          "ultimos4",
+          "status",
+          "bloqueio"
+        ],
+        "title": "CartaoDoCliente"
+      },
       "ConversaAberta": {
         "properties": {
           "conversa_id": {
@@ -1500,6 +1650,68 @@
           "criado_em"
         ],
         "title": "Encaminhamento"
+      },
+      "EventoRecente": {
+        "properties": {
+          "criado_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criado Em"
+          },
+          "requisicao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requisicao"
+          },
+          "regra": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regra"
+          },
+          "acao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acao"
+          },
+          "efeito": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Efeito"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criado_em",
+          "requisicao",
+          "regra",
+          "acao",
+          "efeito"
+        ],
+        "title": "EventoRecente"
       },
       "ExemploDeContestacao": {
         "properties": {

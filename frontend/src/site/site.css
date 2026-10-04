@@ -1,0 +1,39 @@
+/* O estilo global do site (DEV-032a), igual ao do design (04-solucao/design-do-site no vault). */
+
+@import "./fontes.css";
+
+/* O <style> do design. */
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #F0ECE3; color: #16150F; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+a { color: #2B35F0; }
+a:hover { color: #16150F; }
+button { font: inherit; color: inherit; cursor: pointer; }
+::selection { background: #2B35F0; color: #fff; }
+:focus-visible { outline: 2px solid #2B35F0; outline-offset: 2px; }
+input::placeholder { color: #6B665B; }
+
+/* Do runtime do design: a página ocupa a janela. */
+html, body { height: 100%; margin: 0; }
+#raiz, #raiz > .site-host { height: 100%; }
+
+/* Os estados de hover do design (style-hover), com !important como no runtime dele. */
+.dc-h0:hover{color:#2B35F0 !important}
+.dc-h1:hover{background:#16150F !important;border-color:#16150F !important;color:#fff !important}
+.dc-h2:hover{background:#2B35F0 !important;border-color:#2B35F0 !important;color:#fff !important}
+.dc-h3:hover{background:#16150F !important;color:#F0ECE3 !important}
+.dc-h4:hover{background:#EFEBFF !important}
+.dc-h5:hover{background:#2B35F0 !important;border-color:#2B35F0 !important}
+.dc-h6:hover{background:#2B35F0 !important;color:#fff !important;border-color:#2B35F0 !important}
+.dc-h7:hover{background:#F0ECE3 !important;color:#16150F !important}
+.dc-h8:hover{background:#16150F !important}
+.dc-h9:hover{background:#FF5520 !important;color:#16150F !important}
+.dc-h10:hover{background:#2B35F0 !important;color:#fff !important}
+.dc-h11:hover{background:#1F1E18 !important}
+.dc-h12:hover{background:#FFFDF7 !important}
+.dc-h13:hover{background:#16150F !important;color:#fff !important}
+.dc-h14:hover{background:#fff !important;color:#2B35F0 !important}
+.dc-h15:hover{border-color:#F0ECE3 !important;color:#fff !important}
+.dc-h16:hover{background:#FF5520 !important}
+.dc-h17:hover{background:#F0ECE3 !important;color:#16150F !important;border-color:#16150F !important}
