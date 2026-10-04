@@ -3060,6 +3060,21 @@
       "testes": [
         "src/Conversa.test.tsx > pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim"
       ]
+    },
+    {
+      "id": "M-WEB-360",
+      "requisito": "R02",
+      "descricao": "A avaliação do time fica sempre em português, qualquer que seja a língua da interface",
+      "trocas": [
+        {
+          "arquivo": "src/AvaliarConversa.tsx",
+          "de": "const tr = (texto: Traducao) => traduzir(texto, lingua);",
+          "para": "const tr = (texto: Traducao) => traduzir(texto, \"pt\");"
+        }
+      ],
+      "testes": [
+        "src/AvaliarConversa.test.tsx > a avaliação segue a língua da interface"
+      ]
     }
   ]
 }
