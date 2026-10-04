@@ -156,6 +156,18 @@ def test_conversa_aceita_o_estado_da_confirmacao_do_desbloqueio(banco_migrado):
         con.execute(inserir, {"id": "c2", "e": "desbloqueando"})
 
 
+def test_caso_so_aceita_dispositivo_conhecido_ou_nenhum(banco_migrado):
+    inserir = text(
+        "insert into app.handoffs (id, customer_id, regra, idioma, pedido, acoes, pendencias,"
+        " dispositivo) values (:id, 'CLI-A', 'POL-HUM-03', 'es', 'x', '[]', '[]', :d)"
+    )
+    with conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": "AT-1", "d": "cadastrado"})
+        con.execute(inserir, {"id": "AT-2", "d": None})
+    with pytest.raises(IntegrityError), conexao(banco_migrado) as con:
+        con.execute(inserir, {"id": "AT-3", "d": "confiavel"})
+
+
 def test_bloqueio_so_se_liga_a_caso_que_existe(banco_migrado):
     ligar = text("update app.bloqueios set atendimento = :caso where id = 'BL-1'")
     with conexao(banco_migrado) as con:

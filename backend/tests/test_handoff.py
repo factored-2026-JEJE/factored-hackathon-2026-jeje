@@ -33,6 +33,15 @@ def test_encaminhamento_leva_motivo_fatos_acoes_e_pendencias(banco_migrado):
     assert registro["pendencias"] == ["confirmar com o cliente se a compra foi feita por terceiro"]
 
 
+def test_o_caso_guarda_o_dispositivo_da_sessao_e_o_de_antes_fica_sem(banco_migrado):
+    """2.1c: o dispositivo é um dos fatos do caso no design; o caso sem ele (os de antes) segue
+    valendo."""
+    with conexao(banco_migrado) as con:
+        handoff.registrar(con, Encaminhamento("CLI-A", "POL-HUM-03", "es", "1", dispositivo="novo"))
+        handoff.registrar(con, Encaminhamento("CLI-B", "POL-HUM-01", "pt", "2"))
+        assert [r["dispositivo"] for r in handoff.fila(con, 10)] == ["novo", None]
+
+
 def test_pedido_longo_e_truncado_para_minimizar_dados(banco_migrado):
     longo = "a" * 1000
     with conexao(banco_migrado) as con:
