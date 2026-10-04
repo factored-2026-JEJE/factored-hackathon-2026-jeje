@@ -14896,8 +14896,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        if self.lida.instrucao:\n",
-          "para": "        if False:\n"
+          "de": "        if self.lida.instrucao or lida_fora:\n",
+          "para": "        if lida_fora:\n"
         }
       ],
       "testes": [
@@ -14932,6 +14932,96 @@
       ],
       "testes": [
         "tests/test_conversa.py::test_a_instrucao_para_mudar_as_regras_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-279",
+      "requisito": "R08",
+      "descricao": "A mudança antes do alvo ('nuevas reglas', 'desactiva la política') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    rf\"|\\b{MUDANCA}(?: [a-z]+){{0,3}} {ALVO_DA_INSTRUCAO}\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-280",
+      "requisito": "R08",
+      "descricao": "O alvo antes da mudança ('as regras mudaram') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    rf\"|\\b{ALVO_DA_INSTRUCAO}(?: [a-z]+){{0,3}} {MUDANCA}\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-281",
+      "requisito": "R08",
+      "descricao": "O papel no começo ('SISTEMA: ...') deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|^(?:sistema|system|admin|administrador)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-282",
+      "requisito": "R02",
+      "descricao": "O sistema citado em qualquer lugar ('el sistema me cobró') vira instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|^(?:sistema|system|admin|administrador)\\b\"\n",
+          "para": "    r\"|\\b(?:sistema|system|admin|administrador)\\b\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_que_nao_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-283",
+      "requisito": "R08",
+      "descricao": "Nenhuma mensagem cita as regras: o fora de escopo que as cita volta a oferecer o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"cita_as_regras\": CITA_AS_REGRAS.search(limpo) is not None,\n",
+          "para": "        \"cita_as_regras\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_fora_de_escopo_que_cita_as_regras_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-CONV-120",
+      "requisito": "R08",
+      "descricao": "O fora de escopo que cita a política volta a oferecer o atendente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        lida_fora = self.lida.intencao == \"fora_de_escopo\" and self.lida.cita_as_regras\n",
+          "para": "        lida_fora = False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_fora_de_escopo_que_cita_as_regras_nao_oferece_o_atendente"
       ]
     }
   ]
