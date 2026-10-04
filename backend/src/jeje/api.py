@@ -11,6 +11,7 @@ from jeje import (
     acesso,
     acesso_api,
     atendimento_api,
+    cartoes_api,
     conversa_api,
     health,
     intencao_api,
@@ -73,6 +74,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(qualidade_api.router)
     app.include_router(sessao_api.router)
     app.include_router(transacoes_api.router)
+    app.include_router(cartoes_api.router)
     app.include_router(pre_caso_api.router)
     app.include_router(conversa_api.router)
     app.include_router(metricas_api.router)

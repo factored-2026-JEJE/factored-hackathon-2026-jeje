@@ -209,6 +209,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/minhas/cartoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Meus Cartoes */
+        get: operations["meus_cartoes_minhas_cartoes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/minhas/transacoes/{transaction_id}/contestacao/proposta": {
         parameters: {
             query?: never;
@@ -335,6 +352,23 @@ export interface paths {
         };
         /** Calcular Metricas */
         get: operations["calcular_metricas_metricas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metricas/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Eventos Recentes */
+        get: operations["eventos_recentes_metricas_eventos_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -598,6 +632,34 @@ export interface components {
              */
             atendimento: string | null;
         };
+        /**
+         * BloqueioDoCartao
+         * @description O bloqueio ativo: completo (o cliente desfaz pela conversa até o prazo) ou preventivo (um
+         *     atendente confirma ou desfaz).
+         */
+        BloqueioDoCartao: {
+            /** Id */
+            id: string;
+            /** Tipo */
+            tipo: string;
+            /**
+             * Reversivel Ate
+             * Format: date-time
+             */
+            reversivel_ate: string;
+        };
+        /** CartaoDoCliente */
+        CartaoDoCliente: {
+            /** Product Id */
+            product_id: string;
+            /** Produto */
+            produto: string;
+            /** Ultimos4 */
+            ultimos4: string | null;
+            /** Status */
+            status: string;
+            bloqueio: components["schemas"]["BloqueioDoCartao"] | null;
+        };
         /** ConversaAberta */
         ConversaAberta: {
             /** Conversa Id */
@@ -663,6 +725,22 @@ export interface components {
              * Format: date-time
              */
             criado_em: string;
+        };
+        /** EventoRecente */
+        EventoRecente: {
+            /**
+             * Criado Em
+             * Format: date-time
+             */
+            criado_em: string;
+            /** Requisicao */
+            requisicao: string | null;
+            /** Regra */
+            regra: string | null;
+            /** Acao */
+            acao: string | null;
+            /** Efeito */
+            efeito: string | null;
         };
         /**
          * ExemploDeContestacao
@@ -1613,6 +1691,33 @@ export interface operations {
             };
         };
     };
+    meus_cartoes_minhas_cartoes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartaoDoCliente"][];
+                };
+            };
+            /** @description Sessão ausente, inválida ou expirada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     propor_minhas_transacoes__transaction_id__contestacao_proposta_post: {
         parameters: {
             query?: never;
@@ -1933,6 +2038,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Metricas"];
+                };
+            };
+        };
+    };
+    eventos_recentes_metricas_eventos_get: {
+        parameters: {
+            query?: {
+                limite?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventoRecente"][];
+                };
+            };
+            /** @description Modo demo desligado ou persona não provisionada */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
