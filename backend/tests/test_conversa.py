@@ -1198,6 +1198,41 @@ def test_caso_leva_as_falas_do_pedido_com_campos_e_o_pedido_de_atendente(cenario
     )
 
 
+def test_caso_leva_o_canal_e_o_quando_que_o_cliente_contou(cenario):
+    """ACH-126: a fala com o canal e o quando relativo entra no texto do caso, para o atendente não
+    perguntar de novo; a reclamação sem fato segue de fora."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco un cobro")
+        dizer(http, auth, conversa, "Ya llamé dos veces y nadie me resolvió nada")
+        dizer(http, auth, conversa, "Fue por la app")
+        dizer(http, auth, conversa, "Pasó ayer")
+        dizer(http, auth, conversa, "Quiero hablar con una persona")
+    [registro] = handoffs(cenario)
+    assert registro["pedido"] == (
+        "No reconozco un cobro Fue por la app Pasó ayer Quiero hablar con una persona"
+    )
+
+
+def test_caso_leva_o_ramo_e_a_compra_presencial_que_o_cliente_contou(cenario):
+    """ACH-186: a fala com o ramo do comércio e a da compra presencial entram no texto do caso,
+    mesmo sem apontar um comércio só do cliente; a reclamação sem fato segue de fora."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "No reconozco un cobro")
+        dizer(http, auth, conversa, "Estoy muy molesto con el banco")
+        dizer(http, auth, conversa, "Fue en un supermercado")
+        dizer(http, auth, conversa, "Fue pagando con la tarjeta")
+        dizer(http, auth, conversa, "Quiero hablar con una persona")
+    [registro] = handoffs(cenario)
+    assert registro["pedido"] == (
+        "No reconozco un cobro Fue en un supermercado Fue pagando con la tarjeta"
+        " Quiero hablar con una persona"
+    )
+
+
 def test_caso_nao_leva_as_falas_de_um_pedido_anterior(cenario):
     """O pedido já respondido fica de fora: o caso é do pedido em curso."""
     with cliente(cenario) as http:

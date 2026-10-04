@@ -1485,6 +1485,50 @@ def comercio_citado(texto: str, comercios: Iterable[str]) -> str | None:
     return comercio_citado_e_como(texto, comercios)[0]
 
 
+# O canal e o quando relativo que o cliente conta (ACH-126): servem só ao texto do caso do atendente
+# (DEV-036), para ele não perguntar de novo. Não entram na leitura do pedido nem no ranking da
+# transação, onde a data relativa aumenta o erro direto (NOV-09).
+CANAL_CITADO = re.compile(
+    r"\b(?:app|aplicativo|aplicacion|aplicacao|web|internet|online|en linea|pagina|site|cajero"
+    r"|cajeros|caixa eletronico|atm|maquininha|datafono|sucursal|agencia|transferencia|pix"
+    # A compra presencial (ACH-186): pagando com o cartão, na loja.
+    r"|pag(?:ando|ue|o|uei) (?:con|com) (?:la |el |mi |o |a |meu |minha )?(?:tarjeta|cartao)"
+    r"|en (?:la )?tienda|na loja|presencial(?:mente)?)\b"
+)
+# O ramo do comércio que o cliente conta ("un supermercado", "um posto de gasolina"), ACH-186: só
+# para o texto do caso, mesmo quando não aponta um comércio só entre os do cliente, o que o
+# comercio_citado exige para o ranking (que não muda).
+RAMO_CITADO = re.compile(
+    r"\b(?:supermercado|mercado|mercearia|tienda|loja|restaurante|cafeteria|farmacia|drogaria"
+    r"|drogueria|gasolinera|posto de gasolina|estacion de servicio|taxi|cine|cinema|teatro"
+    r"|concierto|show|clinica|laboratorio|optica|otica|ferreteria|loja de ferragens"
+    r"|centro comercial|shopping|telefonica|operadora|cable|tv a cabo|servicios publicos"
+    r"|conta de luz|hotel|aerolinea|companhia aerea|viaje en auto|corrida de carro|suscripcion"
+    r"|assinatura)\b"
+)
+QUANDO_RELATIVO = re.compile(
+    r"\b(?:hoy|hoje|ayer|ontem|anteayer|antier|anteontem|anoche|esta manana|hoje de manha"
+    r"|(?:hace|ha) (?:un|una|unos|unas|um|uma|uns|umas|dos|dois|duas|tres|\d+"
+    r"|algunos|algunas|alguns|algumas|varios|varias|pocos|pocas|poucos|poucas)"
+    r" (?:dia|dias|semana|semanas|mes|meses)"
+    r"|(?:\d+|dois|duas|tres|dos) (?:dias|semanas|meses) atras"
+    r"|(?:la |a )?semana (?:pasada|passada)|(?:el |o )?mes (?:pasado|passado)|este mes"
+    r"|esta semana|(?:el |o )?fin(?:al)? de semana|fim de semana)\b"
+)
+
+
+def canal_citado(texto: str) -> bool:
+    return CANAL_CITADO.search(normalizar(texto)) is not None
+
+
+def quando_relativo_citado(texto: str) -> bool:
+    return QUANDO_RELATIVO.search(normalizar(texto)) is not None
+
+
+def ramo_citado(texto: str) -> bool:
+    return RAMO_CITADO.search(normalizar(texto)) is not None
+
+
 # Cartão citado pelo final ("la terminada en 9241", "o de final 5678") ou pelo tipo ("la de
 # débito"). Só exatamente 4 dígitos: o número inteiro do cartão não é final de nada.
 FINAL_DE_CARTAO = re.compile(r"(?<!\d)\d{4}(?!\d)")

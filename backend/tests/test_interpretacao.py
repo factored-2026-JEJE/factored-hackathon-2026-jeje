@@ -12,11 +12,14 @@ import pytest
 from jeje import interpretacao
 from jeje.interpretacao import (
     Interpretacao,
+    canal_citado,
     cartao_citado,
     cita_cartao,
     comercio_citado,
     comercio_citado_e_como,
     interpretar,
+    quando_relativo_citado,
+    ramo_citado,
 )
 from jeje.interpretacao_modelo import entendida
 
@@ -2112,3 +2115,47 @@ def test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao(texto, anterior):
 )
 def test_o_que_nao_e_instrucao(texto, anterior):
     assert not ler(texto, anterior).instrucao
+
+
+@pytest.mark.parametrize(
+    ("texto", "canal", "quando"),
+    [
+        ("Pagué en el cajero ayer", True, True),
+        ("Fiz pelo app há duas semanas", True, True),
+        ("Compré online hace 3 días", True, True),
+        ("Foi na maquininha, 2 dias atrás", True, True),
+        ("Fue en la sucursal la semana pasada", True, True),
+        ("Fiz um pix no mês passado", True, True),
+        # A compra presencial (ACH-186).
+        ("Fue pagando con la tarjeta", True, False),
+        ("Foi pagando com o cartão, ontem", True, True),
+        ("Foi pelo app há algumas semanas", True, True),
+        ("Fue en el cajero hace varios días", True, True),
+        ("Pagué con mi tarjeta en la tienda", True, False),
+        ("Comprei na loja, presencialmente", True, False),
+        ("No reconozco el cobro del 10/03", False, False),
+        ("Me aplicaron un cargo y hace falta revisarlo", False, False),
+        ("Quiero bloquear la tarjeta", False, False),
+    ],
+)
+def test_canal_e_quando_relativo_citados_para_o_texto_do_caso(texto, canal, quando):
+    """ACH-126: o canal e o quando relativo que o cliente conta, só para o texto do caso."""
+    assert (canal_citado(texto), quando_relativo_citado(texto)) == (canal, quando)
+
+
+@pytest.mark.parametrize(
+    ("texto", "citado"),
+    [
+        ("Fue en un supermercado.", True),
+        ("Foi num posto de gasolina.", True),
+        ("Era una farmacia, creo", True),
+        ("Foi a assinatura de música", True),
+        ("Fue en el centro comercial", True),
+        ("No reconozco el cobro de 45,90", False),
+        ("Quiero hablar con una persona.", False),
+        ("Me cobraron dos veces", False),
+    ],
+)
+def test_ramo_do_comercio_citado_para_o_texto_do_caso(texto, citado):
+    """ACH-186: o ramo que o cliente conta ("un supermercado"), só para o texto do caso."""
+    assert ramo_citado(texto) is citado
