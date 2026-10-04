@@ -12,7 +12,8 @@ type Qualidade = {
 };
 
 const soma = (c: Record<string, number>) => Object.values(c).reduce((t, n) => t + n, 0);
-const pt = (n: number) => n.toLocaleString("pt-BR");
+// O app abre em inglês: as contagens com a vírgula no milhar.
+const en = (n: number) => n.toLocaleString("en-US");
 
 // Oráculos independentes do pipeline:
 // - fixture: defeitos deliberados escritos em data/fixture/gerar.py;
@@ -31,20 +32,23 @@ const ESPERADO_S3 = {
 };
 
 test("painel de qualidade mostra os números da API e fecha a conta de cada tabela", async ({ page, request }) => {
+  const prontidao = await (await request.get("/api/health/ready")).json();
   const tabelas: Qualidade[] = await (await request.get("/api/dados/qualidade")).json();
   expect(tabelas.length).toBeGreaterThan(0);
 
+  // O título diz a origem real dos dados: a fixture sintética do design ou a base do desafio.
   await page.goto("/#operacao");
-  await expect(page.getByRole("heading", { name: "Qualidade dos dados" })).toBeVisible();
+  const titulo = prontidao.dataset.source === "fixture" ? "Data quality · synthetic fixture" : "Data quality · challenge dataset";
+  const tabela = page.getByRole("table", { name: titulo });
+  await expect(tabela).toBeVisible();
   for (const t of tabelas) {
     expect(t.raw).toBe(t.curado + t.quarentena + t.copias_descartadas);
-    const celulas = page.getByRole("row", { name: new RegExp(`^${t.tabela} `) }).getByRole("cell");
-    await expect(celulas).toHaveText([
-      pt(t.raw), pt(t.curado), pt(t.quarentena), pt(t.copias_descartadas),
-      pt(soma(t.anulacoes)), pt(soma(t.normalizacoes)),
+    const linha = tabela.getByRole("row").filter({ has: page.getByRole("rowheader", { name: t.tabela, exact: true }) });
+    await expect(linha.getByRole("cell")).toHaveText([
+      en(t.raw), en(t.curado), en(t.quarentena), en(t.copias_descartadas), en(soma(t.anulacoes)),
     ]);
   }
-  await expect(page.getByText("Contagens inconsistentes")).toHaveCount(0);
+  await expect(page.getByText("✓ raw = curated + quarantine + copies")).toBeVisible();
 });
 
 test("curadoria bate com o oráculo independente da origem carregada", async ({ request }) => {

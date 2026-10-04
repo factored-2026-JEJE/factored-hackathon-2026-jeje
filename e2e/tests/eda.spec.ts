@@ -16,9 +16,10 @@ type Indicador = {
   linhas: Linha[];
 };
 
-const inteiro = (n: number) => n.toLocaleString("pt-BR");
+// O app abre em inglês: as contagens e as proporções no separador do inglês.
+const inteiro = (n: number) => n.toLocaleString("en-US");
 const pct = (p: number | null) =>
-  p === null ? "—" : p.toLocaleString("pt-BR", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  p === null ? "—" : p.toLocaleString("en-US", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 async function indicadores(request: import("@playwright/test").APIRequestContext) {
   const resposta = await request.get("/api/dados/eda");
@@ -29,20 +30,21 @@ async function indicadores(request: import("@playwright/test").APIRequestContext
 test("seção da EDA mostra exatamente os números e as consultas da API", async ({ page, request }) => {
   const todos = await indicadores(request);
   await page.goto("/#operacao");
-  await expect(page.getByRole("heading", { name: "Por que este fluxo" })).toBeVisible();
+  const secao = page.getByRole("region", { name: "Why this flow · from the data" });
+  await expect(secao).toBeVisible();
   // Na base real as consultas varrem milhões de linhas e disputam o banco com as outras
   // jornadas em paralelo: o primeiro indicador pode levar mais que o tempo padrão.
-  await expect(page.getByRole("article").first()).toBeVisible({ timeout: 30_000 });
+  await expect(secao.getByRole("article").first()).toBeVisible({ timeout: 30_000 });
   for (const ind of todos) {
-    const artigo = page.getByRole("article", { name: ind.pergunta });
+    const artigo = secao.getByRole("article", { name: ind.pergunta });
     await expect(artigo).toBeVisible();
     for (const l of ind.linhas) {
       const esperado = [
-        ind.tipo === "taxa" ? `${inteiro(l.contagem)} de ${inteiro(l.base)}` : inteiro(l.contagem),
+        ind.tipo === "taxa" ? `${inteiro(l.contagem)} of ${inteiro(l.base)}` : inteiro(l.contagem),
         pct(l.proporcao),
         ...(ind.unidade_soma !== null ? [pct(l.proporcao_soma)] : []),
       ];
-      const linha = artigo.getByRole("row", { name: new RegExp(`^${l.grupo.replace(/[()]/g, "\\$&")} `) });
+      const linha = artigo.getByRole("row").filter({ has: page.getByRole("rowheader", { name: l.grupo, exact: true }) });
       await expect(linha.getByRole("cell")).toHaveText(esperado);
     }
     await expect(artigo.locator("pre")).toHaveText(ind.consulta);

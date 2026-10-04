@@ -10,7 +10,7 @@ import logging
 import time
 from dataclasses import asdict
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
@@ -49,6 +49,10 @@ class Encaminhamento(BaseModel):
     pendencias: list[str]
     estado: str
     criado_em: datetime
+    dispositivo: Literal["cadastrado", "novo"] | None = Field(
+        description="Dispositivo da sessão quando o caso foi aberto (simulação, PRD-007); nulo nos"
+        " casos de antes"
+    )
 
 
 @router.get("/atendimento/fila", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)

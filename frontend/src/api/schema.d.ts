@@ -725,6 +725,11 @@ export interface components {
              * Format: date-time
              */
             criado_em: string;
+            /**
+             * Dispositivo
+             * @description Dispositivo da sessão quando o caso foi aberto (simulação, PRD-007); nulo nos casos de antes
+             */
+            dispositivo: ("cadastrado" | "novo") | null;
         };
         /** EventoRecente */
         EventoRecente: {

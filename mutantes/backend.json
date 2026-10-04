@@ -14651,6 +14651,126 @@
       ]
     },
     {
+      "id": "M-API-18",
+      "requisito": "R08",
+      "descricao": "Os cartões de um cliente fixo, e não os do cliente da sessão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio.cartoes_do_cliente(conexao, ativa.customer_id)",
+          "para": "bloqueio.cartoes_do_cliente(conexao, \"CLI-A\")"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-19",
+      "requisito": "R07",
+      "descricao": "O cartão bloqueado pelo canal aparece sem o bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio=_do_bloqueio(ativos.get(c.bloqueio)),",
+          "para": "bloqueio=None,"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-20",
+      "requisito": "R07",
+      "descricao": "O bloqueio preventivo aparece como completo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "tipo=ativo.tipo,",
+          "para": "tipo=\"completo\","
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-21",
+      "requisito": "R07",
+      "descricao": "O prazo para desfazer o bloqueio vira a hora em que ele foi feito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "reversivel_ate=ativo.reversivel_ate)",
+          "para": "reversivel_ate=ativo.criado_em)"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-EVT-11",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos incluem o efeito feito fora de um turno (o atendente)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo IN ('turno', 'acao') ORDER BY id DESC LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-EVT-12",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos saem do mais antigo para o mais recente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo = 'turno' ORDER BY id LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-MET-11",
+      "requisito": "R08",
+      "descricao": "Os últimos eventos ficam abertos fora do modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "@router.get(\"/metricas/eventos\", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)",
+          "para": "@router.get(\"/metricas/eventos\", responses=RESPOSTAS_DEMO)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
+    },
+    {
+      "id": "M-MET-12",
+      "requisito": "R06",
+      "descricao": "O limite dos últimos eventos aceita zero",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "Query(ge=1, le=50)",
+          "para": "Query(ge=0, le=50)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
+    },
+    {
       "id": "M-ITP-258",
       "requisito": "R04",
       "descricao": "A transação duplicada deixa de ser contestação (ACH-220)",
@@ -14753,6 +14873,293 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-277",
+      "requisito": "R03",
+      "descricao": "O relato com o uso antes da pessoa deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                USOU_ALGUEM)),\n",
+          "para": "                )),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-278",
+      "requisito": "R03",
+      "descricao": "O uso por outro desfeito deixa de ser marcado e volta ao leitor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"uso_desfeito\": _uso_desfeito(limpo),\n",
+          "para": "        \"uso_desfeito\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-LLM-42",
+      "requisito": "R03",
+      "descricao": "O uso desfeito volta a ser lido pelo leitor e pelo LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.outra,\n        lida.uso_desfeito,\n",
+          "para": "        lida.outra,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-GAR-19",
+      "requisito": "R03",
+      "descricao": "O uso desfeito passa pela garantia de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        lida.id_digitado,\n        lida.uso_desfeito,\n",
+          "para": "        lida.id_digitado,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-MIG-19",
+      "requisito": "R03",
+      "descricao": "A migração do dispositivo do caso aceita qualquer valor",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0027_caso_dispositivo.py",
+          "de": "    op.create_check_constraint(\n        op.f(\"ck_handoffs_dispositivo\"),\n        \"handoffs\",\n        \"dispositivo IN ('cadastrado', 'novo')\",\n        schema=\"app\",\n    )\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_caso_so_aceita_dispositivo_conhecido_ou_nenhum",
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
+      "id": "M-HO-16",
+      "requisito": "R07",
+      "descricao": "O caso grava sem o dispositivo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "            \"dispositivo\": e.dispositivo,\n",
+          "para": "            \"dispositivo\": None,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_o_caso_guarda_o_dispositivo_da_sessao_e_o_de_antes_fica_sem"
+      ]
+    },
+    {
+      "id": "M-HO-17",
+      "requisito": "R07",
+      "descricao": "A fila não lê o dispositivo do caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    \"id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado, criado_em,\"\n    \" dispositivo\"\n",
+          "para": "    \"id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado, criado_em,\"\n    \" NULL AS dispositivo\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_o_caso_guarda_o_dispositivo_da_sessao_e_o_de_antes_fica_sem"
+      ]
+    },
+    {
+      "id": "M-CONV-122",
+      "requisito": "R07",
+      "descricao": "O caso aberto pela conversa não leva o dispositivo da sessão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                dispositivo=self.dispositivo,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_o_caso_da_conversa_leva_o_dispositivo_da_sessao"
+      ]
+    },
+    {
+      "id": "M-API-22",
+      "requisito": "R07",
+      "descricao": "A fila da API sempre diz o dispositivo cadastrado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "        return [Encaminhamento(**e) for e in handoff.fila(conexao, limite)]\n",
+          "para": "        return [Encaminhamento(**(e | {\"dispositivo\": \"cadastrado\"})) for e in handoff.fila(conexao, limite)]\n"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_o_caso_da_conversa_leva_o_dispositivo_da_sessao"
+      ]
+    },
+    {
+      "id": "M-LLM-43",
+      "requisito": "R03",
+      "descricao": "O desbloqueio que só o LLM leu vale sem verbo de desfazer (ACH-183)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "        if intencao == \"desbloquear\" and not pede_desfazer(texto):\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_sem_verbo_de_desfazer_o_desbloqueio_do_llm_fica_nao_entendido",
+        "tests/test_nao_entendi.py::test_manter_o_bloqueio_nao_recebe_a_proposta_de_desfazer"
+      ]
+    },
+    {
+      "id": "M-LLM-44",
+      "requisito": "R03",
+      "descricao": "O verbo de desfazer negado ('não desbloqueia') conta como pedido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    return any(not DESFAZER_NEGADO.search(limpo[: m.start()]) for m in DESFAZER.finditer(limpo))\n",
+          "para": "    return any(True for m in DESFAZER.finditer(limpo))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_sem_verbo_de_desfazer_o_desbloqueio_do_llm_fica_nao_entendido"
+      ]
+    },
+    {
+      "id": "M-LLM-45",
+      "requisito": "R03",
+      "descricao": "Nenhum verbo de desfazer confirma o desbloqueio do LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    return any(not DESFAZER_NEGADO.search(limpo[: m.start()]) for m in DESFAZER.finditer(limpo))\n",
+          "para": "    return False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
+      ]
+    },
+    {
+      "id": "M-LLM-46",
+      "requisito": "R03",
+      "descricao": "Voltar a usar, usar de novo e tirar o bloqueio deixam de ser verbos de desfazer",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    r\"|(?:volver|voltar) a usar|usar(?:la|lo)? de (?:nuevo|novo)\"\n    r\"|(?:tir|quit|sac|retir|remov)\\w* (?:\\w+ )?bloque)\"\n",
+          "para": "    r\")\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
+      ]
+    },
+    {
+      "id": "M-ITP-288",
+      "requisito": "R05",
+      "descricao": "Tirar o bloqueio volta a ser lido como pedido de bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),",
+          "para": "                     VOLTA_DO_BLOQUEADO)),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-289",
+      "requisito": "R05",
+      "descricao": "Tirar o bloqueio negado ('não tire o bloqueio') vira pedido de desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    so_nessa_ordem=True,\n    negavel=True,\n)  # fmt: skip\nCARTAO_ACHADO",
+          "para": "    so_nessa_ordem=True,\n)  # fmt: skip\nCARTAO_ACHADO"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-290",
+      "requisito": "R05",
+      "descricao": "Não tirar o bloqueio vira pedido de outro bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "NEGACAO + \"(?:bloque|congel|trav)|(?<![a-z0-9])(?:no|nao|nunca)(?: (?:me|te|le|les|la|lo\"",
+          "para": "NEGACAO + \"(?:bloque|congel|trav)|(?<![a-z0-9])(?:xno|xnao|xnunca)(?: (?:me|te|le|les|la|lo\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-291",
+      "requisito": "R05",
+      "descricao": "Desfazer, cancelar e anular o bloqueio voltam a ser lidos como pedido de bloqueio (ACH-187)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"remova\", \"levantar\", \"levanta\", \"levante\", \"desfazer\", \"desfaz\", \"desfaca\", \"desfacam\",\n     \"deshacer\", \"deshaz\", \"deshaga\", \"deshagan\", \"cancelar\", \"cancela\", \"cancele\", \"anular\",\n     \"anula\", \"anule\"),",
+          "para": "     \"remova\", \"levantar\", \"levanta\", \"levante\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-292",
+      "requisito": "R05",
+      "descricao": "Não desfazer o bloqueio vira pedido de outro bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "levant|desfa|desha|cancel|anul)[a-z]* (?:[a-z]+ )?bloque\"",
+          "para": "levant)[a-z]* (?:[a-z]+ )?bloque\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-LLM-47",
+      "requisito": "R03",
+      "descricao": "O imperativo de desfazer ('deshazlo') não confirma o desbloqueio que o LLM leu",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "desfa[zc]|deshac|deshaz|deshag|",
+          "para": "desfaz|deshac|"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
       ]
     },
     {
@@ -15281,186 +15688,6 @@
       ]
     },
     {
-      "id": "M-API-18",
-      "requisito": "R08",
-      "descricao": "Os cartões de um cliente fixo, e não os do cliente da sessão",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/cartoes_api.py",
-          "de": "bloqueio.cartoes_do_cliente(conexao, ativa.customer_id)",
-          "para": "bloqueio.cartoes_do_cliente(conexao, \"CLI-A\")"
-        }
-      ],
-      "testes": [
-        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
-      ]
-    },
-    {
-      "id": "M-API-19",
-      "requisito": "R07",
-      "descricao": "O cartão bloqueado pelo canal aparece sem o bloqueio",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/cartoes_api.py",
-          "de": "bloqueio=_do_bloqueio(ativos.get(c.bloqueio)),",
-          "para": "bloqueio=None,"
-        }
-      ],
-      "testes": [
-        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
-      ]
-    },
-    {
-      "id": "M-API-20",
-      "requisito": "R07",
-      "descricao": "O bloqueio preventivo aparece como completo",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/cartoes_api.py",
-          "de": "tipo=ativo.tipo,",
-          "para": "tipo=\"completo\","
-        }
-      ],
-      "testes": [
-        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
-      ]
-    },
-    {
-      "id": "M-API-21",
-      "requisito": "R07",
-      "descricao": "O prazo para desfazer o bloqueio vira a hora em que ele foi feito",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/cartoes_api.py",
-          "de": "reversivel_ate=ativo.reversivel_ate)",
-          "para": "reversivel_ate=ativo.criado_em)"
-        }
-      ],
-      "testes": [
-        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
-      ]
-    },
-    {
-      "id": "M-EVT-11",
-      "requisito": "R06",
-      "descricao": "Os últimos eventos incluem o efeito feito fora de um turno (o atendente)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/eventos.py",
-          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
-          "para": "\" WHERE tipo IN ('turno', 'acao') ORDER BY id DESC LIMIT :limite\""
-        }
-      ],
-      "testes": [
-        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
-      ]
-    },
-    {
-      "id": "M-EVT-12",
-      "requisito": "R06",
-      "descricao": "Os últimos eventos saem do mais antigo para o mais recente",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/eventos.py",
-          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
-          "para": "\" WHERE tipo = 'turno' ORDER BY id LIMIT :limite\""
-        }
-      ],
-      "testes": [
-        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
-      ]
-    },
-    {
-      "id": "M-MET-11",
-      "requisito": "R08",
-      "descricao": "Os últimos eventos ficam abertos fora do modo demo",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/metricas_api.py",
-          "de": "@router.get(\"/metricas/eventos\", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)",
-          "para": "@router.get(\"/metricas/eventos\", responses=RESPOSTAS_DEMO)"
-        }
-      ],
-      "testes": [
-        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
-      ]
-    },
-    {
-      "id": "M-MET-12",
-      "requisito": "R06",
-      "descricao": "O limite dos últimos eventos aceita zero",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/metricas_api.py",
-          "de": "Query(ge=1, le=50)",
-          "para": "Query(ge=0, le=50)"
-        }
-      ],
-      "testes": [
-        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
-      ]
-    },
-    {
-      "id": "M-ITP-277",
-      "requisito": "R03",
-      "descricao": "O relato com o uso antes da pessoa deixa de ser fraude",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "                USOU_ALGUEM)),\n",
-          "para": "                )),\n"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude"
-      ]
-    },
-    {
-      "id": "M-ITP-278",
-      "requisito": "R03",
-      "descricao": "O uso por outro desfeito deixa de ser marcado e volta ao leitor",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "        \"uso_desfeito\": _uso_desfeito(limpo),\n",
-          "para": "        \"uso_desfeito\": False,\n"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
-      ]
-    },
-    {
-      "id": "M-LLM-42",
-      "requisito": "R03",
-      "descricao": "O uso desfeito volta a ser lido pelo leitor e pelo LLM",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao_modelo.py",
-          "de": "        lida.outra,\n        lida.uso_desfeito,\n",
-          "para": "        lida.outra,\n"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
-      ]
-    },
-    {
-      "id": "M-GAR-19",
-      "requisito": "R03",
-      "descricao": "O uso desfeito passa pela garantia de fraude",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/garantia_fraude.py",
-          "de": "        lida.id_digitado,\n        lida.uso_desfeito,\n",
-          "para": "        lida.id_digitado,\n"
-        }
-      ],
-      "testes": [
-        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
-      ]
-    },
-    {
       "id": "M-CONV-123",
       "requisito": "R08",
       "descricao": "O fora de escopo que só o LLM leu volta a oferecer o atendente (a instrução com outra redação encaminha com o sim)",
@@ -15503,157 +15730,6 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
-      ]
-    },
-    {
-      "id": "M-LLM-43",
-      "requisito": "R03",
-      "descricao": "O desbloqueio que só o LLM leu vale sem verbo de desfazer (ACH-183)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/nao_entendi.py",
-          "de": "        if intencao == \"desbloquear\" and not pede_desfazer(texto):\n",
-          "para": "        if False:\n"
-        }
-      ],
-      "testes": [
-        "tests/test_nao_entendi.py::test_sem_verbo_de_desfazer_o_desbloqueio_do_llm_fica_nao_entendido",
-        "tests/test_nao_entendi.py::test_manter_o_bloqueio_nao_recebe_a_proposta_de_desfazer"
-      ]
-    },
-    {
-      "id": "M-LLM-44",
-      "requisito": "R03",
-      "descricao": "O verbo de desfazer negado ('não desbloqueia') conta como pedido",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/nao_entendi.py",
-          "de": "    return any(not DESFAZER_NEGADO.search(limpo[: m.start()]) for m in DESFAZER.finditer(limpo))\n",
-          "para": "    return any(True for m in DESFAZER.finditer(limpo))\n"
-        }
-      ],
-      "testes": [
-        "tests/test_nao_entendi.py::test_sem_verbo_de_desfazer_o_desbloqueio_do_llm_fica_nao_entendido"
-      ]
-    },
-    {
-      "id": "M-LLM-45",
-      "requisito": "R03",
-      "descricao": "Nenhum verbo de desfazer confirma o desbloqueio do LLM",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/nao_entendi.py",
-          "de": "    return any(not DESFAZER_NEGADO.search(limpo[: m.start()]) for m in DESFAZER.finditer(limpo))\n",
-          "para": "    return False\n"
-        }
-      ],
-      "testes": [
-        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
-      ]
-    },
-    {
-      "id": "M-LLM-46",
-      "requisito": "R03",
-      "descricao": "Voltar a usar, usar de novo e tirar o bloqueio deixam de ser verbos de desfazer",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/nao_entendi.py",
-          "de": "    r\"|(?:volver|voltar) a usar|usar(?:la|lo)? de (?:nuevo|novo)\"\n    r\"|(?:tir|quit|sac|retir|remov)\\w* (?:\\w+ )?bloque)\"\n",
-          "para": "    r\")\"\n"
-        }
-      ],
-      "testes": [
-        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
-      ]
-    },
-    {
-      "id": "M-ITP-288",
-      "requisito": "R05",
-      "descricao": "Tirar o bloqueio volta a ser lido como pedido de bloqueio",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),",
-          "para": "                     VOLTA_DO_BLOQUEADO)),"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
-      ]
-    },
-    {
-      "id": "M-ITP-289",
-      "requisito": "R05",
-      "descricao": "Tirar o bloqueio negado ('não tire o bloqueio') vira pedido de desbloqueio",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "    so_nessa_ordem=True,\n    negavel=True,\n)  # fmt: skip\nCARTAO_ACHADO",
-          "para": "    so_nessa_ordem=True,\n)  # fmt: skip\nCARTAO_ACHADO"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
-      ]
-    },
-    {
-      "id": "M-ITP-290",
-      "requisito": "R05",
-      "descricao": "Não tirar o bloqueio vira pedido de outro bloqueio",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "NEGACAO + \"(?:bloque|congel|trav)|(?<![a-z0-9])(?:no|nao|nunca)(?: (?:me|te|le|les|la|lo\"",
-          "para": "NEGACAO + \"(?:bloque|congel|trav)|(?<![a-z0-9])(?:xno|xnao|xnunca)(?: (?:me|te|le|les|la|lo\""
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
-      ]
-    },
-    {
-      "id": "M-ITP-291",
-      "requisito": "R05",
-      "descricao": "Desfazer, cancelar e anular o bloqueio voltam a ser lidos como pedido de bloqueio (ACH-187)",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"remova\", \"levantar\", \"levanta\", \"levante\", \"desfazer\", \"desfaz\", \"desfaca\", \"desfacam\",\n     \"deshacer\", \"deshaz\", \"deshaga\", \"deshagan\", \"cancelar\", \"cancela\", \"cancele\", \"anular\",\n     \"anula\", \"anule\"),",
-          "para": "     \"remova\", \"levantar\", \"levanta\", \"levante\"),"
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
-      ]
-    },
-    {
-      "id": "M-ITP-292",
-      "requisito": "R05",
-      "descricao": "Não desfazer o bloqueio vira pedido de outro bloqueio",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/interpretacao.py",
-          "de": "levant|desfa|desha|cancel|anul)[a-z]* (?:[a-z]+ )?bloque\"",
-          "para": "levant)[a-z]* (?:[a-z]+ )?bloque\""
-        }
-      ],
-      "testes": [
-        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
-      ]
-    },
-    {
-      "id": "M-LLM-47",
-      "requisito": "R03",
-      "descricao": "O imperativo de desfazer ('deshazlo') não confirma o desbloqueio que o LLM leu",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/nao_entendi.py",
-          "de": "desfa[zc]|deshac|deshaz|deshag|",
-          "para": "desfaz|deshac|"
-        }
-      ],
-      "testes": [
-        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
       ]
     }
   ]
