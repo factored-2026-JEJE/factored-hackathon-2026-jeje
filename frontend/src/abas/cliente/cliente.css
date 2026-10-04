@@ -32,7 +32,9 @@
   font-size: clamp(46px, 5.4vw, 80px);
   text-wrap: balance;
 }
-.acc-texto > p { margin: 0; font-size: 16px; line-height: 1.55; text-wrap: pretty; }
+/* O corpo do texto tem classe própria: .acc-texto > p pegava também o kicker, que ficava com 16 px. */
+.acc-texto > p { margin: 0; }
+.acc-corpo { font-size: 16px; line-height: 1.55; text-wrap: pretty; }
 .acc-texto > p.acc-nota {
   padding-top: 14px;
   border-top: 1px solid #16150F;
