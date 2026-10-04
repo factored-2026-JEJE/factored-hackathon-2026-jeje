@@ -1,9 +1,11 @@
 // Conversa contra um servidor mínimo na fronteira de rede: a regra é decidida pela API real
-// (testada no backend e no E2E). Aqui: a tela só mostra o que a API respondeu, envia o texto
-// certo, não envia duas vezes, reenvia a mesma mensagem e reabre a conversa sem repetir nada.
+// (testada no backend e no E2E). Aqui: a tela (a do design de 03/10, em inglês por padrão) só mostra
+// o que a API respondeu, envia o texto certo, não envia duas vezes, reenvia a mesma mensagem e reabre
+// a conversa sem repetir nada.
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ResultadoDoTurno } from "./api/cliente";
+import { LinguaDoAppProvider } from "./app/LinguaDoApp";
 import { Conversa } from "./Conversa";
 
 // "perdida": a API processa o turno e a conexão cai na volta; "rede": cai antes de chegar à API.
@@ -58,7 +60,8 @@ function servidor(turnos: Resposta[], historico?: unknown, historicoFalha = 0) {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
-      const r = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status });
+      const r = (status: number, corpo: unknown) =>
+        new Response(JSON.stringify(corpo), { status, headers: { "X-Request-ID": `req-${enviados.length}` } });
       if (url === "/api/conversas" && init?.method === "POST") return r(201, ABERTA);
       if (url === "/api/conversas/C1/turnos" && init?.method === "POST") {
         const mensagem = JSON.parse(String(init.body)).texto;
@@ -92,18 +95,29 @@ function servidor(turnos: Resposta[], historico?: unknown, historicoFalha = 0) {
 afterEach(() => {
   vi.unstubAllGlobals();
   sessionStorage.clear();
+  window.history.replaceState(null, "", "/");
 });
+
+const CAIXA = "Write as the customer, in Spanish or Portuguese";
 
 function montar(aoMudar = vi.fn()) {
   render(<Conversa token="tok" aoExpirar={vi.fn()} aoMudar={aoMudar} />);
   return aoMudar;
 }
 
+// Sem conversa aberta, a primeira mensagem abre uma na língua da frase (a saudação da API não aparece).
 async function abrirEPedir(pedido = "No reconozco el cobro de Uber") {
-  await userEvent.click(await screen.findByRole("button", { name: "Conversar em español" }));
-  expect(await screen.findByText("Hola. ¿En qué te ayudo?")).toBeInTheDocument();
-  await userEvent.type(screen.getByLabelText("Mensagem"), pedido);
-  await userEvent.click(screen.getByRole("button", { name: "Enviar" }));
+  await userEvent.type(await screen.findByLabelText(CAIXA), pedido);
+  await userEvent.click(screen.getByRole("button", { name: "Send" }));
+}
+
+/** O "Why this answer?" da resposta: as linhas do design (rótulo e valor). */
+async function porQue(texto: RegExp | string) {
+  const resposta = (await screen.findByText(texto)).closest("li");
+  if (!resposta) throw new Error("resposta fora da lista");
+  await userEvent.click(within(resposta).getByRole("button", { name: /Why this answer/ }));
+  const linhas = Array.from(resposta.querySelectorAll("dt")).map((dt) => [dt.textContent, dt.nextElementSibling?.textContent]);
+  return Object.fromEntries(linhas) as Record<string, string>;
 }
 
 test("protocolo só aparece depois que a API registra, e a fila é avisada", async () => {
@@ -112,11 +126,11 @@ test("protocolo só aparece depois que a API registra, e a fila é avisada", asy
   await abrirEPedir();
   const confirmar = await screen.findByRole("button", { name: "Sí, confirmo" });
   await userEvent.click(confirmar);
-  expect(await screen.findByText("Enviando…")).toBeInTheDocument();
-  expect(screen.queryByText(/Pré-caso recebido/)).not.toBeInTheDocument();
+  expect(await screen.findByText("reading · rules …")).toBeInTheDocument();
+  expect(screen.queryByText(/pre-case received/)).not.toBeInTheDocument();
   expect(aoMudar).not.toHaveBeenCalled();
   liberar();
-  expect(await screen.findByText("Pré-caso recebido: protocolo PC-00000009")).toBeInTheDocument();
+  expect(await screen.findByText("PC-00000009 · pre-case received")).toBeInTheDocument();
   expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo"]);
   expect(aoMudar).toHaveBeenCalledTimes(1);
 });
@@ -127,7 +141,7 @@ test("pré-caso já existente não vira 'recebido' de novo", async () => {
   montar();
   await abrirEPedir();
   expect(await screen.findByText(existente.resposta)).toBeInTheDocument();
-  expect(screen.queryByText(/Pré-caso recebido/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/pre-case received/)).not.toBeInTheDocument();
 });
 
 test("opções da API viram botões que enviam o número escolhido", async () => {
@@ -141,8 +155,11 @@ test("opções da API viram botões que enviam o número escolhido", async () =>
   ]);
   montar();
   await abrirEPedir("No reconozco un cobro de 45,90");
-  await userEvent.click(await screen.findByRole("button", { name: "2. en Streaming Plus de USD 45,90 (10/03/2025)" }));
+  // O passo 2 (a transação) enquanto a API pergunta qual.
+  expect(await screen.findByText("2 · Transaction")).toHaveAttribute("aria-current", "step");
+  await userEvent.click(await screen.findByRole("button", { name: "en Streaming Plus de USD 45,90 (10/03/2025)" }));
   await screen.findByRole("button", { name: "Sí, confirmo" });
+  expect(screen.getByText("3 · Confirmation")).toHaveAttribute("aria-current", "step");
   expect(enviados).toEqual(["No reconozco un cobro de 45,90", "2"]);
 });
 
@@ -152,9 +169,11 @@ test("não envia duas vezes enquanto espera a resposta", async () => {
   await abrirEPedir();
   const confirmar = await screen.findByRole("button", { name: "Sí, confirmo" });
   await userEvent.click(confirmar);
+  // Enquanto espera, nada de enviar de novo: nem pelo botão, nem pela caixa.
   await userEvent.click(confirmar);
+  await userEvent.type(screen.getByLabelText(CAIXA), "Sí, confirmo{Enter}");
   liberar();
-  await screen.findByText("Pré-caso recebido: protocolo PC-00000009");
+  await screen.findByText("PC-00000009 · pre-case received");
   expect(enviados.filter((t) => t === "Sí, confirmo")).toHaveLength(1);
 });
 
@@ -165,9 +184,9 @@ test("503 diz que nada foi criado e reenviar manda a mesma mensagem", async () =
   await abrirEPedir();
   await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("nada foi criado");
-  expect(screen.queryByText(/Pré-caso recebido/)).not.toBeInTheDocument();
-  await userEvent.click(screen.getByRole("button", { name: "Reenviar" }));
-  expect(await screen.findByText("Pré-caso recebido: protocolo PC-00000009")).toBeInTheDocument();
+  expect(screen.queryByText(/pre-case received/)).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Send again" }));
+  expect(await screen.findByText("PC-00000009 · pre-case received")).toBeInTheDocument();
   expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo", "Sí, confirmo"]);
 });
 
@@ -177,7 +196,7 @@ test("resposta perdida depois do sim: a tela relê a conversa, mostra o protocol
   await abrirEPedir();
   await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
   expect(await screen.findByText("Registré la solicitud con el protocolo PC-00000009.")).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Reenviar" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Send again" })).not.toBeInTheDocument();
   expect(aoMudar).toHaveBeenCalledTimes(1);
   expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo"]);
 });
@@ -187,9 +206,9 @@ test("mensagem que não chegou ao servidor continua com Reenviar, e o reenvio re
   montar();
   await abrirEPedir();
   await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Sem resposta do servidor");
-  await userEvent.click(screen.getByRole("button", { name: "Reenviar" }));
-  expect(await screen.findByText("Pré-caso recebido: protocolo PC-00000009")).toBeInTheDocument();
+  expect(await screen.findByRole("alert")).toHaveTextContent("No answer from the server");
+  await userEvent.click(screen.getByRole("button", { name: "Send again" }));
+  expect(await screen.findByText("PC-00000009 · pre-case received")).toBeInTheDocument();
   expect(enviados).toEqual(["No reconozco el cobro de Uber", "Sí, confirmo", "Sí, confirmo"]);
 });
 
@@ -198,8 +217,8 @@ test("reenviar relê a conversa antes: se o servidor já processou, não manda d
   const aoMudar = montar();
   await abrirEPedir();
   await userEvent.click(await screen.findByRole("button", { name: "Sí, confirmo" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Sem resposta do servidor");
-  await userEvent.click(screen.getByRole("button", { name: "Reenviar" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("No answer from the server");
+  await userEvent.click(screen.getByRole("button", { name: "Send again" }));
   expect(await screen.findByText("Registré la solicitud con el protocolo PC-00000009.")).toBeInTheDocument();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(aoMudar).toHaveBeenCalledTimes(1);
@@ -239,7 +258,7 @@ test("encaminhamento mostra o atendimento humano e avisa a fila", async () => {
   servidor([{ status: 200, corpo: encaminhado }]);
   const aoMudar = montar();
   await abrirEPedir("Me robaron la tarjeta");
-  expect(await screen.findByText("Com atendimento humano (AT-00000001).")).toBeInTheDocument();
+  expect(await screen.findByText("Handed to a person")).toBeInTheDocument();
   expect(aoMudar).toHaveBeenCalledTimes(1);
 });
 
@@ -256,9 +275,9 @@ test("conversa encerrada pela recarga avisa, trava o envio e deixa só a nova co
   servidor([{ status: 200, corpo: encerrada }]);
   montar();
   await abrirEPedir("sí");
-  expect(await screen.findByText("Conversa encerrada: os dados foram atualizados. Abra uma nova conversa.")).toBeInTheDocument();
-  expect(screen.getByLabelText("Mensagem")).toBeDisabled();
-  expect(screen.getByRole("button", { name: "Nova conversa" })).toBeEnabled();
+  expect(await screen.findByText("Conversation closed: the data was reloaded. Start a new conversation.")).toBeInTheDocument();
+  expect(screen.getByLabelText(CAIXA)).toBeDisabled();
+  expect(screen.getByRole("button", { name: "New conversation" })).toBeEnabled();
 });
 
 test("bloqueio feito na conversa avisa o console do atendente", async () => {
@@ -279,7 +298,7 @@ test("bloqueio feito na conversa avisa o console do atendente", async () => {
   expect(aoMudar).toHaveBeenCalledTimes(1);
 });
 
-test("por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem leu", async () => {
+test("por que esta resposta: as linhas do design, com o X-Request-ID, quem leu, a regra e o que ela quer dizer, a ação e o efeito", async () => {
   const proposta = turno({
     descricao: "Contestação dentro dos limites simulados.",
     interpretacao: "leitor:e5@429a8eaca51b",
@@ -289,51 +308,61 @@ test("por que esta resposta: regra e o que ela quer dizer, efeito, fontes e quem
   servidor([{ status: 200, corpo: proposta }]);
   montar();
   await abrirEPedir();
-  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
-  if (!resposta) throw new Error("resposta fora da lista");
-  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
-  const motivo = within(resposta);
-  expect(motivo.getByText("POL-DISP-01: Contestação dentro dos limites simulados.")).toBeVisible();
-  expect(motivo.getByText("propor_pre_caso")).toBeVisible();
-  expect(motivo.getByText("P1")).toBeVisible();
-  expect(motivo.getByText("curated.transactions, app.propostas_pre_caso")).toBeVisible();
-  expect(motivo.getByText("leitor:e5@429a8eaca51b")).toBeVisible();
+  const linhas = await porQue(/Puedo registrar una solicitud/);
+  expect(linhas).toMatchObject({
+    "X-Request-ID": "req-1",
+    language: "es",
+    "read by": "leitor:e5@429a8eaca51b",
+    intent: "dispute",
+    rule: "POL-DISP-01",
+    // O que a regra quer dizer, na língua da interface (a lista de regras do site).
+    meaning: "Dispute within limits: proposes the pre-case, records only on an explicit yes.",
+    action: "propose pre-case",
+    effect: "proposal · waiting for yes · P1",
+  });
+  expect(linhas).not.toHaveProperty("protocol");
 });
 
 const pelo = (resolucao: ResultadoDoTurno["resolucao"], transaction_id: string | null = "TRX-1") =>
   turno({ resolucao, transaction_id });
 
-test.each<[string, ResultadoDoTurno, string]>([
-  [
-    "o ranking escolheu",
-    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.987, possiveis: 2 }),
-    "escolhida com garantia estatística de 95%: o conjunto conformal ficou só com ela (probabilidade 0,99; 2 possíveis; calibração 764ce683d347)",
-  ],
-  [
-    "o ranking só ordenou as opções",
-    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.6, possiveis: 3 }, null),
-    "sem garantia para uma só: o assistente mostrou as possíveis em vez de propor (probabilidade 0,60; 3 possíveis; calibração 764ce683d347)",
-  ],
-  ["o filtro exato achou", pelo({ resolvedor: "filtro", calibracao: null, probabilidade: null, possiveis: null }), "pelo filtro exato"],
-])("por que esta resposta diz como a transação foi achada (DEV-071): %s", async (_caso, corpo, esperado) => {
+// Testes nomeados, sem `test.each`: o meta-check dos mutantes coleta o nome pelo `vitest list`, que
+// não expande o "%s" do nome.
+const comoFoiAchada = async (corpo: ResultadoDoTurno, esperado: string) => {
   servidor([{ status: 200, corpo }]);
   montar();
   await abrirEPedir();
-  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
-  if (!resposta) throw new Error("resposta fora da lista");
-  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
-  expect(within(resposta).getByText(esperado)).toBeVisible();
-});
+  expect((await porQue(/Puedo registrar una solicitud/)).transaction).toBe(esperado);
+};
+
+test("por que esta resposta diz como a transação foi achada (DEV-071): o ranking escolheu", () =>
+  comoFoiAchada(
+    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.987, possiveis: 2 }),
+    "ranking with a guarantee (α = 5%) · probability 0.99 · 2 candidates · calibration 764ce683d347",
+  ));
+
+test("por que esta resposta diz como a transação foi achada (DEV-071): o ranking só ordenou as opções", () =>
+  comoFoiAchada(
+    pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.6, possiveis: 3 }, null),
+    "ranking without a guarantee: shows candidates · probability 0.60 · 3 candidates · calibration 764ce683d347",
+  ));
+
+test("por que esta resposta diz como a transação foi achada (DEV-071): o filtro exato achou", () =>
+  comoFoiAchada(
+    pelo({ resolvedor: "filtro", calibracao: null, probabilidade: null, possiveis: null }),
+    "exact filter",
+  ));
 
 test("por que esta resposta mostra de onde veio o fato: arquivo, linha e versão dos dados (DEV-044)", async () => {
   const recibo = { transaction_id: "TRX-1", arquivo: "transactions/day=10/part-0.csv", linha: 7, versao_dos_dados: "abc123def456789" };
   servidor([{ status: 200, corpo: turno({ recibo }) }]);
   montar();
   await abrirEPedir();
-  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
-  if (!resposta) throw new Error("resposta fora da lista");
-  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
-  expect(within(resposta).getByText("TRX-1: transactions/day=10/part-0.csv, linha 7, dados abc123def456")).toBeVisible();
+  expect(await porQue(/Puedo registrar una solicitud/)).toMatchObject({
+    file: "transactions/day=10/part-0.csv",
+    line: "7",
+    "data version": "abc123def456",
+  });
 });
 
 test("turno reaberto pelo histórico mostra só a regra e a ação", async () => {
@@ -356,15 +385,12 @@ test("turno reaberto pelo histórico mostra só a regra e a ação", async () =>
   };
   servidor([], historico);
   montar();
-  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
-  if (!resposta) throw new Error("resposta fora da lista");
-  await userEvent.click(within(resposta).getByText("Por que esta resposta?"));
-  expect(within(resposta).getByText("POL-DISP-01")).toBeVisible();
-  expect(within(resposta).getByText("propor_pre_caso")).toBeVisible();
-  expect(within(resposta).queryByText("Efeito")).not.toBeInTheDocument();
+  const linhas = await porQue(/Puedo registrar una solicitud/);
+  expect(linhas).toMatchObject({ rule: "POL-DISP-01", action: "propose pre-case" });
+  expect(linhas).not.toHaveProperty("effect");
 });
 
-async function atalhoDeBloqueio(idioma: "es" | "pt", abrir: string) {
+async function atalhoDeBloqueio(idioma: "es" | "pt", rotulo: string) {
   const enviados: string[] = [];
   vi.stubGlobal(
     "fetch",
@@ -378,19 +404,29 @@ async function atalhoDeBloqueio(idioma: "es" | "pt", abrir: string) {
       return r(404, {});
     }),
   );
-  montar();
-  await userEvent.click(await screen.findByRole("button", { name: abrir }));
-  await userEvent.click(within(screen.getByRole("group", { name: "Atalhos" })).getByRole("button", { name: "Bloquear cartão" }));
+  // A língua dos atalhos é a da conversa; antes dela, a da interface (português, ou espanhol).
+  window.history.replaceState(null, "", `/?lang=${idioma === "pt" ? "pt" : "en"}`);
+  render(
+    <LinguaDoAppProvider>
+      <Conversa token="tok" aoExpirar={vi.fn()} aoMudar={vi.fn()} />
+    </LinguaDoAppProvider>,
+  );
+  const atalhos = await screen.findByRole("group", { name: idioma === "pt" ? "Atalhos" : "Shortcuts" });
+  await userEvent.click(within(atalhos).getByRole("button", { name: rotulo }));
   expect(await screen.findByText("recebido")).toBeInTheDocument();
   return enviados;
 }
 
 test("atalho manda a frase pronta em espanhol na conversa em espanhol", async () => {
-  expect(await atalhoDeBloqueio("es", "Conversar em español")).toEqual(["Quiero bloquear mi tarjeta"]);
+  expect(await atalhoDeBloqueio("es", "Bloquear tarjeta")).toEqual(["Quiero bloquear mi tarjeta"]);
 });
 
 test("atalho manda a frase pronta em português na conversa em português", async () => {
-  expect(await atalhoDeBloqueio("pt", "Conversar em português")).toEqual(["Quero bloquear meu cartão"]);
+  expect(await atalhoDeBloqueio("pt", "Bloquear cartão")).toEqual(["Quero bloquear meu cartão"]);
+});
+
+test("o atalho do pedido em português segue o rótulo do design e manda a frase que as regras entendem", async () => {
+  expect(await atalhoDeBloqueio("pt", "Meu pedido")).toEqual(["Como está meu pedido de revisão?"]);
 });
 
 test("a oferta do atendente tem rótulos claros e continua mandando sí e no", async () => {
@@ -404,10 +440,43 @@ test("a oferta do atendente tem rótulos claros e continua mandando sí e no", a
   const { enviados } = servidor([{ status: 200, corpo: oferta }, { status: 200, corpo: oferta }]);
   montar();
   await abrirEPedir("algo");
-  const grupo = within(await screen.findByRole("group", { name: "Atendente" }));
-  await userEvent.click(grupo.getByRole("button", { name: "Continuar aqui" }));
-  await userEvent.click(await screen.findByRole("button", { name: "Falar com um atendente" }));
+  // Os rótulos do design na língua da conversa; o que vai é o sí e o no.
+  const grupo = within(await screen.findByRole("group", { name: "Options" }));
+  await userEvent.click(grupo.getByRole("button", { name: "Seguir aquí" }));
+  // O atalho "Hablar con un agente" também existe: o da oferta é o do grupo das opções.
+  await userEvent.click(within(await screen.findByRole("group", { name: "Options" })).getByRole("button", { name: "Hablar con un agente" }));
   expect(enviados).toEqual(["algo", "No", "Sí"]);
+});
+
+test("pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim", async () => {
+  const pergunta = turno({
+    intencao: "bloquear",
+    regra: "POL-BLQ-07",
+    acao: "esclarecer",
+    estado: "confirmando_bloqueio",
+    resposta: "Puedo bloquear tu tarjeta ahora mismo por aquí. ¿Quieres que la bloquee ahora? Responde sí o no.",
+    transaction_id: null,
+    proposta: null,
+  });
+  const feito = turno({
+    intencao: "desconhecida",
+    regra: "POL-BLQ-02",
+    acao: "bloquear_cartao",
+    estado: "livre",
+    resposta: "Bloqueé tu tarjeta de crédito terminada en 1111.",
+    transaction_id: null,
+    proposta: null,
+    bloqueio: "BL-00000002",
+  });
+  const { enviados } = servidor([{ status: 200, corpo: pergunta }, { status: 200, corpo: feito }]);
+  montar();
+  await abrirEPedir("¿cómo bloqueo la tarjeta si la pierdo?");
+  const confirmar = await screen.findByRole("button", { name: "Sí, confirmo" });
+  // A pergunta antes de bloquear é o passo 3 do design (a confirmação), como a do pré-caso.
+  expect(screen.getByText("3 · Confirmation")).toHaveAttribute("aria-current", "step");
+  await userEvent.click(confirmar);
+  expect(await screen.findByText(/Bloqueé tu tarjeta/)).toBeInTheDocument();
+  expect(enviados).toEqual(["¿cómo bloqueo la tarjeta si la pierdo?", "Sí, confirmo"]);
 });
 
 test("desbloqueio proposto pede o sim com os mesmos botões e, feito, avisa o console", async () => {
@@ -454,10 +523,10 @@ test("relato de fraude com vários cartões: o caso já está com o atendente en
   const aoIdioma = vi.fn();
   render(<Conversa token="tok" aoExpirar={vi.fn()} aoMudar={vi.fn()} aoIdioma={aoIdioma} />);
   await abrirEPedir("Me clonaron una tarjeta");
-  expect(await screen.findByText("Com atendimento humano (AT-00000002).")).toBeInTheDocument();
+  expect(await screen.findByText("Handed to a person")).toBeInTheDocument();
   // A resposta (o cartão a bloquear) segue livre, mas sem atalhos nem "Perguntar sobre esta".
-  expect(screen.getByLabelText("Mensagem")).toBeEnabled();
-  expect(screen.queryByRole("group", { name: "Atalhos" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText(CAIXA)).toBeEnabled();
+  expect(screen.queryByRole("group", { name: "Shortcuts" })).not.toBeInTheDocument();
   expect(aoIdioma).toHaveBeenLastCalledWith(null);
 });
 
@@ -466,13 +535,63 @@ test("reabrir a conversa mostra o caso que está com o atendente", async () => {
   const historico = {
     conversa_id: "C1",
     idioma: "es",
-    estado: "com_humano",
+    // O caso já está com o atendente enquanto a conversa pergunta o cartão a bloquear: só o atendimento
+    // relido diz que ele está com uma pessoa.
+    estado: "escolhendo_cartao",
     atendimento: "AT-00000003",
     turnos: [
-      { numero: 1, mensagem: "Me robaron la tarjeta", resposta: "Por seguridad, un agente va a atender este caso.", regra: "POL-HUM-01", acao: "humano", estado: "com_humano", criado_em: "2026-10-01T10:00:00Z" },
+      { numero: 1, mensagem: "Me robaron la tarjeta", resposta: "Por seguridad, un agente va a atender este caso.", regra: "POL-HUM-01", acao: "humano", estado: "escolhendo_cartao", criado_em: "2026-10-01T10:00:00Z" },
     ],
   };
   servidor([], historico);
   montar();
-  expect(await screen.findByText("Com atendimento humano (AT-00000003).")).toBeInTheDocument();
+  expect(await screen.findByText("Handed to a person")).toBeInTheDocument();
+  expect(screen.queryByRole("group", { name: "Shortcuts" })).not.toBeInTheDocument();
+});
+
+test("a fala nova rola até ficar à vista, pelo mínimo (ACH-209)", async () => {
+  const rolar = vi.fn();
+  const original = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = rolar;
+  try {
+    servidor([{ status: 200, corpo: turno({}) }]);
+    montar();
+    await abrirEPedir();
+    const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
+    expect(rolar.mock.contexts.at(-1)).toBe(resposta);
+    expect(rolar).toHaveBeenLastCalledWith({ block: "nearest" });
+  } finally {
+    Element.prototype.scrollIntoView = original;
+  }
+});
+
+test("por que esta resposta na língua da interface: em português, os rótulos do design e a probabilidade com vírgula", async () => {
+  window.history.replaceState(null, "", "/?lang=pt");
+  servidor([{ status: 200, corpo: pelo({ resolvedor: "ranking", calibracao: "764ce683d347", probabilidade: 0.987, possiveis: 2 }) }]);
+  render(
+    <LinguaDoAppProvider>
+      <Conversa token="tok" aoExpirar={vi.fn()} aoMudar={vi.fn()} />
+    </LinguaDoAppProvider>,
+  );
+  await userEvent.type(await screen.findByLabelText("Escreva como cliente, em espanhol ou português"), "No reconozco el cobro de Uber");
+  await userEvent.click(screen.getByRole("button", { name: "Enviar" }));
+  const resposta = (await screen.findByText(/Puedo registrar una solicitud/)).closest("li");
+  if (!resposta) throw new Error("resposta fora da lista");
+  await userEvent.click(within(resposta).getByRole("button", { name: /Por que esta resposta/ }));
+  const linhas = Object.fromEntries(Array.from(resposta.querySelectorAll("dt")).map((dt) => [dt.textContent, dt.nextElementSibling?.textContent]));
+  expect(linhas).toMatchObject({
+    transação: "ranking com garantia (α = 5%) · probabilidade 0,99 · 2 possíveis · calibração 764ce683d347",
+    ação: "propor pré-caso",
+    intenção: "contestar",
+  });
+});
+
+test("a confirmação vai na língua da conversa: em português, o sim que vai é o 'Sim, confirmo'", async () => {
+  const pt = turno({ idioma: "pt", resposta: "Posso registrar um pedido de revisão (pré-caso) da transação na Uber. Você confirma?" });
+  const { enviados } = servidor([{ status: 200, corpo: pt }, { status: 200, corpo: REGISTRADO }]);
+  montar();
+  await abrirEPedir("Não reconheço a cobrança da Uber");
+  await userEvent.click(await screen.findByRole("button", { name: "Sim, confirmo" }));
+  await screen.findByText("PC-00000009 · pre-case received");
+  expect(enviados).toEqual(["Não reconheço a cobrança da Uber", "Sim, confirmo"]);
 });

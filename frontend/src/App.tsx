@@ -1,29 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
-import { Atendimento } from "./Atendimento";
-import { BloqueiosDoAtendimento } from "./BloqueiosDoAtendimento";
-import { ComoTestar } from "./ComoTestar";
-import { FilaDoAtendimento } from "./FilaDoAtendimento";
-import { IndicadoresDaEda } from "./IndicadoresDaEda";
-import { MetricasDoAtendimento } from "./MetricasDoAtendimento";
-import { QualidadeDosDados } from "./QualidadeDosDados";
-import { StatusDoSistema } from "./StatusDoSistema";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AreaDoAtendente } from "./abas/Atendente";
+import { AreaDoCliente } from "./abas/Cliente";
+import { AreaComoTestar } from "./abas/ComoTestar";
+import { AreaDaOperacao } from "./abas/Operacao";
+import { listarPersonas } from "./api/cliente";
+import { type Aba, abaDoEndereco } from "./app/abas";
+import { avisarRota } from "./app/ponte";
+import { SessaoProvider, useSessao } from "./app/sessao";
+import { Topo } from "./app/Topo";
+import { escolherPersona } from "./personas";
+import "./app/app.css";
 
-// Três áreas da demonstração, cada uma com endereço próprio (#cliente, #atendente e #operacao), e
-// o guia dos jurados em inglês (#how-to-test, PRD-009). Sem endereço, abre a do cliente.
-const ABAS = [
-  ["cliente", "Cliente"],
-  ["atendente", "Atendente"],
-  ["operacao", "Operação"],
-  ["how-to-test", "How to test"],
-] as const;
-type Aba = (typeof ABAS)[number][0];
-
-function abaDoEndereco(): Aba {
-  const pedida = window.location.hash.slice(1);
-  return ABAS.find(([id]) => id === pedida)?.[0] ?? "cliente";
-}
-
-export function App() {
+// A casca do app (DEV-032b, design de 03/10): a barra do topo e quatro áreas, cada uma com endereço
+// próprio (#cliente, #atendente, #operacao e #how-to-test). Sem endereço, abre a do cliente. As áreas
+// escondidas continuam montadas: a conversa não se perde, e a fila, os bloqueios e as métricas seguem
+// sendo atualizados enquanto o cliente conversa.
+function Casca() {
   // Cada pré-caso, encaminhamento ou bloqueio criado na conversa atualiza o console e as métricas.
   const [versao, setVersao] = useState(0);
   const mudou = useCallback(() => setVersao((v) => v + 1), []);
@@ -33,53 +25,65 @@ export function App() {
     window.addEventListener("hashchange", seguir);
     return () => window.removeEventListener("hashchange", seguir);
   }, []);
-  // As abas escondidas continuam montadas: a conversa não se perde, e a fila, os bloqueios e as
-  // métricas seguem sendo atualizados enquanto o cliente conversa.
+  // A aba mudou (não ao abrir): o site, com o app na janela dele, mostra o endereço na barra.
+  const anterior = useRef(aba);
+  useEffect(() => {
+    if (anterior.current === aba) return;
+    anterior.current = aba;
+    avisarRota(`#${aba}`);
+  }, [aba]);
+
+  // A frase que vai para a conversa: a do "Perguntar sobre esta" ou a do "Try in ES/PT" das outras
+  // abas, que entra sozinho (a persona da demonstração, com o dispositivo cadastrado) quando preciso.
+  const [pergunta, setPergunta] = useState<string | null>(null);
+  const perguntado = useCallback(() => setPergunta(null), []);
+  const { sessao, entrar } = useSessao();
+  const experimentar = useCallback(
+    async (frase: string) => {
+      if (!sessao) {
+        const persona = escolherPersona(await listarPersonas());
+        if (!persona) return;
+        await entrar(persona, "cadastrado");
+      }
+      window.location.hash = "#cliente";
+      setAba("cliente");
+      setPergunta(frase);
+    },
+    [sessao, entrar],
+  );
+  const area = { versao, aoMudar: mudou, experimentar: (frase: string) => void experimentar(frase) };
+
   return (
-    <>
-      <header className="topo">
-        <h1>JEJE</h1>
-        <p>Atendimento de transações em espanhol e português · demonstração com os dados sintéticos do desafio</p>
-      </header>
-      <nav className="abas" role="tablist" aria-label="Áreas da demonstração">
-        {ABAS.map(([id, rotulo]) => (
-          <a
-            key={id}
-            href={`#${id}`}
-            role="tab"
-            id={`aba-${id}`}
-            aria-selected={aba === id}
-            aria-controls={`painel-${id}`}
-            onClick={() => setAba(id)}
-          >
-            {rotulo}
-          </a>
-        ))}
-      </nav>
-      <main className="pagina">
-        <div role="tabpanel" id="painel-cliente" aria-labelledby="aba-cliente" hidden={aba !== "cliente"}>
-          <Atendimento aoMudar={mudou} />
+    <div className="app-pagina">
+      <Topo aba={aba} versao={versao} aoEscolher={setAba} />
+      <main className="app-conteudo">
+        <div role="tabpanel" id="painel-cliente" aria-labelledby="aba-cliente" hidden={aba !== "cliente"} className="app-area">
+          <AreaDoCliente {...area} pergunta={pergunta} aoPerguntar={setPergunta} aoPerguntado={perguntado} />
         </div>
         <div
           role="tabpanel"
           id="painel-atendente"
           aria-labelledby="aba-atendente"
           hidden={aba !== "atendente"}
-          className="colunas"
+          className="app-area"
         >
-          <FilaDoAtendimento versao={versao} />
-          <BloqueiosDoAtendimento versao={versao} />
+          <AreaDoAtendente {...area} />
         </div>
-        <div role="tabpanel" id="painel-operacao" aria-labelledby="aba-operacao" hidden={aba !== "operacao"} className="dados">
-          <MetricasDoAtendimento versao={versao} />
-          <StatusDoSistema />
-          <QualidadeDosDados />
-          <IndicadoresDaEda />
+        <div role="tabpanel" id="painel-operacao" aria-labelledby="aba-operacao" hidden={aba !== "operacao"} className="app-area">
+          <AreaDaOperacao {...area} />
         </div>
-        <div role="tabpanel" id="painel-how-to-test" aria-labelledby="aba-how-to-test" hidden={aba !== "how-to-test"}>
-          <ComoTestar />
+        <div role="tabpanel" id="painel-how-to-test" aria-labelledby="aba-how-to-test" hidden={aba !== "how-to-test"} className="app-area">
+          <AreaComoTestar />
         </div>
       </main>
-    </>
+    </div>
+  );
+}
+
+export function App() {
+  return (
+    <SessaoProvider>
+      <Casca />
+    </SessaoProvider>
   );
 }

@@ -4743,7 +4743,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"usaron mi tarjeta\", \"usaram meu cartao\", \"alguien uso mi tarjeta\",\n                \"alguem usou meu cartao\",\n",
+          "de": "                \"usaron mi tarjeta\", \"usaram meu cartao\",\n",
           "para": ""
         }
       ],
@@ -6001,7 +6001,8 @@
         }
       ],
       "testes": [
-        "tests/test_interpretacao_leitor.py::test_o_que_as_regras_entendem_nem_chega_ao_leitor"
+        "tests/test_interpretacao_leitor.py::test_o_que_as_regras_entendem_nem_chega_ao_leitor",
+        "tests/test_nao_entendi.py::test_o_que_as_regras_entendem_nao_chega_ao_leitor_nem_ao_llm"
       ]
     },
     {
@@ -6758,7 +6759,8 @@
         }
       ],
       "testes": [
-        "tests/test_interpretacao_leitor.py::test_mensagem_sem_palavra_conhecida_nao_chega_ao_leitor"
+        "tests/test_interpretacao_leitor.py::test_mensagem_sem_palavra_conhecida_nao_chega_ao_leitor",
+        "tests/test_nao_entendi.py::test_ruido_nao_chega_ao_llm"
       ]
     },
     {
@@ -8033,6 +8035,37 @@
       "testes": [
         "tests/test_politica.py::test_cliente_desfaz_o_bloqueio_feito_por_aqui_dentro_do_prazo",
         "tests/test_bloqueio_conversa.py::test_bloqueio_fora_do_prazo_so_o_atendente_desfaz"
+      ]
+    },
+    {
+      "id": "M-POL-52",
+      "requisito": "R03",
+      "descricao": "Pergunta hipotética sobre bloquear bloqueia na hora (REG-20)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear",
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
+      ]
+    },
+    {
+      "id": "M-POL-53",
+      "requisito": "R03",
+      "descricao": "A pergunta sem cartão bloqueável pede confirmação em vez de só informar",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/politica.py",
+          "de": "    if quantos_bloqueaveis == 0:\n        return Decisao(\"POL-BLQ-03\", \"responder\", \"nenhum cartão ativo para bloquear\")\n    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n",
+          "para": "    if hipotese:\n        return Decisao(\"POL-BLQ-07\", \"esclarecer\", \"pergunta, não pedido: confirma antes\")\n    if quantos_bloqueaveis == 0:\n        return Decisao(\"POL-BLQ-03\", \"responder\", \"nenhum cartão ativo para bloquear\")\n"
+        }
+      ],
+      "testes": [
+        "tests/test_politica.py::test_pergunta_hipotetica_confirma_antes_de_bloquear"
       ]
     },
     {
@@ -9313,6 +9346,51 @@
       ]
     },
     {
+      "id": "M-BLQ-16",
+      "requisito": "R03",
+      "descricao": "O sim depois da pergunta (POL-BLQ-07) não bloqueia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if self.estado == \"confirmando_bloqueio\":\n            if self.lida.resposta == \"sim\":\n                return self._pedido_de_bloqueio(confirmado=True)\n            if self.lida.resposta == \"nao\":\n                nada = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n                return Saida(\"CANCELADO\", \"responder\", (nada,), \"livre\", {})\n            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
+      ]
+    },
+    {
+      "id": "M-BLQ-17",
+      "requisito": "R03",
+      "descricao": "O não depois da pergunta (POL-BLQ-07) não cancela",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            if self.lida.resposta == \"nao\":\n                nada = texto(\"BLOQUEIO-CANCELADO\", self.idioma)\n                return Saida(\"CANCELADO\", \"responder\", (nada,), \"livre\", {})\n            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n",
+          "para": "            self.estado, self.contexto = \"livre\", {}  # outro pedido: a pergunta fica para trás\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_com_nao_nao_bloqueia"
+      ]
+    },
+    {
+      "id": "M-BLQ-18",
+      "requisito": "R03",
+      "descricao": "A conversa ignora a pergunta hipotética e bloqueia na hora",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        hipotese = not confirmado and hipotese_ou_capacidade(self.mensagem)",
+          "para": "        hipotese = False"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
+      ]
+    },
+    {
       "id": "M-MIG-15",
       "requisito": "R03",
       "descricao": "O bloqueio se liga a um caso que não existe (sem a chave estrangeira)",
@@ -10298,8 +10376,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"ya aparecio\", \"ja apareceu\", \"achei\", \"encontrei\", \"encontre\"), CARTAO, entre=1\n",
-          "para": "    (\"ya aparecio\", \"ja apareceu\", \"achei\", \"encontrei\", \"encontre\"), CARTAO\n"
+          "de": "    CARTAO,\n    entre=1,\n    negavel=True,",
+          "para": "    CARTAO,\n    negavel=True,"
         }
       ],
       "testes": [
@@ -11395,8 +11473,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"site errado\",\n                \"sitio equivocado\", \"pagina errada\", \"pagina equivocada\", \"link errado\")),",
-          "para": "\n                )),"
+          "de": "\"site errado\",\n                \"sitio equivocado\", \"pagina errada\", \"pagina equivocada\", \"link errado\",\n",
+          "para": "\n"
         }
       ],
       "testes": [
@@ -11532,21 +11610,6 @@
           "arquivo": "src/jeje/sessao.py",
           "de": "            if (d[\"customer_id\"], valor, quando.date()) not in repetidos\n",
           "para": ""
-        }
-      ],
-      "testes": [
-        "tests/test_sessao_api.py::test_personas_trazem_as_contestaveis_e_um_exemplo_que_acha_so_ela"
-      ]
-    },
-    {
-      "id": "M-SES-18",
-      "requisito": "R08",
-      "descricao": "A janela de contestação não limita as contestáveis",
-      "trocas": [
-        {
-          "arquivo": "src/jeje/sessao.py",
-          "de": "    desde = hoje - timedelta(days=limites.janela_contestacao_dias)\n",
-          "para": "    desde = hoje - timedelta(days=100 * 365)\n"
         }
       ],
       "testes": [
@@ -12106,7 +12169,8 @@
         }
       ],
       "testes": [
-        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao"
+        "tests/test_interpretacao.py::test_erro_de_digitacao_na_palavra_de_intencao",
+        "tests/test_interpretacao.py::test_frase_comum_nao_e_corrigida_para_termo_de_acao"
       ]
     },
     {
@@ -12327,8 +12391,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
-          "para": "    (\"usa mi\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+          "de": "    (\"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\",",
+          "para": "    (\"usa mi\", \"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -12357,8 +12421,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    antes=3,\n",
-          "para": "    antes=0,\n"
+          "de": "    antes=3,\n    fora_antes=(\"compra*\",",
+          "para": "    antes=0,\n    fora_antes=(\"compra*\","
         }
       ],
       "testes": [
@@ -12372,8 +12436,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "            if invertido and any(_casa(f, antes) for f in termo.fora_antes):\n",
-          "para": "            if any(_casa(f, antes) for f in termo.fora_antes):\n"
+          "de": "            antes_conta = invertido or termo.so_nessa_ordem\n",
+          "para": "            antes_conta = True\n"
         }
       ],
       "testes": [
@@ -12576,6 +12640,36 @@
       ]
     },
     {
+      "id": "M-ITP-208",
+      "requisito": "R03",
+      "descricao": "Nenhuma pergunta é hipotética ou de capacidade",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return any(_casa(t, limpo) for t in HIPOTESE_OU_CAPACIDADE)",
+          "para": "    return False"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_hipotetica_ou_de_capacidade"
+      ]
+    },
+    {
+      "id": "M-ITP-257",
+      "requisito": "R03",
+      "descricao": "A descrição do cartão que se bloqueia bloqueia na hora (ACH-221)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    if DESCRICAO_DO_BLOQUEIO.search(limpo):\n        return True\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_descricao_do_cartao_que_se_bloqueia_pede_confirmacao"
+      ]
+    },
+    {
       "id": "M-ITP-190",
       "requisito": "R07",
       "descricao": "A suspeita sem prejuízo com \"no se la di\" lida como fraude bloqueia o cartão (REG-21)",
@@ -12614,6 +12708,51 @@
           "arquivo": "src/jeje/interpretacao.py",
           "de": "    \"usaram\",\n    # A conta esvaziada (\"no se la di, pero vaciaron mi cuenta\"), do REG-21.\n    \"vaciaron\", \"esvaziaram\", \"limparam\"\n",
           "para": "    \"usaram\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-256",
+      "requisito": "R07",
+      "descricao": "A perda contada no passado com artigo (\"e eu fiz o pix\", \"hice la transferencia\") não desfaz a guarda de prevenção: o golpe com a negação do golpista citada fica sem bloqueio (ACH-222)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # A perda contada no passado com artigo (\"e eu fiz o pix\", \"hice la transferencia\"), também\n    # com a negação do golpista citada (\"'não é golpe', ele falou\"), do REG-73 (ACH-222).\n    \"fiz o pix\", \"fiz a transferencia\", \"fiz o deposito\", \"fiz o pagamento\", \"fiz um deposito\",\n    \"fiz um pagamento\", \"hice la transferencia\", \"hice el deposito\", \"hice el pago\",\n    \"hice un deposito\", \"hice un pago\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-262",
+      "requisito": "R07",
+      "descricao": "O cartão entregue ao golpista ou levado por ele (\"o motoboy recolheu meu cartão\") não desfaz a guarda de prevenção: o cartão com o golpista fica sem bloqueio (ACH-222)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # O cartão entregue ao golpista ou levado por ele, com o objeto logo depois (\"o motoboy\n    # recolheu meu cartão\", \"se llevó mi tarjeta\"), do REG-77 (ACH-222).\n    \"entreguei o cartao\", \"entreguei meu cartao\", \"entreguei o meu cartao\", \"levou o cartao\",\n    \"levou meu cartao\", \"levou o meu cartao\", \"pegou o cartao\", \"pegou meu cartao\",\n    \"pegou o meu cartao\", \"pegaram o cartao\", \"pegaram meu cartao\", \"pegaram o meu cartao\",\n    \"recolheu o cartao\", \"recolheu meu cartao\", \"recolheu o meu cartao\", \"recolheram o cartao\",\n    \"recolheram meu cartao\", \"recolheram o meu cartao\", \"ficou com o cartao\",\n    \"ficou com meu cartao\", \"ficou com o meu cartao\", \"ficaram com o cartao\",\n    \"ficaram com meu cartao\", \"ficaram com o meu cartao\", \"se llevo la tarjeta\",\n    \"se llevo mi tarjeta\", \"se quedo con la tarjeta\", \"se quedo con mi tarjeta\",\n    \"se quedaron con la tarjeta\", \"se quedaron con mi tarjeta\", \"recogio la tarjeta\",\n    \"recogio mi tarjeta\", \"recogieron la tarjeta\", \"recogieron mi tarjeta\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_prevencao_ou_suspeita_sem_perda_nao_e_relato_de_vitima"
+      ]
+    },
+    {
+      "id": "M-ITP-263",
+      "requisito": "R07",
+      "descricao": "\"Ninguém\" e \"nadie\" deixam de negar o termo de vítima: \"Ninguém levou meu cartão, mas era golpe?\" bloqueia o cartão de quem pergunta (ACH-222)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    # \"Ninguém levou meu cartão\" não é perda (REG-77 da validação, ACH-222).\n    \"ninguem\", \"nadie\",\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -12707,7 +12846,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la utilizo\", \"la uso\", \"la usaron\", \"la utilizaron\", \"la esta usando\", \"la esta utilizando\",\n     \"la ha utilizado\", \"la ha usado\", \"usado mi\", \"usado meu\", \"usado minha\", \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou a minha\", \"usou o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la esta usando\", \"la esta utilizando\",\n     \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
           "para": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\"),"
         }
       ],
@@ -12782,8 +12921,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
-          "para": "                   \"deposito\", \"prestamo\", \"emprestimo\", \"comprobante\", \"comprovante\", \"numero\")"
+          "de": "     \"deposito\", \"prestamo\", \"emprestimo\"),",
+          "para": "     \"deposito\", \"prestamo\", \"emprestimo\", \"comprobante\", \"comprovante\", \"numero\"),"
         }
       ],
       "testes": [
@@ -12817,8 +12956,8 @@
         },
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                   \"deposito\", \"prestamo\", \"emprestimo\")",
-          "para": "                   )"
+          "de": "     \"deposito\", \"prestamo\", \"emprestimo\"),",
+          "para": "     ),"
         }
       ],
       "testes": [
@@ -13022,6 +13161,456 @@
       ]
     },
     {
+      "id": "M-ITP-248",
+      "requisito": "R02",
+      "descricao": "O uso por outro no mais-que-perfeito (\"alguien ya la había usado\") não é golpe, e o achado vira desbloqueio (ACH-199)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_USOU,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_mais_que_perfeito_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-251",
+      "requisito": "R02",
+      "descricao": "O pensar ou a pergunta antes não desfazem o par (\"pensé que alguien la había usado, pero era un cargo mío\" bloqueia o cartão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\", \"si\",",
+          "para": "    antes=0,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\", \"si\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_mais_que_perfeito_pensado_perguntado_ou_de_outra_coisa_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-252",
+      "requisito": "R02",
+      "descricao": "Em PT, qualquer coisa do cliente conta (\"uma pessoa perguntou se eu tinha usado meu cupom\" bloqueia o cartão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"tinha usado meu cartao\", \"tinha usado o meu cartao\",",
+          "para": "     \"tinha usado meu\", \"tinha usado o meu cartao\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_mais_que_perfeito_pensado_perguntado_ou_de_outra_coisa_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-245",
+      "requisito": "R02",
+      "descricao": "A negação depois do cumprimento segue relato (\"Hola, no es fraude, solo quiero saber…\" bloqueia ou encaminha como fraude)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?:hola|buenas|buenos dias|buenas tardes|buenas noches|buen dia|oi|ola|bom dia|boa tarde|\"\n    r\"boa noite) )?",
+          "para": "(?:xyz) )?"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_fraude_negada_pelo_cliente_nao_e_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-246",
+      "requisito": "R02",
+      "descricao": "O verbo de fala depois não conta: \"\\\"Não é golpe\\\", ele falou, e eu fiz o pix\" deixa de ser relato",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        perto = {*texto[achado.end() :].split()[:FALA_JANELA]}\n",
+          "para": "        perto = set()\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_negacao_que_nao_e_do_cliente_segue_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-238",
+      "requisito": "R02",
+      "descricao": "A fraude negada pelo cliente (\"no fue un fraude, yo hice la compra\") é relato e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        return achado.group(0) if FALA & perto else \" \"\n",
+          "para": "        return achado.group(0)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_fraude_negada_pelo_cliente_nao_e_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-239",
+      "requisito": "R02",
+      "descricao": "A negação em qualquer ponto da mensagem sai: a do golpista citada pela vítima (\"me juró: no es una estafa\") deixa de ser relato",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|buen dia|oi|ola|bom dia|boa tarde|\"\n    r\"boa noite) )?(?:no|nao|nunca) ",
+          "para": "    r\"(?<![a-z0-9])(?:no|nao|nunca) "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_negacao_que_nao_e_do_cliente_segue_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-240",
+      "requisito": "R02",
+      "descricao": "A negação sem o verbo: o \"no\" do português (\"caí no golpe\") tira o golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?:no|nao|nunca) (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|\"\n    r\"creo que es|acho que seja|acho que foi|acho que e) (?:un |um |una |uma )?\"",
+          "para": "(?:no|nao|nunca)(?: (?:es|e|fue|foi|sea|seja|creo que sea|creo que fue|\"\n    r\"creo que es|acho que seja|acho que foi|acho que e))? (?:un |um |una |uma )?\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_negacao_que_nao_e_do_cliente_segue_relato"
+      ]
+    },
+    {
+      "id": "M-ITP-241",
+      "requisito": "R03",
+      "descricao": "O \"não achei\" solto é perda: \"não achei que tinha atingido o limite\" bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"nao achei o\",\n",
+          "para": "\"nao achei\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_nao_achei_que_e_pensar_e_nao_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-242",
+      "requisito": "R03",
+      "descricao": "O reativar antes do cartão desfaz a perda: \"Reactivé mi tarjeta y la perdí de nuevo\" vira desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"encontre\", \"encontrei\"),\n",
+          "para": "                \"encontre\", \"encontrei\", \"reactiv*\", \"reativ*\"),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_perda_contada_depois_de_reativar_segue_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-243",
+      "requisito": "R03",
+      "descricao": "O cartão que só se pensou ter perdido (\"um cartão que pensei ter perdido\") é perda e é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "          \"pense\", \"pensei\", \"pensaba\", \"pensava\", \"achava\"),\n",
+          "para": "          ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado"
+      ]
+    },
+    {
+      "id": "M-ITP-244",
+      "requisito": "R03",
+      "descricao": "O cartão achado logo depois (\"meu cartão perdido que encontrei esta manhã\") é perda e é bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                 \"encontre\", \"encontrei\", \"la encontre\", \"o encontrei\"),\n",
+          "para": "                 ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado"
+      ]
+    },
+    {
+      "id": "M-ITP-235",
+      "requisito": "R03",
+      "descricao": "O cartão que não se achou (\"no encontré mi tarjeta\") não é perda",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"no encontre\", \"nunca encontre\", \"nao encontrei\", \"nunca encontrei\", \"nao achei o\",\n     \"nao achei meu\", \"nao achei minha\", \"nao achei a\", \"nao achei mais o\", \"nao achei mais meu\",\n     \"nunca achei o\", \"nunca achei meu\", \"nunca achei minha\", \"nunca achei a\",\n     \"nunca achei mais o\", \"nunca achei mais meu\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_cartao_que_nao_se_achou_e_perda"
+      ]
+    },
+    {
+      "id": "M-ITP-236",
+      "requisito": "R03",
+      "descricao": "O cartão achado negado (\"no encontré mi tarjeta en casa\") vira pedido de desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    negavel=True,  # \"no encontré mi tarjeta\" é perda\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_cartao_achado_negado_nao_e_desbloqueio"
+      ]
+    },
+    {
+      "id": "M-ITP-237",
+      "requisito": "R03",
+      "descricao": "Quem achou o cartão e quer reativá-lo (\"encontré la tarjeta que perdí, ¿cómo la reactivo?\") tem o cartão bloqueado como perda",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"encontre\", \"encontrei\"),\n",
+          "para": "                ),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_achou_o_cartao_e_quer_reativar_nao_tem_o_cartao_bloqueado"
+      ]
+    },
+    {
+      "id": "M-ITP-230",
+      "requisito": "R02",
+      "descricao": "O \"que\" volta à indignação: \"alguien que robó mi tarjeta la está usando\" deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e) ",
+          "para": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|que) "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-231",
+      "requisito": "R02",
+      "descricao": "O roubo de alguma coisa vira indignação: \"creo que es un robo de identidad\" deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "(?![a-z0-9])(?! d[eoa]\\b)\"",
+          "para": "(?![a-z0-9])\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-232",
+      "requisito": "R02",
+      "descricao": "O dinheiro tirado da conta por outros (\"me sacaron plata de la cuenta\") não é fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-233",
+      "requisito": "R02",
+      "descricao": "O dinheiro tirado pela tarifa (\"me sacaron plata de la cuenta por la comisión\") é fraude e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=4,\n    fora_depois=(\"comision\",",
+          "para": "    depois=0,\n    fora_depois=(\"comision\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo"
+      ]
+    },
+    {
+      "id": "M-ITP-234",
+      "requisito": "R02",
+      "descricao": "Sem a exclamação, os espaços que sobram partem o relato em volta dela (\"alguien, ¡esto es un robo!, usó mi tarjeta\" deixa de ser fraude)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    return \" \".join(FRAUDE_NEGADA.sub(citada_ou_tirada, texto).split())\n",
+          "para": "    return FRAUDE_NEGADA.sub(citada_ou_tirada, texto)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-227",
+      "requisito": "R02",
+      "descricao": "Quem disse ser do banco e pediu a clave ou tomou o cartão, na loja ou com o \"quien hablaba\", não é golpe (REG-37)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_disse_ser_do_banco_e_pediu_ou_tomou_o_cartao_e_golpe_mesmo_na_loja"
+      ]
+    },
+    {
+      "id": "M-ITP-228",
+      "requisito": "R02",
+      "descricao": "O cartão tomado (\"se llevó mi tarjeta\", \"me cambió la tarjeta\") por quem disse ser do banco não é golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"se llevo mi tarjeta\", \"se llevo la tarjeta\", \"se llevaron mi tarjeta\", \"me cambio la tarjeta\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_disse_ser_do_banco_e_pediu_ou_tomou_o_cartao_e_golpe_mesmo_na_loja"
+      ]
+    },
+    {
+      "id": "M-ITP-229",
+      "requisito": "R02",
+      "descricao": "Qualquer pedido depois de \"disse que era do banco\" é golpe (\"me pidieron otra tarjeta\" bloqueia o cartão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        (\"clave\", \"contrasena\", \"codigo\", \"pin\", \"token\", \"cvv\", \"senha\", \"datos\", \"dados\", \"plata\",\n         \"dinero\", \"dinheiro\", \"pix\", \"transferencia\"),\n",
+          "para": "        (\"\",),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-224",
+      "requisito": "R02",
+      "descricao": "A indignação (\"¡es un robo! me cobraron la comisión\") volta a ser relato de roubo e bloqueia o cartão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    texto = INDIGNACAO.sub(\" \", limpo)\n",
+          "para": "    texto = limpo\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_indignacao_com_a_tarifa_ou_a_compra_nao_e_relato_de_roubo"
+      ]
+    },
+    {
+      "id": "M-ITP-225",
+      "requisito": "R02",
+      "descricao": "O roubo contado (\"sufrí un robo\", \"hubo un robo\") também passa por indignação e deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e) ",
+          "para": "r\"(?<![a-z0-9])(?:esto es|eso es|es|isso e|isto e|e|sufri|hubo) "
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-226",
+      "requisito": "R02",
+      "descricao": "O golpe no particípio (\"me han estafado\") não é fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"estafado\", \"estafada\", \"estafados\", \"estafadas\",\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_roubo_contado_e_o_golpe_no_participio_continuam_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-220",
+      "requisito": "R02",
+      "descricao": "A loja logo antes do \"disse que era\" não desfaz o golpe (\"en la tienda me dijeron que era del banco\" bloqueia o cartão, ACH-195)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    antes=3,\n    fora_antes=(\"tienda\",",
+          "para": "    antes=0,\n    fora_antes=(\"tienda\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-221",
+      "requisito": "R02",
+      "descricao": "O problema ou o \"el que\" logo depois do \"disse que era\" não desfaz o golpe (\"pensé que era el banco el que me cobró\" bloqueia o cartão, ACH-195)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    depois=2,\n    fora_depois=(\"el problema\",",
+          "para": "    depois=0,\n    fora_depois=(\"el problema\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-222",
+      "requisito": "R02",
+      "descricao": "No termo só nessa ordem, as palavras antes do par não contam (a loja que fala volta a ser golpe, ACH-195)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            antes_conta = invertido or termo.so_nessa_ordem\n",
+          "para": "            antes_conta = invertido\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_loja_que_atribui_o_problema_ao_banco_nao_e_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-223",
+      "requisito": "R02",
+      "descricao": "A Caixa entre as lojas: \"ligaram da Caixa dizendo que era do banco\" deixa de ser golpe",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "\"lojista\", \"vendedor\",\n",
+          "para": "\"lojista\", \"caixa\", \"vendedor\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_quem_disse_que_era_do_banco_fora_da_loja_continua_golpe"
+      ]
+    },
+    {
       "id": "M-ITP-174",
       "requisito": "R03",
       "descricao": "Termo composto em qualquer ordem mesmo pedido só na ordem (ACH-173)",
@@ -13133,8 +13722,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
-          "para": "    (\"usando\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+          "de": "    (\"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\",",
+          "para": "    (\"usando\", \"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -13193,8 +13782,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).\n          \"fatura\", \"factura\", \"extrato\", \"extracto\", \"resumen\", \"opcion\", \"opcao\", \"boleto\",\n          \"comprovante\", \"comprobante\"),",
-          "para": "          ),"
+          "de": "          # A fatura, o extrato ou a opção do cartão (auditoria do dev, 02/10).\n          \"fatura\", \"factura\", \"extrato\", \"extracto\", \"resumen\", \"opcion\", \"opcao\", \"boleto\",\n          \"comprovante\", \"comprobante\",\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -13878,6 +14467,471 @@
       ],
       "testes": [
         "tests/test_migrations.py::test_cada_downgrade_desfaz_exatamente_o_seu_upgrade"
+      ]
+    },
+    {
+      "id": "M-MIG-18",
+      "requisito": "R03",
+      "descricao": "A migration 0026 não aceita o estado confirmando_bloqueio",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0026_conversa_confirmando_bloqueio.py",
+          "de": "DEPOIS = (*ANTES, \"confirmando_bloqueio\")",
+          "para": "DEPOIS = ANTES"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_pergunta_hipotetica_confirma_e_o_sim_bloqueia"
+      ]
+    },
+    {
+      "id": "M-GAR-15",
+      "requisito": "R03",
+      "descricao": "A decisão chamável da garantia não passa o registro do uso ao LLM, e a confirmação falha",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        return self.garantia(texto, idioma, self.leitor.vetor(texto), {})",
+          "para": "        return self.garantia(texto, idioma, self.leitor.vetor(texto), None)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_decisao_chamavel_com_o_texto_e_o_idioma"
+      ]
+    },
+    {
+      "id": "M-GAR-16",
+      "requisito": "R03",
+      "descricao": "A fraude encaminhada pela garantia fica com a fonte do leitor, e o trace perde de onde ela veio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        fonte = f\"{SINAL_DA_GARANTIA}:{self.garantia.llm.ollama.modelo}\"",
+          "para": "        fonte = leitura.fonte"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_detector_e_llm_confirmando_viram_fraude_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-GAR-17",
+      "requisito": "R03",
+      "descricao": "O que as regras entenderam (uma consulta) não passa pela garantia",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "        if lida.intencao in ENCAMINHAM or controle(lida) or",
+          "para": "        if lida.intencao != \"desconhecida\" or controle(lida) or"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_mensagem_que_as_regras_entenderam_tambem_passa_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-LEITOR-74",
+      "requisito": "R02",
+      "descricao": "Os golpes versionados são lidos com a intenção e o idioma trocados",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "    return [Mensagem(m[\"texto\"], m[\"intencao\"], m[\"idioma\"]) for m in conteudo[\"mensagens\"]]",
+          "para": "    return [Mensagem(m[\"texto\"], m[\"idioma\"], m[\"intencao\"]) for m in conteudo[\"mensagens\"]]"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_golpes_versionados_estao_nas_classes_e_nas_duas_linguas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-75",
+      "requisito": "R02",
+      "descricao": "A metade de calibração conta as posições repetidas e depende da ordem",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "    ordenadas = sorted(set(posicoes))",
+          "para": "    ordenadas = list(posicoes)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_metade_de_calibracao_sorteia_so_entre_as_posicoes_dadas"
+      ]
+    },
+    {
+      "id": "M-LEITOR-76",
+      "requisito": "R02",
+      "descricao": "O quantil conformal pega a posição seguinte (erro de um)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "    return ordenados[min(k, len(ordenados)) - 1]",
+          "para": "    return ordenados[min(k, len(ordenados) - 1)]"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_quantil_com_a_correcao_de_amostra_finita"
+      ]
+    },
+    {
+      "id": "M-LEITOR-77",
+      "requisito": "R02",
+      "descricao": "O treino da garantia sem alguma classe não é recusado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/garantia.py",
+          "de": "        if sorted(logistica.classes_) != sorted(CLASSES):\n            raise ModeloInvalido(f\"treino da garantia sem as classes {sorted(CLASSES)}\")\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_fraude.py::test_treino_sem_alguma_classe_e_recusado"
+      ]
+    },
+    {
+      "id": "M-LEITOR-78",
+      "requisito": "R02",
+      "descricao": "Os vizinhos carregados perdem a versão do artefato",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/leitor/vizinhos.py",
+          "de": "        vizinhos = cls(conteudo[\"textos\"], conteudo[\"vetores\"], conteudo[\"versao\"])",
+          "para": "        vizinhos = cls(conteudo[\"textos\"], conteudo[\"vetores\"], \"\")"
+        }
+      ],
+      "testes": [
+        "tests/test_leitor_vizinhos.py::test_artefato_salvo_e_carregado_acha_as_mesmas_frases"
+      ]
+    },
+    {
+      "id": "M-LLM-40",
+      "requisito": "R06",
+      "descricao": "Quando o LLM também não entende, o trace credita as regras, e se perde que o LLM foi chamado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "        fonte = f\"ollama:{self.ollama.modelo}\"",
+          "para": "        fonte = f\"ollama:{self.ollama.modelo}\" if intencao != \"desconhecida\" else \"regras\""
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_llm_que_tambem_nao_entende_deixa_a_mensagem_nao_entendida"
+      ]
+    },
+    {
+      "id": "M-ITP-249",
+      "requisito": "R02",
+      "descricao": "O \"disse que era\" só casa com o papel logo depois do verbo (\"dijo que era del banco\" deixa de ser golpe)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    entre=1,\n    so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)\n",
+          "para": "    entre=0,\n    so_nessa_ordem=True,  # como o SE_PASSOU_POR (ACH-173)\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_verbo_e_depois_o_papel_continua_golpe"
+      ]
+    },
+    {
+      "id": "M-ITP-250",
+      "requisito": "R02",
+      "descricao": "O vocabulário é carregado sem a contagem, e toda palavra conhecida vale uma ocorrência",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    palavra: int(n)\n",
+          "para": "    palavra: 1\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_vocabulario_versionado_tem_palavras_normalizadas_com_a_contagem"
+      ]
+    },
+    {
+      "id": "M-API-18",
+      "requisito": "R08",
+      "descricao": "Os cartões de um cliente fixo, e não os do cliente da sessão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio.cartoes_do_cliente(conexao, ativa.customer_id)",
+          "para": "bloqueio.cartoes_do_cliente(conexao, \"CLI-A\")"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-19",
+      "requisito": "R07",
+      "descricao": "O cartão bloqueado pelo canal aparece sem o bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "bloqueio=_do_bloqueio(ativos.get(c.bloqueio)),",
+          "para": "bloqueio=None,"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-20",
+      "requisito": "R07",
+      "descricao": "O bloqueio preventivo aparece como completo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "tipo=ativo.tipo,",
+          "para": "tipo=\"completo\","
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-API-21",
+      "requisito": "R07",
+      "descricao": "O prazo para desfazer o bloqueio vira a hora em que ele foi feito",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/cartoes_api.py",
+          "de": "reversivel_ate=ativo.reversivel_ate)",
+          "para": "reversivel_ate=ativo.criado_em)"
+        }
+      ],
+      "testes": [
+        "tests/test_cartoes_api.py::test_cliente_ve_so_os_proprios_cartoes_com_o_bloqueio_ativo"
+      ]
+    },
+    {
+      "id": "M-EVT-11",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos incluem o efeito feito fora de um turno (o atendente)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo IN ('turno', 'acao') ORDER BY id DESC LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-EVT-12",
+      "requisito": "R06",
+      "descricao": "Os últimos eventos saem do mais antigo para o mais recente",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/eventos.py",
+          "de": "\" WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite\"",
+          "para": "\" WHERE tipo = 'turno' ORDER BY id LIMIT :limite\""
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_saem_do_mais_recente_sem_cliente_nem_texto"
+      ]
+    },
+    {
+      "id": "M-MET-11",
+      "requisito": "R08",
+      "descricao": "Os últimos eventos ficam abertos fora do modo demo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "@router.get(\"/metricas/eventos\", dependencies=[Depends(exige_modo_demo)], responses=RESPOSTAS_DEMO)",
+          "para": "@router.get(\"/metricas/eventos\", responses=RESPOSTAS_DEMO)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
+    },
+    {
+      "id": "M-MET-12",
+      "requisito": "R06",
+      "descricao": "O limite dos últimos eventos aceita zero",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/metricas_api.py",
+          "de": "Query(ge=1, le=50)",
+          "para": "Query(ge=0, le=50)"
+        }
+      ],
+      "testes": [
+        "tests/test_eventos.py::test_os_ultimos_turnos_so_existem_no_modo_demo_e_com_limite"
+      ]
+    },
+    {
+      "id": "M-ITP-258",
+      "requisito": "R04",
+      "descricao": "A transação duplicada deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"duplicad*\",), entre=5, so_nessa_ordem=True,\n                         antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-259",
+      "requisito": "R04",
+      "descricao": "A transação estranha deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"extrano\", \"extrana\", \"extranos\", \"extranas\",\n                                            \"estranho\", \"estranha\", \"estranhos\", \"estranhas\"),\n                         entre=1, so_nessa_ordem=True, antes=NA_MENSAGEM,\n                         fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-260",
+      "requisito": "R04",
+      "descricao": "A transação desconhecida deixa de ser contestação (ACH-220)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                   Perto(TRANSACAO_CITADA, (\"desconocid*\", \"desconhecid*\"), entre=3,\n                         so_nessa_ordem=True, antes=NA_MENSAGEM, fora_antes=SINAL_DE_GOLPE),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_transacao_duplicada_estranha_ou_desconhecida_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-261",
+      "requisito": "R04",
+      "descricao": "Sem a guarda do sinal de golpe, a consequência do golpe vira contestação (REG-68)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "SINAL_DE_GOLPE = (\n",
+          "para": "SINAL_DE_GOLPE = ()\n_SINAL_SEM_USO = (\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_consequencia_de_golpe_nao_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-264",
+      "requisito": "R03",
+      "descricao": "O uso por outro pensado ou perguntado volta a ser fraude: o ALGUEM_USOU sem o pensar e a pergunta antes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\",\n                \"pensei\", \"pensava\", \"achei\", \"achava\", \"perguntou\", \"perguntei\"),\n",
+          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-265",
+      "requisito": "R03",
+      "descricao": "O ALGUEM_USOU casa nas duas ordens, e o pensar antes do par deixa de desfazê-lo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
+          "para": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-266",
+      "requisito": "R03",
+      "descricao": "O uso por outro contado no passado deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-277",
+      "requisito": "R03",
+      "descricao": "O relato com o uso antes da pessoa deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                USOU_ALGUEM)),\n",
+          "para": "                )),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-278",
+      "requisito": "R03",
+      "descricao": "O uso por outro desfeito deixa de ser marcado e volta ao leitor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"uso_desfeito\": _uso_desfeito(limpo),\n",
+          "para": "        \"uso_desfeito\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-LLM-42",
+      "requisito": "R03",
+      "descricao": "O uso desfeito volta a ser lido pelo leitor e pelo LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.outra,\n        lida.uso_desfeito,\n    )\n",
+          "para": "        lida.outra,\n    )\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-GAR-19",
+      "requisito": "R03",
+      "descricao": "O uso desfeito passa pela garantia de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "lida.id_digitado, lida.uso_desfeito)",
+          "para": "lida.id_digitado)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
       ]
     }
   ]

@@ -72,6 +72,27 @@ baixa o leitor (torch só-CPU e pesos do e5, ~2 GB) e o treina (~11 min em CPU);
 fica com ~3,9 GB. Depois sobe em segundos.
 Sem as chaves? `make up-fixture` sobe com um dataset sintético pequeno.
 
+## O site
+
+`/site/` (ao lado do app, no mesmo build do `web`) explica o sistema numa rolagem: a viagem de uma
+mensagem pelo mapa da arquitetura, em 3D (Three.js; sem WebGL ou com movimento reduzido, o mesmo
+mapa em 2D), o caminho dos dados, os modelos, os quatro pilares com a prova de cada um e os
+resultados. É a réplica do design entregue pelo designer (`04-solucao/design-do-site` no vault do
+time), com o conteúdo dele; o que mudou no `main` desde o design fica em `frontend/src/site/fatos.ts`,
+com a evidência ao lado (o LLM do "não entendi" e a garantia de fraude, que o design ainda via como
+planejados, já estão ligados).
+
+- Os números do problema, da carga e do portão TF-IDF vêm da API (`/dados/eda`, `/dados/qualidade`
+  e `/intencao/modelo`). Sem a API (o site aberto sem a senha dos jurados), ficam os do design, que
+  são os das evidências citadas em cada número.
+- "Mande uma mensagem" conversa com a API de verdade quando o acesso está aberto (na máquina, ou
+  depois da senha no app): uma persona de demonstração, a contestação com uma compra dela, e o mapa
+  acende o caminho do turno (quem leu, a transação, a política e a ação; em laranja quando passa
+  para uma pessoa). Sem o acesso, mostra as jornadas de exemplo do design, avisando que são exemplos.
+- `VITE_SO_DESIGN=1` no build mostra só o design, sem a API nem os fatos do `main`: foi assim que a
+  réplica foi comparada, imagem a imagem, com o HTML do designer.
+- Fontes Archivo e Martian Mono (SIL OFL 1.1, em `frontend/src/site/fontes/`), servidas pelo site.
+
 ## Experimente
 
 - **Contestar:** "No reconozco el cobro de 45,90 del 10/03/2025" (use valor e data de uma
@@ -196,6 +217,41 @@ a documentação e o contrato; só a saúde e o próprio acesso abrem. Quem entr
    migration do commit antigo (`alembic downgrade`), e só depois as imagens dele sobem. No fim, a
    mesma conferência do endereço público (ACH-116).
 4. **Tirar do ar:** `make publicacao-down` (o banco fica).
+
+### De pé durante o julgamento (6 a 15/10)
+
+A publicação roda numa máquina do time. Para ela ficar de pé sem ninguém olhar:
+
+- **Volta sozinha:** os quatro serviços do `compose.publicacao.yaml` têm `restart: unless-stopped`, e o
+  Docker sobe com a máquina. A ponte do Ollama também, porque sem ela o LLM do "não entendi" fica de
+  fora; o `make publicar` a sobe junto. No reinício de 03/10, às 18h19, a publicação voltou sozinha,
+  mas a ponte, que ainda não tinha a regra, não voltou. No mesmo reinício, o Ollama subiu antes do
+  módulo `nvidia_uvm` e rodou na CPU até ser reiniciado. Quem administra carrega o módulo no boot
+  (`echo nvidia_uvm | sudo tee /etc/modules-load.d/nvidia-uvm.conf`); se acontecer de novo, resolve
+  com `sudo systemctl restart ollama`. A máquina não suspende: na sessão do usuário, a energia fica em "nunca"; na
+  tela de login, quem administra mascara os alvos de suspensão
+  (`sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target`). A volta
+  depois de falta de energia é uma opção da BIOS.
+- **A vigia:** `scripts/instalar-vigia.sh`, no checkout da publicação (o que tem o `.env`), liga dois
+  timers do systemd do usuário:
+  - a conferência rápida a cada 10 min (`scripts/vigiar-publicacao.sh`): a página, o portão, a saúde, os
+    cabeçalhos e, daqui da máquina, a ponte do Ollama e o modelo carregado na GPU;
+  - o teste diário às 9h, com uma conversa em espanhol e outra em português
+    (`scripts/conferir-publicacao.sh --conversa`): cada turno tem de responder na língua da conversa e
+    com a regra que decidiu. O teste deixa uma sessão e duas conversas de consulta no banco, sem efeito.
+
+  O registro fica em `~/.local/state/jeje/vigia.log`. Depois de 16/10, os timers não fazem nada, e
+  `scripts/instalar-vigia.sh --desligar` os desliga. Para os timers rodarem sem sessão aberta, quem
+  administra liga o `loginctl enable-linger`.
+- **O aviso:** quando uma conferência passa a falhar, `scripts/avisar.sh` manda as falhas para o endereço
+  do `AVISO_URL` no `.env`, e de novo quando ela volta a passar. Enquanto a publicação segue fora, o aviso
+  não se repete a cada 10 min. O endereço é um segredo: o tópico de um ntfy ou um webhook que aceite um
+  POST de texto. Sem ele, a falha fica só no registro.
+- **Plano B, se a máquina cair:** em outra máquina com Docker, clonar o repositório e pôr no `.env` as
+  mesmas chaves (as do S3, `SENHA_DOS_JURADOS` e `CLOUDFLARE_TUNNEL_TOKEN`); `make publicar` sobe tudo e
+  confere. O túnel é nomeado: o endereço segue para a máquina que estiver com o token, sem mexer no DNS. A
+  nova publicação começa com o banco vazio de conversas (as reviews e os casos de antes ficam na máquina
+  que caiu).
 
 ## Recarga dos dados
 
@@ -461,6 +517,46 @@ lint e testes do web verdes (`npm run ci` no estágio de build), e `make check`,
 `make repro` rodam o resto na própria máquina. As stacks de mutantes E2E constroem o web sem os
 testes, porque ali o defeito plantado precisa subir para a jornada no navegador o pegar.
 
+### O atacante adaptativo como portão de release (`make atacar`)
+
+Antes de cada versão, um LLM local faz o papel de um cliente mal-intencionado. Ele tenta, em várias
+rodadas, levar o atendimento a uma ação insegura, em espanhol e português, por oito mecanismos:
+
+- registrar a contestação de outro cliente;
+- registrar sem o sim, ou uma contestação que a política não deixa;
+- resolver a fraude sem o atendente;
+- arrancar uma promessa de reembolso;
+- obter dados de outra pessoa;
+- mandar instruções escondidas;
+- desbloquear o cartão sem o sim.
+
+A cada rodada, ele lê a resposta e adapta a próxima mensagem. O oráculo é da validação
+(`avaliacao/`, NOV-13a) e não importa o código do produto: ele lê a fixture, os limites do compose e o
+que a API mostra (pré-casos, a fila do atendente e os bloqueios).
+
+```bash
+make atacar                                        # o portão: 8 episódios por mecanismo e língua (128 conversas)
+make atacar ARGS="--mecanismos M4 --episodios 2"   # um recorte, para conferir uma correção
+make test-avaliacao                                # os testes do oráculo, sem a stack
+```
+
+- **O que faz:** sobe uma stack isolada do commit, com a fixture e sem portas no host. A API roda a
+  variante entregue: o leitor e5, o LLM local do "não entendi" e a garantia de fraude, sem o LLM do
+  site. O atacante roda num container da mesma rede.
+- **Quando falha:** sai com 1 quando os episódios inseguros passam do limite, que é 0. O limite e os
+  episódios ficam no `compose.atacar.yaml`. Sai com 2, inconclusivo e nunca verde, sem o Ollama, os
+  modelos ou a API, ou quando nenhum turno chega ao LLM do produto.
+- **O relatório:** em `resultados/atacante/atacante-<commit>.json` e `.md`, com cada conversa, o que foi
+  achado, os turnos lidos pelo LLM e o intervalo de confiança. Fica fora do Git, senão o `make publicar`
+  acha a árvore suja. O da versão entregue entra com `git add -f`.
+- **O alvo:** só o serviço web da stack isolada. O atacante recusa qualquer endereço que não seja
+  loopback ou um serviço do compose, e nunca roda contra a publicação.
+- **Precisa de:**
+  - o Ollama no host com o modelo do atacante e o do produto (`ollama pull qwen2.5:7b` e
+    `ollama pull qwen3:4b`);
+  - a ponte até ele, a do `make up` (`docker compose --profile modelo up -d ollama-ponte`);
+  - a GPU livre: com 8 GB, os 128 episódios levam de 30 a 45 minutos.
+
 ## Onde fica cada coisa
 
 - `compose.yaml` — **toda** a configuração não secreta (flags, limites, portas, testes);
@@ -470,7 +566,8 @@ testes, porque ali o defeito plantado precisa subir para a jornada no navegador 
   `.env` guarda só segredos e nunca vai para o Git.
 - `backend/` — API (FastAPI) e migrations. Regras em `politica.py`, conversa em `conversa.py`,
   textos aprovados ES/PT em `mensagens.py`.
-- `frontend/` — interface React; tipos gerados de `contrato/openapi.json` (`make contrato`).
+- `frontend/` — interface React; tipos gerados de `contrato/openapi.json` (`make contrato`). O
+  site fica em `frontend/site/` (a página) e `frontend/src/site/` (conteúdo, mapa, fatos e números).
 - `e2e/` — jornadas no navegador; `mutantes/` — defeitos deliberados que os testes precisam pegar.
 - `data/manifesto/` — versão dos dados (hash de cada arquivo); `data/fixture/` — dataset sintético.
 
