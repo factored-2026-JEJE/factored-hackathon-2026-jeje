@@ -15040,6 +15040,51 @@
       "testes": [
         "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
       ]
+    },
+    {
+      "id": "M-ITP-291",
+      "requisito": "R05",
+      "descricao": "Desfazer, cancelar e anular o bloqueio voltam a ser lidos como pedido de bloqueio (ACH-187)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"remova\", \"levantar\", \"levanta\", \"levante\", \"desfazer\", \"desfaz\", \"desfaca\", \"desfacam\",\n     \"deshacer\", \"deshaz\", \"deshaga\", \"deshagan\", \"cancelar\", \"cancela\", \"cancele\", \"anular\",\n     \"anula\", \"anule\"),",
+          "para": "     \"remova\", \"levantar\", \"levanta\", \"levante\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-292",
+      "requisito": "R05",
+      "descricao": "Não desfazer o bloqueio vira pedido de outro bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "levant|desfa|desha|cancel|anul)[a-z]* (?:[a-z]+ )?bloque\"",
+          "para": "levant)[a-z]* (?:[a-z]+ )?bloque\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-LLM-47",
+      "requisito": "R03",
+      "descricao": "O imperativo de desfazer ('deshazlo') não confirma o desbloqueio que o LLM leu",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "desfa[zc]|deshac|deshaz|deshag|",
+          "para": "desfaz|deshac|"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
+      ]
     }
   ]
 }
