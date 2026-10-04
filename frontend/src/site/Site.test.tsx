@@ -63,7 +63,7 @@ describe("sem a API (o site público)", () => {
     expect(placar).toHaveTextContent("On the fixed commit (f57b057), the gate passed: 0 of 128.");
     expect(placar).toHaveTextContent("↗ NOV-13a");
     await userEvent.click(placar);
-    expect(await screen.findByText("evidencias/NOV-13a · EV-278")).toBeInTheDocument();
+    expect(await screen.findByText("evidencias/NOV-13a · EV-278 · EV-283")).toBeInTheDocument();
   }, LONGO);
 
   it("a conversa mostra o exemplo do design, com as opções e o porquê", async () => {

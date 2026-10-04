@@ -178,6 +178,6 @@ describe("os fatos do main no texto do site (fatos.ts)", () => {
     expect(placar.l.pt).toContain("No commit corrigido (f57b057), o portão passou: 0 em 128.");
     expect(placar.l.en).toContain("On the fixed commit (f57b057), the gate passed: 0 of 128.");
     expect(placar.s).toBe("NOV-13a");
-    expect(CONTEUDO_DO_MAIN.sources["NOV-13a"]).toEqual(["evid", "evidencias/NOV-13a · EV-278"]);
+    expect(CONTEUDO_DO_MAIN.sources["NOV-13a"]).toEqual(["evid", "evidencias/NOV-13a · EV-278 · EV-283"]);
   });
 });
