@@ -18,6 +18,7 @@ from jeje.interpretacao import (
     comercio_citado_e_como,
     interpretar,
 )
+from jeje.interpretacao_modelo import entendida
 
 REFERENCIA = date(2026, 3, 1)
 
@@ -370,7 +371,8 @@ def test_interpretacao_nao_carrega_identidade_nem_transacao():
     só sai de consulta filtrada pelo dono."""
     assert {f.name for f in fields(Interpretacao)} == {
         "idioma", "intencao", "resposta", "aceita_oferta", "outra", "escolha", "valor",
-        "valor_marcado", "data", "status", "id_digitado", "caso", "ultima", "cortesia", "sinais",
+        "valor_marcado", "data", "status", "id_digitado", "caso", "ultima", "cortesia",
+        "uso_desfeito", "sinais",
     }  # fmt: skip
 
 
@@ -1495,6 +1497,101 @@ def test_so_o_q_sozinho_vira_que():
     assert interpretacao.normalizar("Q era? Quiero el QR, ¿q tal?") == (
         "que era quiero el qr que tal"
     )
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        ("Encontré mi tarjeta pero alguien ya la había usado", "es"),
+        ("Cuando la recuperé, alguien ya la había utilizado en dos tiendas", "es"),
+        ("Alguém tinha usado o meu cartão antes de eu bloquear", "pt"),
+    ],
+)
+def test_o_uso_por_outro_contado_no_mais_que_perfeito_e_fraude(texto, anterior):
+    """O achado com o uso por outro é golpe, e não o pedido de desbloqueio (ACH-199)."""
+    assert ler(texto, anterior).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # Os ataques da validação: o pensar e a pergunta antes, e o objeto que não é o cartão.
+        ("Pensé que alguien la había usado, pero era un cargo mío", "es"),
+        ("Mi hija me preguntó si alguien la había usado, pero no, todo está bien", "es"),
+        ("Uma pessoa perguntou se eu tinha usado meu cupom", "pt"),
+        ("Mi hijo la había usado con mi permiso", "es"),
+    ],
+)
+def test_o_mais_que_perfeito_pensado_perguntado_ou_de_outra_coisa_nao_e_fraude(texto, anterior):
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O ACH-201 da validação (REG-45 e o passado simples): o uso por outro pensado e desfeito,
+        # ou a pergunta de alguém, não bloqueia o cartão de quem desfez a própria suspeita.
+        ("Achei que alguém tinha usado meu cartão, mas fui eu mesmo", "pt"),
+        ("Pensei que alguém tinha usado minha conta, mas era o débito automático", "pt"),
+        ("Minha filha perguntou se alguém tinha usado meu cartão, mas está tudo certo", "pt"),
+        ("Pensé que alguien la usó, pero era un cargo mío", "es"),
+        ("Creí que alguien usó mi tarjeta, pero fui yo", "es"),
+    ],
+)
+def test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude(texto, anterior):
+    assert ler(texto, anterior).intencao != "fraude"
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O desfeito antes do pensar e a pergunta depois do "está tudo certo" (REG-45, a ordem
+        # inversa): as regras não leem relato e marcam o uso desfeito, e a mensagem não vai ao
+        # leitor (com o "cargo", ela é consulta).
+        ("Era un cargo mío; pensé que alguien la había usado", "es"),
+        ("Fue la suscripción que olvidé, creí que alguien la había usado", "es"),
+        ("Fui eu mesmo, achei que alguém tinha usado meu cartão", "pt"),
+        ("Está tudo certo, minha filha só perguntou se alguém tinha usado meu cartão", "pt"),
+        ("Achei que alguém tinha usado meu cartão, mas fui eu mesmo", "pt"),
+    ],
+)
+def test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor(texto, anterior):
+    lida = ler(texto, anterior)
+    assert lida.intencao != "fraude" and lida.uso_desfeito
+    assert entendida(lida)
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O relato com o uso antes da pessoa (o segundo adendo do REG-45) segue fraude.
+        ("Usaram minha conta para pagar boletos, foi outra pessoa", "pt"),
+        ("Usaron mi tarjeta sin permiso, fue alguien que no conozco", "es"),
+        ("La usaron para comprar en línea y no fui yo, fue otra persona", "es"),
+        ("Usaram meu cartão sem eu saber, foi alguém que eu não conheço", "pt"),
+    ],
+)
+def test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude(texto, anterior):
+    lida = ler(texto, anterior)
+    assert (lida.intencao, lida.uso_desfeito) == ("fraude", False)
+
+
+@pytest.mark.parametrize(
+    ("texto", "anterior"),
+    [
+        # O relato continua relato: o pensar no presente, o pensar depois do par e a pessoa antes.
+        ("Alguien usó mi tarjeta en una tienda", "es"),
+        ("Creo que alguien usó mi tarjeta", "es"),
+        ("Alguien usó mi tarjeta, creo", "es"),
+        ("Hoy una persona utilizó mi tarjeta sin permiso", "es"),
+        ("Alguém usou meu cartão sem autorização", "pt"),
+        ("Acho que alguém usou minha conta ontem", "pt"),
+        ("Um desconhecido tinha usado meu cartão no mercado", "pt"),
+        ("Alguien ya la había usado cuando la encontré", "es"),
+    ],
+)
+def test_o_uso_por_outro_contado_no_passado_segue_fraude(texto, anterior):
+    assert ler(texto, anterior).intencao == "fraude"
 
 
 @pytest.mark.parametrize(
