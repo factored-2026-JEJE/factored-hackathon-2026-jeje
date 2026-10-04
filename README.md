@@ -1,5 +1,7 @@
 # factored-hackathon-2026-jeje
 
+![JEJE · Safe by design, fast by default.](frontend/public/brand/jeje-readme-banner.png)
+
 **For the jury.** A bank customer chats, in Spanish or Portuguese, about their own card
 transactions: why a purchase was declined or is pending, and a review request (pre-case) for a
 charge they do not recognize, recorded only after an explicit yes. Fraud, a request for a person and
