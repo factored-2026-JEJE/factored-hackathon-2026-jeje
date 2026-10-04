@@ -372,6 +372,15 @@ def test_bloqueio_pelo_numero_de_cartoes_e_pelo_dispositivo(quantos, dispositivo
     assert decidir_bloqueio(quantos, dispositivo) == esperado
 
 
+@pytest.mark.parametrize("quantos", [1, 2])
+def test_pergunta_hipotetica_confirma_antes_de_bloquear(quantos):
+    """REG-20: a pergunta ("si la pierdo", "dá para") espera um sim; sem cartão, só informa."""
+    confirma = Decisao("POL-BLQ-07", "esclarecer", "pergunta, não pedido: confirma antes")
+    assert decidir_bloqueio(quantos, "cadastrado", hipotese=True) == confirma
+    nenhum = Decisao("POL-BLQ-03", "responder", "nenhum cartão ativo para bloquear")
+    assert decidir_bloqueio(0, "cadastrado", hipotese=True) == nenhum
+
+
 @pytest.mark.parametrize(
     ("dispositivo", "tipo"), [("cadastrado", "completo"), ("novo", "preventivo")]
 )
