@@ -3509,6 +3509,111 @@
       "testes": [
         "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua"
       ]
+    },
+    {
+      "id": "M-WEB-373",
+      "requisito": "R06",
+      "descricao": "O turno de exemplo da contestação segue com o tempo das regras do design (2,8 ms)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "  journeys: {\n    ...c.journeys,",
+          "para": "  journeysx: {\n    ...c.journeys,"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o tempo das regras é o medido no congelado (p50 de 2,1 ms e p95 de 5,2 ms), com a fonte no README"
+      ]
+    },
+    {
+      "id": "M-WEB-374",
+      "requisito": "R06",
+      "descricao": "O pilar de confiabilidade segue com as provas do design (639 mutantes, 20 de 22, 29 operações, 4 processos)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    list: c.pillars.list.map((p) =>",
+          "para": "    listx: c.pillars.list.map((p) =>"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o pilar de confiabilidade traz as medidas do congelado, cada uma com a fonte dela"
+      ]
+    },
+    {
+      "id": "M-WEB-375",
+      "requisito": "R06",
+      "descricao": "A prova dos mutantes do congelado aponta para uma fonte que não existe",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "\"ACH-188\": [\"evid\", \"evidencias/V6 · ACH-188\"],",
+          "para": "\"ACH-188x\": [\"evid\", \"evidencias/V6 · ACH-188\"],"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o pilar de confiabilidade traz as medidas do congelado, cada uma com a fonte dela"
+      ]
+    },
+    {
+      "id": "M-WEB-376",
+      "requisito": "R06",
+      "descricao": "A parada do ranking segue com o REG-07 (71% e 0,4% de proposta errada), que contradiz o README e o deck",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    if (s.id === \"qual\")",
+          "para": "    if (s.id === \"qualx\")"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o ranking cita o teste independente da validação (QT-01), como o README e o deck: 72% contra 38%, sem proposta errada"
+      ]
+    },
+    {
+      "id": "M-WEB-377",
+      "requisito": "R06",
+      "descricao": "A ficha do ranking nos modelos segue com o REG-07",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "      if (m.pairs?.[0]?.s === \"REG-07\")",
+          "para": "      if (m.pairs?.[0]?.s === \"REG-07x\")"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o ranking cita o teste independente da validação (QT-01), como o README e o deck: 72% contra 38%, sem proposta errada"
+      ]
+    },
+    {
+      "id": "M-WEB-378",
+      "requisito": "R06",
+      "descricao": "A garantia de fraude segue sem a ressalva do portão do atacante no congelado (ACH-160)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": " No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160).\",",
+          "para": "\","
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a garantia de fraude diz o caso que o portão do atacante achou no congelado (ACH-160)"
+      ]
+    },
+    {
+      "id": "M-WEB-379",
+      "requisito": "R06",
+      "descricao": "O par do LLM não diz que foi medido num commit anterior ao congelado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "          barsNote: T(\n            \"acerto na primeira fala dos cenários de validação, no fd24539",
+          "para": "          barsNotex: T(\n            \"acerto na primeira fala dos cenários de validação, no fd24539"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o par do LLM diz de que commit é: o fd24539 de 01/10, antes do congelado"
+      ]
     }
   ]
 }
