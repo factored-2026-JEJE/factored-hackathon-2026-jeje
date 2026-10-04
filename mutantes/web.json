@@ -3547,8 +3547,8 @@
       "trocas": [
         {
           "arquivo": "src/site/fatos.ts",
-          "de": "\"ACH-188\": [\"evid\", \"evidencias/V6 · EV-275 · ACH-188\"],",
-          "para": "\"ACH-188x\": [\"evid\", \"evidencias/V6 · EV-275 · ACH-188\"],"
+          "de": "\"ACH-188\": [\"evid\", \"evidencias/V6 · EV-275 · ACH-188 · REG-83\"],",
+          "para": "\"ACH-188x\": [\"evid\", \"evidencias/V6 · EV-275 · ACH-188 · REG-83\"],"
         }
       ],
       "testes": [
@@ -3658,6 +3658,21 @@
       ],
       "testes": [
         "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a garantia de fraude diz o caso que o portão do atacante achou no congelado (ACH-160)"
+      ]
+    },
+    {
+      "id": "M-WEB-383",
+      "requisito": "R06",
+      "descricao": "O pilar de confiabilidade não diz os mutantes com os testes do ACH-188 (REG-83)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "; com os testes do ACH-188 (#132), 1.035 de 1.035 do backend e 220 de 220 do web.\",",
+          "para": ".\","
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o pilar de confiabilidade traz as medidas do congelado, cada uma com a fonte dela"
       ]
     }
   ]
