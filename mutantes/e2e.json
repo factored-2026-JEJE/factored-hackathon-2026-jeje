@@ -777,8 +777,8 @@
       "trocas": [
         {
           "arquivo": "frontend/src/Atendimento.tsx",
-          "de": "}, [token, versao]);",
-          "para": "}, [token, versao < 0]);"
+          "de": "}, [token, versao, tentativa, aoExpirar]);",
+          "para": "}, [token, versao < 0, tentativa, aoExpirar]);"
         }
       ],
       "testes": [
