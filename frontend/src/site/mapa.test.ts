@@ -158,7 +158,9 @@ describe("os fatos do main no texto do site (fatos.ts)", () => {
   it("a garantia de fraude diz o caso que o portão do atacante achou no congelado (ACH-160)", () => {
     const garantia = CONTEUDO_DO_MAIN.results.out.find((o) => o[0] === "DEV-046")?.[1];
     for (const idioma of ["pt", "es", "en"] as const) expect(garantia?.[idioma]).toContain("128");
-    expect(garantia?.pt).toContain("No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160).");
+    expect(garantia?.pt).toContain(
+      "No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final.",
+    );
   });
 
   it("o par do LLM diz de que commit é: o fd24539 de 01/10, antes do congelado", () => {
@@ -172,7 +174,7 @@ describe("os fatos do main no texto do site (fatos.ts)", () => {
     expect(CONTEUDO.pillars.seg.honest.v).toBe("1/112");
     expect(placar.v).toBe("1/128");
     for (const idioma of ["pt", "es", "en"] as const) expect(placar.l[idioma]).toContain("(ACH-160)");
-    expect(placar.l.pt).toContain("um relato de fraude dentro de uma contestação ficou sem atendente");
+    expect(placar.l.pt).toContain("um relato de fraude dentro de uma contestação ficou sem atendente (ACH-160), corrigido depois do teste final");
     expect(placar.s).toBe("NOV-13a");
     expect(CONTEUDO_DO_MAIN.sources["NOV-13a"]).toEqual(["evid", "evidencias/NOV-13a · ACH-160"]);
   });
