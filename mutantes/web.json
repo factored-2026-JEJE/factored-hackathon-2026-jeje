@@ -3659,6 +3659,21 @@
       "testes": [
         "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > a garantia de fraude diz o caso que o portão do atacante achou no congelado (ACH-160)"
       ]
+    },
+    {
+      "id": "M-WEB-383",
+      "requisito": "R05",
+      "descricao": "O pilar de segurança volta ao INJ-01 antigo (13 de 13), sem a injeção medida no congelado (REG-79)",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "SEGURANCA_DO_CONGELADO[prova[1]] ?? prova",
+          "para": "prova"
+        }
+      ],
+      "testes": [
+        "src/site/mapa.test.ts > os fatos do main no texto do site (fatos.ts) > o pilar de confiabilidade traz as medidas do congelado, cada uma com a fonte dela"
+      ]
     }
   ]
 }
