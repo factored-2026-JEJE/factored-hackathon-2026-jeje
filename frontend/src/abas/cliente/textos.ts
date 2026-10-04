@@ -12,6 +12,7 @@ export const CLIENTE = {
   carregandoTransacoes: E("Loading transactions…", "Cargando transacciones…", "Carregando transações…"),
   transacoesIndisponiveis: E("Transactions unavailable", "Transacciones no disponibles", "Transações indisponíveis"),
   semCartoes: E("No cards found.", "No se encontraron tarjetas.", "Nenhum cartão encontrado."),
+  cartoesIndisponiveis: E("Cards unavailable right now.", "Tarjetas no disponibles por ahora.", "Cartões indisponíveis agora."),
   naoAbriu: E("Could not open the conversation. Try again.", "No se pudo abrir la conversación. Inténtalo de nuevo.", "Não foi possível abrir a conversa. Tente de novo."),
   semResposta: E(
     "No answer from the server. Sending again is safe: the chat does not repeat effects.",
