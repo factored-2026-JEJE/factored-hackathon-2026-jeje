@@ -182,6 +182,25 @@ test("a EDA é lida uma vez: os efeitos da conversa releem só o resto", async (
   expect(chamadas.mock.calls.filter(([u]) => String(u).startsWith("/api/dados/eda"))).toHaveLength(1);
 });
 
+test("a aba relê os números a cada volta à tela, e o turno sem efeito também aparece", async () => {
+  servidor({ prontidao: PRONTA, metricas: METRICAS, eventos: EVENTOS, qualidade: QUALIDADE, eda: EDA });
+  const chamadas = vi.mocked(fetch);
+  const metricas = () => chamadas.mock.calls.filter(([u]) => u === "/api/metricas");
+  const { container } = render(
+    <div role="tabpanel">
+      <AreaDaOperacao {...area} />
+    </div>,
+  );
+  await screen.findByText("ready");
+  const painel = container.firstChild as HTMLElement;
+  painel.setAttribute("hidden", "");
+  await new Promise((r) => setTimeout(r, 0));
+  expect(metricas()).toHaveLength(1);
+  painel.removeAttribute("hidden");
+  await waitFor(() => expect(metricas()).toHaveLength(2));
+  expect(chamadas.mock.calls.filter(([u]) => String(u).startsWith("/api/dados/eda"))).toHaveLength(1);
+});
+
 test("a versão recusada com o motivo, a base sem carga e a sem dados", async () => {
   const recusada = { version: "fedcba9876543210abcd", motivo: "manifesto sem a tabela customers", em: "2026-10-03T09:00:00Z" };
   servidor({
