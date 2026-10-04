@@ -3369,6 +3369,66 @@
       "testes": [
         "src/Atendimento.test.tsx > a falha ao ler os cartões avisa que estão indisponíveis e tenta de novo, sem dizer que não há cartões"
       ]
+    },
+    {
+      "id": "M-WEB-364",
+      "requisito": "R06",
+      "descricao": "A tabela 2 segue com o texto do design, 'a registrar antes do teste final', depois do resultado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "    t2: T(\n      \"Tabela 2 · o componente aprendido, uma vez no congelado",
+          "para": "    t2x: T(\n      \"Tabela 2 · o componente aprendido, uma vez no congelado"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela 2 diz o resultado do VAL-019a como saiu (negativo) e a curva do leitor no limiar entregue"
+      ]
+    },
+    {
+      "id": "M-WEB-365",
+      "requisito": "R06",
+      "descricao": "A curva do limiar do leitor (VAL-019b) não aparece no site",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "{v.t.results.curva ? (",
+          "para": "{false ? ("
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > com o arquivo, a tabela 2 diz o resultado do VAL-019a como saiu (negativo) e a curva do leitor no limiar entregue"
+      ]
+    },
+    {
+      "id": "M-WEB-366",
+      "requisito": "R06",
+      "descricao": "A fonte da tabela 2 (VAL-019a) segue como pendente depois do resultado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "\"VAL-019a\": [\"evid\", \"evidencias/VAL-019a · EV-277\"],",
+          "para": "\"VAL-019a\": [\"pending\", \"evidencias/VAL-019a · EV-277\"],"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > as fontes do teste final e da tabela 2 são as evidências deles, não mais pendentes"
+      ]
+    },
+    {
+      "id": "M-WEB-367",
+      "requisito": "R06",
+      "descricao": "A fonte do teste final (VAL-019) segue como pendente depois do resultado",
+      "trocas": [
+        {
+          "arquivo": "src/site/fatos.ts",
+          "de": "\"VAL-019\": [\"evid\", \"evidencias/VAL-019 · EV-276\"],",
+          "para": "\"VAL-019\": [\"pending\", \"evidencias/VAL-019 · EV-276\"],"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > a seção de resultados (1.5 do fechamento) > as fontes do teste final e da tabela 2 são as evidências deles, não mais pendentes"
+      ]
     }
   ]
 }
