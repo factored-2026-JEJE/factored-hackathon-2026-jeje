@@ -1267,8 +1267,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "{(situacao.estado === \"confirmando\" || situacao.estado === \"confirmando_desbloqueio\") && (",
-          "para": "{situacao.estado === \"confirmando\" && ("
+          "de": "                      situacao.estado === \"confirmando_desbloqueio\" ||\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -3029,6 +3029,21 @@
       ],
       "testes": [
         "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design"
+      ]
+    },
+    {
+      "id": "M-WEB-210",
+      "requisito": "R07",
+      "descricao": "A pergunta antes de bloquear (POL-BLQ-07) sem os botões do sim",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "                      situacao.estado === \"confirmando_bloqueio\") && (",
+          "para": "                      situacao.estado === \"nenhum\") && ("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim"
       ]
     }
   ]
