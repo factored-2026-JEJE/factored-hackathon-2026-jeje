@@ -50,11 +50,18 @@ export function AreaComoTestar({ experimentar }: PropsDaArea) {
               <span className="cn-caminho-nome">{c.nome}</span>
             </div>
             <div className="cn-caminho-corpo">
+              {/* Como no design: a língua, as aspas e a frase são itens separados da linha. */}
               <span className="cn-frase">
-                <span>ES</span>“{c.es}”
+                <span>ES</span>
+                <span>“</span>
+                <span>{c.es}</span>
+                <span>”</span>
               </span>
               <span className="cn-frase">
-                <span>PT</span>“{c.pt}”
+                <span>PT</span>
+                <span>“</span>
+                <span>{c.pt}</span>
+                <span>”</span>
               </span>
               <span className="cn-mini">{t.guide.expect}</span>
               <span className="cn-texto">{c.x}</span>

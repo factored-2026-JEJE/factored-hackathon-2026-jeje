@@ -119,7 +119,7 @@ export function AreaDoAtendente({ versao, aoMudar, experimentar }: PropsDaArea) 
           {fila !== null && casos.length === 0 && (
             <div className="cn-vazia">
               <span className="cn-vazia-titulo">{t.ag.empty}</span>
-              <span>{t.ag.emptyTry}</span>
+              <span className="cn-vazia-texto">{t.ag.emptyTry}</span>
               <div className="cn-tentativas">
                 {TENTATIVAS.map((frase) => (
                   <button key={frase} type="button" className="cn-tentar" onClick={() => experimentar(frase)}>
