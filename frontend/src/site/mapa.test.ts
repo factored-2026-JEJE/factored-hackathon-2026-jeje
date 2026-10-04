@@ -131,14 +131,14 @@ describe("os fatos do main no texto do site (fatos.ts)", () => {
     const provas = CONTEUDO_DO_MAIN.pillars.list.find((p) => p.id === "conf")?.proofs ?? [];
     expect(provas.map((p) => p[1])).toEqual(["ACH-188", "NAV-01", "CON-01", "DEV-020u", "EXP-008"]);
     expect(provas.map((p) => p[0].pt)).toEqual([
-      "No congelado, 1.031 de 1.035 mutantes do backend se comportaram como esperado.",
+      "No congelado, 1.031 de 1.035 mutantes do backend se comportaram como esperado; com os testes do ACH-188 (#132), 1.035 de 1.035 do backend e 220 de 220 do web.",
       "No navegador, 22 jornadas pegaram 30 de 30 defeitos plantados, no congelado.",
       "Contrato da API testado com entradas geradas: nenhuma falha em 31 operações, no congelado.",
       "Versão de dados com defeito é recusada sem derrubar o serviço.",
       "Com 1 processo e 8 clientes ao mesmo tempo, p95 de 83 ms nas regras e de 139 ms com o leitor, no congelado.",
     ]);
     expect(provas[4]?.[0].en).toBe("With 1 worker and 8 concurrent clients, p95 of 83 ms on the rules and 139 ms with the reader, on the frozen commit.");
-    expect(CONTEUDO_DO_MAIN.sources["ACH-188"]).toEqual(["evid", "evidencias/V6 · EV-275 · ACH-188"]);
+    expect(CONTEUDO_DO_MAIN.sources["ACH-188"]).toEqual(["evid", "evidencias/V6 · EV-275 · ACH-188 · REG-83"]);
     expect(CONTEUDO_DO_MAIN.sources["NAV-01"]).toEqual(["evid", "evidencias/NAV-01 · EV-274"]);
     expect(CONTEUDO_DO_MAIN.sources["CON-01"]).toEqual(["evid", "evidencias/CON-01 · 20261004T071739"]);
     expect(CONTEUDO_DO_MAIN.sources["EXP-008"]).toEqual(["evid", "evidencias/EXP-008 · 04/10"]);
