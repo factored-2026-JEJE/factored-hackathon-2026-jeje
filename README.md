@@ -223,14 +223,16 @@ a documentação e o contrato; só a saúde e o próprio acesso abrem. Quem entr
 A publicação roda numa máquina do time. Para ela ficar de pé sem ninguém olhar:
 
 - **Volta sozinha:** os quatro serviços do `compose.publicacao.yaml` têm `restart: unless-stopped`, e o
-  Docker sobe com a máquina. A máquina não suspende: na sessão do usuário, a energia fica em "nunca"; na
+  Docker sobe com a máquina. A ponte do Ollama também, porque sem ela o LLM do "não entendi" fica de
+  fora; o `make publicar` a sobe junto. No reinício de 03/10, às 18h19, a publicação voltou sozinha,
+  mas a ponte, que ainda não tinha a regra, não voltou. A máquina não suspende: na sessão do usuário, a energia fica em "nunca"; na
   tela de login, quem administra mascara os alvos de suspensão
   (`sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target`). A volta
   depois de falta de energia é uma opção da BIOS.
 - **A vigia:** `scripts/instalar-vigia.sh`, no checkout da publicação (o que tem o `.env`), liga dois
   timers do systemd do usuário:
-  - a conferência rápida a cada 10 min (`scripts/vigiar-publicacao.sh`): a página, o portão, a saúde e os
-    cabeçalhos;
+  - a conferência rápida a cada 10 min (`scripts/vigiar-publicacao.sh`): a página, o portão, a saúde, os
+    cabeçalhos e, daqui da máquina, a ponte do Ollama;
   - o teste diário às 9h, com uma conversa em espanhol e outra em português
     (`scripts/conferir-publicacao.sh --conversa`): cada turno tem de responder na língua da conversa e
     com a regra que decidiu. O teste deixa uma sessão e duas conversas de consulta no banco, sem efeito.
