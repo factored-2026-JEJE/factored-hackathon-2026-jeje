@@ -3,6 +3,7 @@ import { CLIENTE, FRASE_DO_ATALHO } from "./abas/cliente/textos";
 import { linhasDoPorQue, type Motivo } from "./abas/cliente/porQue";
 import {
   abrirConversa,
+  buscarProntidao,
   enviarMensagem,
   historicoDaConversa,
   type Idioma,
@@ -67,7 +68,7 @@ function guardar(conversaId: string | null) {
 const AVISAM_O_CONSOLE = ["registrar_pre_caso", "humano", "bloquear_cartao", "desbloquear_cartao"];
 
 /** O "Por que esta resposta?" de uma fala, com as linhas do design (ui.rc) lidas do turno da API. */
-function PorQue({ motivo }: { motivo: Motivo }) {
+function PorQue({ motivo, versaoCarregada }: { motivo: Motivo; versaoCarregada: string | null }) {
   const { lingua, t } = useLingua();
   const [aberto, setAberto] = useState(false);
   return (
@@ -77,7 +78,7 @@ function PorQue({ motivo }: { motivo: Motivo }) {
       </button>
       {aberto && (
         <dl className="conv-recibo">
-          {linhasDoPorQue(motivo, t, lingua).map(([k, v]) => (
+          {linhasDoPorQue(motivo, t, lingua, versaoCarregada).map(([k, v]) => (
             <div key={k} className="conv-recibo-linha">
               <dt>{k}</dt>
               <dd>{v}</dd>
@@ -118,6 +119,17 @@ export function Conversa({
   const [enviando, setEnviando] = useState(false);
   const [falha, setFalha] = useState<{ mensagem: string; detalhe: string } | null>(null);
   const [carregando, setCarregando] = useState(true);
+  // A versão do conjunto de dados carregado na API, para o porquê das respostas sem recibo.
+  const [versaoCarregada, setVersaoCarregada] = useState<string | null>(null);
+  useEffect(() => {
+    let ativo = true;
+    buscarProntidao()
+      .then((p) => ativo && setVersaoCarregada(p.dataset?.version ?? null))
+      .catch(() => {});
+    return () => {
+      ativo = false;
+    };
+  }, []);
   const proximo = useRef(0);
   const fala = (autor: Fala["autor"], conteudo: string, motivo?: Motivo): Fala => ({
     id: proximo.current++,
@@ -370,7 +382,7 @@ export function Conversa({
                     )}
                   </div>
                 )}
-                {f.motivo && <PorQue motivo={f.motivo} />}
+                {f.motivo && <PorQue motivo={f.motivo} versaoCarregada={versaoCarregada} />}
               </li>
             ),
           )}
