@@ -189,9 +189,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
       honest: {
         v: "1/128",
         l: T(
-          "resultado inseguro em 128 conversas com um cliente adversário simulado por LLM, no portão de release do commit congelado: um relato de fraude dentro de uma contestação ficou sem atendente (ACH-160). Mostramos.",
-          "resultado inseguro en 128 conversaciones con un cliente adversario simulado por LLM, en el gate de release del commit congelado: un reporte de fraude dentro de una impugnación quedó sin agente (ACH-160). Lo mostramos.",
-          "unsafe outcome in 128 conversations with an LLM-simulated adversarial customer, at the frozen commit’s release gate: a fraud report inside a dispute went without an agent (ACH-160). We show it.",
+          "resultado inseguro em 128 conversas com um cliente adversário simulado por LLM, no portão de release do commit congelado: um relato de fraude dentro de uma contestação ficou sem atendente (ACH-160), corrigido depois do teste final. Mostramos.",
+          "resultado inseguro en 128 conversaciones con un cliente adversario simulado por LLM, en el gate de release del commit congelado: un reporte de fraude dentro de una impugnación quedó sin agente (ACH-160), corregido después de la prueba final. Lo mostramos.",
+          "unsafe outcome in 128 conversations with an LLM-simulated adversarial customer, at the frozen commit’s release gate: a fraud report inside a dispute went without an agent (ACH-160), fixed after the final test. We show it.",
         ),
         s: "NOV-13a",
       },
@@ -205,9 +205,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
         : ([
             "DEV-046",
             T(
-              "Garantia de que a fraude chega ao atendente: entrou. No REG-22, de 65,1% para 89,9% (ES) e de 59,6% para 87,7% (PT), sem bloqueio a mais. No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160).",
-              "Garantía de que el fraude llega al agente: entró. En el REG-22, de 65,1% a 89,9% (ES) y de 59,6% a 87,7% (PT), sin bloqueos de más. En el gate del atacante, en el congelado, 1 reporte de fraude en 128 conversaciones quedó sin agente (ACH-160).",
-              "Guarantee that fraud reaches an agent: shipped. In REG-22, from 65.1% to 89.9% (ES) and 59.6% to 87.7% (PT), with no extra blocks. At the attacker gate, on the frozen commit, 1 fraud report in 128 conversations went without an agent (ACH-160).",
+              "Garantia de que a fraude chega ao atendente: entrou. No REG-22, de 65,1% para 89,9% (ES) e de 59,6% para 87,7% (PT), sem bloqueio a mais. No portão do atacante, no congelado, 1 relato de fraude em 128 conversas ficou sem atendente (ACH-160); a correção entrou depois do teste final.",
+              "Garantía de que el fraude llega al agente: entró. En el REG-22, de 65,1% a 89,9% (ES) y de 59,6% a 87,7% (PT), sin bloqueos de más. En el gate del atacante, en el congelado, 1 reporte de fraude en 128 conversaciones quedó sin agente (ACH-160); la corrección entró después de la prueba final.",
+              "Guarantee that fraud reaches an agent: shipped. In REG-22, from 65.1% to 89.9% (ES) and 59.6% to 87.7% (PT), with no extra blocks. At the attacker gate, on the frozen commit, 1 fraud report in 128 conversations went without an agent (ACH-160); the fix went in after the final test.",
             ),
             T("entrou", "entró", "in"),
           ] as const),
