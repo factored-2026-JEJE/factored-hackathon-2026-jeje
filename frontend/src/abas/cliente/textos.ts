@@ -35,3 +35,20 @@ export const CLIENTE = {
 export const FRASE_DO_ATALHO: Readonly<Record<string, string>> = {
   "Como está meu pedido?": "Como está meu pedido de revisão?",
 };
+
+// A avaliação do time (AvaliarConversa, só no modo de demonstração), que o design não tem.
+export const AVALIACAO = {
+  titulo: E("Rate this conversation", "Evalúa esta conversación", "Avaliar esta conversa"),
+  quem: E("Who is testing", "Quién está probando", "Quem está testando"),
+  escolha: E("Choose", "Elige", "Escolha"),
+  nota: E("Score", "Nota", "Nota"),
+  resolveu: E("Did the assistant solve it?", "¿El asistente lo resolvió?", "O assistente resolveu?"),
+  sim: E("Solved", "Resuelto", "Resolveu"),
+  parcial: E("Partly", "En parte", "Em parte"),
+  nao: E("Not solved", "No resuelto", "Não resolveu"),
+  comentario: E("What went wrong, or how it should have gone", "Qué salió mal o cómo debería haber sido", "O que deu errado ou como deveria ter sido"),
+  registrar: E("Submit review", "Registrar evaluación", "Registrar avaliação"),
+  enviada: E("Review sent, thank you.", "Evaluación enviada, gracias.", "Review enviada, obrigado."),
+  issue: E("See the issue", "Ver el issue", "Ver a Issue"),
+  falhou: E("Could not send the review. Try again.", "No se pudo enviar la evaluación. Inténtalo de nuevo.", "Não foi possível enviar a review. Tente de novo."),
+} as const;

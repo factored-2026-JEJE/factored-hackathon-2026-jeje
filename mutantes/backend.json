@@ -7485,7 +7485,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),\n",
           "para": ""
         }
       ],
@@ -10421,8 +10421,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"bloquear\": re.compile(NEGACAO + \"(?:bloque|congel|trav)\"),",
-          "para": "\"bloquear\": re.compile(NEGACAO + \"bloque\"),"
+          "de": "NEGACAO + \"(?:bloque|congel|trav)|",
+          "para": "NEGACAO + \"bloque|"
         }
       ],
       "testes": [
@@ -11083,8 +11083,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
-          "para": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n"
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),\n    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
+          "para": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),\n"
         }
       ],
       "testes": [
@@ -11113,8 +11113,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                     VOLTA_DO_BLOQUEADO)),",
-          "para": "                     )),"
+          "de": "                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),",
+          "para": "                     TIRAR_O_BLOQUEIO)),"
         }
       ],
       "testes": [
@@ -13909,7 +13909,8 @@
       ],
       "testes": [
         "tests/test_nao_entendi.py::test_esquema_e_opcoes_sao_os_medidos_pela_validacao",
-        "tests/test_nao_entendi.py::test_o_llm_diz_a_intencao_inclusive_bloqueio_desbloqueio_e_atendente"
+        "tests/test_nao_entendi.py::test_o_llm_diz_a_intencao_inclusive_bloqueio_e_atendente",
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
       ]
     },
     {
@@ -15046,8 +15047,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/conversa.py",
-          "de": "        lida_fora = self.lida.intencao == \"fora_de_escopo\" and self.lida.cita_as_regras\n",
-          "para": "        lida_fora = False\n"
+          "de": "        lida_fora = fora and (self.lida.cita_as_regras or pelo_modelo(self.lida))\n",
+          "para": "        lida_fora = fora and pelo_modelo(self.lida)\n"
         }
       ],
       "testes": [
@@ -15292,6 +15293,202 @@
       ],
       "testes": [
         "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
+      ]
+    },
+    {
+      "id": "M-CONV-123",
+      "requisito": "R08",
+      "descricao": "O fora de escopo que só o LLM leu volta a oferecer o atendente (a instrução com outra redação encaminha com o sim)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        lida_fora = fora and (self.lida.cita_as_regras or pelo_modelo(self.lida))\n",
+          "para": "        lida_fora = fora and self.lida.cita_as_regras\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_fora_de_escopo_que_so_o_llm_leu_nao_oferece_o_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-297",
+      "requisito": "R08",
+      "descricao": "O objetivo ou o papel novo dado ao assistente deixa de ser instrução",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    r\"|\\b(?:tu|su|seu|teu) (?:nuevo|novo) (?:objetivo|papel|rol|trabajo|trabalho)\\b\"\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-298",
+      "requisito": "R08",
+      "descricao": "As regras que 'não valem' ou 'no aplican' deixam de ser mudança",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "|romp[ae]|quebr[ae]|no aplican|nao valem|nao se aplicam)\"",
+          "para": "|romp[ae]|quebr[ae])\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-LLM-43",
+      "requisito": "R03",
+      "descricao": "O desbloqueio que só o LLM leu vale sem verbo de desfazer (ACH-183)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "        if intencao == \"desbloquear\" and not pede_desfazer(texto):\n",
+          "para": "        if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_sem_verbo_de_desfazer_o_desbloqueio_do_llm_fica_nao_entendido",
+        "tests/test_nao_entendi.py::test_manter_o_bloqueio_nao_recebe_a_proposta_de_desfazer"
+      ]
+    },
+    {
+      "id": "M-LLM-44",
+      "requisito": "R03",
+      "descricao": "O verbo de desfazer negado ('não desbloqueia') conta como pedido",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    return any(not DESFAZER_NEGADO.search(limpo[: m.start()]) for m in DESFAZER.finditer(limpo))\n",
+          "para": "    return any(True for m in DESFAZER.finditer(limpo))\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_sem_verbo_de_desfazer_o_desbloqueio_do_llm_fica_nao_entendido"
+      ]
+    },
+    {
+      "id": "M-LLM-45",
+      "requisito": "R03",
+      "descricao": "Nenhum verbo de desfazer confirma o desbloqueio do LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    return any(not DESFAZER_NEGADO.search(limpo[: m.start()]) for m in DESFAZER.finditer(limpo))\n",
+          "para": "    return False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
+      ]
+    },
+    {
+      "id": "M-LLM-46",
+      "requisito": "R03",
+      "descricao": "Voltar a usar, usar de novo e tirar o bloqueio deixam de ser verbos de desfazer",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "    r\"|(?:volver|voltar) a usar|usar(?:la|lo)? de (?:nuevo|novo)\"\n    r\"|(?:tir|quit|sac|retir|remov)\\w* (?:\\w+ )?bloque)\"\n",
+          "para": "    r\")\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
+      ]
+    },
+    {
+      "id": "M-ITP-288",
+      "requisito": "R05",
+      "descricao": "Tirar o bloqueio volta a ser lido como pedido de bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),",
+          "para": "                     VOLTA_DO_BLOQUEADO)),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-289",
+      "requisito": "R05",
+      "descricao": "Tirar o bloqueio negado ('não tire o bloqueio') vira pedido de desbloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    so_nessa_ordem=True,\n    negavel=True,\n)  # fmt: skip\nCARTAO_ACHADO",
+          "para": "    so_nessa_ordem=True,\n)  # fmt: skip\nCARTAO_ACHADO"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-290",
+      "requisito": "R05",
+      "descricao": "Não tirar o bloqueio vira pedido de outro bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "NEGACAO + \"(?:bloque|congel|trav)|(?<![a-z0-9])(?:no|nao|nunca)(?: (?:me|te|le|les|la|lo\"",
+          "para": "NEGACAO + \"(?:bloque|congel|trav)|(?<![a-z0-9])(?:xno|xnao|xnunca)(?: (?:me|te|le|les|la|lo\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-291",
+      "requisito": "R05",
+      "descricao": "Desfazer, cancelar e anular o bloqueio voltam a ser lidos como pedido de bloqueio (ACH-187)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"remova\", \"levantar\", \"levanta\", \"levante\", \"desfazer\", \"desfaz\", \"desfaca\", \"desfacam\",\n     \"deshacer\", \"deshaz\", \"deshaga\", \"deshagan\", \"cancelar\", \"cancela\", \"cancele\", \"anular\",\n     \"anula\", \"anule\"),",
+          "para": "     \"remova\", \"levantar\", \"levanta\", \"levante\"),"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-ITP-292",
+      "requisito": "R05",
+      "descricao": "Não desfazer o bloqueio vira pedido de outro bloqueio",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "levant|desfa|desha|cancel|anul)[a-z]* (?:[a-z]+ )?bloque\"",
+          "para": "levant)[a-z]* (?:[a-z]+ )?bloque\""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada"
+      ]
+    },
+    {
+      "id": "M-LLM-47",
+      "requisito": "R03",
+      "descricao": "O imperativo de desfazer ('deshazlo') não confirma o desbloqueio que o LLM leu",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/nao_entendi.py",
+          "de": "desfa[zc]|deshac|deshaz|deshag|",
+          "para": "desfaz|deshac|"
+        }
+      ],
+      "testes": [
+        "tests/test_nao_entendi.py::test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer"
       ]
     }
   ]
