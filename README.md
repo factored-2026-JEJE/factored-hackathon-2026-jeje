@@ -11,6 +11,9 @@ models only read the message, never act.
   explains the system; the app is the demo itself.
 - **Run it yourself:** `make up-fixture` (only Docker, synthetic data) and open
   http://localhost:8080. With the challenge data: `make up` (details in "Ligar tudo" below).
+- **Check the numbers yourself:** `make avaliar` reruns the development and validation scenarios,
+  written by the validation team and judged by the final state of the database
+  (`make avaliar VARIANTE=regras` runs without the LLM); `make atacar` runs the adaptive attacker.
 
 <!-- tabela-do-teste-final:inicio -->
 _The final test table (the frozen version against the sealed scenarios, VAL-019) goes here once it
