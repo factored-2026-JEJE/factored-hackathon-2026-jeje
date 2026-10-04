@@ -16,7 +16,9 @@ body { -webkit-font-smoothing: antialiased; }
   color: #16150F;
   overflow: hidden;
 }
-.app-pagina button { font: inherit; color: inherit; cursor: pointer; }
+/* Peso de um elemento só (:where): vence o button antigo do estilo.css pela ordem e perde para as classes
+   do design, que dão fonte e cor aos botões (o "Entrar como…", as opções, os atalhos). */
+:where(.app-pagina) button { font: inherit; color: inherit; cursor: pointer; }
 
 /* A barra do topo. */
 .app-topo {
