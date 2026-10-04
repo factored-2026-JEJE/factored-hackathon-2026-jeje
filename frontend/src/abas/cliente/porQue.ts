@@ -81,7 +81,12 @@ function detalheDoRanking(tr: TurnoComRequisicao, lingua: Lingua): string {
   return `${p} · ${r.possiveis ?? "?"} ${L.possiveis} · ${L.calibracao} ${r.calibracao ?? "?"}`;
 }
 
-export function linhasDoPorQue(motivo: Motivo, t: Textos, lingua: Lingua): (readonly [string, string])[] {
+export function linhasDoPorQue(
+  motivo: Motivo,
+  t: Textos,
+  lingua: Lingua,
+  versaoCarregada: string | null = null,
+): (readonly [string, string])[] {
   const tr = motivo.turno;
   if (!tr) {
     return [
@@ -107,6 +112,8 @@ export function linhasDoPorQue(motivo: Motivo, t: Textos, lingua: Lingua): (read
   );
   if (tr.protocolo) linhas.push([t.rc.protocol, tr.protocolo]);
   if (tr.recibo) linhas.push([t.rc.file, tr.recibo.arquivo], [t.rc.line, String(tr.recibo.linha)]);
-  linhas.push([t.rc.version, tr.recibo?.versao_dos_dados?.slice(0, 12) ?? "—"]);
+  // A versão do fato quando há recibo; sem ele (uma pergunta, um encaminhamento), a do conjunto carregado
+  // na API (/health/ready), como o design mostra em toda resposta.
+  linhas.push([t.rc.version, (tr.recibo?.versao_dos_dados ?? versaoCarregada)?.slice(0, 12) ?? "—"]);
   return linhas;
 }
