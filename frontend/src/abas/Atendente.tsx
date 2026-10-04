@@ -195,6 +195,10 @@ function Caso({
 }) {
   const { pedido, pendencia } = rotulos(caso, t, lingua);
   const fatos: Fato[] = [{ k: t.fk.cust, v: nomeDoCliente }];
+  // O dispositivo da sessão (2.1c), como no design; os casos de antes não o guardaram.
+  if (caso.dispositivo) {
+    fatos.push({ k: t.fk.device, v: t.top.device[caso.dispositivo === "cadastrado" ? "reg" : "new"] });
+  }
   if (caso.transacao) {
     const tr = caso.transacao;
     fatos.push({
