@@ -388,9 +388,10 @@
 }
 
 /* Cartões (o design: o final grande, o produto e a etiqueta; bloqueio completo em tinta cheia,
-   preventivo tracejado em laranja, com a nota embaixo). */
+   preventivo tracejado em laranja, com a nota embaixo). A linha não se chama .cartao: o estilo.css
+   antigo dá a essa classe a caixa arredondada da tela velha. */
 .cartoes-cab { padding-top: 18px; }
-.cartao {
+.cli-cartao {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 12px;
@@ -411,6 +412,6 @@
   background: transparent;
   color: #16150F;
 }
-.cartao[data-situacao="completo"] .cartao-st { background: #16150F; color: #F7F4EC; }
-.cartao[data-situacao="preventivo"] .cartao-st { background: #FFFDF7; border-color: #FF5520; border-style: dashed; }
+.cli-cartao[data-situacao="completo"] .cartao-st { background: #16150F; color: #F7F4EC; }
+.cli-cartao[data-situacao="preventivo"] .cartao-st { background: #FFFDF7; border-color: #FF5520; border-style: dashed; }
 .cartao-nota { flex: 1 1 100%; font-size: 12px; color: #57534A; }
