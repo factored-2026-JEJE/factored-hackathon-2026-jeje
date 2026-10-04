@@ -28,6 +28,7 @@ const FRAUDE: Encaminhamento = {
   pendencias: ["Tratar relato de fraude"],
   estado: "aberto",
   criado_em: "2026-10-03T14:01:01Z",
+  dispositivo: "cadastrado",
 };
 
 const BLOQUEIO: BloqueioDeCartao = {
@@ -99,6 +100,8 @@ test("o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendên
   await waitFor(() => expect(c.getAllByText("CLI-A · Lucía")).toHaveLength(2));
   expect(c.getByText("Mercado Sol · USD 1,234.50 · 10/03")).toBeInTheDocument();
   expect(c.getByText("•••• 4417 · blocked · full")).toBeInTheDocument();
+  // O dispositivo da sessão logo depois do cliente, como no design.
+  expect(c.getByText("registered device").previousSibling).toHaveTextContent("device");
   expect(c.getByText("full block (simulated) ✓")).toBeInTheDocument();
   expect(c.getByText("read the message ✓")).toBeInTheDocument();
   expect(c.getByText("acao_nova ✓")).toBeInTheDocument();
@@ -108,8 +111,8 @@ test("o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendên
 });
 
 test("a regra que o design não desenhou e a desconhecida", async () => {
-  const limite = { ...FRAUDE, id: "AT-00000032", regra: "POL-HUM-02" };
-  const nova = { ...FRAUDE, id: "AT-00000033", regra: "POL-NOVA-01", pendencias: ["Olhar à mão", "E responder"] };
+  const limite = { ...FRAUDE, id: "AT-00000032", regra: "POL-HUM-02", dispositivo: "novo" as const };
+  const nova = { ...FRAUDE, id: "AT-00000033", regra: "POL-NOVA-01", pendencias: ["Olhar à mão", "E responder"], dispositivo: null };
   servidor([[limite, nova]], [[]]);
   render(<AreaDoAtendente {...area()} />);
   const c1 = within(await screen.findByRole("article", { name: "AT-00000032" }));
@@ -118,6 +121,9 @@ test("a regra que o design não desenhou e a desconhecida", async () => {
   const c2 = within(screen.getByRole("article", { name: "AT-00000033" }));
   expect(c2.getAllByText("POL-NOVA-01")).toHaveLength(2); // no topo e no lugar do pedido
   expect(c2.getByText("Olhar à mão; E responder")).toBeInTheDocument();
+  // O dispositivo novo; o caso de antes, sem dispositivo guardado, fica sem o fato.
+  expect(c1.getByText("new device")).toBeInTheDocument();
+  expect(c2.queryByText(/device$/)).not.toBeInTheDocument();
 });
 
 test("o desbloqueio anotado no caso diz qual bloqueio saiu e quem o desfez", async () => {
