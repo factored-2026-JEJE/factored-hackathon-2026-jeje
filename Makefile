@@ -39,7 +39,8 @@ demo-limpar: ## O mesmo na demonstração do time (make demo)
 
 # Publicação para os jurados (PRD-009): o main limpo, com o gate (CI no build) e as jornadas pelo
 # portão verdes, sobe na stack jeje-pub (dados reais, senha obrigatória, sem portas no host) e sai
-# pelo túnel nomeado do Cloudflare. Senha e token do túnel só no .env.
+# pelo túnel nomeado do Cloudflare. Senha e token do túnel só no .env. A ponte do Ollama (a do LLM do
+# "não entendi", no projeto jeje) fica de pé junto e volta sozinha depois de um reinício.
 PUB := docker compose -p jeje-pub -f compose.yaml -f compose.publicacao.yaml
 PORTAO := docker compose -p jeje-portao -f compose.yaml -f compose.ci.yaml -f mutantes/compose.mutantes.yaml -f compose.acesso.yaml
 
@@ -48,13 +49,14 @@ e2e-pelo-portao: ## Jornadas no navegador numa stack isolada (fixture) com o por
 	$(PORTAO) --profile e2e run --rm --build e2e; status=$$?; \
 	$(PORTAO) --profile e2e down -v --remove-orphans >/dev/null 2>&1; exit $$status
 
-publicar: ## Publica o main para os jurados: gate, jornadas pelo portão, stack jeje-pub e conferência
+publicar: ## Publica o main para os jurados: gate, jornadas pelo portão, stack jeje-pub, a ponte do LLM e conferência
 	@test -z "$$(git status --porcelain)" || { echo "publicar: a árvore tem mudanças"; exit 1; }
 	@git fetch -q origin && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
 		{ echo "publicar: o HEAD não é o origin/main"; exit 1; }
 	$(MAKE) segredos lint test
 	$(MAKE) e2e-pelo-portao
 	JEJE_TAG=$$(git rev-parse --short=12 HEAD) $(PUB) up -d --build --wait
+	docker compose --profile modelo up -d ollama-ponte
 	scripts/conferir-publicacao.sh
 
 voltar: ## Volta a publicação ao COMMIT, já publicado antes: desce as migrations novas e sobe as imagens dele (ACH-116)
