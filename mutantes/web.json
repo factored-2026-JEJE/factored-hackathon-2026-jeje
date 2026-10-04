@@ -3258,6 +3258,21 @@
       "testes": [
         "src/Conversa.test.tsx > pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim"
       ]
+    },
+    {
+      "id": "M-WEB-449",
+      "requisito": "R09",
+      "descricao": "A Operação não relê os números quando a aba volta à tela (o turno sem efeito não aparece)",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "  }, [versao, voltas]);",
+          "para": "  }, [versao]);"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a aba relê os números a cada volta à tela, e o turno sem efeito também aparece"
+      ]
     }
   ]
 }
