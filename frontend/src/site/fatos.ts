@@ -26,6 +26,11 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     // O teste final rodou uma vez no congelado 3cf8c3f (EV-276), e a tabela 2 também (EV-277).
     "VAL-019": ["evid", "evidencias/VAL-019 · EV-276"],
     "VAL-019a": ["evid", "evidencias/VAL-019a · EV-277"],
+    // O tempo das regras medido no congelado, nas mensagens dos conjuntos da validação (o README do 2.14).
+    LAT: ["team", "README · 14.124 msgs · p50/p95"],
+    // O portão de release (make atacar) no congelado, rodado pela validação no V6
+    // (NOV-13a-20261004T132513-1da3): 1 inseguro em 128, o ACH-160.
+    "NOV-13a": ["evid", "evidencias/NOV-13a · ACH-160"],
   },
   ui: {
     ...c.ui,
@@ -49,8 +54,21 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     },
   },
   stops: c.stops.map((s) => {
+    // O tempo das regras: o do congelado 3cf8c3f (p50 de 2,07 ms e p95 de 5,24 ms), não o da medida do design.
     if (s.id === "leitura" && s.cascade)
-      return { ...s, cascade: s.cascade.map((x) => (x.st === "plan" ? { ...x, st: "off" as const } : x)) };
+      return {
+        ...s,
+        cascade: s.cascade.map((x) => (x.st === "plan" ? { ...x, st: "off" as const } : x)),
+        stat: {
+          v: T("2,1 ms", "2,1 ms", "2.1 ms"),
+          l: T(
+            "p50 de CPU por mensagem nas regras (p95 5,2 ms)",
+            "p50 de CPU por mensaje en las reglas (p95 5,2 ms)",
+            "p50 CPU per message in the rules (p95 5.2 ms)",
+          ),
+          s: "LAT",
+        },
+      };
     // A janela do app no site (design de 03/10): o Caddy deixa só a própria origem embutir a página
     // (frontend/Caddyfile, conferido no seguranca.spec.ts e no scripts/conferir-publicacao.sh).
     if (s.id === "entrada")
@@ -74,6 +92,23 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     list: c.models.list.map((m) =>
       m.planned ? { ...m, planned: false, role: T("só no “não entendi”", "solo en el “no entendí”", "only on “didn’t get it”") } : m,
     ),
+  },
+  // O placar do atacante: o do portão de release no congelado (128 episódios), não o do NOV-13 de antes do
+  // congelamento (1 em 112), e o caso inseguro dito como saiu.
+  pillars: {
+    ...c.pillars,
+    seg: {
+      ...c.pillars.seg,
+      honest: {
+        v: "1/128",
+        l: T(
+          "resultado inseguro em 128 conversas com um cliente adversário simulado por LLM, no portão de release do commit congelado: um relato de fraude dentro de uma contestação ficou sem atendente (ACH-160). Mostramos.",
+          "resultado inseguro en 128 conversaciones con un cliente adversario simulado por LLM, en el gate de release del commit congelado: un reporte de fraude dentro de una impugnación quedó sin agente (ACH-160). Lo mostramos.",
+          "unsafe outcome in 128 conversations with an LLM-simulated adversarial customer, at the frozen commit’s release gate: a fraud report inside a dispute went without an agent (ACH-160). We show it.",
+        ),
+        s: "NOV-13a",
+      },
+    },
   },
   results: {
     ...c.results,

@@ -1776,7 +1776,7 @@ export class Site extends Component<object, Estado> {
         if (this.aoVivo()) this.digitado(msg);
         else this.send("injecao", msg);
       },
-      openHonest: srcBtn("NOV-13"),
+      openHonest: srcBtn(t.pillars.seg.honest.s),
       reproLines,
       reproCursor: S.reproN >= rl.length ? "$ _" : S.reproN === 0 ? "$ _" : "…",
       runRepro: this.runRepro,
@@ -3123,7 +3123,7 @@ export class Site extends Component<object, Estado> {
                   <span style={{ flex: "1 1 240px", fontSize: "14px", lineHeight: "1.45" }}>
                     {I(v.t.pillars.seg.honest.l)}{" "}
                     <span style={{ fontFamily: "'Martian Mono',monospace", fontSize: "10px", whiteSpace: "nowrap" }}>
-                      {"↗ NOV-13"}
+                      {"↗ " + v.t.pillars.seg.honest.s}
                     </span>
                   </span>
                   {" "}
