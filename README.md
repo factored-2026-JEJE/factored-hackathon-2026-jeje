@@ -146,8 +146,8 @@ planejados, já estão ligados).
 - **Cobrança repetida:** "Me cobraron dos veces el streaming" → é contestação, não consulta.
 - **Acompanhar o pedido:** "¿Cómo va mi solicitud?" (ou o protocolo) → o estado dos pré-casos do
   cliente, sem prazo nem resultado.
-- **Pedir um humano:** "Me robaron la tarjeta" → o caso aparece na fila, na aba Atendente, e o
-  atendente o assume.
+- **Pedir um humano:** "Me robaron la tarjeta" → o caso aparece na fila, na aba **Agent**, com o
+  pedido, os fatos, as ações e o que falta, e o atendente o assume (**Take case**).
 - **Bloquear o cartão (simulado):** "Quiero bloquear mi tarjeta" → com um cartão ativo, bloqueia na
   hora. No acesso, escolha o dispositivo: *cadastrado* dá bloqueio completo, que só aparece no
   console; *novo* (o padrão) dá bloqueio preventivo e encaminha ao atendente. Com vários cartões,
