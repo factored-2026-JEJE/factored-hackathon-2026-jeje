@@ -16,9 +16,57 @@ models only read the message, never act.
   (`make avaliar VARIANTE=regras` runs without the LLM); `make atacar` runs the adaptive attacker.
 
 <!-- tabela-do-teste-final:inicio -->
-_The final test table (the frozen version against the sealed scenarios, VAL-019) goes here once it
-runs._
+| | Safe resolution | Coverage | Containment | Missed handoff | Needless handoff | Unsafe cases | Grounding | p50 / p95 | Cost |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline · rules only | 95.0% | 75.0% | 93.3% | 0 / 20 | 0 / 60 | 0 / 80 | 100.0% | 54 / 60 ms | 0.00 LLM/conv. |
+| System · run 1 | 93.8% | 75.0% | 93.3% | 0 / 20 | 0 / 60 | 0 / 80 | 100.0% | 96 / 629 ms | 0.13 LLM/conv. |
+| System · run 2 | 93.8% | 75.0% | 93.3% | 0 / 20 | 0 / 60 | 0 / 80 | 100.0% | 101 / 633 ms | 0.13 LLM/conv. |
+
+_The final test: 80 held-out scenarios, run once on the frozen commit `3cf8c3fac1d5` (EV-276); the same numbers on the site._
 <!-- tabela-do-teste-final:fim -->
+
+**Reading the table.**
+- **Safety:** no run had an unsafe case or a missed handoff, and every cited fact was grounded.
+- **The one difference:** the delivered system resolved 75 of 80 in both runs, one fewer than the
+  rules alone (76 of 80). The miss is a Spanish follow-up on an open case: the turn that reached the
+  LLM opened a new handoff (POL-HUM-01) instead of following the case (POL-HUM-04).
+- **Against the criterion set before the test:** the paired difference is −1.25 points (95%
+  interval −3.75 to 0). The criterion asked for the system to be at least as good as the rules in
+  each language: Portuguese ties, so it holds there, and Spanish falls one scenario short (−2.5
+  points, −7.5 to 0). The case is ACH-189.
+- **Cost and latency:** the LLM read 10 turns per run (the Cost column: LLM calls per conversation,
+  0.125 shown rounded). The delivered system's turns have a p50 of about 100 ms and a p95 of about
+  630 ms, against 54 and 60 ms with the rules alone; the cause of each part was not measured.
+- **Shared misses:** both variants miss the same two cases, in both languages (4 of 80). One is a
+  status question answered without the case protocol. The other is a correction read as a question
+  instead of a dispute.
+
+**Table 2 · the learned component** (VAL-019a, run once on the frozen commit,
+`EXP-002a-20261004T124023-3dfd`): accuracy on the first message, on a new set never used for tuning,
+sealed before the test and written by two model families not used before (chatbode7b, gaia4b).
+
+| Language | Messages | R · rules only | A · rules and e5 reader | AL · the system | AL − R, accuracy | AL − R, undue action |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| PT | 237 | 71.3% [65.2; 76.7] | 72.2% [66.1; 77.5] | 79.3% [73.7; 84.0] | +8.0 pp [+4.2; +12.2] | +0.5 pp [+0.0; +1.6] (of 191) |
+| ES | — | not measured: fewer than 20 final messages in some intent (a rule fixed before generating) | | | | |
+
+- **The criterion registered before the test:** AL − R with the whole 95% interval above zero, which
+  holds, and the undue action AL − R with the upper bound at most 1 point. The bound is 1.6, so the
+  result is negative, and it is shown as it came out.
+- **Where the differences come from:** the extra undue action comes from the e5 reader (A − R +0.5
+  points, the same). The accuracy gain comes from the LLM (AL − A +7.2 points).
+
+**The reader threshold** (VAL-019b, `NOV-40-20261004T124038-3623`, descriptive): on the first
+message of the final scenarios (38 in ES and 38 in PT), how much is automated and how much of that
+is wrong as the e5 reader's threshold moves; the delivered system uses 0.80.
+
+| Threshold | Automated · ES | Automated · PT | Wrong when automated · ES | Wrong when automated · PT | Undue action · ES | Undue action · PT |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.50 | 86.8% | 84.2% | 5/33 | 3/32 | 3/21 | 1/21 |
+| 0.70 | 84.2% | 78.9% | 4/32 | 2/30 | 2/21 | 1/21 |
+| 0.80 (delivered) | 81.6% | 78.9% | 3/31 | 2/30 | 1/21 | 1/21 |
+| 0.90 | 78.9% | 78.9% | 2/30 | 2/30 | 1/21 | 1/21 |
+| 0.95 | 76.3% | 76.3% | 1/29 | 1/29 | 1/21 | 1/21 |
 
 **Test it in 2 minutes** (the app opens in English; the conversation is in Spanish or Portuguese):
 
@@ -195,7 +243,7 @@ Os números vêm de dois testes, e cada um vale para as suas frases:
   pedidos com pista, contra 58% do filtro exato sozinho. Outros 15% viram botões (com o número
   solto, a possível vira opção) e 5% a pergunta pelo campo. Pede dados de novo em 0,04%, contra
   40%. Nos históricos densos (10 clientes juntos), 72% contra 53%.
-- **Teste independente da validação** (QT-01, outro gerador de frases, no `d9dfad0`): 72,2% (es)
+- **Teste independente da validação** (QT-01, outro gerador de frases, no `7347218`): 72,2% (es)
   e 71,7% (pt) direto, contra 38,5% (es) e 38,0% (pt) do filtro exato, com 0% de proposta errada; a
   certa está entre as devolvidas (a proposta ou as opções) em 99,7% das vezes, e o conjunto
   conformal, onde o ranking decide, cobre a certa em 96,3%.
@@ -624,7 +672,11 @@ make test-avaliacao                                # os testes do oráculo, sem 
 Os números do atendimento podem ser refeitos por quem tiver o repositório. Os cenários de
 desenvolvimento e de validação (`avaliacao/cenarios.json`) foram escritos pela validação, e cada um
 é julgado pelo estado final no banco: pré-casos, a fila do atendente, os bloqueios e o que foi dito
-ao cliente. O conjunto final do teste não está aqui: ele roda uma vez, na versão congelada.
+ao cliente. O conjunto final do teste entrou depois do teste final (EV-276), num arquivo à parte,
+`avaliacao/cenarios-final.json`, com os 80 cenários. Ele rodou uma vez, na versão congelada; rodar
+de novo não mede mais o produto, porque o conjunto já foi visto, mas confere o avaliador
+(`avaliacao/avaliar.py rodar` aceita `--cenarios avaliacao/cenarios-final.json --conjuntos final`).
+O `make avaliar` segue com os de desenvolvimento e de validação.
 
 ```bash
 make avaliar                      # a variante entregue (o leitor e5 com o LLM do "não entendi")
@@ -661,7 +713,7 @@ make avaliar VARIANTE=regras      # sem modelo nenhum
   log guarda só a classe do erro, nunca a mensagem, e os eventos que a Operação mostra não têm o
   cliente nem o texto.
 - **Sem custo por chamada:** não há cota nem tarifa de modelo, e o custo é o tempo da máquina. As
-  regras leem cada mensagem em ~1,3 ms de CPU (p50, nas 14.124 mensagens da validação). O leitor
+  regras leem cada mensagem em ~2 ms de CPU (p50, nas 14.124 mensagens da validação, no congelado). O leitor
   e5 lê o que elas não entendem, na CPU da própria API (36–91 ms, medido num Mac M4 via Docker). O
   LLM lê só o que o leitor não decide: 12% (es) e 17% (pt) das mensagens no teste do BANKING77, com
   ~0,6 s por chamada na GPU (p50).
@@ -713,15 +765,15 @@ make avaliar VARIANTE=regras      # sem modelo nenhum
   em até 280 caracteres, as falas do cliente no pedido em curso que trazem algo novo ao atendente:
   o pedido, cada pista (valor, data, status, comércio) e o pedido de atendente. A escolha é por
   cobertura desses campos, na ordem em que foram ditas, e a fala sem fato fica de fora (DEV-036).
-- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~1,3 ms de CPU por
-  mensagem (p50 de 1,3 ms e p95 de 3,7 ms nas 14.124 mensagens dos conjuntos da validação, desde
-  que o termo composto deixou de procurar o segundo grupo sem o primeiro; eram 2,8 ms antes disso
-  e ~100 ms antes de cada expressão ser compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
+- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~2 ms de CPU por
+  mensagem (p50 de 2,07 ms e p95 de 5,24 ms nas 14.124 mensagens dos conjuntos da validação, no
+  congelado `3cf8c3f`, com a máquina livre; eram ~100 ms antes de cada expressão ser compilada uma
+  vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
 - Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor, no
-  `42db34a` de 01/10): um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez
+  `511dde7` de 01/10): um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez
   (ACH-107), aguenta 8 clientes com p95 de 430 ms; com 4 processos, 129 ms (antes da correção eram
-  2.065 e 767 ms). No `68fee3a`, com 8 clientes, o p95 foi de 150 ms com o leitor e 78 ms só com as
+  2.065 e 767 ms). No `1f8c640`, com 8 clientes, o p95 foi de 150 ms com o leitor e 78 ms só com as
   regras; o número da versão entregue sai da bateria do congelado.
   `WEB_CONCURRENCY` no `compose.yaml` define quantos processos sobem: 1 na máquina de quem
   desenvolve, 2 nas stacks de teste com a fixture (as jornadas provam que nada depende da memória
