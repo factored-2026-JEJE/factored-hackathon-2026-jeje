@@ -437,6 +437,11 @@ class _Turno:
         e depois oferece o atendente, com a primeira mensagem da sequência no resumo. Pedido
         entendido zera a contagem (o contexto é trocado)."""
         pedidos_de_novo = self.contexto.get("esclarecimentos", 0)
+        if self.lida.resposta is not None:
+            # O "sí" ou o "no" sem nada pendente não é mensagem não entendida (ACH-122): pede o que
+            # o cliente precisa, e a contagem até oferecer o atendente fica como estava.
+            contexto = {**self._em_curso(), "esclarecimentos": pedidos_de_novo}
+            return Saida("AJUDA", "esclarecer", (texto("AJUDA", self.idioma),), "livre", contexto)
         decisao = politica.decidir_esclarecimento(pedidos_de_novo)
         if decisao.acao == "oferecer_humano":
             self._anotar("esclarecer", f"{pedidos_de_novo} mensagens seguidas não entendidas")

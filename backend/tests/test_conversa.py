@@ -593,6 +593,24 @@ def test_contestacao_noturna_pelo_app_acima_do_limite_vai_para_humano(cenario):
     assert pre_casos(cenario) == [] and contar(cenario, "propostas_pre_caso") == 0
 
 
+def test_o_sim_sem_nada_pendente_nao_conta_como_nao_entendido(cenario):
+    """ACH-122: o "sí" sem oferta nem confirmação pendente pede o que o cliente precisa, mas não
+    conta para oferecer o atendente; a mensagem não entendida depois dele conta desde o zero."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        respostas = [
+            dizer(http, auth, conversa, texto)
+            for texto in ("sí", "sí", "sí", "xyzzy qwerty", "xyzzy qwerty", "xyzzy qwerty")
+        ]
+    assert [(r["regra"], r["estado"]) for r in respostas[:3]] == [("AJUDA", "livre")] * 3
+    # O limite são 2 pedidos de novo: só a terceira não entendida oferece o atendente.
+    assert [r["regra"] for r in respostas[3:5]] == ["AJUDA", "AJUDA"]
+    assert (respostas[5]["acao"], respostas[5]["estado"]) == (
+        "oferecer_humano", "oferecendo_humano"
+    )  # fmt: skip
+
+
 def test_mensagens_nao_entendidas_seguidas_oferecem_o_humano(cenario):
     """ACH-029: 'no entendí' também é esclarecimento; no terceiro seguido o atendente é oferecido,
     e só o sim encaminha."""
