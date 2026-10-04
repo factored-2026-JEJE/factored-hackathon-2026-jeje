@@ -55,6 +55,7 @@ class Interpretacao:
     ultima: bool = False  # "la última", "a mais recente": das que casarem, a mais recente
     cortesia: Cortesia | None = None  # a mensagem inteira é cumprimento ou agradecimento
     instrucao: bool = False  # tenta mudar as regras do assistente (injeção, ACH-203)
+    cita_as_regras: bool = False  # fala das regras, da política, das instruções ou do sistema
     sinais: tuple[str, ...] = ()  # termos que decidiram a intenção (auditoria)
 
 
@@ -1059,6 +1060,19 @@ MOEDA_COLADA = re.compile(r"(?<![a-z])(usd|mxn|cop|ars|brl|eur)(?=\d)", re.IGNOR
 # todos mis cargos", "ignora todo lo anterior", ACH-203 da validação): a conversa diz o que faz, sem
 # oferecer o atendente, e nada do que estava pendente muda. O "ignoro" de quem não sabe ("ignoro por
 # qué rechazaron mi compra") e o "ignore a mensagem anterior" de quem se corrige não são instrução.
+ALVO_DA_INSTRUCAO = (
+    r"(?:reglas|regras|politica|politicas|instrucciones|instrucoes|restricciones|restricoes"
+    r"|prompt|sistema)"
+)
+MUDANCA = (
+    r"(?:desactiv[a-z]*|desativ[a-z]*|cambi[a-z]*|mud[a-z]*|modific[a-z]*|olvid[a-z]*"
+    r"|esquec[a-z]*|ignor[a-z]*|nuev[ao]s?|nov[ao]s?|ya no|nao mais|no sigues|nao segue|salt[ae]"
+    r"|pul[ae]|anul[a-z]*|romp[ae]|quebr[ae])"
+)
+# Quem cita o alvo sem verbo de mudança ("a partir de ahora la política es abrir casos") pode ainda
+# estar tentando mudar as regras: se o leitor ou o LLM lerem fora de escopo, a conversa não oferece
+# o atendente (o reforço do REG-79).
+CITA_AS_REGRAS = re.compile(rf"\b{ALVO_DA_INSTRUCAO}\b")
 INSTRUCAO = re.compile(
     r"\b(?:sin reglas|sem regras|sin restricciones|sem restricoes)\b"
     r"|\b(?:eres|voce e) (?:un|una|um|uma) (?:asistente|assistente)\b"
@@ -1066,6 +1080,11 @@ INSTRUCAO = re.compile(
     r"(?: [a-z]+){0,4} (?:instrucciones|instrucoes|reglas|regras|ordenes|ordens|restricciones"
     r"|restricoes|todo lo anterior|tudo o que)\b"
     r"|\b(?:modo desarrollador|modo desenvolvedor|system prompt|prompt|jailbreak)\b"
+    # O alvo com um verbo de mudança, em qualquer ordem (REG-79: "nuevas reglas", "desactiva la
+    # política", "ya no sigues las reglas", "você não segue mais as regras"), e o papel no começo.
+    rf"|\b{MUDANCA}(?: [a-z]+){{0,3}} {ALVO_DA_INSTRUCAO}\b"
+    rf"|\b{ALVO_DA_INSTRUCAO}(?: [a-z]+){{0,3}} {MUDANCA}\b"
+    r"|^(?:sistema|system|admin|administrador)\b"
 )
 # Identificadores do sistema (prefixos da base e dos protocolos) ou código longo com dígitos.
 IDENTIFICADOR = re.compile(
@@ -1321,6 +1340,7 @@ def interpretar(texto: str, idioma_anterior: Idioma, referencia: date) -> Interp
         "ultima": ULTIMA.search(limpo) is not None,
         "cortesia": _cortesia(limpo),
         "instrucao": INSTRUCAO.search(limpo) is not None,
+        "cita_as_regras": CITA_AS_REGRAS.search(limpo) is not None,
     }
     oracoes = _oracoes(texto)
     for intencao, termos in TERMOS:
