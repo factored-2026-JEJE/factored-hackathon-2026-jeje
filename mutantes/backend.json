@@ -12861,8 +12861,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": " \"fraudulentamente\",\n",
-          "para": "\n"
+          "de": " \"fraudulentamente\", COMPRA_FRAUDULENTA,\n",
+          "para": " COMPRA_FRAUDULENTA,\n"
         }
       ],
       "testes": [
@@ -15730,6 +15730,37 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_a_mensagem_que_tenta_mudar_as_regras_e_instrucao"
+      ]
+    },
+    {
+      "id": "M-ITP-299",
+      "requisito": "R02",
+      "descricao": "\"Tenho uma compra fraudulenta\", sem o verbo, volta a ser consulta ou contestação, e o relato de fraude não chega ao atendente (ACH-160)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                \"fue fraudulent*\", \"foi fraudulent*\", \"fraudulentamente\", COMPRA_FRAUDULENTA,\n",
+          "para": "                \"fue fraudulent*\", \"foi fraudulent*\", \"fraudulentamente\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_a_compra_fraudulenta_sem_o_verbo_e_relato_de_fraude",
+        "tests/test_bloqueio_conversa.py::test_a_compra_fraudulenta_depois_do_bloqueio_vai_ao_atendente"
+      ]
+    },
+    {
+      "id": "M-ITP-300",
+      "requisito": "R02",
+      "descricao": "A compra fraudulenta negada (\"no es un cargo fraudulento\") vira relato de fraude (ACH-160)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora_antes=(\"no es\", \"no era\", \"no fue\", \"no son\", \"no parece\", \"nao e\", \"nao era\", \"nao foi\",\n                \"nao sao\", \"nao parece\", \"ni\", \"nem\", \"ningun\", \"ninguna\", \"nenhum\", \"nenhuma\"),\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
       ]
     }
   ]

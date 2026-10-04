@@ -258,6 +258,30 @@ def test_relato_de_fraude_bloqueia_pelo_dispositivo_e_encaminha(cenario, disposi
     ]
 
 
+def test_a_compra_fraudulenta_depois_do_bloqueio_vai_ao_atendente(cenario):
+    """ACH-160 (o portão de 128 do NOV-13a no congelado): o cliente bloqueia o cartão e, no turno
+    seguinte, pede a contestação da "compra fraudulenta". É relato de fraude, e a conversa encaminha
+    ao atendente, em vez de só perguntar qual transação."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "pt")
+        pedido = "Me bloqueiem o cartão imediatamente e não quero falar com mais ninguém."
+        bloqueio = dizer(http, auth, conversa, pedido)
+        relato = dizer(
+            http,
+            auth,
+            conversa,
+            "Já está feito e não quero discutir mais isso. Só preciso da contestação da compra"
+            " fraudulenta também.",
+        )
+    assert bloqueio["bloqueio"] is not None
+    assert (relato["regra"], relato["acao"], relato["estado"]) == (
+        "POL-HUM-01", "humano", "com_humano"
+    )  # fmt: skip
+    [registro] = handoffs(cenario)
+    assert registro["regra"] == "POL-HUM-01"
+
+
 def test_quem_pergunta_como_evitar_fraude_vai_ao_atendente_sem_bloquear(cenario):
     """ACH-144 (P3 do NOV-35): a pergunta de prevenção lida como fraude vai ao atendente pela
     POL-HUM-01, mas não bloqueia o cartão; o relato de vítima continua bloqueando."""

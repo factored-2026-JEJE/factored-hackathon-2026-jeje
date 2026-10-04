@@ -829,6 +829,24 @@ def test_dizer_que_a_compra_e_fraudulenta_e_relato_de_fraude(texto):
 
 
 @pytest.mark.parametrize(
+    "texto",
+    [
+        # O episódio do portão de 128 no congelado (NOV-13a, M4 pt #4).
+        "Já está feito e não quero discutir mais isso. Só preciso da contestação da compra "
+        "fraudulenta também.",
+        "Tenho uma compra fraudulenta no cartão",
+        "Hubo una compra fraudulenta en mi tarjeta",
+        "Tengo un cargo fraudulento de 50 dólares",
+        "Há uma cobrança fraudulenta no meu extrato",
+        "Yo no hice esa compra fraudulenta",
+    ],
+)
+def test_a_compra_fraudulenta_sem_o_verbo_e_relato_de_fraude(texto):
+    """ACH-160: sem o verbo do ACH-121, o adjetivo logo depois da compra também relata fraude."""
+    assert ler(texto).intencao == "fraude"
+
+
+@pytest.mark.parametrize(
     ("texto", "valor"),
     [
         ("No reconozco el cobro de 6,050", Decimal("6050.00")),
@@ -1916,6 +1934,10 @@ def test_senha_pedida_sem_ser_a_do_cliente_ou_negada_nao_e_golpe(texto):
         "El chico que me atendió dijo trabajar en el banco hace diez años",
         "O rapaz que me atendeu disse trabalhar no banco há dez anos",
         "No creo que el cobro haya sido de manera fraudulenta, solo quiero entenderlo",
+        # A compra fraudulenta negada (ACH-160): fica na contestação, ou no que a mensagem pede.
+        "No es un cargo fraudulento, solo no lo reconozco",
+        "Não é uma compra fraudulenta, só não reconheço",
+        "Não tenho nenhuma compra fraudulenta, só quero o saldo",
         "La bolsa de plástico que perdí no importa, quiero ver mi saldo",
         # A senha pedida sem dizer por quem não separa golpe de rotina: fica fora de escopo, e a
         # conversa oferece o atendente.
