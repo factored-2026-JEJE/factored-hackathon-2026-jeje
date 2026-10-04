@@ -14933,6 +14933,82 @@
       "testes": [
         "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
       ]
+    },
+    {
+      "id": "M-MIG-19",
+      "requisito": "R03",
+      "descricao": "A migração do dispositivo do caso aceita qualquer valor",
+      "trocas": [
+        {
+          "arquivo": "migrations/versions/0027_caso_dispositivo.py",
+          "de": "    op.create_check_constraint(\n        op.f(\"ck_handoffs_dispositivo\"),\n        \"handoffs\",\n        \"dispositivo IN ('cadastrado', 'novo')\",\n        schema=\"app\",\n    )\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_migrations.py::test_caso_so_aceita_dispositivo_conhecido_ou_nenhum",
+        "tests/test_migrations.py::test_modelos_coincidem_com_as_migrations"
+      ]
+    },
+    {
+      "id": "M-HO-16",
+      "requisito": "R07",
+      "descricao": "O caso grava sem o dispositivo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "            \"dispositivo\": e.dispositivo,\n",
+          "para": "            \"dispositivo\": None,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_o_caso_guarda_o_dispositivo_da_sessao_e_o_de_antes_fica_sem"
+      ]
+    },
+    {
+      "id": "M-HO-17",
+      "requisito": "R07",
+      "descricao": "A fila não lê o dispositivo do caso",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/handoff.py",
+          "de": "    \"id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado, criado_em,\"\n    \" dispositivo\"\n",
+          "para": "    \"id, customer_id, regra, idioma, pedido, transacao, acoes, pendencias, estado, criado_em,\"\n    \" NULL AS dispositivo\"\n"
+        }
+      ],
+      "testes": [
+        "tests/test_handoff.py::test_o_caso_guarda_o_dispositivo_da_sessao_e_o_de_antes_fica_sem"
+      ]
+    },
+    {
+      "id": "M-CONV-122",
+      "requisito": "R07",
+      "descricao": "O caso aberto pela conversa não leva o dispositivo da sessão",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "                dispositivo=self.dispositivo,\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_o_caso_da_conversa_leva_o_dispositivo_da_sessao"
+      ]
+    },
+    {
+      "id": "M-API-22",
+      "requisito": "R07",
+      "descricao": "A fila da API sempre diz o dispositivo cadastrado",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/atendimento_api.py",
+          "de": "        return [Encaminhamento(**e) for e in handoff.fila(conexao, limite)]\n",
+          "para": "        return [Encaminhamento(**(e | {\"dispositivo\": \"cadastrado\"})) for e in handoff.fila(conexao, limite)]\n"
+        }
+      ],
+      "testes": [
+        "tests/test_atendimento_api.py::test_o_caso_da_conversa_leva_o_dispositivo_da_sessao"
+      ]
     }
   ]
 }
