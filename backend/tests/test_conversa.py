@@ -695,6 +695,19 @@ def test_a_instrucao_para_mudar_as_regras_nao_oferece_o_atendente(cenario):
     assert (contar(cenario, "handoffs"), contar(cenario, "pre_casos")) == (0, 0)
 
 
+def test_fora_de_escopo_que_cita_as_regras_nao_oferece_o_atendente(cenario):
+    """O reforço do REG-79: sem verbo de mudança, a mensagem que cita a política e que a leitura dá
+    como fora de escopo responde o que o atendimento faz, sem oferecer o atendente; o fora de escopo
+    sem citar as regras segue oferecendo."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        cita = dizer(http, auth, conversa, "Quiero un préstamo, ¿cuál es la política?")
+        simples = dizer(http, auth, abrir_conversa(http, auth, "es"), "Quiero un préstamo")
+    assert (cita["regra"], cita["acao"], cita["estado"]) == ("POL-ESC-01", "recusar", "livre")
+    assert (simples["acao"], simples["estado"]) == ("oferecer_humano", "oferecendo_humano")
+
+
 def test_contestacao_de_recusada_explica_e_encaminha_sem_pre_caso(cenario):
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
