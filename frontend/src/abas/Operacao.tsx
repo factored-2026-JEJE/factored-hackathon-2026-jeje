@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import {
   buscarEda,
   buscarMetricas,
@@ -40,14 +40,33 @@ const fecha = (q: QualidadeTabela) => q.raw === q.curado + q.quarentena + q.copi
 const curta = (versao: string) => (versao.length > 12 ? `${versao.slice(0, 4)}…${versao.slice(-4)}` : versao);
 const ms = (n: number | null | undefined) => (n == null ? null : Math.round(n));
 
+/** Conta as voltas da aba à tela: a casca esconde as áreas com o `hidden` do painel, sem desmontar.
+ * Relendo a cada volta, o turno sem efeito (uma consulta) também aparece nos números. */
+function useVoltas(raiz: RefObject<HTMLElement | null>): number {
+  const [voltas, setVoltas] = useState(0);
+  useEffect(() => {
+    const painel = raiz.current?.closest("[role=tabpanel]");
+    if (!painel) return;
+    const observador = new MutationObserver(() => {
+      if (!painel.hasAttribute("hidden")) setVoltas((n) => n + 1);
+    });
+    observador.observe(painel, { attributes: true, attributeFilter: ["hidden"] });
+    return () => observador.disconnect();
+  }, [raiz]);
+  return voltas;
+}
+
 /** A aba da operação (DEV-032b, 2.10), como no design: a prontidão, as métricas recalculadas dos
  * eventos, as regras usadas, os últimos turnos, a qualidade dos dados e, depois, a EDA. Os números
- * vêm da API, relidos a cada efeito da conversa; a EDA, que descreve a base, é lida uma vez. */
+ * vêm da API, relidos a cada efeito da conversa e a cada volta à aba; a EDA, que descreve a base, é
+ * lida uma vez. */
 export function AreaDaOperacao({ versao }: PropsDaArea) {
   const { lingua, t } = useLingua();
   const [dados, setDados] = useState<Dados | null>(null);
   const [erro, setErro] = useState(false);
   const [eda, setEda] = useState<Eda>({ tipo: "carregando" });
+  const raiz = useRef<HTMLDivElement>(null);
+  const voltas = useVoltas(raiz);
 
   useEffect(() => {
     let ativo = true;
@@ -68,7 +87,7 @@ export function AreaDaOperacao({ versao }: PropsDaArea) {
     return () => {
       ativo = false;
     };
-  }, [versao]);
+  }, [versao, voltas]);
 
   useEffect(() => {
     // Na base real as consultas da EDA levam segundos: elas não seguram o resto da aba.
@@ -116,7 +135,7 @@ export function AreaDaOperacao({ versao }: PropsDaArea) {
   const tituloDaEda = traduzir(OPERACAO.eda, lingua);
 
   return (
-    <div className="cn-pagina">
+    <div className="cn-pagina" ref={raiz}>
       <div className="cn-bloco">
         <p className="cn-rotulo">
           <span className="cn-ponto cn-cobalto" />
