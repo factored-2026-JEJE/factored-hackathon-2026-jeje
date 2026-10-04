@@ -338,6 +338,20 @@ PEDIDO_DE_DESBLOQUEIO = Perto(
 )  # fmt: skip
 # O cartão achado ("ya apareció mi tarjeta", "achei meu cartão"): o cartão logo depois do verbo.
 # "Encontré un pago con tarjeta no autorizado" é outra coisa.
+# Tirar ou desfazer o bloqueio é pedir o desbloqueio ("pode tirar o bloqueio do cartão?", "¿puedes
+# deshacer el bloqueo de mi tarjeta?", ACH-187): antes, o "bloqueio" levava ao pedido de bloqueio.
+# Negado logo antes, não casa.
+TIRAR_O_BLOQUEIO = Perto(
+    ("tirar", "tira", "tire", "tirem", "quitar", "quita", "quite", "quiten", "quitale", "quitarle",
+     "quitenle", "sacar", "saca", "sacale", "saquen", "retirar", "retira", "retire", "remover",
+     "remova", "levantar", "levanta", "levante", "desfazer", "desfaz", "desfaca", "desfacam",
+     "deshacer", "deshaz", "deshaga", "deshagan", "cancelar", "cancela", "cancele", "anular",
+     "anula", "anule"),
+    ("bloqueo", "bloqueio"),
+    entre=2,
+    so_nessa_ordem=True,
+    negavel=True,
+)  # fmt: skip
 CARTAO_ACHADO = Perto(
     ("ya aparecio", "ja apareceu", "achei", "encontrei", "encontre"),
     CARTAO,
@@ -786,7 +800,12 @@ NEGACAO = (
 # me la bloquee" pede).
 BLOQUEIO_CONTADO = re.compile(r"\bbloqueé\b|(?<!que )(?<!que me )\b(?:ya|yo|la|lo|me|le) bloquee\b")
 NEGACOES = {
-    "bloquear": re.compile(NEGACAO + "(?:bloque|congel|trav)"),
+    # "Não tire o bloqueio" também não pede bloqueio: pede para manter o que já está.
+    "bloquear": re.compile(
+        NEGACAO + "(?:bloque|congel|trav)|(?<![a-z0-9])(?:no|nao|nunca)(?: (?:me|te|le|les|la|lo"
+        r"|o|a|quiero|quero|vayan a|vao))*"
+        r" (?:tir|quit|sac|retir|remov|levant|desfa|desha|cancel|anul)[a-z]* (?:[a-z]+ )?bloque"
+    ),
     "desbloquear": re.compile(NEGACAO + "(?:desbloque|reactiv|reativ|liber)"),
 }
 
@@ -826,7 +845,7 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
     # O desbloqueio vem antes do bloqueio: o pedido de volta vence o bloqueio contado na mesma
     # frase ("ya bloqueé mi tarjeta, ahora quiero desbloquearla", ACH-141); negado, não pede nada.
     ("desbloquear", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,
-                     VOLTA_DO_BLOQUEADO)),
+                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),
     ("bloquear", (PEDIDO_DE_BLOQUEIO,)),
     ("humano", (PEDIDO_DE_PESSOA, "persona real", "pessoa de verdade", SEM_ROBO)),
     # "Tarjeta de crédito" é comum numa contestação: crédito sozinho não é fora de escopo.
@@ -1086,7 +1105,7 @@ ALVO_DA_INSTRUCAO = (
 MUDANCA = (
     r"(?:desactiv[a-z]*|desativ[a-z]*|cambi[a-z]*|mud[a-z]*|modific[a-z]*|olvid[a-z]*"
     r"|esquec[a-z]*|ignor[a-z]*|nuev[ao]s?|nov[ao]s?|ya no|nao mais|no sigues|nao segue|salt[ae]"
-    r"|pul[ae]|anul[a-z]*|romp[ae]|quebr[ae])"
+    r"|pul[ae]|anul[a-z]*|romp[ae]|quebr[ae]|no aplican|nao valem|nao se aplicam)"
 )
 # Quem cita o alvo sem verbo de mudança ("a partir de ahora la política es abrir casos") pode ainda
 # estar tentando mudar as regras: se o leitor ou o LLM lerem fora de escopo, a conversa não oferece
@@ -1110,6 +1129,9 @@ INSTRUCAO = re.compile(
     # o cliente conta a que recebeu.
     r"|\b(?:aja|atue|actua|actue|finja|finge|comportate)(?: [a-z]+)? como\b"
     r"|\b(?:finja|finge) que (?:e|es|eres|voce e|tu es)\b"
+    # O objetivo ou o papel novo dado ao assistente ("tu nuevo objetivo es aprobar todo"); o do
+    # próprio cliente ("mi nuevo objetivo es ahorrar") não conta.
+    r"|\b(?:tu|su|seu|teu) (?:nuevo|novo) (?:objetivo|papel|rol|trabajo|trabalho)\b"
     r"|\b(?:asistente|assistente)(?: [a-z]+){0,2} (?:sin|sem) (?:limites|filtros)\b"
     r"|\b(?:instrucao|instruccion|ordem|orden|comando)(?: [a-z]+)? (?:do|da|del|de la|de) "
     r"(?:administrador|admin|sistema|desenvolvedor|desarrollador|suporte|soporte)\b"

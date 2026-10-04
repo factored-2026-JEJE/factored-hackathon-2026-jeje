@@ -180,14 +180,63 @@ def test_mensagem_em_espanhol_tem_exemplos_em_espanhol(exemplos):
 
 @pytest.mark.parametrize(("intencao", "fluxo"), [("fraude", "abrir_disputa"),
                                                  ("bloquear", "relato_de_fraude"),
-                                                 ("desbloquear", "fora_de_escopo"),
                                                  ("humano", "explicar_recusa")])  # fmt: skip
-def test_o_llm_diz_a_intencao_inclusive_bloqueio_desbloqueio_e_atendente(exemplos, intencao,
-                                                                        fluxo):  # fmt: skip
+def test_o_llm_diz_a_intencao_inclusive_bloqueio_e_atendente(exemplos, intencao, fluxo):
     with ollama_falso(resposta(intencao)) as (url, _):
         leitura = cascata(url, exemplos, fluxo=fluxo, confianca=0.79)(VAGA, "pt", REFERENCIA)
     assert leitura.lida.intencao == intencao
     assert leitura.fonte == "ollama:qwen3-teste"
+
+
+MANTER = (
+    "Já está bloqueado. Não quero transferências nem nada. Preciso só desse bloqueio agora mesmo."
+)
+
+
+@pytest.mark.parametrize(
+    ("texto", "idioma"),
+    [
+        ("quero voltar a usar meu cartão", "pt"),
+        ("libera meu cartão por favor", "pt"),
+        ("quiero volver a usar mi tarjeta", "es"),
+        ("ya la encontré, quiero volver a usarla", "es"),
+        ("ya apareció, deshazlo por favor", "es"),
+    ],
+)
+def test_o_desbloqueio_que_o_llm_le_vale_com_um_verbo_de_desfazer(exemplos, texto, idioma):
+    """As regras não leem estes pedidos; o LLM lê o desbloqueio, e o verbo de desfazer confirma."""
+    assert interpretar(texto, idioma, REFERENCIA).intencao == "desconhecida"
+    with ollama_falso(resposta("desbloquear")) as (url, pedidos):
+        leitura = cascata(url, exemplos, fluxo="fora_de_escopo", confianca=0.79)(
+            texto, idioma, REFERENCIA
+        )
+    assert (len(pedidos), leitura.lida.intencao) == (1, "desbloquear")
+    assert leitura.lida.sinais[-1] == "modelo"
+
+
+@pytest.mark.parametrize(
+    ("texto", "idioma"),
+    [
+        # A frase do ACH-183: quem quer manter o bloqueio, lida pelo LLM como desbloqueio.
+        (MANTER, "pt"),
+        ("Deixa bloqueado assim mesmo", "pt"),
+        ("Não desbloqueia, deixa assim", "pt"),
+        ("No quiero desbloquearla todavía", "es"),
+        ("Ya está bloqueada, déjala así", "es"),
+    ],
+)
+def test_sem_verbo_de_desfazer_o_desbloqueio_do_llm_fica_nao_entendido(exemplos, texto, idioma):
+    """ACH-183: sem um verbo de desfazer, ou com ele negado, a leitura de desbloqueio do LLM não
+    vale (a proposta de desfazer, com um sim por reflexo, desbloquearia o cartão); o trace diz
+    por quê."""
+    assert interpretar(texto, idioma, REFERENCIA).intencao == "desconhecida"
+    with ollama_falso(resposta("desbloquear")) as (url, pedidos):
+        leitura = cascata(url, exemplos, fluxo="fora_de_escopo", confianca=0.79)(
+            texto, idioma, REFERENCIA
+        )
+    assert (len(pedidos), leitura.lida.intencao) == (1, "desconhecida")
+    assert leitura.lida.sinais[-1] == "modelo:desbloquear-sem-desfazer"
+    assert leitura.fonte == "ollama:qwen3-teste" and leitura.chamada is not None
 
 
 def test_llm_que_tambem_nao_entende_deixa_a_mensagem_nao_entendida(exemplos):
@@ -312,6 +361,26 @@ def test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar(cenari
     assert sem_llm.nao_entendi is None
 
 
+def test_fora_de_escopo_que_so_o_llm_leu_nao_oferece_o_atendente(cenario_conversa, exemplos):
+    """REG-79, segunda rodada: a instrução com outra redação, que as regras e o leitor não entendem
+    e o LLM lê como fora de escopo, responde o que o atendimento faz, sem a oferta, e o "sim"
+    depois não encaminha. O fora de escopo que as regras leem ("quero um empréstimo") segue
+    oferecendo."""
+    llm = ollama_falso(resposta("fora_de_escopo"))
+    with llm as (url, pedidos), cliente(cenario_conversa) as http:
+        http.app.state.interpretador = cascata(url, exemplos)
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        lida = dizer(http, auth, conversa, VAGA)
+        sim = dizer(http, auth, conversa, "sim")
+        emprestimo = dizer(http, auth, abrir_conversa(http, auth, "pt"), "Quero um empréstimo")
+    assert len(pedidos) == 1  # só a mensagem vaga chegou ao LLM
+    assert (lida["regra"], lida["acao"], lida["estado"]) == ("POL-ESC-01", "recusar", "livre")
+    assert lida["resposta"].startswith("Por aqui eu posso consultar transações")
+    assert (sim["atendimento"], sim["estado"]) == (None, "livre")
+    assert (emprestimo["acao"], emprestimo["estado"]) == ("oferecer_humano", "oferecendo_humano")
+
+
 def test_na_conversa_o_llm_so_le_e_o_turno_registra_quem_leu(cenario_conversa, exemplos):
     with ollama_falso(resposta("contestar")) as (url, _), cliente(cenario_conversa) as http:
         http.app.state.interpretador = cascata(url, exemplos)
@@ -328,6 +397,21 @@ def test_na_conversa_o_llm_so_le_e_o_turno_registra_quem_leu(cenario_conversa, e
             )
         ).all()
     assert tuple(evento) == ("ollama:qwen3-teste", True, USO["prompt_eval_count"])
+
+
+def test_manter_o_bloqueio_nao_recebe_a_proposta_de_desfazer(cenario, exemplos):  # noqa: F811
+    """ACH-183 na conversa: depois do bloqueio, quem pede para manter não recebe a POL-BLQ-04
+    (o LLM falso lê desbloqueio, como o qwen3 leu), e o bloqueio continua."""
+    manter = "Já está bloqueado. Não quero transferências nem nada. Preciso só desse bloqueio."
+    with ollama_falso(resposta("desbloquear")) as (url, pedidos), cliente(cenario) as http:
+        http.app.state.interpretador = cascata(url, exemplos, fluxo="fora_de_escopo")
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "pt")
+        bloqueio = dizer(http, auth, conversa, "quero bloquear meu cartão")
+        turno = dizer(http, auth, conversa, manter)
+    assert bloqueio["acao"] == "bloquear_cartao" and len(pedidos) == 1
+    assert turno["regra"] != "POL-BLQ-04" and turno["estado"] != "confirmando_desbloqueio"
+    assert [b["desfeito_em"] for b in bloqueios(cenario)] == [None]
 
 
 def test_fraude_que_so_o_llm_leu_vai_ao_atendente_sem_bloquear_o_cartao(
