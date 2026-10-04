@@ -661,7 +661,7 @@ make avaliar VARIANTE=regras      # sem modelo nenhum
   log guarda só a classe do erro, nunca a mensagem, e os eventos que a Operação mostra não têm o
   cliente nem o texto.
 - **Sem custo por chamada:** não há cota nem tarifa de modelo, e o custo é o tempo da máquina. As
-  regras leem cada mensagem em ~1,3 ms de CPU (p50, nas 14.124 mensagens da validação). O leitor
+  regras leem cada mensagem em ~2 ms de CPU (p50, nas 14.124 mensagens da validação, no congelado). O leitor
   e5 lê o que elas não entendem, na CPU da própria API (36–91 ms, medido num Mac M4 via Docker). O
   LLM lê só o que o leitor não decide: 12% (es) e 17% (pt) das mensagens no teste do BANKING77, com
   ~0,6 s por chamada na GPU (p50).
@@ -713,10 +713,10 @@ make avaliar VARIANTE=regras      # sem modelo nenhum
   em até 280 caracteres, as falas do cliente no pedido em curso que trazem algo novo ao atendente:
   o pedido, cada pista (valor, data, status, comércio) e o pedido de atendente. A escolha é por
   cobertura desses campos, na ordem em que foram ditas, e a fala sem fato fica de fora (DEV-036).
-- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~1,3 ms de CPU por
-  mensagem (p50 de 1,3 ms e p95 de 3,7 ms nas 14.124 mensagens dos conjuntos da validação, desde
-  que o termo composto deixou de procurar o segundo grupo sem o primeiro; eram 2,8 ms antes disso
-  e ~100 ms antes de cada expressão ser compilada uma vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
+- Capacidade medida neste PC (uma API, dados reais): leitura pelas regras ~2 ms de CPU por
+  mensagem (p50 de 2,07 ms e p95 de 5,24 ms nas 14.124 mensagens dos conjuntos da validação, no
+  congelado `3cf8c3f`, com a máquina livre; eram ~100 ms antes de cada expressão ser compilada uma
+  vez, ACH-107); leitura pelo leitor e5 36–91 ms (fixture, Mac M4 via Docker); com o modelo local
   carregado ~0,7 s; EDA inteira ~1 s; consulta por cliente abaixo de 1 ms; recarga completa ~5 min.
 - Vários clientes ao mesmo tempo (medição da validação, EXP-008, numa stack local com o leitor, no
   `511dde7` de 01/10): um processo do uvicorn usa um núcleo e, com as regras compiladas uma vez
