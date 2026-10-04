@@ -34,8 +34,8 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
 
   // O aviso ao atendente é o bloqueio no console.
   await page.getByRole("tab", { name: UI.es.agente }).click();
-  const painel = page.getByRole("region", { name: "Bloqueios de cartão" });
-  await expect(painel.getByRole("listitem", { name: `Bloqueio ${bloqueio}` })).toContainText("bloqueio completo");
+  const painel = page.getByRole("region", { name: UI.es.bloqueios });
+  await expect(painel.getByLabel(bloqueio, { exact: true })).toContainText(UI.es.completo);
 
   // Dentro do prazo, o cliente desfaz pela conversa, e só com o sim.
   await page.getByRole("tab", { name: UI.es.cliente }).click();
@@ -56,7 +56,7 @@ test("bloquear o cartão pela conversa e desfazer dentro do prazo, com o console
 
   // Some do console, na tela e na API.
   await page.getByRole("tab", { name: UI.es.agente }).click();
-  await expect(painel.getByRole("listitem", { name: `Bloqueio ${bloqueio}` })).toHaveCount(0);
+  await expect(painel.getByLabel(bloqueio, { exact: true })).toHaveCount(0);
   const depois: { id: string }[] = await (await request.get("/api/atendimento/bloqueios?limite=100")).json();
   expect(depois.map((b) => b.id)).not.toContain(bloqueio);
 });
@@ -88,9 +88,11 @@ test("relato de roubo: o cliente desfaz o bloqueio em até 7 dias pela conversa,
 
   // O caso, na fila do atendente, mostra que o cliente desfez o bloqueio.
   await page.getByRole("tab", { name: UI.es.agente }).click();
-  const caso = page.getByRole("region", { name: "Fila do atendimento humano" }).getByRole("listitem", { name: `Encaminhamento ${atendimento}` });
-  await expect(caso.getByRole("list", { name: "Ações tentadas" })).toContainText(`desbloquear_cartao: ${bloqueio}: desfeito pelo cliente`);
-  // Sem sobra para as outras jornadas: o atendente assume o caso.
-  await caso.getByRole("button", { name: `Assumir ${atendimento}` }).click();
-  await expect(caso).toHaveCount(0);
+  const caso = page.getByRole("region", { name: UI.es.fila }).getByRole("article", { name: atendimento });
+  await expect(caso).toContainText(UI.es.desfeitoPeloCliente(bloqueio));
+  // Sem sobra para as outras jornadas: o atendente assume o caso, que fica na tela como assumido.
+  await caso.getByRole("button", { name: `${UI.es.assumir} ${atendimento}` }).click();
+  await expect(caso.getByRole("button", { name: `${UI.es.assumido} ${atendimento}` })).toHaveAttribute("aria-pressed", "true");
+  const fila: { id: string }[] = await (await request.get("/api/atendimento/fila?limite=100")).json();
+  expect(fila.map((e) => e.id)).not.toContain(atendimento);
 });

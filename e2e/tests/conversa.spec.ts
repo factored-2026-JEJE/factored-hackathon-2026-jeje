@@ -167,10 +167,11 @@ for (const idioma of ["es", "pt"] as const) {
     // O atendente fica na aba dele; só a área escolhida aparece.
     await page.getByRole("tab", { name: UI[idioma].agente }).click();
     await expect(page.getByRole("region", { name: UI[idioma].conversa })).toBeHidden();
-    await expect(page.getByRole("heading", { name: "Qualidade dos dados" })).toBeHidden();
-    const naFila = page.getByRole("region", { name: "Fila do atendimento humano" }).getByRole("listitem", { name: `Encaminhamento ${atendimento}` });
+    await expect(page.locator("#painel-operacao")).toBeHidden();
+    // O caso do design (2.10): a regra no topo e a fala do cliente.
+    const naFila = page.getByRole("region", { name: UI[idioma].fila }).getByRole("article", { name: atendimento });
     await expect(naFila).toContainText("POL-HUM-01");
-    await expect(naFila).toContainText(`Pedido: “${t.fraude}”`);
+    await expect(naFila).toContainText(`“${t.fraude}”`);
     const fila: { id: string; regra: string; idioma: string; pedido: string }[] = await (await request.get("/api/atendimento/fila?limite=100")).json();
     expect(fila).toContainEqual(expect.objectContaining({ id: atendimento, regra: "POL-HUM-01", idioma, pedido: t.fraude }));
 
@@ -181,13 +182,13 @@ for (const idioma of ["es", "pt"] as const) {
     const doCliente = ativos.filter((b) => b.customer_id === primeira!.customer_id).map((b) => b.id);
     expect(citados.length > 0).toBe(doCliente.length > 0);
     for (const id of citados) expect(doCliente).toContain(id);
-    const painel = page.getByRole("region", { name: "Bloqueios de cartão" });
-    for (const id of citados) await expect(painel.getByRole("listitem", { name: `Bloqueio ${id}` })).toBeVisible();
+    const painel = page.getByRole("region", { name: UI[idioma].bloqueios });
+    for (const id of citados) await expect(painel.getByLabel(id, { exact: true })).toBeVisible();
 
-    // O atendente assume: sai da fila aberta, na tela e na API (e a suíte não deixa sobra).
-    await naFila.getByRole("button", { name: `Assumir ${atendimento}` }).click();
-    await expect(page.getByRole("status").filter({ hasText: `Você assumiu ${atendimento}.` })).toBeVisible();
-    await expect(naFila).toHaveCount(0);
+    // O atendente assume: o caso sai da fila aberta da API e fica na tela como assumido (e a suíte
+    // não deixa sobra).
+    await naFila.getByRole("button", { name: `${UI[idioma].assumir} ${atendimento}` }).click();
+    await expect(naFila.getByRole("button", { name: `${UI[idioma].assumido} ${atendimento}` })).toHaveAttribute("aria-pressed", "true");
     const depois: { id: string }[] = await (await request.get("/api/atendimento/fila?limite=100")).json();
     expect(depois.map((e) => e.id)).not.toContain(atendimento);
   });
