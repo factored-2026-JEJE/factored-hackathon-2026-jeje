@@ -16,9 +16,30 @@ models only read the message, never act.
   (`make avaliar VARIANTE=regras` runs without the LLM); `make atacar` runs the adaptive attacker.
 
 <!-- tabela-do-teste-final:inicio -->
-_The final test table (the frozen version against the sealed scenarios, VAL-019) goes here once it
-runs._
+| | Safe resolution | Coverage | Containment | Missed handoff | Needless handoff | Unsafe cases | Grounding | p50 / p95 | Cost |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline · rules only | 95.0% | 75.0% | 93.3% | 0 / 20 | 0 / 60 | 0 / 80 | 100.0% | 54 / 60 ms | 0.00 LLM/conv. |
+| System · run 1 | 93.8% | 75.0% | 93.3% | 0 / 20 | 0 / 60 | 0 / 80 | 100.0% | 96 / 629 ms | 0.13 LLM/conv. |
+| System · run 2 | 93.8% | 75.0% | 93.3% | 0 / 20 | 0 / 60 | 0 / 80 | 100.0% | 101 / 633 ms | 0.13 LLM/conv. |
+
+_The final test: 80 held-out scenarios, run once on the frozen commit `3cf8c3fac1d5` (EV-276); the same numbers on the site._
 <!-- tabela-do-teste-final:fim -->
+
+**Reading the table.**
+- **Safety:** no run had an unsafe case or a missed handoff, and every cited fact was grounded.
+- **The one difference:** the delivered system resolved 75 of 80 in both runs, one fewer than the
+  rules alone (76 of 80). The miss is a Spanish follow-up on an open case: the turn that reached the
+  LLM opened a new handoff (POL-HUM-01) instead of following the case (POL-HUM-04).
+- **Against the criterion set before the test:** the paired difference is −1.25 points (95%
+  interval −3.75 to 0). The criterion asked for the system to be at least as good as the rules in
+  each language: Portuguese ties, so it holds there, and Spanish falls one scenario short (−2.5
+  points, −7.5 to 0). The case is ACH-189. It stays as it is, because the code was frozen before the
+  test.
+- **Cost and latency:** the LLM read 10 turns per run (the Cost column: LLM calls per conversation,
+  0.125 shown rounded). The turns that reach the e5 reader and the LLM raise the p50 to about
+  100 ms and the p95 to about 630 ms, against 54 and 60 ms with the rules alone.
+- **Shared misses:** both variants miss two cases. One is a status question answered without the
+  case protocol. The other is a correction read as a question instead of a dispute.
 
 **Test it in 2 minutes** (the app opens in English; the conversation is in Spanish or Portuguese):
 
