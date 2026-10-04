@@ -1,0 +1,55 @@
+# O portão de release com o atacante adaptativo (make atacar, DEV-021b, NOV-13a). Fica por cima do
+# compose.ci.yaml (a fixture) e do mutantes/compose.mutantes.yaml (sem portas no host).
+#
+# A API: a variante que vai ser entregue, a do serviço api do compose.yaml. É o leitor e5 com o LLM do
+# "não entendi" pela ponte do Ollama, e a garantia de fraude ligada. O compose.ci.yaml volta para
+# "regras", e com "regras" ou "leitor" o caminho do LLM ficaria de fora do portão (ACH-202). A
+# reincidência fica folgada como no NOV-13 (ACH-040): a fixture tem poucas personas, e com 10 as
+# rodadas saturam.
+#
+# O atacante: roda num container na mesma rede e fala com o Ollama do host pela ponte
+# (host.docker.internal). O oráculo dele lê os limites dos mesmos arquivos do compose com que a
+# stack subiu, com o ajuste da reincidência. O limite e os episódios do portão ficam aqui; o
+# scripts/atacar.sh só acrescenta o commit e o que vier em ARGS, e o último valor de cada opção vale.
+services:
+  api:
+    environment:
+      INTERPRETADOR: "leitor_modelo"
+      REINCIDENCIA_PRE_CASOS: "1000"
+  atacante:
+    image: python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
+    profiles: ["atacar"]
+    working_dir: /repo
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    entrypoint:
+      - python
+      - -m
+      - avaliacao.atacante
+      - --url
+      - http://web:8080/api
+      - --ollama
+      - http://host.docker.internal:11434
+      - --produto
+      - /repo
+      - --compose
+      - compose.yaml
+      - compose.ci.yaml
+      - --ajuste
+      - REINCIDENCIA_PRE_CASOS=1000
+      - --limite
+      - "0"
+      - --episodios
+      - "8"
+      - --exigir-llm
+      - --saida
+      - /saida
+    volumes:
+      - ./avaliacao:/repo/avaliacao:ro
+      - ./data/fixture:/repo/data/fixture:ro
+      - ./compose.yaml:/repo/compose.yaml:ro
+      - ./compose.ci.yaml:/repo/compose.ci.yaml:ro
+      - ./resultados/atacante:/saida
+    depends_on:
+      web:
+        condition: service_healthy

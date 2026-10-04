@@ -795,8 +795,8 @@
       "trocas": [
         {
           "arquivo": "src/Conversa.tsx",
-          "de": "{(situacao.estado === \"confirmando\" || situacao.estado === \"confirmando_desbloqueio\") && (",
-          "para": "{situacao.estado === \"confirmando\" && ("
+          "de": "        situacao.estado === \"confirmando_desbloqueio\" ||\n",
+          "para": ""
         }
       ],
       "testes": [
@@ -2488,8 +2488,8 @@
       "trocas": [
         {
           "arquivo": "src/abas/Atendente.tsx",
-          "de": "    return fora ? traduzir(fora, lingua) : a.acao;",
-          "para": "    return a.acao;"
+          "de": "    const rotulo = chave ? t.act[chave] : fora ? traduzir(fora, lingua) : a.acao;",
+          "para": "    const rotulo = chave ? t.act[chave] : a.acao;"
         }
       ],
       "testes": [
@@ -2993,6 +2993,21 @@
       ],
       "testes": [
         "src/abas/Atendente.test.tsx > o desbloqueio anotado no caso diz qual bloqueio saiu e quem o desfez"
+      ]
+    },
+    {
+      "id": "M-WEB-210",
+      "requisito": "R07",
+      "descricao": "A pergunta antes de bloquear (POL-BLQ-07) sem os botões do sim",
+      "trocas": [
+        {
+          "arquivo": "src/Conversa.tsx",
+          "de": "        situacao.estado === \"confirmando_bloqueio\") && (",
+          "para": "        situacao.estado === \"nenhum\") && ("
+        }
+      ],
+      "testes": [
+        "src/Conversa.test.tsx > pergunta antes de bloquear (POL-BLQ-07) mostra os mesmos botões do sim"
       ]
     }
   ]
