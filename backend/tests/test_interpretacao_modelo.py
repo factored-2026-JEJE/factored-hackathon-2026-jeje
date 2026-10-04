@@ -292,6 +292,23 @@ def test_instrucao_injetada_na_mensagem_nao_vira_acao(cenario_conversa):
     assert interpretacoes(cenario_conversa)[-1] == "regras"
 
 
+def test_com_a_proposta_pendente_a_leitura_do_modelo_nao_confirma(cenario_conversa):
+    """O que as regras não entendem vai ao modelo também com a proposta pendente; mesmo ele lendo
+    "contestar", só o "sí" das regras confirma, e nada é registrado (ACH-188)."""
+    with (
+        ollama_falso(saida(idioma="es", intencao="contestar")) as (url, pedidos),
+        cliente(com_modelo(cenario_conversa, url)) as http,
+    ):
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "es")
+        proposta = dizer(http, auth, conversa, "No reconozco el cobro de 45,90 en Streaming Plus")
+        dizer(http, auth, conversa, VAGA)
+    assert proposta["estado"] == "confirmando"
+    assert len(pedidos) == 1
+    assert interpretacoes(cenario_conversa)[-1] == "ollama:modelo-teste"
+    assert pre_casos(cenario_conversa) == 0
+
+
 def test_enquanto_o_modelo_pensa_nenhuma_conexao_fica_presa(cenario_conversa):
     """ACH-030: a mensagem é lida antes de o turno abrir a transação e travar a conversa. Enquanto
     o modelo pensa, nenhuma conexão do pool fica presa, e outra conversa e a readiness respondem."""
