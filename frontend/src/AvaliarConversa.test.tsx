@@ -2,7 +2,15 @@
 // API lista testadores, envia exatamente o que foi escolhido e mostra a Issue que a API devolveu.
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
+import { LinguaDoAppProvider } from "./app/LinguaDoApp";
 import { AvaliarConversa } from "./AvaliarConversa";
+
+// A avaliação segue a língua da interface; estes testes a abrem em português, a língua do time.
+const emPortugues = (avaliacao: ReactElement) => {
+  window.history.replaceState(null, "", "/?lang=pt");
+  return <LinguaDoAppProvider>{avaliacao}</LinguaDoAppProvider>;
+};
 
 function servidor(testadores: { status: number; corpo: unknown }, review = { status: 201, corpo: {} as unknown }) {
   const enviados: unknown[] = [];
@@ -26,6 +34,7 @@ const TIME = { status: 200, corpo: ["enzo200325", "Prism411"] };
 afterEach(() => {
   vi.unstubAllGlobals();
   localStorage.clear();
+  window.history.replaceState(null, "", "/");
 });
 
 async function preencher(testador = "Prism411") {
@@ -39,7 +48,7 @@ async function preencher(testador = "Prism411") {
 
 test("fora do modo de demonstração (sem testadores) não mostra nada", async () => {
   servidor({ status: 404, corpo: { detail: "Not Found" } });
-  const { container } = render(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />);
+  const { container } = render(emPortugues(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />));
   await act(async () => {
     await new Promise((ok) => setTimeout(ok, 0));
   });
@@ -48,7 +57,7 @@ test("fora do modo de demonstração (sem testadores) não mostra nada", async (
 
 test("envia o que foi escolhido e mostra a Issue devolvida pela API", async () => {
   const enviados = servidor(TIME, { status: 201, corpo: { review_id: 1, issue_url: "https://github.com/o/r/issues/7" } });
-  render(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />);
+  render(emPortugues(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />));
   const u = await preencher();
   await u.click(screen.getByRole("button", { name: "Registrar avaliação" }));
   expect(enviados).toEqual([{ avaliador: "Prism411", nota: 2, resolveu: "nao", comentario: "Pediu o valor de novo." }]);
@@ -57,7 +66,7 @@ test("envia o que foi escolhido e mostra a Issue devolvida pela API", async () =
 
 test("só envia com quem testa, a nota e se resolveu escolhidos", async () => {
   servidor(TIME);
-  render(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />);
+  render(emPortugues(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />));
   const u = userEvent.setup();
   const enviar = await screen.findByRole("button", { name: "Registrar avaliação" });
   expect(enviar).toBeDisabled();
@@ -70,19 +79,19 @@ test("só envia com quem testa, a nota e se resolveu escolhidos", async () => {
 
 test("lembra quem está testando na próxima conversa", async () => {
   servidor(TIME, { status: 201, corpo: { review_id: 1, issue_url: null } });
-  const { unmount } = render(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />);
+  const { unmount } = render(emPortugues(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />));
   const u = await preencher("enzo200325");
   await u.click(screen.getByRole("button", { name: "Registrar avaliação" }));
   expect(await screen.findByRole("status")).toHaveTextContent("Review enviada");
   expect(screen.queryByRole("link")).toBeNull();
   unmount();
-  render(<AvaliarConversa token="T" conversaId="C2" aoExpirar={() => {}} />);
+  render(emPortugues(<AvaliarConversa token="T" conversaId="C2" aoExpirar={() => {}} />));
   expect(await screen.findByLabelText("Quem está testando")).toHaveValue("enzo200325");
 });
 
 test("falha ao enviar avisa e deixa tentar de novo", async () => {
   servidor(TIME, { status: 500, corpo: {} });
-  render(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />);
+  render(emPortugues(<AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />));
   const u = await preencher();
   await u.click(screen.getByRole("button", { name: "Registrar avaliação" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível enviar a review");
@@ -92,8 +101,21 @@ test("falha ao enviar avisa e deixa tentar de novo", async () => {
 test("sessão expirada ao enviar volta para a escolha do cliente", async () => {
   servidor(TIME, { status: 401, corpo: { detail: "Sessão inválida ou expirada" } });
   const aoExpirar = vi.fn();
-  render(<AvaliarConversa token="T" conversaId="C1" aoExpirar={aoExpirar} />);
+  render(emPortugues(<AvaliarConversa token="T" conversaId="C1" aoExpirar={aoExpirar} />));
   const u = await preencher();
   await u.click(screen.getByRole("button", { name: "Registrar avaliação" }));
   await vi.waitFor(() => expect(aoExpirar).toHaveBeenCalledOnce());
+});
+
+test("a avaliação segue a língua da interface", async () => {
+  servidor(TIME);
+  window.history.replaceState(null, "", "/?lang=en");
+  render(
+    <LinguaDoAppProvider>
+      <AvaliarConversa token="T" conversaId="C1" aoExpirar={() => {}} />
+    </LinguaDoAppProvider>,
+  );
+  expect(await screen.findByRole("form", { name: "Rate this conversation" })).toBeInTheDocument();
+  expect(screen.getByRole("group", { name: "Did the assistant solve it?" })).toHaveTextContent("SolvedPartlyNot solved");
+  expect(screen.getByRole("button", { name: "Submit review" })).toBeDisabled();
 });

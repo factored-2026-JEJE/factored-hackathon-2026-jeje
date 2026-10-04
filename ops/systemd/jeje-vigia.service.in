@@ -1,0 +1,8 @@
+# A conferência rápida da publicação (DEV-021a): a página, o portão e a saúde, sem conversa.
+[Unit]
+Description=JEJE: conferência rápida da publicação
+
+[Service]
+Type=oneshot
+WorkingDirectory=@REPO@
+ExecStart=@REPO@/scripts/vigiar-publicacao.sh

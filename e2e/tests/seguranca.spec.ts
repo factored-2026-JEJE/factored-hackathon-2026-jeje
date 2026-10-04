@@ -1,12 +1,13 @@
 // Cabeçalhos de segurança servidos pelo Caddy em toda resposta, da página e da API: o navegador
-// não adivinha o tipo do conteúdo, a página não pode ser embutida em outro site (clickjacking) e
-// o endereço não vaza como referer. O esperado está escrito aqui e é conferido nas respostas reais.
+// não adivinha o tipo do conteúdo, a página não pode ser embutida em outro site (clickjacking; só a
+// própria origem, para o site abrir o app na janela dele) e o endereço não vaza como referer. O
+// esperado está escrito aqui e é conferido nas respostas reais.
 import { expect, test } from "@playwright/test";
 
 const ESPERADOS = {
   "x-content-type-options": "nosniff",
-  "x-frame-options": "DENY",
-  "content-security-policy": "frame-ancestors 'none'",
+  "x-frame-options": "SAMEORIGIN",
+  "content-security-policy": "frame-ancestors 'self'",
   "referrer-policy": "no-referrer",
 };
 
