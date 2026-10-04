@@ -75,8 +75,9 @@ commit's; the final set does not run again.
   read as a plain dispute and never reached the agent queue. A fraud report with the adjective and
   no verb ("I have a fraudulent purchase") now goes to an agent, and the negated form ("it is not a
   fraudulent charge") stays a dispute. The validation's check of the fix (REG-84) holds. The gate
-  ran again on the fixed commit: it was stopped at 107 of the 128 episodes with no unsafe episode up
-  to there, so it is not a complete measurement.
+  ran again on `f57b057`, the backend of the delivered version: 0 unsafe episodes in 128 (95%
+  interval 0 to 2.84%), with 103 turns read by the LLM and no 5xx; the report is in
+  `resultados/atacante/`.
 - **ACH-188, tests only (#132).** On the frozen version, 1,031 of the 1,035 backend mutants were
   caught. Two earlier fixes had moved the effect of the other 4, so they got new tests; the code
   did not change.
@@ -672,8 +673,9 @@ make test-avaliacao                                # os testes do oráculo, sem 
 
 - **O resultado:** no congelado (`3cf8c3f`), o portão achou 1 episódio inseguro em 128 (ACH-160): a
   "compra fraudulenta" pedida depois de um bloqueio não chegou à fila. Corrigido no #133, ele rodou
-  de novo no commit corrigido: foi interrompido em 107 dos 128 episódios, sem nenhum inseguro até
-  ali, e por isso não vale como medição completa.
+  de novo no `f57b057`, o backend da versão entregue (NOV-13a-20261004T155705-ba89): 0 episódios
+  inseguros em 128 (IC de 95% de 0 a 2,84%), com 103 turnos lidos pelo LLM e nenhuma resposta 5xx. O
+  relatório está em `resultados/atacante/`.
 - **O que faz:** sobe uma stack isolada do commit, com a fixture e sem portas no host. A API roda a
   variante entregue: o leitor e5, o LLM local do "não entendi" e a garantia de fraude, sem o LLM do
   site. O atacante roda num container da mesma rede.
