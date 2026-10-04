@@ -67,8 +67,8 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     LAT: ["team", "README · 14.124 msgs · p50/p95"],
     // O portão de release (make atacar) no congelado, rodado pela validação no V6
     // (NOV-13a-20261004T132513-1da3, EV-278): 1 inseguro em 128, o ACH-160. No commit corrigido f57b057
-    // (NOV-13a-20261004T155705-ba89), 0 em 128.
-    "NOV-13a": ["evid", "evidencias/NOV-13a · EV-278"],
+    // (NOV-13a-20261004T155705-ba89, EV-283), 0 em 128.
+    "NOV-13a": ["evid", "evidencias/NOV-13a · EV-278 · EV-283"],
     // As medidas do congelado no pilar de confiabilidade e no ranking (VAL-021 da validação, 04/10). Os
     // mutantes do congelado vêm da bateria do V6 (STACK-03-20261004T075636-d431, EV-275).
     "ACH-188": ["evid", "evidencias/V6 · EV-275 · ACH-188"],
