@@ -41,7 +41,8 @@ fi
 U=(--user "$(id -u):$(id -g)")
 # A base: gerada pelo pacote da validação a partir da fixture do commit, com o manifesto regenerado
 # pelo próprio produto.
-"${P[@]}" build api web || exit 2
+# A imagem da API sai do serviço migrate (o api, o seed e o avaliador usam a mesma).
+"${P[@]}" build migrate web || exit 2
 "${P[@]}" --profile avaliar run --rm --no-deps "${U[@]}" avaliador base --produto /produto --destino "/saida/base-${curto}" || exit 2
 "${P[@]}" run --rm --no-deps "${U[@]}" seed python -m jeje.dados manifesto || exit 2
 # A stack com a base carregada, e os cenários na variante.
