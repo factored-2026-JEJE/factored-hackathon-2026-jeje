@@ -269,9 +269,11 @@ class _Turno:
                 # O relato de fraude também bloqueia o cartão, pelo dispositivo da sessão.
                 return self._relato_de_fraude(decisao)
             return self._encaminhar(decisao, self._em_foco())
-        if self.lida.instrucao:
+        lida_fora = self.lida.intencao == "fora_de_escopo" and self.lida.cita_as_regras
+        if self.lida.instrucao or lida_fora:
             # A mensagem que tenta mudar as regras (ACH-203) não muda nada: diz o que o atendimento
-            # faz, sem oferecer o atendente, e o que estava pendente continua pendente.
+            # faz, sem oferecer o atendente, e o que estava pendente continua pendente. O fora de
+            # escopo de quem cita as regras ou a política entra aqui também (REG-79).
             limite = texto("INSTRUCAO", self.idioma)
             return Saida("POL-ESC-01", "recusar", (limite,), self.estado, self.contexto)
         if self.estado == "escolhendo_cartao":
