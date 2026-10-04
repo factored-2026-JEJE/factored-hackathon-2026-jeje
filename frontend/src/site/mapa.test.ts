@@ -114,4 +114,25 @@ describe("os fatos do main no texto do site (fatos.ts)", () => {
       expect(entrada(CONTEUDO_DO_MAIN)?.[idioma]).not.toContain("DENY");
     }
   });
+
+  it("o tempo das regras é o medido no congelado (p50 de 2,1 ms e p95 de 5,2 ms), com a fonte no README", () => {
+    const tempo = (c: typeof CONTEUDO) => c.stops.find((x) => x.id === "leitura")?.stat;
+    expect(tempo(CONTEUDO)?.v).toMatchObject({ en: "2.8 ms" });
+    expect(tempo(CONTEUDO_DO_MAIN)?.v).toMatchObject({ pt: "2,1 ms", es: "2,1 ms", en: "2.1 ms" });
+    expect(tempo(CONTEUDO_DO_MAIN)?.l).toMatchObject({
+      pt: "p50 de CPU por mensagem nas regras (p95 5,2 ms)",
+      en: "p50 CPU per message in the rules (p95 5.2 ms)",
+    });
+    expect(CONTEUDO_DO_MAIN.sources.LAT).toEqual(["team", "README · 14.124 msgs · p50/p95"]);
+  });
+
+  it("o placar do atacante é o do portão de release no congelado, com o caso inseguro dito em cada língua", () => {
+    const placar = CONTEUDO_DO_MAIN.pillars.seg.honest;
+    expect(CONTEUDO.pillars.seg.honest.v).toBe("1/112");
+    expect(placar.v).toBe("1/128");
+    for (const idioma of ["pt", "es", "en"] as const) expect(placar.l[idioma]).toContain("(ACH-160)");
+    expect(placar.l.pt).toContain("um relato de fraude dentro de uma contestação ficou sem atendente");
+    expect(placar.s).toBe("NOV-13a");
+    expect(CONTEUDO_DO_MAIN.sources["NOV-13a"]).toEqual(["evid", "evidencias/NOV-13a · ACH-160"]);
+  });
 });

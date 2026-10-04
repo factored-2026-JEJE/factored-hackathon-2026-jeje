@@ -56,6 +56,15 @@ describe("sem a API (o site público)", () => {
     expect(document.documentElement.lang).toBe("es");
   }, LONGO);
 
+  it("o placar do atacante é o do portão de release no congelado (1 em 128, ACH-160) e abre a fonte dele", async () => {
+    render(<Site />);
+    const placar = screen.getByRole("button", { name: /^1\/128/ });
+    expect(placar).toHaveTextContent("a fraud report inside a dispute went without an agent (ACH-160)");
+    expect(placar).toHaveTextContent("↗ NOV-13a");
+    await userEvent.click(placar);
+    expect(await screen.findByText("evidencias/NOV-13a · ACH-160")).toBeInTheDocument();
+  }, LONGO);
+
   it("a conversa mostra o exemplo do design, com as opções e o porquê", async () => {
     localStorage.setItem("jeje.site.locale", "pt");
     render(<Site />);
