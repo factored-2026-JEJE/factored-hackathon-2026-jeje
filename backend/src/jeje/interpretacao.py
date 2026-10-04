@@ -547,6 +547,21 @@ SITE_FALSO = Perto(
     ("falso", "falsos", "falsa", "falsas", "malicioso", "maliciosa", "fraudulento",
      "fraudulenta", "sospechoso", "suspeito", "falsificad*"),
 )  # fmt: skip
+# O relato com o adjetivo e sem o verbo ("tenho uma compra fraudulenta", "un cargo fraudulento de 50
+# dólares", ACH-160): o substantivo e, logo depois, o adjetivo. A cópula negada logo antes ("no es
+# un cargo fraudulento, solo no lo reconozco") deixa a mensagem na contestação.
+COMPRA_FRAUDULENTA = Perto(
+    ("compra", "compras", "cargo", "cargos", "cobro", "cobros", "cobranca", "cobrancas",
+     "transacao", "transacoes", "transaccion", "transacciones", "pagamento", "pagamentos", "pago",
+     "pagos", "movimiento", "movimientos", "movimento", "movimentos", "debito", "debitos",
+     "transferencia", "transferencias", "pix", "saque", "saques", "retiro", "retiros"),
+    ("fraudulent*",),
+    entre=3,
+    so_nessa_ordem=True,
+    antes=3,
+    fora_antes=("no es", "no era", "no fue", "no son", "no parece", "nao e", "nao era", "nao foi",
+                "nao sao", "nao parece", "ni", "nem", "ningun", "ninguna", "nenhum", "nenhuma"),
+)  # fmt: skip
 TRANSFERENCIA_NAO_FEITA = Perto(
     ("transferencia", "transferencias", "movimientos", "movimiento", "movimentacoes",
      "movimentacao", "pix"),
@@ -817,10 +832,10 @@ TERMOS: tuple[tuple[Intencao, tuple[str | Perto, ...]], ...] = (
                 # O uso por outro com a pessoa ("alguien usó mi tarjeta") é o ALGUEM_USOU (ACH-201).
                 "usaron mi tarjeta", "usaram meu cartao",
                 "no fui yo", "nao fui eu", "no la hice yo", "no lo hice yo",
-                # "Esta compra es fraudulenta" (ACH-121). Sem o verbo ("un cargo fraudulento"),
-                # a leitura continua a de hoje.
+                # "Esta compra es fraudulenta" (ACH-121) e, sem o verbo, "tengo un cargo
+                # fraudulento" (ACH-160).
                 "es fraudulent*", "e fraudulent*", "son fraudulent*", "sao fraudulent*",
-                "fue fraudulent*", "foi fraudulent*", "fraudulentamente",
+                "fue fraudulent*", "foi fraudulent*", "fraudulentamente", COMPRA_FRAUDULENTA,
                 # Golpe e dinheiro tirado da conta (ACH-140).
                 "golpe", "estafa", "estafaron", "pix que nao fiz", DINHEIRO_TIRADO,
                 # O golpe contado no passado e o "roubaron" do portunhol (EV-230 da validação).
