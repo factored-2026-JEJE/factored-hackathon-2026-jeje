@@ -3273,6 +3273,37 @@
       "testes": [
         "src/abas/Operacao.test.tsx > a aba relê os números a cada volta à tela, e o turno sem efeito também aparece"
       ]
+    },
+    {
+      "id": "M-WEB-450",
+      "requisito": "R07",
+      "descricao": "O caso perde o dispositivo da sessão entre os fatos (2.1c)",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "  if (caso.dispositivo) {\n    fatos.push({ k: t.fk.device, v: t.top.device[caso.dispositivo === \"cadastrado\" ? \"reg\" : \"new\"] });\n  }\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas",
+        "src/abas/Atendente.test.tsx > a regra que o design não desenhou e a desconhecida"
+      ]
+    },
+    {
+      "id": "M-WEB-451",
+      "requisito": "R07",
+      "descricao": "O dispositivo novo aparece como cadastrado no caso",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "caso.dispositivo === \"cadastrado\" ? \"reg\" : \"new\"",
+          "para": "\"reg\""
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > a regra que o design não desenhou e a desconhecida"
+      ]
     }
   ]
 }
