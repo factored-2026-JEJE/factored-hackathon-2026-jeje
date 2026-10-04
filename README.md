@@ -33,13 +33,39 @@ _The final test: 80 held-out scenarios, run once on the frozen commit `3cf8c3fac
 - **Against the criterion set before the test:** the paired difference is −1.25 points (95%
   interval −3.75 to 0). The criterion asked for the system to be at least as good as the rules in
   each language: Portuguese ties, so it holds there, and Spanish falls one scenario short (−2.5
-  points, −7.5 to 0). The case is ACH-189. It stays as it is, because the code was frozen before the
-  test.
+  points, −7.5 to 0). The case is ACH-189.
 - **Cost and latency:** the LLM read 10 turns per run (the Cost column: LLM calls per conversation,
   0.125 shown rounded). The turns that reach the e5 reader and the LLM raise the p50 to about
   100 ms and the p95 to about 630 ms, against 54 and 60 ms with the rules alone.
 - **Shared misses:** both variants miss two cases. One is a status question answered without the
   case protocol. The other is a correction read as a question instead of a dispute.
+
+**Table 2 · the learned component** (VAL-019a, run once on the frozen commit,
+`EXP-002a-20261004T124023-3dfd`): accuracy on the first message, on a new set never used for tuning,
+sealed before the test and written by two model families not used before (chatbode7b, gaia4b).
+
+| Language | Messages | R · rules only | A · rules and e5 reader | AL · the system | AL − R, accuracy | AL − R, undue action |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| PT | 237 | 71.3% [65.2; 76.7] | 72.2% [66.1; 77.5] | 79.3% [73.7; 84.0] | +8.0 pp [+4.2; +12.2] | +0.5 pp [+0.0; +1.6] (of 191) |
+| ES | — | not measured: fewer than 20 final messages in some intent (a rule fixed before generating) | | | | |
+
+- **The criterion registered before the test:** AL − R with the whole 95% interval above zero, which
+  holds, and the undue action AL − R with the upper bound at most 1 point. The bound is 1.6, so the
+  result is negative, and it is shown as it came out.
+- **Where the differences come from:** the extra undue action comes from the e5 reader (A − R +0.5
+  points, the same). The accuracy gain comes from the LLM (AL − A +7.2 points).
+
+**The reader threshold** (VAL-019b, `NOV-40-20261004T124038-3623`, descriptive): on the first
+message of the final scenarios (38 in ES and 38 in PT), how much is automated and how much of that
+is wrong as the e5 reader's threshold moves; the delivered system uses 0.80.
+
+| Threshold | Automated · ES | Automated · PT | Wrong when automated · ES | Wrong when automated · PT | Undue action · ES | Undue action · PT |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.50 | 86.8% | 84.2% | 5/33 | 3/32 | 3/21 | 1/21 |
+| 0.70 | 84.2% | 78.9% | 4/32 | 2/30 | 2/21 | 1/21 |
+| 0.80 (delivered) | 81.6% | 78.9% | 3/31 | 2/30 | 1/21 | 1/21 |
+| 0.90 | 78.9% | 78.9% | 2/30 | 2/30 | 1/21 | 1/21 |
+| 0.95 | 76.3% | 76.3% | 1/29 | 1/29 | 1/21 | 1/21 |
 
 **Test it in 2 minutes** (the app opens in English; the conversation is in Spanish or Portuguese):
 
