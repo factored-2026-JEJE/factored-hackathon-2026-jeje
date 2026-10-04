@@ -157,141 +157,6 @@
       ]
     },
     {
-      "id": "M-WEB-46",
-      "requisito": "R07",
-      "descricao": "Fila mostra o encaminhamento sem as ações tentadas",
-      "trocas": [
-        {
-          "arquivo": "src/FilaDoAtendimento.tsx",
-          "de": "            {e.acoes.length > 0 && (",
-          "para": "            {false && ("
-        }
-      ],
-      "testes": [
-        "src/FilaDoAtendimento.test.tsx > mostra cada encaminhamento com pedido, fatos, ações e pendências, na ordem da API"
-      ]
-    },
-    {
-      "id": "M-WEB-47",
-      "requisito": "R07",
-      "descricao": "Fila não busca de novo quando a conversa cria encaminhamento",
-      "trocas": [
-        {
-          "arquivo": "src/FilaDoAtendimento.tsx",
-          "de": "  }, [versao, assumidos]);",
-          "para": "  }, [assumidos]);"
-        }
-      ],
-      "testes": [
-        "src/FilaDoAtendimento.test.tsx > fila vazia diz que não há encaminhamento e busca de novo quando a versão muda"
-      ]
-    },
-    {
-      "id": "M-WEB-48",
-      "requisito": "R09",
-      "descricao": "Taxa mostrada como fração crua em vez de porcentagem",
-      "trocas": [
-        {
-          "arquivo": "src/MetricasDoAtendimento.tsx",
-          "de": "taxa === null ? \"—\" : taxa.toLocaleString(\"pt-BR\", { style: \"percent\", maximumFractionDigits: 1 });",
-          "para": "taxa === null ? \"—\" : String(taxa);"
-        }
-      ],
-      "testes": [
-        "src/MetricasDoAtendimento.test.tsx > mostra os números da API com taxas em porcentagem e latências em ms"
-      ]
-    },
-    {
-      "id": "M-WEB-49",
-      "requisito": "R09",
-      "descricao": "Sem eventos, a tela mostra zero em vez de ausência de dado",
-      "trocas": [
-        {
-          "arquivo": "src/MetricasDoAtendimento.tsx",
-          "de": "const ms = (valor: number | null) => (valor === null ? \"—\" :",
-          "para": "const ms = (valor: number | null) => (valor === null ? \"0 ms\" :"
-        }
-      ],
-      "testes": [
-        "src/MetricasDoAtendimento.test.tsx > sem eventos não inventa taxa nem latência"
-      ]
-    },
-    {
-      "id": "M-WEB-50",
-      "requisito": "R03",
-      "descricao": "Fila tira o encaminhamento antes da API confirmar (remoção otimista)",
-      "trocas": [
-        {
-          "arquivo": "src/FilaDoAtendimento.tsx",
-          "de": "    try {\n      const assumido = await assumirEncaminhamento(id);",
-          "para": "    try {\n      setFila((atual) => atual?.filter((x) => x.id !== id) ?? null);\n      const assumido = await assumirEncaminhamento(id);"
-        }
-      ],
-      "testes": [
-        "src/FilaDoAtendimento.test.tsx > assumir tira da fila só depois que a API confirma"
-      ]
-    },
-    {
-      "id": "M-WEB-51",
-      "requisito": "R07",
-      "descricao": "Encaminhamento já assumido vira erro genérico, sem o motivo",
-      "trocas": [
-        {
-          "arquivo": "src/FilaDoAtendimento.tsx",
-          "de": "e instanceof Recusado ? `${id}: ${e.message}.` : `Não foi possível assumir ${id}.`",
-          "para": "`Não foi possível assumir ${id}.`"
-        }
-      ],
-      "testes": [
-        "src/FilaDoAtendimento.test.tsx > encaminhamento já assumido por outro mostra o motivo e atualiza a fila"
-      ]
-    },
-    {
-      "id": "M-WEB-52",
-      "requisito": "R07",
-      "descricao": "Fila não é recarregada depois de assumir",
-      "trocas": [
-        {
-          "arquivo": "src/FilaDoAtendimento.tsx",
-          "de": "    setAssumidos((n) => n + 1);\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "src/FilaDoAtendimento.test.tsx > assumir tira da fila só depois que a API confirma"
-      ]
-    },
-    {
-      "id": "M-WEB-53",
-      "requisito": "R07",
-      "descricao": "Seção da EDA some enquanto os números são calculados",
-      "trocas": [
-        {
-          "arquivo": "src/IndicadoresDaEda.tsx",
-          "de": "  // A seção aparece já;",
-          "para": "  if (estado.tipo === \"carregando\") return <p role=\"status\">Calculando indicadores…</p>;\n  // A seção aparece já;"
-        }
-      ],
-      "testes": [
-        "src/IndicadoresDaEda.test.tsx > a seção aparece já, avisando que os números estão sendo calculados"
-      ]
-    },
-    {
-      "id": "M-WEB-54",
-      "requisito": "R09",
-      "descricao": "Tela mostra chamadas ao modelo sem os fallbacks",
-      "trocas": [
-        {
-          "arquivo": "src/MetricasDoAtendimento.tsx",
-          "de": "`${metricas.modelo.chamadas} (${metricas.modelo.fallbacks} com fallback)`",
-          "para": "`${metricas.modelo.chamadas}`"
-        }
-      ],
-      "testes": [
-        "src/MetricasDoAtendimento.test.tsx > mostra os números da API com taxas em porcentagem e latências em ms"
-      ]
-    },
-    {
       "id": "CONTROLE-web",
       "espera": "sobrevive",
       "descricao": "Troca sem efeito no comportamento; a suíte inteira precisa continuar verde",
@@ -307,66 +172,6 @@
       ]
     },
     {
-      "id": "M-WEB-01",
-      "requisito": "R06",
-      "descricao": "Página declara pronto sem olhar o status da API",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": "{status === \"ready\" ? \"Pronto para atender\" : \"Indisponível\"}",
-          "para": "{\"Pronto para atender\"}"
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"
-      ]
-    },
-    {
-      "id": "M-WEB-02",
-      "requisito": "R06",
-      "descricao": "Banco sem migrations exibido como inacessível (diagnóstico errado)",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": "not_migrated: \"sem migrations aplicadas\"",
-          "para": "not_migrated: \"inacessível\""
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra indisponível e banco sem migrations quando a API responde 503"
-      ]
-    },
-    {
-      "id": "M-WEB-03",
-      "requisito": "R06",
-      "descricao": "Ausência de dataset exibida como se os dados estivessem chegando",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": ": \"nenhum dataset carregado\"}",
-          "para": ": \"carregando dados\"}"
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra nenhum dataset quando o banco está ok mas sem carga"
-      ]
-    },
-    {
-      "id": "M-WEB-04",
-      "requisito": "R06",
-      "descricao": "Falha de rede engolida: a página fica eternamente verificando",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": "        if (!controle.signal.aborted) setEstado({ tipo: \"erro\", detalhe: String(erro) });\n",
-          "para": "        void erro;\n"
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra API inacessível quando a requisição falha na rede"
-      ]
-    },
-    {
       "id": "M-WEB-05",
       "requisito": "R06",
       "descricao": "Cliente aceita status HTTP fora do contrato como se fosse readiness",
@@ -378,37 +183,7 @@
         }
       ],
       "testes": [
-        "src/StatusDoSistema.test.tsx > trata status HTTP fora do contrato como erro"
-      ]
-    },
-    {
-      "id": "M-WEB-06",
-      "requisito": "R06",
-      "descricao": "Versão exibida vem do campo errado",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": "`versão ${dataset.version.slice(0, 12)} (${dataset.source})",
-          "para": "`versão ${dataset.source.slice(0, 12)} (${dataset.source})"
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"
-      ]
-    },
-    {
-      "id": "M-WEB-07",
-      "requisito": "R06",
-      "descricao": "Estado inicial não indica que a verificação está em andamento",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": "useState<Estado>({ tipo: \"carregando\" })",
-          "para": "useState<Estado>({ tipo: \"erro\", detalhe: \"\" })"
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra verificando enquanto a API não responde"
+        "src/abas/Operacao.test.tsx > uma parte fora não derruba as outras; tudo fora avisa"
       ]
     },
     {
@@ -423,22 +198,7 @@
         }
       ],
       "testes": [
-        "src/StatusDoSistema.test.tsx > mostra pronto com versão e origem do dataset"
-      ]
-    },
-    {
-      "id": "M-WEB-55",
-      "requisito": "R06",
-      "descricao": "Página de status mostra recarga como banco inacessível",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": "  reloading: \"recarregando os dados\",",
-          "para": "  reloading: \"inacessível\","
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra que os dados estão sendo recarregados quando a API está em recarga"
+        "src/abas/Operacao.test.tsx > a prontidão, as métricas e as regras usadas, do mais usado para o menos"
       ]
     },
     {
@@ -487,66 +247,6 @@
       ]
     },
     {
-      "id": "M-WEB-10",
-      "requisito": "R04",
-      "descricao": "Anulações mostram só a primeira regra, não a soma",
-      "trocas": [
-        {
-          "arquivo": "src/QualidadeDosDados.tsx",
-          "de": "Object.values(contagens).reduce((total, n) => total + n, 0)",
-          "para": "(Object.values(contagens)[0] ?? 0)"
-        }
-      ],
-      "testes": [
-        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
-      ]
-    },
-    {
-      "id": "M-WEB-11",
-      "requisito": "R04",
-      "descricao": "Painel nunca alerta contagens inconsistentes",
-      "trocas": [
-        {
-          "arquivo": "src/QualidadeDosDados.tsx",
-          "de": "estado.tabelas.filter((t) => !fecha(t))",
-          "para": "estado.tabelas.filter(() => false)"
-        }
-      ],
-      "testes": [
-        "src/QualidadeDosDados.test.tsx > alerta quando raw não fecha com curado, quarentena e cópias"
-      ]
-    },
-    {
-      "id": "M-WEB-12",
-      "requisito": "R04",
-      "descricao": "Invariante esquece as cópias descartadas (alarme falso)",
-      "trocas": [
-        {
-          "arquivo": "src/QualidadeDosDados.tsx",
-          "de": "t.raw === t.curado + t.quarentena + t.copias_descartadas",
-          "para": "t.raw === t.curado + t.quarentena"
-        }
-      ],
-      "testes": [
-        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
-      ]
-    },
-    {
-      "id": "M-WEB-13",
-      "requisito": "R04",
-      "descricao": "Relatório vazio vira tabela vazia sem aviso",
-      "trocas": [
-        {
-          "arquivo": "src/QualidadeDosDados.tsx",
-          "de": "  if (estado.tabelas.length === 0) return <p>Nenhuma carga registrada ainda.</p>;\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "src/QualidadeDosDados.test.tsx > informa quando ainda não houve carga"
-      ]
-    },
-    {
       "id": "M-WEB-14",
       "requisito": "R04",
       "descricao": "Cliente aceita qualquer status HTTP do relatório",
@@ -558,7 +258,7 @@
         }
       ],
       "testes": [
-        "src/QualidadeDosDados.test.tsx > mostra erro quando o relatório não pode ser obtido"
+        "src/abas/Operacao.test.tsx > uma parte fora não derruba as outras; tudo fora avisa"
       ]
     },
     {
@@ -573,97 +273,7 @@
         }
       ],
       "testes": [
-        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
-      ]
-    },
-    {
-      "id": "M-WEB-16",
-      "requisito": "R04",
-      "descricao": "Números sem formatação pt-BR",
-      "trocas": [
-        {
-          "arquivo": "src/QualidadeDosDados.tsx",
-          "de": "const numero = (n: number) => n.toLocaleString(\"pt-BR\");",
-          "para": "const numero = (n: number) => String(n);"
-        }
-      ],
-      "testes": [
-        "src/QualidadeDosDados.test.tsx > mostra uma linha por tabela com contagens e anulações somadas"
-      ]
-    },
-    {
-      "id": "M-WEB-17",
-      "requisito": "R01",
-      "descricao": "Taxa mostra só o numerador, sem a base do grupo",
-      "trocas": [
-        {
-          "arquivo": "src/IndicadoresDaEda.tsx",
-          "de": "? `${inteiro(linha.contagem)} de ${inteiro(linha.base)}`",
-          "para": "? inteiro(linha.contagem)"
-        }
-      ],
-      "testes": [
-        "src/IndicadoresDaEda.test.tsx > taxa mostra numerador e base do próprio grupo"
-      ]
-    },
-    {
-      "id": "M-WEB-18",
-      "requisito": "R01",
-      "descricao": "Percentuais arredondados sem casa decimal",
-      "trocas": [
-        {
-          "arquivo": "src/IndicadoresDaEda.tsx",
-          "de": "minimumFractionDigits: 1, maximumFractionDigits: 1",
-          "para": "minimumFractionDigits: 0, maximumFractionDigits: 0"
-        }
-      ],
-      "testes": [
-        "src/IndicadoresDaEda.test.tsx > distribuição mostra contagem, participação e participação no tempo"
-      ]
-    },
-    {
-      "id": "M-WEB-19",
-      "requisito": "R01",
-      "descricao": "Coluna de tempo repete a participação em registros",
-      "trocas": [
-        {
-          "arquivo": "src/IndicadoresDaEda.tsx",
-          "de": "{comSoma && <td>{percentual(linha.proporcao_soma)}</td>}",
-          "para": "{comSoma && <td>{percentual(linha.proporcao)}</td>}"
-        }
-      ],
-      "testes": [
-        "src/IndicadoresDaEda.test.tsx > distribuição mostra contagem, participação e participação no tempo"
-      ]
-    },
-    {
-      "id": "M-WEB-20",
-      "requisito": "R01",
-      "descricao": "Consulta SQL não é exibida",
-      "trocas": [
-        {
-          "arquivo": "src/IndicadoresDaEda.tsx",
-          "de": "        <pre>{indicador.consulta}</pre>\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "src/IndicadoresDaEda.test.tsx > cada indicador traz a consulta que o produziu"
-      ]
-    },
-    {
-      "id": "M-WEB-21",
-      "requisito": "R01",
-      "descricao": "Falha ao obter indicadores fica eternamente calculando",
-      "trocas": [
-        {
-          "arquivo": "src/IndicadoresDaEda.tsx",
-          "de": "        if (!controle.signal.aborted) setEstado({ tipo: \"erro\", detalhe: String(erro) });",
-          "para": "        void erro;"
-        }
-      ],
-      "testes": [
-        "src/IndicadoresDaEda.test.tsx > mostra erro quando os indicadores não podem ser obtidos"
+        "src/abas/Operacao.test.tsx > a qualidade dos dados com o título pela origem e a conferência do invariante"
       ]
     },
     {
@@ -678,7 +288,7 @@
         }
       ],
       "testes": [
-        "src/IndicadoresDaEda.test.tsx > mostra erro quando os indicadores não podem ser obtidos"
+        "src/abas/Operacao.test.tsx > uma parte fora não derruba as outras; tudo fora avisa"
       ]
     },
     {
@@ -1013,97 +623,6 @@
       ]
     },
     {
-      "id": "M-WEB-73",
-      "requisito": "R03",
-      "descricao": "Console tira o bloqueio antes da API confirmar o desbloqueio (remoção otimista)",
-      "trocas": [
-        {
-          "arquivo": "src/BloqueiosDoAtendimento.tsx",
-          "de": "    try {\n      const desfeito = await desbloquearCartao(id);",
-          "para": "    try {\n      setBloqueios((atual) => atual?.filter((x) => x.id !== id) ?? null);\n      const desfeito = await desbloquearCartao(id);"
-        }
-      ],
-      "testes": [
-        "src/BloqueiosDoAtendimento.test.tsx > desbloquear tira da lista só depois que a API confirma"
-      ]
-    },
-    {
-      "id": "M-WEB-74",
-      "requisito": "R07",
-      "descricao": "Console não busca de novo depois de desbloquear",
-      "trocas": [
-        {
-          "arquivo": "src/BloqueiosDoAtendimento.tsx",
-          "de": "    setDesfeitos((n) => n + 1);\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "src/BloqueiosDoAtendimento.test.tsx > desbloquear tira da lista só depois que a API confirma",
-        "src/BloqueiosDoAtendimento.test.tsx > bloqueio já desfeito por outro mostra o motivo da API e atualiza a lista"
-      ]
-    },
-    {
-      "id": "M-WEB-75",
-      "requisito": "R07",
-      "descricao": "Console de bloqueios não busca de novo quando a conversa bloqueia",
-      "trocas": [
-        {
-          "arquivo": "src/BloqueiosDoAtendimento.tsx",
-          "de": "  }, [versao, desfeitos]);",
-          "para": "  }, [desfeitos]);"
-        }
-      ],
-      "testes": [
-        "src/BloqueiosDoAtendimento.test.tsx > sem bloqueio ativo diz isso e busca de novo quando a versão muda"
-      ]
-    },
-    {
-      "id": "M-WEB-76",
-      "requisito": "R03",
-      "descricao": "Desbloqueio recusado pela API esconde o motivo",
-      "trocas": [
-        {
-          "arquivo": "src/BloqueiosDoAtendimento.tsx",
-          "de": "e instanceof Recusado ? `${id}: ${e.message}.` : `Não foi possível desbloquear ${id}.`",
-          "para": "`Não foi possível desbloquear ${id}.`"
-        }
-      ],
-      "testes": [
-        "src/BloqueiosDoAtendimento.test.tsx > bloqueio já desfeito por outro mostra o motivo da API e atualiza a lista"
-      ]
-    },
-    {
-      "id": "M-WEB-77",
-      "requisito": "R06",
-      "descricao": "Console fora do ar não avisa",
-      "trocas": [
-        {
-          "arquivo": "src/BloqueiosDoAtendimento.tsx",
-          "de": "      {erro && <p role=\"alert\">Bloqueios indisponíveis.</p>}\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "src/BloqueiosDoAtendimento.test.tsx > console fora do ar avisa em vez de mostrar lista vazia"
-      ]
-    },
-    {
-      "id": "M-WEB-78",
-      "requisito": "R08",
-      "descricao": "Console não diz qual cartão (sem o final)",
-      "trocas": [
-        {
-          "arquivo": "src/BloqueiosDoAtendimento.tsx",
-          "de": "const cartao = (b: BloqueioDeCartao) => (b.ultimos4 ? `${b.produto} final ${b.ultimos4}` : b.produto);",
-          "para": "const cartao = (b: BloqueioDeCartao) => b.produto;"
-        }
-      ],
-      "testes": [
-        "src/BloqueiosDoAtendimento.test.tsx > mostra cada bloqueio ativo com o cartão só pelo tipo e pelo final, na ordem da API"
-      ]
-    },
-    {
       "id": "M-WEB-79",
       "requisito": "R02",
       "descricao": "Resposta sem o \"por que esta resposta?\"",
@@ -1406,21 +925,6 @@
       ]
     },
     {
-      "id": "M-WEB-99",
-      "requisito": "R07",
-      "descricao": "O console não mostra o caso ligado ao bloqueio",
-      "trocas": [
-        {
-          "arquivo": "src/BloqueiosDoAtendimento.tsx",
-          "de": "              {b.atendimento && ` · caso ${b.atendimento}`}\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "src/BloqueiosDoAtendimento.test.tsx > mostra cada bloqueio ativo com o cartão só pelo tipo e pelo final, na ordem da API"
-      ]
-    },
-    {
       "id": "M-WEB-100",
       "requisito": "R08",
       "descricao": "Acesso vencido no meio do uso não volta para a senha",
@@ -1463,21 +967,6 @@
       ],
       "testes": [
         "src/Acesso.test.tsx > acesso que vence no meio do uso volta para a senha"
-      ]
-    },
-    {
-      "id": "M-WEB-103",
-      "requisito": "R08",
-      "descricao": "O guia dos jurados perde o caminho humano",
-      "trocas": [
-        {
-          "arquivo": "src/ComoTestar.tsx",
-          "de": "          <h3>Human path</h3>\n",
-          "para": ""
-        }
-      ],
-      "testes": [
-        "src/ComoTestar.test.tsx > o guia mostra os três caminhos em espanhol e português e leva a cada aba"
       ]
     },
     {
@@ -1601,21 +1090,6 @@
       ]
     },
     {
-      "id": "M-WEB-113",
-      "requisito": "R09",
-      "descricao": "A página de status esconde a versão recusada (ninguém vê que os dados novos não entraram; ACH-112)",
-      "trocas": [
-        {
-          "arquivo": "src/StatusDoSistema.tsx",
-          "de": "        {dataset?.recusada && (",
-          "para": "        {false && dataset?.recusada && ("
-        }
-      ],
-      "testes": [
-        "src/StatusDoSistema.test.tsx > mostra a versão nova recusada pela carga e que a anterior segue valendo (ACH-112)"
-      ]
-    },
-    {
       "id": "M-WEB-114",
       "requisito": "R09",
       "descricao": "O Por que esta resposta? esconde a origem do fato (DEV-044)",
@@ -1658,21 +1132,6 @@
       ],
       "testes": [
         "src/Atendimento.test.tsx > cada persona traz quantas contestáveis tem e a frase pronta com uma compra dela"
-      ]
-    },
-    {
-      "id": "M-WEB-109",
-      "requisito": "R08",
-      "descricao": "O guia volta ao exemplo da fixture (45,90 do 10/03)",
-      "trocas": [
-        {
-          "arquivo": "src/ComoTestar.tsx",
-          "de": "            date of one of the customer&apos;s own purchases: the customer list shows a ready sentence for each customer,\n",
-          "para": "            date: <q>No reconozco el cobro de 45,90 del 10/03</q>; the customer list shows a ready sentence for each customer,\n"
-        }
-      ],
-      "testes": [
-        "src/ComoTestar.test.tsx > o guia mostra os três caminhos em espanhol e português e leva a cada aba"
       ]
     },
     {
@@ -2795,6 +2254,745 @@
       ],
       "testes": [
         "src/site/turnoNoMapa.test.ts > o caminho que chega do app aberto na janela (jeje-turn) > a lista dos nós de verdade vale como veio; um tipo de rota do design vale como a jornada"
+      ]
+    },
+    {
+      "id": "M-WEB-400",
+      "requisito": "R07",
+      "descricao": "O caso perde o pedido pelo tipo da regra e mostra só o código",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "  if (tipo) return { pedido: t.cases[tipo].req, pendencia: t.cases[tipo].pend };",
+          "para": "  if (tipo) return { pedido: caso.regra, pendencia: t.cases[tipo].pend };"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas"
+      ]
+    },
+    {
+      "id": "M-WEB-401",
+      "requisito": "R07",
+      "descricao": "A fraude (POL-HUM-01) vira pedido de atendente no caso",
+      "trocas": [
+        {
+          "arquivo": "src/abas/textos.ts",
+          "de": "  \"POL-HUM-01\": \"fraud\",",
+          "para": "  \"POL-HUM-01\": \"agent\","
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas"
+      ]
+    },
+    {
+      "id": "M-WEB-402",
+      "requisito": "R07",
+      "descricao": "As regras que o design não desenhou perdem o pedido e a pendência próprios",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "  if (fora) return { pedido: traduzir(fora.req, lingua), pendencia: traduzir(fora.pend, lingua) };\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > a regra que o design não desenhou e a desconhecida"
+      ]
+    },
+    {
+      "id": "M-WEB-403",
+      "requisito": "R07",
+      "descricao": "A regra desconhecida mostra só a primeira pendência registrada",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "  return { pedido: caso.regra, pendencia: caso.pendencias.join(\"; \") };",
+          "para": "  return { pedido: caso.regra, pendencia: caso.pendencias[0] ?? \"\" };"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > a regra que o design não desenhou e a desconhecida"
+      ]
+    },
+    {
+      "id": "M-WEB-404",
+      "requisito": "R07",
+      "descricao": "O Take case recusado também avisa a casca, como se tivesse assumido",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "      aoMudar();\n    } catch {\n      setAviso(traduzir(CONSOLE.naoAssumido, lingua));\n    }\n",
+          "para": "    } catch {\n      setAviso(traduzir(CONSOLE.naoAssumido, lingua));\n    }\n    aoMudar();\n"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > Take case recusado: o aviso, e o caso segue para assumir"
+      ]
+    },
+    {
+      "id": "M-WEB-405",
+      "requisito": "R03",
+      "descricao": "O caso assumido some da tela quando sai da fila aberta",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "  const casos = [...abertos, ...tomados];",
+          "para": "  const casos = [...abertos];"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > Take case: só depois de a API confirmar, e o caso fica na tela como assumido"
+      ]
+    },
+    {
+      "id": "M-WEB-406",
+      "requisito": "R07",
+      "descricao": "O Take case recusado não diz nada",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "      setAviso(traduzir(CONSOLE.naoAssumido, lingua));",
+          "para": "      setAviso(null);"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > Take case recusado: o aviso, e o caso segue para assumir"
+      ]
+    },
+    {
+      "id": "M-WEB-407",
+      "requisito": "R03",
+      "descricao": "O Unblock tira o bloqueio da tela sem pedir à API",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "      await desbloquearCartao(id);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > Unblock: o bloqueio sai depois da API, e a lista vazia diz que não há cartão bloqueado"
+      ]
+    },
+    {
+      "id": "M-WEB-408",
+      "requisito": "R07",
+      "descricao": "Sem bloqueio ativo, a lista fica vazia sem dizer que não há cartão bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "            {bloqueios !== null && ativos.length === 0 && <p className=\"cn-aviso\">{t.ag.blocksNone}</p>}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > Unblock: o bloqueio sai depois da API, e a lista vazia diz que não há cartão bloqueado"
+      ]
+    },
+    {
+      "id": "M-WEB-409",
+      "requisito": "R07",
+      "descricao": "O bloqueio preventivo perde a etiqueta tracejada do design",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "<span className={b.tipo === \"preventivo\" ? \"cn-etiqueta cn-preventivo\" : \"cn-etiqueta\"}>",
+          "para": "<span className=\"cn-etiqueta\">"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o bloqueio preventivo tem a etiqueta tracejada"
+      ]
+    },
+    {
+      "id": "M-WEB-410",
+      "requisito": "R07",
+      "descricao": "As frases da fila vazia não vão para a conversa",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "onClick={() => experimentar(frase)}",
+          "para": "onClick={() => undefined}"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > a fila vazia sugere três frases, que vão para a conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-411",
+      "requisito": "R07",
+      "descricao": "A fila e os bloqueios não são relidos a cada efeito da conversa",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "  }, [versao, recarga]);",
+          "para": "  }, [recarga]);"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > cada efeito da conversa relê a fila e os bloqueios"
+      ]
+    },
+    {
+      "id": "M-WEB-412",
+      "requisito": "R07",
+      "descricao": "O caso perde o cartão bloqueado ligado a ele",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "              cartao={ativos.find((b) => b.atendimento === caso.id)}",
+          "para": "              cartao={undefined}"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas"
+      ]
+    },
+    {
+      "id": "M-WEB-413",
+      "requisito": "R07",
+      "descricao": "O cliente aparece sem o nome da persona",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "  const cliente = (id: string) => (nomes[id] ? `${id} · ${nomes[id]}` : id);",
+          "para": "  const cliente = (id: string) => id;"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas"
+      ]
+    },
+    {
+      "id": "M-WEB-414",
+      "requisito": "R07",
+      "descricao": "O contador da fila soma os casos já assumidos",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "            {t.ag.queue} · {abertos.length}",
+          "para": "            {t.ag.queue} · {casos.length}"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > Take case: só depois de a API confirmar, e o caso fica na tela como assumido"
+      ]
+    },
+    {
+      "id": "M-WEB-415",
+      "requisito": "R07",
+      "descricao": "As ações sem rótulo no design aparecem com a chave interna",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "    return fora ? traduzir(fora, lingua) : a.acao;",
+          "para": "    return a.acao;"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas"
+      ]
+    },
+    {
+      "id": "M-WEB-416",
+      "requisito": "R07",
+      "descricao": "As falas perdem a conta dos 280 caracteres",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "          <span>{caso.pedido.length}/280</span>",
+          "para": "          <span>{caso.pedido.length}</span>"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas"
+      ]
+    },
+    {
+      "id": "M-WEB-417",
+      "requisito": "R06",
+      "descricao": "A prontidão mostra o código do banco no lugar do rótulo do design",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "  const banco = !p ? \"—\" : p.database === \"ok\" ? t.ops.ok :",
+          "para": "  const banco = !p ? \"—\" : p.database === \"ok\" ? p.database :"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a prontidão, as métricas e as regras usadas, do mais usado para o menos"
+      ]
+    },
+    {
+      "id": "M-WEB-418",
+      "requisito": "R06",
+      "descricao": "A versão dos dados aparece inteira, fora do formato do design",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "dataset ? `${dataset.source} · ${curta(dataset.version)}` : semDados",
+          "para": "dataset ? `${dataset.source} · ${dataset.version}` : semDados"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a prontidão, as métricas e as regras usadas, do mais usado para o menos"
+      ]
+    },
+    {
+      "id": "M-WEB-419",
+      "requisito": "R06",
+      "descricao": "A versão recusada não diz o motivo nem qual segue no ar",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "      {recusada && dataset && (",
+          "para": "      {false && recusada && dataset && ("
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a versão recusada com o motivo, a base sem carga e a sem dados"
+      ]
+    },
+    {
+      "id": "M-WEB-420",
+      "requisito": "R09",
+      "descricao": "A latência sai sem arredondar",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "const ms = (n: number | null | undefined) => (n == null ? null : Math.round(n));",
+          "para": "const ms = (n: number | null | undefined) => (n == null ? null : n);"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a prontidão, as métricas e as regras usadas, do mais usado para o menos"
+      ]
+    },
+    {
+      "id": "M-WEB-421",
+      "requisito": "R09",
+      "descricao": "As regras usadas saem do menos usado para o mais",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": ".sort((a, b) => b[1] - a[1])",
+          "para": ".sort((a, b) => a[1] - b[1])"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a prontidão, as métricas e as regras usadas, do mais usado para o menos"
+      ]
+    },
+    {
+      "id": "M-WEB-422",
+      "requisito": "R09",
+      "descricao": "A barra da regra perde a proporção com a mais usada",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "<span style={{ width: `${(n / maior) * 100}%` }} />",
+          "para": "<span style={{ width: `${n * 10}%` }} />"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a prontidão, as métricas e as regras usadas, do mais usado para o menos"
+      ]
+    },
+    {
+      "id": "M-WEB-423",
+      "requisito": "R09",
+      "descricao": "A instância nova não avisa que os contadores começam em zero",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "        {m && fresca && <p className=\"cn-nova\">{t.ops.fresh}</p>}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a instância nova avisa que os contadores começam em zero"
+      ]
+    },
+    {
+      "id": "M-WEB-424",
+      "requisito": "R09",
+      "descricao": "O pré-caso gravado aparece como proposta à espera do sim",
+      "trocas": [
+        {
+          "arquivo": "src/abas/textos.ts",
+          "de": "  if (efeito.startsWith(\"PC-\")) return \"recorded\";",
+          "para": "  if (efeito.startsWith(\"PC-\")) return \"wait\";"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > os últimos turnos com a ação e o efeito nos rótulos do design, sem o cliente"
+      ]
+    },
+    {
+      "id": "M-WEB-425",
+      "requisito": "R09",
+      "descricao": "O desbloqueio aparece como cartão bloqueado",
+      "trocas": [
+        {
+          "arquivo": "src/abas/textos.ts",
+          "de": "  if (acao === \"desbloquear_cartao\") return \"unblocked\";\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > os últimos turnos com a ação e o efeito nos rótulos do design, sem o cliente"
+      ]
+    },
+    {
+      "id": "M-WEB-426",
+      "requisito": "R09",
+      "descricao": "O bloqueio preventivo aparece como bloqueio completo",
+      "trocas": [
+        {
+          "arquivo": "src/abas/textos.ts",
+          "de": "  if (acao === \"bloquear_cartao\" && regra === \"POL-BLQ-01\") return \"blockPrev\";\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > os últimos turnos com a ação e o efeito nos rótulos do design, sem o cliente"
+      ]
+    },
+    {
+      "id": "M-WEB-427",
+      "requisito": "R09",
+      "descricao": "O request_id sai inteiro, fora do formato do design",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "e.requisicao ? e.requisicao.slice(0, 13) : \"—\"",
+          "para": "e.requisicao ? e.requisicao : \"—\""
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > os últimos turnos com a ação e o efeito nos rótulos do design, sem o cliente"
+      ]
+    },
+    {
+      "id": "M-WEB-428",
+      "requisito": "R04",
+      "descricao": "A qualidade da base do desafio aparece como fixture sintética",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "dataset?.source === \"fixture\" ? t.ops.quality : traduzir(OPERACAO.qualidadeDaBase, lingua)",
+          "para": "t.ops.quality"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a qualidade dos dados com o título pela origem e a conferência do invariante"
+      ]
+    },
+    {
+      "id": "M-WEB-429",
+      "requisito": "R04",
+      "descricao": "A conferência do invariante passa sempre",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "const fecha = (q: QualidadeTabela) => q.raw === q.curado + q.quarentena + q.copias_descartadas;",
+          "para": "const fecha = (q: QualidadeTabela) => q.raw >= 0;"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a qualidade dos dados com o título pela origem e a conferência do invariante"
+      ]
+    },
+    {
+      "id": "M-WEB-430",
+      "requisito": "R04",
+      "descricao": "As referências anuladas somam as normalizações",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "q.copias_descartadas, soma(q.anulacoes)]",
+          "para": "q.copias_descartadas, soma(q.normalizacoes)]"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a qualidade dos dados com o título pela origem e a conferência do invariante"
+      ]
+    },
+    {
+      "id": "M-WEB-431",
+      "requisito": "R04",
+      "descricao": "Sem carga, a conferência do invariante aparece passando sobre nada",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "        {qualidade !== null && qualidade.length > 0 && (",
+          "para": "        {qualidade !== null && ("
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a versão recusada com o motivo, a base sem carga e a sem dados"
+      ]
+    },
+    {
+      "id": "M-WEB-432",
+      "requisito": "R04",
+      "descricao": "A qualidade fora da API some sem dizer que está indisponível",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "        {dados !== null && qualidade === null && <p className=\"cn-aviso\">{traduzir(CONSOLE.indisponivel, lingua)}</p>}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > uma parte fora não derruba as outras; tudo fora avisa"
+      ]
+    },
+    {
+      "id": "M-WEB-433",
+      "requisito": "R01",
+      "descricao": "A EDA é recalculada a cada efeito da conversa",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "    return () => controle.abort();\n  }, []);",
+          "para": "    return () => controle.abort();\n  }, [versao]);"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a EDA é lida uma vez: os efeitos da conversa releem só o resto"
+      ]
+    },
+    {
+      "id": "M-WEB-434",
+      "requisito": "R01",
+      "descricao": "A EDA perde o aviso de que descreve os dados, não o efeito do sistema",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "        <p className=\"cn-nota\">{traduzir(OPERACAO.edaNota, lingua)}</p>\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a EDA com a pergunta, as linhas e a consulta de cada número"
+      ]
+    },
+    {
+      "id": "M-WEB-435",
+      "requisito": "R01",
+      "descricao": "A taxa da EDA perde a base",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "                  ? `${numero(linha.contagem, lingua)} ${de} ${numero(linha.base, lingua)}`",
+          "para": "                  ? numero(linha.contagem, lingua)"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a EDA com a pergunta, as linhas e a consulta de cada número"
+      ]
+    },
+    {
+      "id": "M-WEB-436",
+      "requisito": "R01",
+      "descricao": "A coluna da soma aparece no indicador sem unidade",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "  const comSoma = indicador.unidade_soma !== null;",
+          "para": "  const comSoma = true;"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a EDA com a pergunta, as linhas e a consulta de cada número"
+      ]
+    },
+    {
+      "id": "M-WEB-437",
+      "requisito": "R01",
+      "descricao": "A EDA fora da API some sem dizer que está indisponível",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "        {eda.tipo === \"erro\" && <p className=\"cn-aviso\">{traduzir(CONSOLE.indisponivel, lingua)}</p>}\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > uma parte fora não derruba as outras; tudo fora avisa"
+      ]
+    },
+    {
+      "id": "M-WEB-438",
+      "requisito": "R06",
+      "descricao": "Tudo fora da API e a aba não avisa",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "        setErro(prontidao === null && metricas === null);",
+          "para": "        setErro(false);"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > uma parte fora não derruba as outras; tudo fora avisa"
+      ]
+    },
+    {
+      "id": "M-WEB-439",
+      "requisito": "R06",
+      "descricao": "Uma parte fora vira alarme da aba inteira",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "        setErro(prontidao === null && metricas === null);",
+          "para": "        setErro(prontidao === null || metricas === null);"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > uma parte fora não derruba as outras; tudo fora avisa"
+      ]
+    },
+    {
+      "id": "M-WEB-440",
+      "requisito": "R06",
+      "descricao": "Sem dados carregados, a versão fica só com o traço",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Operacao.tsx",
+          "de": "  const semDados = p ? traduzir(OPERACAO.semDados, lingua) : \"—\";",
+          "para": "  const semDados = \"—\";"
+        }
+      ],
+      "testes": [
+        "src/abas/Operacao.test.tsx > a versão recusada com o motivo, a base sem carga e a sem dados"
+      ]
+    },
+    {
+      "id": "M-WEB-441",
+      "requisito": "R07",
+      "descricao": "A hora perde os segundos",
+      "trocas": [
+        {
+          "arquivo": "src/abas/formato.ts",
+          "de": "`${dois(d.getHours())}:${dois(d.getMinutes())}:${dois(d.getSeconds())}`",
+          "para": "`${dois(d.getHours())}:${dois(d.getMinutes())}`"
+        }
+      ],
+      "testes": [
+        "src/abas/formato.test.ts > a hora local em HH:MM:SS, e o que não é data vira traço",
+        "src/abas/Operacao.test.tsx > a prontidão, as métricas e as regras usadas, do mais usado para o menos",
+        "src/abas/Atendente.test.tsx > Unblock: o bloqueio sai depois da API, e a lista vazia diz que não há cartão bloqueado"
+      ]
+    },
+    {
+      "id": "M-WEB-442",
+      "requisito": "R07",
+      "descricao": "O dia sai em mm/dd",
+      "trocas": [
+        {
+          "arquivo": "src/abas/formato.ts",
+          "de": "`${dia}/${mes}`",
+          "para": "`${mes}/${dia}`"
+        }
+      ],
+      "testes": [
+        "src/abas/formato.test.ts > o dia em dd/mm, da data ou do instante",
+        "src/abas/Atendente.test.tsx > o caso chega pronto: o pedido pela regra, os fatos, as ações, as pendências e as falas"
+      ]
+    },
+    {
+      "id": "M-WEB-443",
+      "requisito": "R07",
+      "descricao": "O dinheiro em ES e PT perde o ponto no milhar",
+      "trocas": [
+        {
+          "arquivo": "src/abas/formato.ts",
+          "de": "  return `${inteiro.replace(/\\B(?=(\\d{3})+(?!\\d))/g, \".\")},${centavos}`;",
+          "para": "  return `${inteiro},${centavos}`;"
+        }
+      ],
+      "testes": [
+        "src/abas/formato.test.ts > o dinheiro com duas casas, no separador de cada língua"
+      ]
+    },
+    {
+      "id": "M-WEB-444",
+      "requisito": "R04",
+      "descricao": "As contagens saem sem o separador da língua",
+      "trocas": [
+        {
+          "arquivo": "src/abas/formato.ts",
+          "de": "export const numero = (n: number, lingua: Lingua): string => n.toLocaleString(local(lingua));",
+          "para": "export const numero = (n: number, lingua: Lingua): string => String(n);"
+        }
+      ],
+      "testes": [
+        "src/abas/formato.test.ts > as contagens e as proporções no mesmo separador",
+        "src/abas/Operacao.test.tsx > a qualidade dos dados com o título pela origem e a conferência do invariante"
+      ]
+    },
+    {
+      "id": "M-WEB-445",
+      "requisito": "R08",
+      "descricao": "O caminho normal volta à frase fixa do design (45,90 do 10/03), que não acha transação nos dados reais (DEV-073)",
+      "trocas": [
+        {
+          "arquivo": "src/abas/ComoTestar.tsx",
+          "de": "    const [es, pt] = i === 0 && exemplo ? exemplo : [p.es, p.pt];",
+          "para": "    const [es, pt] = [p.es, p.pt];"
+        }
+      ],
+      "testes": [
+        "src/abas/ComoTestar.test.tsx > o caminho normal com a frase do exemplo da persona, e o Try manda cada frase à conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-446",
+      "requisito": "R08",
+      "descricao": "O Try in PT manda a frase em espanhol",
+      "trocas": [
+        {
+          "arquivo": "src/abas/ComoTestar.tsx",
+          "de": "onClick={() => experimentar(c.pt)}",
+          "para": "onClick={() => experimentar(c.es)}"
+        }
+      ],
+      "testes": [
+        "src/abas/ComoTestar.test.tsx > o caminho normal com a frase do exemplo da persona, e o Try manda cada frase à conversa"
+      ]
+    },
+    {
+      "id": "M-WEB-447",
+      "requisito": "R08",
+      "descricao": "O guia perde um dos pontos do que conferir",
+      "trocas": [
+        {
+          "arquivo": "src/abas/ComoTestar.tsx",
+          "de": "          {t.guide.checks.map((c) => (",
+          "para": "          {t.guide.checks.slice(1).map((c) => ("
+        }
+      ],
+      "testes": [
+        "src/abas/ComoTestar.test.tsx > sem persona com exemplo, as frases do design; e o que conferir"
+      ]
+    },
+    {
+      "id": "M-WEB-448",
+      "requisito": "R07",
+      "descricao": "O caso não diz que o cliente já desfez o bloqueio do relato",
+      "trocas": [
+        {
+          "arquivo": "src/abas/Atendente.tsx",
+          "de": "    return desfeito && por ? `${rotulo} · ${desfeito[1]} · ${traduzir(por, lingua)}` : rotulo;",
+          "para": "    return rotulo;"
+        }
+      ],
+      "testes": [
+        "src/abas/Atendente.test.tsx > o desbloqueio anotado no caso diz qual bloqueio saiu e quem o desfez"
       ]
     }
   ]
