@@ -15,6 +15,8 @@ test("a língua vem do endereço e da barra do topo, sem trocar a área aberta",
   await expect(page.getByRole("tab", { name: "Cómo probar" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
   await page.getByRole("group", { name: "Language" }).getByRole("button", { name: "EN" }).click();
+  // O design não tem canto arredondado: os botões do app não herdam os 8 px da tela antiga.
+  await expect(page.getByRole("group", { name: "Language" }).getByRole("button", { name: "EN" })).toHaveCSS("border-top-left-radius", "0px");
   await expect(page.getByRole("tab", { name: "Agent" })).toHaveAttribute("aria-selected", "true");
   await expect(page).toHaveURL(/#atendente$/);
 });
