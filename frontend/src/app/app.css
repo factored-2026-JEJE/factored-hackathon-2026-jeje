@@ -185,3 +185,7 @@ body { -webkit-font-smoothing: antialiased; }
 .app-portao-form button:hover:not(:disabled) { background: #16150F; border-color: #16150F; }
 .app-portao-form button:disabled { opacity: .5; cursor: default; }
 .app-portao [role="alert"] { color: #B3261E; font-weight: 600; }
+
+/* O design não tem canto arredondado: os botões e os campos do app não herdam os 8 px da tela antiga
+   (estilo.css), que segue valendo para o que ainda não foi redesenhado. */
+.app-pagina :is(button, input, select, textarea) { border-radius: 0; }
