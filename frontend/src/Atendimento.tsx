@@ -82,7 +82,7 @@ function AcessoDoCliente({ aviso }: { aviso: string | null }) {
           {t.acc.kicker}
         </p>
         <h1>{t.acc.title}</h1>
-        <p>{t.acc.body}</p>
+        <p className="acc-corpo">{t.acc.body}</p>
         <p className="acc-nota">{t.acc.note}</p>
       </div>
       <div className="acc-escolha">

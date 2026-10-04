@@ -28,6 +28,12 @@ test("entrar como persona mostra na tela exatamente as transações da sessão",
   await page.goto("/?lang=pt#cliente");
   await expect(page.getByRole("button", { name: UI.pt.cadastrado })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: UI.pt.novo })).toHaveAttribute("aria-pressed", "false");
+  // O acesso no tipo do design: as classes dele vencem as regras de contexto da casca (o "Entrar como…"
+  // branco em negrito, e o kicker em 10,5 px, não no tamanho do texto).
+  const entrar = page.getByRole("button", { name: UI.pt.entrar(primeira!.nome), exact: true });
+  await expect(entrar).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(entrar).toHaveCSS("font-weight", "700");
+  await expect(page.locator(".acc-kicker")).toHaveCSS("font-size", "10.5px");
   await entrarPeloAcesso(page, primeira!.nome, "pt");
   await expect(page.getByText(`${primeira!.customer_id} · ${primeira!.nome} · dispositivo cadastrado`)).toBeAttached();
 
