@@ -648,6 +648,12 @@ def test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio(texto):
         ("Quítale el bloqueo a mi tarjeta, ya la encontré", "desbloquear"),
         ("Quero retirar o bloqueio do meu cartão", "desbloquear"),
         ("¿Pueden levantar el bloqueo de mi tarjeta?", "desbloquear"),
+        # ACH-187: desfazer, cancelar e anular o bloqueio também.
+        ("Pode desfazer o bloqueio do meu cartão, por favor", "desbloquear"),
+        ("¿Puedes deshacer el bloqueo de mi tarjeta, por favor?", "desbloquear"),
+        ("Deshaz el bloqueo, ya la encontré", "desbloquear"),
+        ("Quero cancelar o bloqueio do cartão", "desbloquear"),
+        ("Não desfaça o bloqueio do meu cartão", "desconhecida"),
         # Negado, pede para manter: nem desbloqueio, nem outro bloqueio.
         ("Não tire o bloqueio do cartão", "desconhecida"),
         ("No le quiten el bloqueo, por favor", "desconhecida"),
