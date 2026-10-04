@@ -79,4 +79,19 @@ for i in 2 5 8; do
   caso "sintaxe $i com valor no histórico falha" 1 "$d"
 done
 
+# ACH-291: o gitleaks também numa worktree, cujo .git aponta para fora da pasta. Sem .env, só ele
+# procura: um token do GitHub (falso) no histórico tem de ser achado nas duas pastas. O token é
+# montado aqui, em duas partes, para este arquivo não virar ele mesmo um vazamento no histórico.
+TOKEN="gh""p_7Hq2Lx9VbN4mR8tY3kWp6sZd1FgJ5cQa0EuI"
+d=$(repo gitleaks_principal)
+printf 'token = "%s"\n' "$TOKEN" > "$d/config.txt"
+git -C "$d" add config.txt && git -C "$d" -c user.name=t -c user.email=t@t commit -qm token
+caso "token no histórico, sem .env, falha (o gitleaks lê o histórico)" 1 "$d"
+d=$(repo gitleaks_limpo)
+git -C "$d" worktree add -q "$tmp/worktree_limpa" 2>/dev/null
+cp "$d/scripts/verificar-segredos.sh" "$tmp/worktree_limpa/scripts/" 2>/dev/null || true
+caso "worktree sem segredo passa (o histórico abre no container)" 0 "$tmp/worktree_limpa"
+git -C "$tmp/gitleaks_principal" worktree add -q "$tmp/worktree_com_chave" 2>/dev/null
+caso "token no histórico de uma worktree falha" 1 "$tmp/worktree_com_chave"
+
 [ "$falhas" -eq 0 ] || exit 1
