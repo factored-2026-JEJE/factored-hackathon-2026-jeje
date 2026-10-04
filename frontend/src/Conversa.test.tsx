@@ -51,7 +51,7 @@ const REGISTRADO = turno({
 
 /** Servidor na fronteira de rede: responde os turnos na ordem, registra os corpos enviados e
  * guarda o histórico do que processou. `historicoFalha`: quantas leituras do histórico falham. */
-function servidor(turnos: Resposta[], historico?: unknown, historicoFalha = 0) {
+function servidor(turnos: Resposta[], historico?: unknown, historicoFalha = 0, prontidao?: unknown) {
   const enviados: string[] = [];
   const processados: Record<string, unknown>[] = [];
   let liberar: (() => void) | null = null;
@@ -62,6 +62,7 @@ function servidor(turnos: Resposta[], historico?: unknown, historicoFalha = 0) {
     vi.fn(async (url: string, init?: RequestInit) => {
       const r = (status: number, corpo: unknown) =>
         new Response(JSON.stringify(corpo), { status, headers: { "X-Request-ID": `req-${enviados.length}` } });
+      if (url === "/api/health/ready" && prontidao) return r(200, prontidao);
       if (url === "/api/conversas" && init?.method === "POST") return r(201, ABERTA);
       if (url === "/api/conversas/C1/turnos" && init?.method === "POST") {
         const mensagem = JSON.parse(String(init.body)).texto;
@@ -363,6 +364,14 @@ test("por que esta resposta mostra de onde veio o fato: arquivo, linha e versão
     line: "7",
     "data version": "abc123def456",
   });
+});
+
+test("sem recibo, o porquê mostra a versão do conjunto carregado na API", async () => {
+  const pronta = { status: "ready", database: "ok", dataset: { version: "60b0140df94f5a2fcefdd5801d", source: "fixture", loaded_at: "2026-10-04T09:18:07Z", recusada: null } };
+  servidor([{ status: 200, corpo: turno({ recibo: null }) }], undefined, 0, pronta);
+  montar();
+  await abrirEPedir();
+  expect(await porQue(/Puedo registrar una solicitud/)).toMatchObject({ "data version": "60b0140df94f" });
 });
 
 test("turno reaberto pelo histórico mostra só a regra e a ação", async () => {
