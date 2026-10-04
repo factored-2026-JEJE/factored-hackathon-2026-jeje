@@ -20,11 +20,11 @@ const c = CONTEUDO;
 const CONFIABILIDADE_DO_CONGELADO: Readonly<Record<string, readonly [Traducao, string]>> = {
   "EV-182": [
     T(
-      "No congelado, 1.031 de 1.035 mutantes do backend se comportaram como esperado.",
-      "En el congelado, 1.031 de 1.035 mutantes del backend se comportaron como se esperaba.",
-      "On the frozen commit, 1,031 of 1,035 backend mutants behaved as expected.",
+      "1.035 de 1.035 mutantes do backend e 220 de 220 do web pegos pelos testes (no congelado, 1.031; os 4 ganharam testes no ACH-188).",
+      "1.035 de 1.035 mutantes del backend y 220 de 220 del web atrapados por los tests (en el congelado, 1.031; los 4 ganaron tests en el ACH-188).",
+      "1,035 of 1,035 backend and 220 of 220 web mutants caught by the tests (1,031 on the frozen commit; the other 4 got tests in ACH-188).",
     ),
-    "ACH-188",
+    "REG-83",
   ],
   "EV-250": [
     T(
@@ -52,6 +52,18 @@ const CONFIABILIDADE_DO_CONGELADO: Readonly<Record<string, readonly [Traducao, s
   ],
 };
 
+// O pilar de segurança: a injeção medida no congelado (REG-79-20261004T132615-480d), no lugar do INJ-01 antigo.
+const SEGURANCA_DO_CONGELADO: Readonly<Record<string, readonly [Traducao, string]>> = {
+  "INJ-01": [
+    T(
+      "Injeções sem efeito no congelado, com o LLM lendo: 21 de 21 em cada língua.",
+      "Inyecciones sin efecto en el congelado, con el LLM leyendo: 21 de 21 en cada lengua.",
+      "Injections with no effect on the frozen commit, with the LLM reading: 21 of 21 in each language.",
+    ),
+    "REG-79",
+  ],
+};
+
 export const CONTEUDO_DO_MAIN: Conteudo = {
   ...c,
   sources: {
@@ -76,6 +88,8 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
     "CON-01": ["evid", "evidencias/CON-01 · 20261004T071739"],
     "EXP-008": ["evid", "evidencias/EXP-008 · 04/10"],
     "QT-01": ["evid", "evidencias/QT-01"],
+    "REG-83": ["evid", "evidencias/REG-83 · 20261004T183738"],
+    "REG-79": ["evid", "evidencias/REG-79 · 20261004T132615"],
   },
   ui: {
     ...c.ui,
@@ -92,9 +106,9 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
         "From the validation evidence base (jeje-validation-v1/evidencias).",
       ),
       code: T(
-        "Do código ou da configuração do main (80eae5f).",
-        "Del código o la configuración del main (80eae5f).",
-        "From the main branch code or config (80eae5f).",
+        "Do código ou da configuração do main entregue (tag entrega).",
+        "Del código o la configuración del main entregado (tag entrega).",
+        "From the delivered main code or config (tag entrega).",
       ),
     },
   },
@@ -184,7 +198,11 @@ export const CONTEUDO_DO_MAIN: Conteudo = {
   pillars: {
     ...c.pillars,
     list: c.pillars.list.map((p) =>
-      p.id !== "conf" ? p : { ...p, proofs: p.proofs.map((prova) => CONFIABILIDADE_DO_CONGELADO[prova[1]] ?? prova) },
+      p.id === "conf"
+        ? { ...p, proofs: p.proofs.map((prova) => CONFIABILIDADE_DO_CONGELADO[prova[1]] ?? prova) }
+        : p.id === "seg"
+          ? { ...p, proofs: p.proofs.map((prova) => SEGURANCA_DO_CONGELADO[prova[1]] ?? prova) }
+          : p,
     ),
     seg: {
       ...c.pillars.seg,
