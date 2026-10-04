@@ -99,6 +99,42 @@ def test_pedido_com_dispositivo_cadastrado_bloqueia_por_completo_sem_encaminhar(
     assert acoes_de_bloqueio(cenario) == []
 
 
+@pytest.mark.parametrize(
+    ("idioma", "pergunta", "sim"),
+    [
+        ("es", "¿Cómo bloqueo la tarjeta si la pierdo?", "Sí"),
+        ("pt", "Dá para bloquear o cartão pelo chat?", "Sim"),
+    ],
+)
+def test_pergunta_hipotetica_confirma_e_o_sim_bloqueia(cenario, idioma, pergunta, sim):
+    """REG-20: a pergunta não bloqueia na hora; espera o sim (POL-BLQ-07) e então bloqueia."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, idioma)
+        confirma = dizer(http, auth, conversa, pergunta)
+        antes = bloqueios(cenario)
+        feito = dizer(http, auth, conversa, sim)
+    assert (confirma["regra"], confirma["acao"], confirma["estado"]) == (
+        "POL-BLQ-07", "esclarecer", "confirmando_bloqueio"
+    )  # fmt: skip
+    assert antes == []
+    assert (feito["regra"], feito["acao"], feito["estado"]) == (
+        "POL-BLQ-02", "bloquear_cartao", "livre"
+    )  # fmt: skip
+    assert [b["product_id"] for b in bloqueios(cenario)] == ["CRT-B1"]
+
+
+def test_pergunta_hipotetica_com_nao_nao_bloqueia(cenario):
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-B", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "¿Cómo bloqueo la tarjeta si la pierdo?")
+        nao = dizer(http, auth, conversa, "No")
+    assert (nao["regra"], nao["acao"], nao["estado"]) == ("CANCELADO", "responder", "livre")
+    assert nao["resposta"] == "Listo, no bloqueé ninguna tarjeta. ¿Te ayudo con algo más?"
+    assert bloqueios(cenario) == []
+
+
 def test_pedido_com_dispositivo_novo_bloqueia_preventivo_e_encaminha(cenario):
     """Sem escolha no acesso vale "novo"; o que a mensagem diz do aparelho não muda nada."""
     with cliente(cenario) as http:
