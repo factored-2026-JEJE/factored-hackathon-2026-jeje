@@ -640,6 +640,25 @@ def test_pin_cartao_encerrado_e_volta_negada_nao_sao_desbloqueio(texto):
     assert ler(texto).intencao != "desbloquear"
 
 
+@pytest.mark.parametrize(
+    ("texto", "intencao"),
+    [
+        # Tirar o bloqueio pede o desbloqueio; antes, o "bloqueio" levava ao pedido de bloqueio.
+        ("Pode tirar o bloqueio do cartão?", "desbloquear"),
+        ("Quítale el bloqueo a mi tarjeta, ya la encontré", "desbloquear"),
+        ("Quero retirar o bloqueio do meu cartão", "desbloquear"),
+        ("¿Pueden levantar el bloqueo de mi tarjeta?", "desbloquear"),
+        # Negado, pede para manter: nem desbloqueio, nem outro bloqueio.
+        ("Não tire o bloqueio do cartão", "desconhecida"),
+        ("No le quiten el bloqueo, por favor", "desconhecida"),
+        # O saque não é o bloqueio.
+        ("Quero sacar dinheiro mas o saque deu bloqueio", "desconhecida"),
+    ],
+)
+def test_tirar_o_bloqueio_e_desbloqueio_e_negado_nao_pede_nada(texto, intencao):
+    assert ler(texto).intencao == intencao
+
+
 def test_bloqueio_contado_nao_pede_outro_bloqueio():
     """ACH-141: "bloqueé" (com acento) e "ya/la/lo/me bloquee" contam o que o cliente já fez; o
     imperativo e o "que" antes continuam pedido."""
