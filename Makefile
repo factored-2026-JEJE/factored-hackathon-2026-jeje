@@ -9,7 +9,7 @@ rodar_teste = $(TESTE) run --rm $(1); status=$$?; $(TESTE) down -v >/dev/null 2>
 
 .PHONY: up up-fixture demo demo-down down reset segredos logs build lint test test-backend test-web mutantes e2e mutantes-e2e \
 	metricas exportar-reviews avaliar-leitor calibrar-transacao contrato contrato-explorar testar-modelo check gate repro \
-	e2e-pelo-portao publicar publicacao-down voltar limpar demo-limpar
+	e2e-pelo-portao publicar publicacao-down voltar limpar demo-limpar atacar test-avaliacao
 
 up: ## Sobe a stack completa (dados reais do S3; precisa do .env) com a ponte do modelo: http://localhost:8080
 	docker compose --profile modelo up -d --build --wait
@@ -90,7 +90,13 @@ test-backend: build
 test-web: build
 	@$(call rodar_teste,web-test)
 
-test: test-backend test-web
+# Os testes do oráculo da avaliação (avaliacao/tests, NOV-13a): só a biblioteca padrão do Python.
+PYTHON_AVALIACAO := python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
+test-avaliacao: ## Os testes do oráculo do atacante (avaliacao/tests), sem a stack
+	docker run --rm --network none -e PYTHONDONTWRITEBYTECODE=1 -v "$$PWD":/repo:ro -w /repo $(PYTHON_AVALIACAO) \
+		python -m unittest discover -s avaliacao/tests -t .
+
+test: test-backend test-web test-avaliacao
 
 mutantes: build ## Prova que cada teste derruba seu mutante (backend e web)
 	@$(call rodar_teste,mutantes)
@@ -142,3 +148,9 @@ COMMIT ?= HEAD
 MODO ?= completo
 repro: ## Do zero: clone limpo do COMMIT, stack isolada com a fixture, segredos e todos os gates
 	scripts/repro.sh $(COMMIT) $(MODO)
+
+# O portão de release com o atacante adaptativo (DEV-021b, NOV-13a). Fica fora do gate: precisa do
+# Ollama com o qwen2.5:7b e o qwen3:4b, da ponte até ele e da GPU livre (de 30 a 45 min). O limite e
+# os episódios ficam no compose.atacar.yaml; ARGS vai por cima (ex.: ARGS="--mecanismos M4 --episodios 2").
+atacar: ## Stack isolada do commit (a variante entregue) e o atacante da validação: falha se os inseguros passam do limite
+	scripts/atacar.sh $(ARGS)
