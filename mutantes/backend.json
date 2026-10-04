@@ -7485,7 +7485,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n",
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),\n",
           "para": ""
         }
       ],
@@ -10421,8 +10421,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "\"bloquear\": re.compile(NEGACAO + \"(?:bloque|congel|trav)\"),",
-          "para": "\"bloquear\": re.compile(NEGACAO + \"bloque\"),"
+          "de": "NEGACAO + \"(?:bloque|congel|trav)|",
+          "para": "NEGACAO + \"bloque|"
         }
       ],
       "testes": [
@@ -11083,8 +11083,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
-          "para": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO)),\n"
+          "de": "    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),\n    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n",
+          "para": "    (\"bloquear\", (PEDIDO_DE_BLOQUEIO,)),\n    (\"desbloquear\", (PEDIDO_DE_DESBLOQUEIO, CARTAO_ACHADO, LIBERAR_DE_NOVO, DESBLOQUEIO_DE_LONGE,\n                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),\n"
         }
       ],
       "testes": [
@@ -11113,8 +11113,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                     VOLTA_DO_BLOQUEADO)),",
-          "para": "                     )),"
+          "de": "                     VOLTA_DO_BLOQUEADO, TIRAR_O_BLOQUEIO)),",
+          "para": "                     TIRAR_O_BLOQUEIO)),"
         }
       ],
       "testes": [
