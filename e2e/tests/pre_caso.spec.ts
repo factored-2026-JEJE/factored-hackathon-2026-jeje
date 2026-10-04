@@ -2,27 +2,18 @@
 // perde (ACH-105), ver o protocolo na conversa e na lista, e contestar de novo numa conversa nova
 // sem criar outro pré-caso.
 import { expect, type Page, test } from "@playwright/test";
-import { auth, dataTexto, elegivel, type Transacao, valorTexto } from "./comum";
+import { auth, dataTexto, dizerNaConversa, elegivel, entrarPeloAcesso, falasDaConversa, type Transacao, UI, valorTexto } from "./comum";
 
 const contestar = (t: Transacao) =>
   `No reconozco el cobro de ${valorTexto(t.amount)} del ${dataTexto(t.transaction_date)}` +
   (t.merchant_name ? ` en ${t.merchant_name}` : "");
 
-async function dizer(page: Page, texto: string) {
-  const mensagens = page.getByRole("log", { name: "Mensagens" }).locator("li");
-  const antes = await mensagens.count();
-  await page.getByPlaceholder("Escribe tu mensaje").fill(texto);
-  await page.getByRole("button", { name: "Enviar", exact: true }).click();
-  await expect(mensagens).toHaveCount(antes + 2);
-  return mensagens.last();
-}
+const dizer = (page: Page, texto: string) => dizerNaConversa(page, texto, "es");
 
 test("contestar pela conversa, perder a resposta do sim, ver o protocolo e contestar de novo sem duplicar", async ({ page, request }, info) => {
   const { persona, transacao, token } = await elegivel(request, "pre_caso", info);
-  await page.goto("/");
-  await page.getByRole("button", { name: `Entrar como ${persona.nome}` }).click();
-  await page.getByRole("button", { name: "Conversar em español" }).click();
-  await expect(page.getByRole("log", { name: "Mensagens" }).locator("li")).toHaveCount(1);
+  await entrarPeloAcesso(page, persona.nome, "es");
+  await expect(falasDaConversa(page)).toHaveCount(0);
 
   await expect(await dizer(page, contestar(transacao))).toContainText("¿Confirmas?");
   // A API registra o "sí", mas a resposta não chega à tela: a conexão cai na volta.
@@ -34,11 +25,13 @@ test("contestar pela conversa, perder a resposta do sim, ver o protocolo e conte
     },
     { times: 1 },
   );
-  await page.getByRole("button", { name: "Sí, confirmo" }).click();
-  // A tela relê a conversa e mostra o que ficou registrado, sem pedir para reenviar.
-  const registrado = page.getByRole("log", { name: "Mensagens" }).locator("li").last();
-  await expect(registrado).toContainText("Registré la solicitud con el protocolo PC-");
-  await expect(page.getByRole("button", { name: "Reenviar" })).toHaveCount(0);
+  await page.getByRole("group", { name: UI.es.opcoes }).getByRole("button", { name: "Sí, confirmo" }).click();
+  // A tela relê a conversa e mostra o que ficou registrado, sem pedir para reenviar. A releitura é
+  // mais uma ida à API depois do erro de rede; com a máquina carregada (o E2E inteiro ao lado de outras
+  // stacks), a volta toda passou dos 5 s do expect, e a última fala ainda era a proposta.
+  const registrado = falasDaConversa(page).last();
+  await expect(registrado).toContainText("Registré la solicitud con el protocolo PC-", { timeout: 20_000 });
+  await expect(page.getByRole("button", { name: UI.es.reenviar })).toHaveCount(0);
   const protocolo = (await registrado.textContent())!.match(/PC-\d+/)![0];
 
   // Efeito conferido no backend, não só na tela: o protocolo mostrado é o registrado, só um, e a
@@ -50,12 +43,11 @@ test("contestar pela conversa, perder a resposta do sim, ver o protocolo e conte
   const conversa = await page.evaluate(() => sessionStorage.getItem("jeje.conversa"));
   const historico: { turnos: { acao: string }[] } = await (await request.get(`/api/conversas/${conversa}`, { headers: auth(token) })).json();
   expect(historico.turnos.map((t) => t.acao)).toEqual(["propor_pre_caso", "registrar_pre_caso"]);
-  await expect(page.getByRole("region", { name: "Meus pré-casos" })).toContainText(protocolo);
+  await expect(page.getByRole("region", { name: UI.es.pedidos })).toContainText(protocolo);
 
   // Conversa nova, mesma contestação: o assistente devolve o protocolo existente, nada novo.
-  await page.getByRole("button", { name: "Nova conversa" }).click();
-  await page.getByRole("button", { name: "Conversar em español" }).click();
-  await expect(page.getByRole("log", { name: "Mensagens" }).locator("li")).toHaveCount(1);
+  await page.getByRole("button", { name: UI.es.nova }).click();
+  await expect(falasDaConversa(page)).toHaveCount(0);
   await expect(await dizer(page, contestar(transacao))).toContainText(`Ya existe la solicitud ${protocolo}`);
   // Só os pré-casos desta transação: o outro navegador pode contestar outra da mesma persona.
   const depois: { protocolo: string; transaction_id: string }[] = await (await request.get("/api/minhas/pre-casos", { headers: auth(token) })).json();

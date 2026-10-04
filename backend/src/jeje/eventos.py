@@ -5,6 +5,7 @@ resposta). Nunca carrega token, mensagem do cliente nem texto de erro (só a cla
 import json
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -101,3 +102,28 @@ def registrar_acao(
             fontes=fontes,
         ),
     )
+
+
+@dataclass(frozen=True)
+class EventoRecente:
+    """O que a Operação do app mostra de cada turno: a hora, o id da requisição, a regra, a ação e
+    o efeito (ids gerados pelo sistema). A tabela não tem cliente, e a mensagem e o texto de erro
+    nunca entram nela."""
+
+    criado_em: datetime
+    requisicao: str | None
+    regra: str | None
+    acao: str | None
+    efeito: str | None
+
+
+def recentes(conexao: Connection, limite: int) -> list[EventoRecente]:
+    """Os últimos turnos, o mais recente primeiro."""
+    linhas = conexao.execute(
+        text(
+            "SELECT criado_em, requisicao, regra, acao, efeito FROM app.eventos"
+            " WHERE tipo = 'turno' ORDER BY id DESC LIMIT :limite"
+        ),
+        {"limite": limite},
+    ).mappings()
+    return [EventoRecente(**linha) for linha in linhas]
