@@ -94,6 +94,19 @@ def test_no_limite_entra_primeiro_a_fala_com_mais_campos_novos():
     assert handoff.texto_por_campos(falas, campos, limite=33) == "Fue en Streaming Plus, de 45,90"
 
 
+def test_no_limite_o_pedido_de_uma_pessoa_entra_antes_das_outras_falas():
+    """ACH-186: o pedido de atendente é a razão do caso; no limite curto, ele entra primeiro, e as
+    outras falas completam o espaço."""
+    falas = [
+        "No reconozco un cobro",
+        "Fue en Streaming Plus, de 45,90",
+        "Quiero hablar con una persona.",
+    ]
+    assert handoff.texto_por_campos(falas, campos, limite=60) == (
+        "No reconozco un cobro Quiero hablar con una persona."
+    )
+
+
 def test_no_empate_de_campos_novos_entra_a_fala_mais_curta():
     falas = ["Fue en Streaming Plus, de 45,90", "Fue de 45,90"]
     so_valor = {"Fue en Streaming Plus, de 45,90": {"valor"}, "Fue de 45,90": {"valor"}}

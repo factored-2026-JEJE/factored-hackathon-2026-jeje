@@ -361,6 +361,26 @@ def test_api_com_leitor_modelo_monta_a_cascata_e_carrega_o_llm_ao_iniciar(cenari
     assert sem_llm.nao_entendi is None
 
 
+def test_fora_de_escopo_que_so_o_llm_leu_nao_oferece_o_atendente(cenario_conversa, exemplos):
+    """REG-79, segunda rodada: a instrução com outra redação, que as regras e o leitor não entendem
+    e o LLM lê como fora de escopo, responde o que o atendimento faz, sem a oferta, e o "sim"
+    depois não encaminha. O fora de escopo que as regras leem ("quero um empréstimo") segue
+    oferecendo."""
+    llm = ollama_falso(resposta("fora_de_escopo"))
+    with llm as (url, pedidos), cliente(cenario_conversa) as http:
+        http.app.state.interpretador = cascata(url, exemplos)
+        auth = autenticar(http, "CLI-A")
+        conversa = abrir_conversa(http, auth, "pt")
+        lida = dizer(http, auth, conversa, VAGA)
+        sim = dizer(http, auth, conversa, "sim")
+        emprestimo = dizer(http, auth, abrir_conversa(http, auth, "pt"), "Quero um empréstimo")
+    assert len(pedidos) == 1  # só a mensagem vaga chegou ao LLM
+    assert (lida["regra"], lida["acao"], lida["estado"]) == ("POL-ESC-01", "recusar", "livre")
+    assert lida["resposta"].startswith("Por aqui eu posso consultar transações")
+    assert (sim["atendimento"], sim["estado"]) == (None, "livre")
+    assert (emprestimo["acao"], emprestimo["estado"]) == ("oferecer_humano", "oferecendo_humano")
+
+
 def test_na_conversa_o_llm_so_le_e_o_turno_registra_quem_leu(cenario_conversa, exemplos):
     with ollama_falso(resposta("contestar")) as (url, _), cliente(cenario_conversa) as http:
         http.app.state.interpretador = cascata(url, exemplos)
