@@ -4743,7 +4743,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                \"usaron mi tarjeta\", \"usaram meu cartao\", \"alguien uso mi tarjeta\",\n                \"alguem usou meu cartao\",\n",
+          "de": "                \"usaron mi tarjeta\", \"usaram meu cartao\",\n",
           "para": ""
         }
       ],
@@ -12315,8 +12315,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
-          "para": "    (\"usa mi\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+          "de": "    (\"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\",",
+          "para": "    (\"usa mi\", \"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -12740,7 +12740,7 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la utilizo\", \"la uso\", \"la usaron\", \"la utilizaron\", \"la esta usando\", \"la esta utilizando\",\n     \"la ha utilizado\", \"la ha usado\", \"usado mi\", \"usado meu\", \"usado minha\", \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou a minha\", \"usou o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
+          "de": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\",\n     # Contado de outros jeitos (\"alguien la utilizó sin autorización\", \"alguien obtuvo los datos\n     # de mi tarjeta\", \"alguém está usando a minha conta\"), sempre com o que é do cliente (o resto\n     # do ACH-171, REG-12 no 4c62c69).\n     \"la esta usando\", \"la esta utilizando\",\n     \"uso la misma\",\n     \"usando a minha\", \"usando o meu\", \"usou um cartao meu\",\n     \"usou o mesmo cartao\", \"sido utilizada por\", \"sido usada por\", \"fue utilizada por\",\n     \"fue usada por\", \"foi usado por\", \"foi usada por\", \"foi utilizado por\", \"foi utilizada por\",\n     \"ha accedido a mi cuenta\", \"accedieron a mi cuenta\", \"acessaram minha conta\",\n     \"tenido acceso a mi\", \"entrando en mi cuenta\", \"entrando a mi cuenta\",\n     \"entrando na minha conta\", \"haciendo pagos con mi\", \"haciendo compras con mi\",\n     \"fazendo compras com meu\", \"fazendo compras no meu\", \"fazendo pagamentos com meu\",\n     \"obtuvo los datos\", \"obtuvo los detalles\", \"obteve os dados\", \"obteve os detalhes\",\n     \"consiguio los datos\", \"conseguiu os dados\", \"conseguido la informacion\",\n     \"conseguido as informacoes\", \"conseguiu obter os dados\", \"conseguiu obter meus dados\",\n     \"abrio una cuenta a mi nombre\", \"abriu uma conta no meu nome\", \"abriu uma conta em meu nome\",\n     \"intento realizar una compra\", \"intento realizar una transaccion\",\n     \"tentou realizar uma compra\", \"tentou realizar uma operacao\", \"tentou realizar uma transacao\",\n     \"intento cobrar con mi\", \"tentou cobrar com meu\", \"se ha hecho pasar\", \"pegou meu cartao\",\n     \"pegou meus cartoes\", \"pegou minha carteira\", \"forjou o meu\", \"forjou meu\", \"rouba o meu\",\n     \"rouba meu\"),",
           "para": "     \"comprou\", \"sacou\", \"tirou\", \"se passou\", \"acessou\", \"entrou na minha conta\", \"clonou\"),"
         }
       ],
@@ -13055,6 +13055,51 @@
       ]
     },
     {
+      "id": "M-ITP-248",
+      "requisito": "R02",
+      "descricao": "O uso por outro no mais-que-perfeito (\"alguien ya la había usado\") não é golpe, e o achado vira desbloqueio (ACH-199)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_USOU,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_mais_que_perfeito_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-251",
+      "requisito": "R02",
+      "descricao": "O pensar ou a pergunta antes não desfazem o par (\"pensé que alguien la había usado, pero era un cargo mío\" bloqueia o cartão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\", \"si\",",
+          "para": "    antes=0,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\", \"si\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_mais_que_perfeito_pensado_perguntado_ou_de_outra_coisa_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-252",
+      "requisito": "R02",
+      "descricao": "Em PT, qualquer coisa do cliente conta (\"uma pessoa perguntou se eu tinha usado meu cupom\" bloqueia o cartão)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"tinha usado meu cartao\", \"tinha usado o meu cartao\",",
+          "para": "     \"tinha usado meu\", \"tinha usado o meu cartao\","
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_mais_que_perfeito_pensado_perguntado_ou_de_outra_coisa_nao_e_fraude"
+      ]
+    },
+    {
       "id": "M-ITP-245",
       "requisito": "R02",
       "descricao": "A negação depois do cumprimento segue relato (\"Hola, no es fraude, solo quiero saber…\" bloqueia ou encaminha como fraude)",
@@ -13271,8 +13316,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),\n",
-          "para": "                DISSE_DO_BANCO_E_AGIU)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -13316,8 +13361,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO)),\n",
-          "para": "                DINHEIRO_SACADO)),\n"
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n"
         }
       ],
       "testes": [
@@ -13571,8 +13616,8 @@
       "trocas": [
         {
           "arquivo": "src/jeje/interpretacao.py",
-          "de": "    (\"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\",",
-          "para": "    (\"usando\", \"uso mi\", \"usaba mi\", \"usaron mi\", \"usando mi\", \"usando mis\", \"utilizo mi\", \"utilizando mi\","
+          "de": "    (\"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\",",
+          "para": "    (\"usando\", \"usaba mi\", \"usando mi\", \"usando mis\", \"utilizando mi\","
         }
       ],
       "testes": [
@@ -14661,6 +14706,111 @@
       ],
       "testes": [
         "tests/test_interpretacao.py::test_consequencia_de_golpe_nao_e_contestacao"
+      ]
+    },
+    {
+      "id": "M-ITP-264",
+      "requisito": "R03",
+      "descricao": "O uso por outro pensado ou perguntado volta a ser fraude: o ALGUEM_USOU sem o pensar e a pergunta antes",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n    fora_antes=(\"pense\", \"pensaba\", \"crei\", \"creia\", \"pregunto\", \"pregunte\", \"preguntaron\",\n                \"pensei\", \"pensava\", \"achei\", \"achava\", \"perguntou\", \"perguntei\"),\n",
+          "para": "    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n    antes=3,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-265",
+      "requisito": "R03",
+      "descricao": "O ALGUEM_USOU casa nas duas ordens, e o pensar antes do par deixa de desfazê-lo",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=True,\n",
+          "para": "     \"usado minha\"),\n    fora=TERCEIRO_USOU.fora,\n    so_nessa_ordem=False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_pensado_ou_perguntado_nao_e_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-266",
+      "requisito": "R03",
+      "descricao": "O uso por outro contado no passado deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO, ALGUEM_USOU,\n",
+          "para": "                DISSE_DO_BANCO_E_AGIU, DINHEIRO_SACADO, ALGUEM_TINHA_USADO,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_contado_no_passado_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-277",
+      "requisito": "R03",
+      "descricao": "O relato com o uso antes da pessoa deixa de ser fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                USOU_ALGUEM)),\n",
+          "para": "                )),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_relato_com_o_uso_antes_da_pessoa_segue_fraude"
+      ]
+    },
+    {
+      "id": "M-ITP-278",
+      "requisito": "R03",
+      "descricao": "O uso por outro desfeito deixa de ser marcado e volta ao leitor",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        \"uso_desfeito\": _uso_desfeito(limpo),\n",
+          "para": "        \"uso_desfeito\": False,\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-LLM-42",
+      "requisito": "R03",
+      "descricao": "O uso desfeito volta a ser lido pelo leitor e pelo LLM",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao_modelo.py",
+          "de": "        lida.outra,\n        lida.uso_desfeito,\n    )\n",
+          "para": "        lida.outra,\n    )\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_o_uso_por_outro_desfeito_e_marcado_e_nao_vai_ao_leitor"
+      ]
+    },
+    {
+      "id": "M-GAR-19",
+      "requisito": "R03",
+      "descricao": "O uso desfeito passa pela garantia de fraude",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/garantia_fraude.py",
+          "de": "lida.id_digitado, lida.uso_desfeito)",
+          "para": "lida.id_digitado)"
+        }
+      ],
+      "testes": [
+        "tests/test_garantia_conversa.py::test_fraude_atendente_ou_controle_da_conversa_nao_passam_pela_garantia"
       ]
     }
   ]
