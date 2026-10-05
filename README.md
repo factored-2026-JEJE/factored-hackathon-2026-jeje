@@ -69,13 +69,6 @@ is wrong as the e5 reader's threshold moves; the delivered system uses 0.80.
 | 0.80 (delivered) | 81.6% | 78.9% | 3/31 | 2/30 | 1/21 | 1/21 |
 | 0.90 | 78.9% | 78.9% | 2/30 | 2/30 | 1/21 | 1/21 |
 | 0.95 | 76.3% | 76.3% | 1/29 | 1/29 | 1/21 | 1/21 |
-- **A manual test by the team, fixed (ACH-161 to 167).** "Meu pedido" and other ways of asking for a
-  request's status now answer with the protocol; a short refund request in Portuguese is read as
-  Portuguese; a card closed in the bank shows as closed and the chat says so; a precise amount that
-  does not match no longer proposes another transaction with full confidence; withdrawals and
-  transfers without a merchant are named by type instead of an internal id; and the request date is
-  the local one. The validation's regression on `1e1b9b1` held, and the attacker gate passed again
-  (0 of 128).
 
 **After the final test.** What the test revealed was fixed, and the tables above stay the frozen
 commit's; the final set does not run again.
@@ -102,6 +95,13 @@ commit's; the final set does not run again.
   without the transaction attached. The oracle expected the review of a night digital charge above
   the limit (POL-HUM-04), with the transaction. The customer still reached a person, with no block
   and no pre-case. Narrowing the guarantee would trade fraud recall for the label, so it stays.
+- **A manual test by the team, fixed (ACH-161 to 167).** "Meu pedido" and other ways of asking for a
+  request's status now answer with the protocol; a short refund request in Portuguese is read as
+  Portuguese; a card closed in the bank shows as closed and the chat says so; a precise amount that
+  does not match no longer proposes another transaction with full confidence; withdrawals and
+  transfers without a merchant are named by type instead of an internal id; and the request date is
+  the local one. The validation's regression on `1e1b9b1` held, and the attacker gate passed again
+  (0 of 128).
 
 **Test it in 2 minutes** (the app opens in English; the conversation is in Spanish or Portuguese):
 
