@@ -1,6 +1,7 @@
 """Catálogo ES/PT: paridade, ausência de promessas, valores exatos e cobertura da matriz."""
 
 import re
+from dataclasses import replace
 from datetime import datetime
 from decimal import Decimal
 
@@ -89,6 +90,10 @@ TRANSACAO = TransacaoVerificada(
 def test_descricao_da_transacao_na_lingua_da_resposta():
     assert descrever(TRANSACAO, "es") == "en Almacenes Éxito de COP 189.900,55 (10/03/2025)"
     assert descrever(TRANSACAO, "pt") == "em Almacenes Éxito de COP 189.900,55 (10/03/2025)"
+    # Sem comércio, o tipo, e nunca o identificador interno (ACH-167).
+    saque = replace(TRANSACAO, merchant_name=None, transaction_type="Withdrawal")
+    assert descrever(saque, "es") == "de retiro de COP 189.900,55 (10/03/2025)"
+    assert descrever(saque, "pt") == "de saque de COP 189.900,55 (10/03/2025)"
 
 
 def test_compor_preenche_so_com_os_fatos_pedidos():
