@@ -297,11 +297,35 @@ PEDIDO_REGISTRADO = Perto(
 # indica o assunto: a busca continua sendo pelos pré-casos do cliente da sessão (POL-ID-02).
 PROTOCOLO = ("protocolo", "protocolos")
 PROTOCOLO_DIGITADO = re.compile(r"(?<![a-z0-9])pc \d+")
-# "Meu pedido" sozinho é o pedido de revisão, como "mi solicitud" (ACH-161). Só a mensagem inteira:
-# "não recebi meu pedido" é a encomenda de uma loja, não o pré-caso.
+# "Meu pedido" é o pedido de revisão, como "mi solicitud" (ACH-161): sozinho, ou com uma palavra de
+# andamento ("como vai", "a situação", "saber do"). Com entrega ou loja na mensagem, é a encomenda
+# ("não recebi meu pedido", "¿dónde está mi pedido de la tienda?"), não o pré-caso.
 SO_O_PEDIDO = re.compile(
     r"(?:(?:como esta|como vai|como anda|status d[oe]|cade|e|quero ver|ver) )?(?:o )?"
     r"(?:meu|meus|mi|mis) pedidos?"
+)
+ANDAMENTO_DO_PEDIDO = Perto(
+    ("como esta", "como vai", "como anda", "como va", "como sigue", "como segue", "situacao",
+     "situacion", "estado", "status", "andamento", "saber do", "saber de", "saber sobre",
+     "novidade*", "novedad*", "noticia*", "que paso con", "o que houve com"),
+    ("pedido", "pedidos", "solicitacao", "solicitacoes", "solicitud*"),
+    entre=3,
+    depois=4,
+    fora_depois=("saque", "retiro", "emprestimo", "prestamo", "credito", "cartao", "tarjeta",
+                 "dinheiro", "dinero", "conta", "cuenta"),
+)  # fmt: skip
+SOLICITACAO_MINHA = Perto(
+    ("minha", "minhas", "mi", "mis"),
+    ("solicitacao", "solicitacoes"),
+    entre=1,
+    depois=4,
+    fora_depois=("saque", "retiro", "emprestimo", "prestamo", "credito", "cartao", "tarjeta",
+                 "dinheiro", "dinero", "conta", "cuenta"),
+)  # fmt: skip
+OUTRO_PEDIDO = re.compile(
+    r"(?<![a-z0-9])(?:cheg\w*|receb\w*|recibi\w*|lleg\w*|entreg\w*|envio|frete|loja|tienda|"
+    r"produto|producto|mercadoria|mercaderia|rastreio|compr\w*|pedido \d+|retirar|saque|sacar)"
+    r"(?![a-z0-9])"
 )
 
 # Recusar o atendente não é pedir um: "no quiero un agente, solo dime cuál fue". Só a negação
@@ -1251,6 +1275,13 @@ def _caso(limpo: str) -> bool:
         or any(_casa(p, limpo) for p in PROTOCOLO)
         or PROTOCOLO_DIGITADO.search(limpo) is not None
         or SO_O_PEDIDO.fullmatch(limpo.strip()) is not None
+        or (
+            OUTRO_PEDIDO.search(limpo) is None
+            and (
+                _casou(ANDAMENTO_DO_PEDIDO, limpo) is not None
+                or _casou(SOLICITACAO_MINHA, limpo) is not None
+            )
+        )
     )
 
 
