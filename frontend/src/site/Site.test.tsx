@@ -40,7 +40,7 @@ describe("sem a API (o site público)", () => {
     await userEvent.click(screen.getAllByRole("button", { name: /Open the app/ })[0] as HTMLElement);
     const janela = screen.getByRole("dialog", { name: "JEJE app" });
     expect(within(janela).getByTitle("JEJE app")).toHaveAttribute("src", "/?lang=en&tab=cliente#customer");
-    expect(within(janela).getByRole("link", { name: /New tab/ })).toHaveAttribute("href", "/#customer");
+    expect(within(janela).getByRole("link", { name: /New tab/ })).toHaveAttribute("href", "/?lang=en#customer");
     await userEvent.click(within(janela).getByRole("button", { name: /Close/ }));
     expect(screen.queryByRole("dialog", { name: "JEJE app" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: /How to test/ }));

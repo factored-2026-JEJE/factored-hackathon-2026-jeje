@@ -75,6 +75,14 @@ body { -webkit-font-smoothing: antialiased; }
   text-transform: uppercase;
   text-decoration: none;
 }
+/* No celular (ACH-167), as quatro abas numa linha própria, embaixo da marca e da sessão, todas à vista:
+   antes rolavam para o lado, e só uma e meia aparecia em 390 px. */
+@media (max-width: 599px) {
+  .app-topo { height: auto; flex-wrap: wrap; }
+  .app-marca, .app-direita { min-height: 44px; }
+  .app-abas { order: 3; flex: 1 0 100%; border-top: 1px solid #16150F; }
+  .app-aba { flex: 1 1 0; justify-content: center; min-height: 40px; padding: 0 4px; font-size: 12px; }
+}
 .app-aba[aria-selected="true"] { background: #F0ECE3; box-shadow: inset 0 -3px 0 #2B35F0; }
 .app-na-fila { background: #FF5520; color: #16150F; font-family: 'Martian Mono', monospace; font-size: 10px; padding: 1px 6px; }
 .app-direita {

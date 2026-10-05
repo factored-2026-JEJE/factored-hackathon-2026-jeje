@@ -30,6 +30,13 @@ for (const nome of ["Pixel 7", "iPhone 13"] as const) {
       await expect(falas).toHaveCount(2);
     });
 
+    test("as quatro abas do topo ficam à vista, sem rolar para o lado (ACH-167)", async ({ page }) => {
+      await page.goto("/?lang=en#customer");
+      const abas = page.getByRole("tablist", { name: "JEJE" }).getByRole("tab");
+      await expect(abas).toHaveCount(4);
+      for (const aba of await abas.all()) await expect(aba).toBeInViewport({ ratio: 1 });
+    });
+
     test("as tabelas da Operação ficam dentro da tela e rolam por dentro (ACH-156)", async ({ page }) => {
       // A raiz do app corta o que passa da borda (overflow: hidden): a largura da página não mostra uma
       // tabela larga. Na Operação do design (2.10), cada tabela fica numa caixa da largura da tela, e
