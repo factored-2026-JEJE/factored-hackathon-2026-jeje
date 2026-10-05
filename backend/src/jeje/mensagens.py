@@ -203,6 +203,10 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "No encontré ninguna tarjeta activa para bloquear en tu cuenta.",
         "pt": "Não encontrei nenhum cartão ativo para bloquear na sua conta.",
     },
+    "CARTAO-ENCERRADO": {
+        "es": "La {cartao} está cerrada en el banco: no hace falta bloquearla.",
+        "pt": "O {cartao} está encerrado no banco: não precisa bloquear.",
+    },
     "POL-BLQ-04": {
         "es": "¿Confirmas que quieres deshacer el bloqueo de tu {cartao} (referencia {bloqueio})? "
         "Responde sí o no.",
