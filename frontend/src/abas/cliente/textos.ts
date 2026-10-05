@@ -4,6 +4,12 @@
 import { E } from "../../app/conteudo";
 
 export const CLIENTE = {
+  // ACH-167: o produto do cartão vem da base em espanhol; na tela, na língua da interface.
+  credito: E("Credit card", "Tarjeta de crédito", "Cartão de crédito"),
+  debito: E("Debit card", "Tarjeta de débito", "Cartão de débito"),
+  // ACH-167: quem leu e a regra do "não entendi", na língua da interface (a API os manda em português).
+  semPalavra: E("no known word", "sin palabra conocida", "sem palavra conhecida"),
+  ajuda: E("HELP", "AYUDA", "AJUDA"),
   expirou: E("Your session expired. Enter again.", "Tu sesión expiró. Entra de nuevo.", "Sua sessão expirou. Entre de novo."),
   carregandoPersonas: E("Loading demo customers…", "Cargando clientes de demostración…", "Carregando clientes de demonstração…"),
   semPersonas: E("No demo customers available.", "No hay clientes de demostración.", "Não há clientes de demonstração."),

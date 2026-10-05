@@ -15764,6 +15764,21 @@
       ]
     },
     {
+      "id": "M-ITP-302",
+      "requisito": "R02",
+      "descricao": "Sem as marcas do pedido de reembolso, 'Me devolvam o dinheiro agora' fica na língua anterior (ACH-162)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "           \"uma\", \"estou\", \"tenho\", \"voces\", \"agora\", \"devolvam\", \"devolva\"),\n",
+          "para": "           \"uma\", \"estou\", \"tenho\", \"voces\"),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_idioma_da_mensagem_e_empate_mantem_o_anterior"
+      ]
+    },
+    {
       "id": "M-ITP-301",
       "requisito": "R02",
       "descricao": "\"Meu pedido\" sozinho volta a não ser a pergunta pelo pedido de revisão (ACH-161)",

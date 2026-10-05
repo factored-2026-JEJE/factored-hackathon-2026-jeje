@@ -2,7 +2,7 @@
 // de verdade. Na de verdade, a resposta da API entra pela borda (fetch); a lógica do site que monta a
 // conversa, as opções e o "Por que esta resposta?" é a de produção. A barra do dock só aparece depois de
 // 55% da tela rolada, e o jsdom não rola: os cliques nela não conferem o pointer-events.
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { PersonaDaDemo, ResultadoDoTurno } from "../api/cliente";
 import { CONTEUDO_DO_MAIN } from "./fatos";
@@ -40,7 +40,7 @@ describe("sem a API (o site público)", () => {
     await userEvent.click(screen.getAllByRole("button", { name: /Open the app/ })[0] as HTMLElement);
     const janela = screen.getByRole("dialog", { name: "JEJE app" });
     expect(within(janela).getByTitle("JEJE app")).toHaveAttribute("src", "/?lang=en&tab=cliente#customer");
-    expect(within(janela).getByRole("link", { name: /New tab/ })).toHaveAttribute("href", "/#customer");
+    expect(within(janela).getByRole("link", { name: /New tab/ })).toHaveAttribute("href", "/?lang=en#customer");
     await userEvent.click(within(janela).getByRole("button", { name: /Close/ }));
     expect(screen.queryByRole("dialog", { name: "JEJE app" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: /How to test/ }));
@@ -64,6 +64,18 @@ describe("sem a API (o site público)", () => {
     expect(placar).toHaveTextContent("↗ NOV-13a");
     await userEvent.click(placar);
     expect(await screen.findByText("evidencias/NOV-13a · EV-278 · EV-283")).toBeInTheDocument();
+  }, LONGO);
+
+  it("o Esc com o foco dentro do app fecha a janela (ACH-166)", async () => {
+    render(<Site />);
+    await userEvent.click(screen.getAllByRole("button", { name: /Open the app/ })[0] as HTMLElement);
+    const quadro = within(screen.getByRole("dialog", { name: "JEJE app" })).getByTitle("JEJE app") as HTMLIFrameElement;
+    fireEvent.load(quadro);
+    const dentro = quadro.contentWindow as Window & typeof globalThis;
+    act(() => {
+      dentro.dispatchEvent(new dentro.KeyboardEvent("keydown", { key: "Escape" }));
+    });
+    expect(screen.queryByRole("dialog", { name: "JEJE app" })).toBeNull();
   }, LONGO);
 
   it("a conversa mostra o exemplo do design, com as opções e o porquê", async () => {

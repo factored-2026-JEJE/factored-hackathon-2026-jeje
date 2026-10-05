@@ -3689,6 +3689,126 @@
       "testes": [
         "src/App.test.tsx > os endereços em português de antes abrem a mesma aba, para não quebrar os links citados"
       ]
+    },
+    {
+      "id": "M-WEB-388",
+      "requisito": "R02",
+      "descricao": "O produto do cartão sai como vem da base, em espanhol (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "  return nome ? traduzir(nome, lingua) : produto;",
+          "para": "  return produto;"
+        }
+      ],
+      "testes": [
+        "src/abas/cliente/porQue.test.ts > o produto do cartão, que vem da base em espanhol, sai na língua da interface"
+      ]
+    },
+    {
+      "id": "M-WEB-389",
+      "requisito": "R02",
+      "descricao": "Quem leu sem palavra conhecida sai cru, em português (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "  if (interpretacao.includes(\"sem palavra conhecida\")) return",
+          "para": "  if (interpretacao.includes(\"sem palavra conhecidax\")) return"
+        }
+      ],
+      "testes": [
+        "src/abas/cliente/porQue.test.ts > quem leu sem palavra conhecida sai na língua da interface"
+      ]
+    },
+    {
+      "id": "M-WEB-390",
+      "requisito": "R02",
+      "descricao": "A regra AJUDA e a ação aguardar_humano saem cruas (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/abas/cliente/porQue.ts",
+          "de": "(regra === \"AJUDA\" ? traduzir(CLIENTE.ajuda, lingua) : regra)",
+          "para": "regra"
+        }
+      ],
+      "testes": [
+        "src/abas/cliente/porQue.test.ts > a regra do não entendi tem o nome da língua da interface, e a ação de aguardar o atendente tem rótulo"
+      ]
+    },
+    {
+      "id": "M-WEB-391",
+      "requisito": "R02",
+      "descricao": "O New tab abre o app sem a língua do site (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "appUrl: C.appUrl.replace(\"/#\", \"/?lang=\" + this.state.lang + \"#\"),",
+          "para": "appUrl: C.appUrl,"
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > leva ao app e ao guia, e troca o idioma do site"
+      ]
+    },
+    {
+      "id": "M-WEB-392",
+      "requisito": "R02",
+      "descricao": "O caminho normal do guia usa a frase da persona escolhida mesmo com a sessão de outra (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/abas/ComoTestar.tsx",
+          "de": "const persona = sessao ? personas.find((p) => p.customer_id === sessao.cliente.customer_id) : escolherPersona(personas);",
+          "para": "const persona = escolherPersona(personas);"
+        }
+      ],
+      "testes": [
+        "src/abas/ComoTestar.test.tsx > com a sessão de outra persona aberta, o caminho normal usa a frase do exemplo dela (ACH-167)"
+      ]
+    },
+    {
+      "id": "M-WEB-387",
+      "requisito": "DEV-032a",
+      "descricao": "O Esc com o foco dentro do app não fecha a janela (ACH-166)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "onLoad={v.ouvirEscNoApp} ",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > o Esc com o foco dentro do app fecha a janela (ACH-166)"
+      ]
+    },
+    {
+      "id": "M-WEB-385",
+      "requisito": "R02",
+      "descricao": "Os cartões não seguem a versão do app: o desbloqueio pelo console não aparece (ACH-164)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "versao={versaoPreCasos + versao + voltas}",
+          "para": "versao={versaoPreCasos + voltas}"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > o desbloqueio feito fora da aba (o console, a versão do app) relê os cartões"
+      ]
+    },
+    {
+      "id": "M-WEB-386",
+      "requisito": "R02",
+      "descricao": "A volta à página não relê os cartões (o console noutra aba do navegador, ACH-164)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "    window.addEventListener(\"focus\", voltou);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > a volta à página (o console noutra aba do navegador) relê os cartões"
+      ]
     }
   ]
 }

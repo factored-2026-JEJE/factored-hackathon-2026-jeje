@@ -1107,6 +1107,14 @@ export class Site extends Component<object, Estado> {
     });
   }
 
+  /**
+   * O Esc com o foco dentro do app (ACH-166): a tecla vai ao documento do iframe, não ao do site. O app é
+   * da mesma origem, então o site ouve o Esc também lá, a cada carga da janela.
+   */
+  private ouvirEscNoApp = () => {
+    this.appFrameRef.current?.contentWindow?.addEventListener("keydown", this.onKeyEsc);
+  };
+
   private closeApp = () => {
     this.setState({ appOpen: false });
   };
@@ -1689,7 +1697,8 @@ export class Site extends Component<object, Estado> {
     return {
       L,
       t,
-      appUrl: C.appUrl,
+      // O "New tab" abre o app na língua do site, como a janela (ACH-167).
+      appUrl: C.appUrl.replace("/#", "/?lang=" + this.state.lang + "#"),
       guideUrl: C.guideUrl,
       mapCardRef: this.mapCardRef,
       dockBarRef: this.dockBarRef,
@@ -1703,6 +1712,7 @@ export class Site extends Component<object, Estado> {
       openApp: () => this.openApp("cliente"),
       openGuide: () => this.openApp("guia"),
       closeApp: this.closeApp,
+      ouvirEscNoApp: this.ouvirEscNoApp,
       menuOpen: S.menuOpen,
       menuBg: S.menuOpen ? "#16150F" : "transparent",
       menuFg: S.menuOpen ? "#F0ECE3" : "#16150F",
@@ -3790,7 +3800,7 @@ export class Site extends Component<object, Estado> {
                 {" "}
               </div>
               {" "}
-              <iframe ref={v.appFrameRef} src={v.appSrc} title="JEJE app" style={{ flex: "1 1 auto", width: "100%", minHeight: "0", border: "0", display: "block", background: "#F0ECE3" }}></iframe>
+              <iframe ref={v.appFrameRef} src={v.appSrc} onLoad={v.ouvirEscNoApp} title="JEJE app" style={{ flex: "1 1 auto", width: "100%", minHeight: "0", border: "0", display: "block", background: "#F0ECE3" }}></iframe>
               {" "}
             </div>
             {" "}

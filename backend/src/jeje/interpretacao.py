@@ -936,11 +936,11 @@ MARCAS: dict[Idioma, tuple[str, ...]] = {
            "meu", "cartao", "atendente", "ola", "quero", "pagamento", "cobranca", "estorno",
            "estornada", "falar", "pessoa", "recusada", "recusaram", "recusou", "foi", "isso",
            "sim", "conta", "fiz", "ajuda", "essa", "esse", "aconteceu", "cade", "com", "um",
-           "uma", "estou", "tenho", "voces"),
+           "uma", "estou", "tenho", "voces", "agora", "devolvam", "devolva"),
     "es": ("usted", "transaccion", "transacciones", "reconozco", "gracias", "quiero", "mi",
            "tarjeta", "hola", "cobro", "rechazaron", "rechazada", "hablar", "persona", "fue",
            "hice", "cuenta", "si", "eso", "ayuda", "esa", "ese", "paso", "donde", "con", "un",
-           "una", "estoy", "tengo", "ustedes"),
+           "una", "estoy", "tengo", "ustedes", "ahora", "devuelvan", "devuelva"),
 }  # fmt: skip
 CARACTERES: dict[Idioma, str] = {"pt": "ãõç", "es": "ñ¿¡"}
 

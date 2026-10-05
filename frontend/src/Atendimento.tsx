@@ -14,7 +14,7 @@ import {
   SessaoExpirada,
   type Transacao,
 } from "./api/cliente";
-import type { Lingua, Textos } from "./app/conteudo";
+import type { Lingua, Textos, Traducao } from "./app/conteudo";
 import { useLingua } from "./app/LinguaDoApp";
 import { useSessao } from "./app/sessao";
 import { traduzir } from "./app/textos";
@@ -252,6 +252,13 @@ const ESPERA_DA_NOVA_TENTATIVA_MS = 1500;
 /** Os cartões do cliente (GET /minhas/cartoes, 2.1 do fechamento): ativo, ou bloqueado por aqui
  * (completo ou preventivo), com a nota do design. Relidos a cada efeito da conversa (um bloqueio, um
  * desbloqueio ou um relato de fraude). */
+// O produto vem da base em espanhol ("Tarjeta Crédito"); os dois cartões têm nome na língua da tela (ACH-167).
+const PRODUTOS: Readonly<Record<string, Traducao>> = { "Tarjeta Crédito": CLIENTE.credito, "Tarjeta Débito": CLIENTE.debito };
+export const nomeDoProduto = (produto: string, lingua: Lingua) => {
+  const nome = PRODUTOS[produto];
+  return nome ? traduzir(nome, lingua) : produto;
+};
+
 function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: number; aoExpirar: () => void }) {
   const { lingua, t } = useLingua();
   const [cartoes, setCartoes] = useState<CartaoDoCliente[] | null>(null);
@@ -293,7 +300,7 @@ function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: numb
           return (
             <li key={c.product_id} className="cli-cartao" data-situacao={situacao}>
               <span className="cartao-final">•••• {c.ultimos4 ?? "—"}</span>
-              <span className="cartao-produto">{c.produto}</span>
+              <span className="cartao-produto">{nomeDoProduto(c.produto, lingua)}</span>
               <span className="cartao-st">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>
               {c.bloqueio && <span className="cartao-nota">{preventivo ? t.side.prevNote : t.side.undoNote}</span>}
             </li>
@@ -310,11 +317,14 @@ function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: numb
  * é a frase que vai para a conversa como mensagem do cliente: a do "Ask about this one" ou a do "Try in
  * ES/PT" das outras abas (`experimentar` do App). */
 export function Atendimento({
+  versao = 0,
   aoMudar = () => {},
   pergunta = null,
   aoPerguntar,
   aoPerguntado = () => {},
 }: {
+  /** A versão do app: muda a cada efeito de outra área (o desbloqueio pelo console do atendente, ACH-164). */
+  versao?: number;
   aoMudar?: () => void;
   pergunta?: string | null;
   aoPerguntar?: (pergunta: string) => void;
@@ -323,6 +333,20 @@ export function Atendimento({
   const { lingua, t } = useLingua();
   const { sessao, aviso, expirou } = useSessao();
   const [versaoPreCasos, setVersaoPreCasos] = useState(0);
+  // Os cartões mudam também fora desta aba: pelo console do atendente nesta janela (a versão do app) ou
+  // noutra janela (o console aberto noutra aba do navegador): a volta à página relê (ACH-164).
+  const [voltas, setVoltas] = useState(0);
+  useEffect(() => {
+    const voltou = () => {
+      if (document.visibilityState === "visible") setVoltas((n) => n + 1);
+    };
+    window.addEventListener("focus", voltou);
+    document.addEventListener("visibilitychange", voltou);
+    return () => {
+      window.removeEventListener("focus", voltou);
+      document.removeEventListener("visibilitychange", voltou);
+    };
+  }, []);
   const [painel, setPainel] = useState(0);
   // "Ask about this one": a frase vai na língua da conversa aberta (ou na da interface).
   const [idiomaDaConversa, setIdiomaDaConversa] = useState<Idioma | null>(null);
@@ -416,7 +440,7 @@ export function Atendimento({
           </div>
           <div className="cli-pedidos">
             <MeusPedidos preCasos={preCasos} transacoes={transacoes} />
-            <MeusCartoes token={sessao.token} versao={versaoPreCasos} aoExpirar={expirou} />
+            <MeusCartoes token={sessao.token} versao={versaoPreCasos + versao + voltas} aoExpirar={expirou} />
           </div>
         </aside>
       </div>
