@@ -260,7 +260,7 @@ def test_status_do_caso_responde_o_pre_caso_registrado(cenario, idioma):
 
 
 def test_so_meu_pedido_responde_o_status_do_pre_caso(cenario):
-    """ACH-161: em PT, "Meu pedido" sozinho pergunta pelo pedido de revisão (como "mi solicitud")."""
+    """ACH-161: "Meu pedido" sozinho, em PT, pede o status do pedido de revisão."""
     with cliente(cenario) as http:
         auth = autenticar(http, "CLI-A")
         protocolo = registrar(http, auth, NORMAL["es"]["pedido"])
