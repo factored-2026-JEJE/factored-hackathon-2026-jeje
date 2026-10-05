@@ -289,12 +289,14 @@ function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: numb
       <ul className="lado-lista">
         {cartoes?.map((c) => {
           const preventivo = c.bloqueio?.tipo === "preventivo";
-          const situacao = c.bloqueio ? (preventivo ? "preventivo" : "completo") : "ativo";
+          // O cartão encerrado na base (product_status) não é ativo nem se bloqueia por aqui (ACH-165).
+          const encerrado = !c.bloqueio && c.status !== "Active";
+          const situacao = c.bloqueio ? (preventivo ? "preventivo" : "completo") : encerrado ? "encerrado" : "ativo";
           return (
             <li key={c.product_id} className="cli-cartao" data-situacao={situacao}>
               <span className="cartao-final">•••• {c.ultimos4 ?? "—"}</span>
               <span className="cartao-produto">{c.produto}</span>
-              <span className="cartao-st">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>
+              <span className="cartao-st">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : encerrado ? t.side.closed : t.side.active}</span>
               {c.bloqueio && <span className="cartao-nota">{preventivo ? t.side.prevNote : t.side.undoNote}</span>}
             </li>
           );
