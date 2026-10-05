@@ -452,6 +452,11 @@ def test_ultima_e_a_mais_recente_e_nao_a_ultima_vez(texto, ultima):
         ("Meu pedido", True),
         ("e meu pedido?", True),
         ("não recebi meu pedido", False),
+        ("Quero saber como anda minha solicitação", True),
+        ("¿Me dices cómo sigue mi pedido?", True),
+        ("Como vai a minha solicitação?", True),
+        ("Quero saber do meu pedido da loja", False),
+        ("Minha solicitação de saque foi negada", False),
         # Pedir uma revisão nova é contestação, não pergunta pela registrada.
         ("quiero abrir una disputa", False),
         ("quero fazer um pedido de revisão", False),
