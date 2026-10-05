@@ -829,6 +829,21 @@
       "testes": [
         "acesso.spec.ts > entrar como persona mostra na tela exatamente as transações da sessão"
       ]
+    },
+    {
+      "id": "M-E2E-55",
+      "requisito": "R02",
+      "descricao": "No celular, as abas do topo voltam a rolar para o lado, e só uma e meia aparece (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "frontend/src/app/app.css",
+          "de": "  .app-abas { order: 3; flex: 1 0 100%; border-top: 1px solid #16150F; }\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "celular.spec.ts > as quatro abas do topo ficam à vista, sem rolar para o lado (ACH-167)"
+      ]
     }
   ]
 }
