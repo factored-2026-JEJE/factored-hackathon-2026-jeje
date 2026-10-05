@@ -167,6 +167,7 @@ def verificada(t: consultas.Transacao) -> TransacaoVerificada:
         t.currency,
         t.merchant_name,
         t.transaction_status,
+        t.transaction_type,
     )
 
 

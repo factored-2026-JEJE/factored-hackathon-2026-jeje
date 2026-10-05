@@ -15853,6 +15853,21 @@
       "testes": [
         "tests/test_qual_transacao.py::test_valor_marcado_que_nao_bate_nao_entra_so_pela_data"
       ]
+    },
+    {
+      "id": "M-MSG-15",
+      "requisito": "R07",
+      "descricao": "A transação sem comércio volta a sair com o identificador interno (TRX-…) para o cliente (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "        onde = TIPO_DE_TRANSACAO.get(t.transaction_type or \"\", {}).get(idioma, \"\")\n",
+          "para": "        onde = t.transaction_id\n"
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_descricao_da_transacao_na_lingua_da_resposta"
+      ]
     }
   ]
 }
