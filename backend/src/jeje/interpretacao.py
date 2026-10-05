@@ -297,6 +297,12 @@ PEDIDO_REGISTRADO = Perto(
 # indica o assunto: a busca continua sendo pelos pré-casos do cliente da sessão (POL-ID-02).
 PROTOCOLO = ("protocolo", "protocolos")
 PROTOCOLO_DIGITADO = re.compile(r"(?<![a-z0-9])pc \d+")
+# "Meu pedido" sozinho é o pedido de revisão, como "mi solicitud" (ACH-161). Só a mensagem inteira:
+# "não recebi meu pedido" é a encomenda de uma loja, não o pré-caso.
+SO_O_PEDIDO = re.compile(
+    r"(?:(?:como esta|como vai|como anda|status d[oe]|cade|e|quero ver|ver) )?(?:o )?"
+    r"(?:meu|meus|mi|mis) pedidos?"
+)
 
 # Recusar o atendente não é pedir um: "no quiero un agente, solo dime cuál fue". Só a negação
 # aplicada ao atendente ("no quiero esperar, quiero un agente" continua pedido).
@@ -1244,6 +1250,7 @@ def _caso(limpo: str) -> bool:
         _casou(PEDIDO_REGISTRADO, limpo) is not None
         or any(_casa(p, limpo) for p in PROTOCOLO)
         or PROTOCOLO_DIGITADO.search(limpo) is not None
+        or SO_O_PEDIDO.fullmatch(limpo.strip()) is not None
     )
 
 
