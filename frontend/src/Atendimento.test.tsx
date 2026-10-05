@@ -121,7 +121,7 @@ function servidor({ tokenValido = true, cartoesFalham = 0 } = {}) {
       return responder(404, { detail: "Not Found" });
     }),
   );
-  return { pedidos, dispositivos, perguntas, idiomas, invalidar: () => (valido = false) };
+  return { pedidos, dispositivos, perguntas, idiomas, invalidar: () => (valido = false), bloquear: () => (bloqueado = true) };
 }
 
 beforeEach(() => sessionStorage.clear());
@@ -302,6 +302,33 @@ test("um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com 
   expect(linha).toHaveTextContent("Can be undone in the chat within 7 days.");
   expect(linha).toHaveAttribute("data-situacao", "completo");
   expect(api.perguntas).toEqual(["Quiero bloquear mi tarjeta"]);
+});
+
+test("o desbloqueio feito fora da aba (o console, a versão do app) relê os cartões", async () => {
+  const api = servidor();
+  const tela = (versao: number) => (
+    <LinguaDoAppProvider>
+      <SessaoProvider>
+        <Atendimento versao={versao} />
+      </SessaoProvider>
+    </LinguaDoAppProvider>
+  );
+  const { rerender } = render(tela(0));
+  await entrar();
+  expect(await linhaDoCartao("4821")).toHaveTextContent("active");
+  api.bloquear();
+  rerender(tela(1));
+  await waitFor(async () => expect(await linhaDoCartao("4821")).toHaveTextContent("blocked · full"));
+});
+
+test("a volta à página (o console noutra aba do navegador) relê os cartões", async () => {
+  const api = servidor();
+  render(comSessao());
+  await entrar();
+  expect(await linhaDoCartao("4821")).toHaveTextContent("active");
+  api.bloquear();
+  window.dispatchEvent(new Event("focus"));
+  await waitFor(async () => expect(await linhaDoCartao("4821")).toHaveTextContent("blocked · full"));
 });
 
 test("a falha ao ler os cartões avisa que estão indisponíveis e tenta de novo, sem dizer que não há cartões", async () => {
