@@ -74,6 +74,8 @@ function servidor({ tokenValido = true, cartoesFalham = 0 } = {}) {
       product_id: "P-2", produto: "Mastercard Oro", ultimos4: "7730", status: "Active",
       bloqueio: { id: "BLQ-2", tipo: "preventivo", reversivel_ate: "2025-03-18T00:00:00Z" },
     },
+    // Encerrado na base (ACH-165): nem ativo nem bloqueado por aqui.
+    { product_id: "P-3", produto: "Tarjeta Débito", ultimos4: "5997", status: "Closed", bloqueio: null },
   ];
   const responder = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status });
   vi.stubGlobal(
@@ -287,6 +289,9 @@ test("os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do de
   expect(preventivo).toHaveTextContent("blocked · preventive");
   expect(preventivo).toHaveTextContent("An agent confirms or undoes this block.");
   expect(preventivo).toHaveAttribute("data-situacao", "preventivo");
+  const encerrado = await linhaDoCartao("5997");
+  expect(encerrado).toHaveTextContent("closed");
+  expect(encerrado).toHaveAttribute("data-situacao", "encerrado");
 });
 
 test("um bloqueio pela conversa relê os cartões: o cartão sai bloqueado, com a nota de desfazer pela conversa", async () => {
