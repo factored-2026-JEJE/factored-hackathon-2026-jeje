@@ -3689,6 +3689,21 @@
       "testes": [
         "src/App.test.tsx > os endereços em português de antes abrem a mesma aba, para não quebrar os links citados"
       ]
+    },
+    {
+      "id": "M-WEB-387",
+      "requisito": "DEV-032a",
+      "descricao": "O Esc com o foco dentro do app não fecha a janela (ACH-166)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "onLoad={v.ouvirEscNoApp} ",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > o Esc com o foco dentro do app fecha a janela (ACH-166)"
+      ]
     }
   ]
 }
