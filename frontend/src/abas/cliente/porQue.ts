@@ -5,7 +5,9 @@
 import type { TurnoComRequisicao } from "../../api/cliente";
 import type { Lingua, Textos } from "../../app/conteudo";
 import { transacaoDoTurno } from "../../porQueDoTurno";
+import { traduzir } from "../../app/textos";
 import { CONTEUDO } from "../../site/conteudo";
+import { CLIENTE } from "./textos";
 
 export interface Motivo {
   readonly regra: string;
@@ -35,6 +37,7 @@ const ACAO: Readonly<Record<string, keyof Textos["act"]>> = {
   bloquear_cartao: "block",
   propor_desbloqueio: "askYes",
   desbloquear_cartao: "unblock",
+  aguardar_humano: "handoff",
   encerrada: "none",
 };
 const EFEITO: Readonly<Record<string, keyof Textos["eff"]>> = {
@@ -52,11 +55,15 @@ const rotulo = <K extends string>(mapa: Readonly<Record<string, K>>, textos: Rea
 };
 
 /** Quem leu a mensagem: as regras, as regras com o leitor abaixo do limite, ou o modelo que leu. */
-export function quemLeu(interpretacao: string, t: Textos): string {
+export function quemLeu(interpretacao: string, t: Textos, lingua: Lingua = "en"): string {
   if (interpretacao === "regras") return t.rd.rules;
+  if (interpretacao.includes("sem palavra conhecida")) return `${t.rd.rules} (${traduzir(CLIENTE.semPalavra, lingua)})`;
   if (interpretacao.includes("abaixo do limite")) return `${t.rd.rules} (${t.rd.below})`;
   return interpretacao;
 }
+
+/** A regra do "não entendi" tem nome em português (AJUDA); na tela, o da língua da interface (ACH-167). */
+export const nomeDaRegra = (regra: string, lingua: Lingua) => (regra === "AJUDA" ? traduzir(CLIENTE.ajuda, lingua) : regra);
 
 /** O que a regra quer dizer, na língua da interface (a lista do site); sem ela, a descrição da API. */
 export function significado(regra: string, lingua: Lingua, descricao?: string | null): string {
@@ -90,7 +97,7 @@ export function linhasDoPorQue(
   const tr = motivo.turno;
   if (!tr) {
     return [
-      [t.rc.rule, motivo.regra],
+      [t.rc.rule, nomeDaRegra(motivo.regra, lingua)],
       [t.rc.meaning, significado(motivo.regra, lingua)],
       [t.rc.action, rotulo(ACAO, t.act, motivo.acao)],
     ];
@@ -98,14 +105,14 @@ export function linhasDoPorQue(
   const linhas: (readonly [string, string])[] = [
     [t.rc.rid, tr.requestId ?? "—"],
     [t.rc.lang, tr.idioma],
-    [t.rc.reader, quemLeu(tr.interpretacao, t)],
+    [t.rc.reader, quemLeu(tr.interpretacao, t, lingua)],
     [t.rc.intent, rotulo(INTENCAO, t.int, tr.intencao)],
   ];
   const transacao = transacaoDoTurno(tr, lingua);
   if (transacao) linhas.push([t.rc.txn, transacao + detalheDoRanking(tr, lingua)]);
   const efeito = t.eff[EFEITO[tr.acao] ?? "none"] + (tr.efeito ? ` · ${tr.efeito}` : "");
   linhas.push(
-    [t.rc.rule, tr.regra],
+    [t.rc.rule, nomeDaRegra(tr.regra, lingua)],
     [t.rc.meaning, significado(tr.regra, lingua, tr.descricao)],
     [t.rc.action, rotulo(ACAO, t.act, tr.acao)],
     [t.rc.effect, efeito],
