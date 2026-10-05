@@ -15762,6 +15762,21 @@
       "testes": [
         "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
       ]
+    },
+    {
+      "id": "M-MSG-15",
+      "requisito": "R07",
+      "descricao": "A transação sem comércio volta a sair com o identificador interno (TRX-…) para o cliente (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/mensagens.py",
+          "de": "        onde = TIPO_DE_TRANSACAO.get(t.transaction_type or \"\", {}).get(idioma, \"\")\n",
+          "para": "        onde = t.transaction_id\n"
+        }
+      ],
+      "testes": [
+        "tests/test_mensagens.py::test_descricao_da_transacao_na_lingua_da_resposta"
+      ]
     }
   ]
 }
