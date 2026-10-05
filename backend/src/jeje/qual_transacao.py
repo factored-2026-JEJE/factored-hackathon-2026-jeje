@@ -83,6 +83,8 @@ def concorda(candidata: Candidata, pista: Pista) -> bool:
     valor = (
         pista.valor is not None and pista.valor > 0 and compativel(pista.valor, candidata.amount)
     )
+    if pista.valor_marcado and pista.valor is not None and pista.valor > 0 and not valor:
+        return False  # o valor dito com moeda ou centavos que não bate é outra transação (ACH-163)
     dias = (
         None if pista.data is None else abs((candidata.transaction_date.date() - pista.data).days)
     )
