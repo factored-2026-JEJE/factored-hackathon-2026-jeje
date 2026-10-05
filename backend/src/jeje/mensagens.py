@@ -203,6 +203,10 @@ CLAUSULAS: dict[str, dict[Idioma, str]] = {
         "es": "No encontré ninguna tarjeta activa para bloquear en tu cuenta.",
         "pt": "Não encontrei nenhum cartão ativo para bloquear na sua conta.",
     },
+    "CARTAO-ENCERRADO": {
+        "es": "La {cartao} está cerrada en el banco: no hace falta bloquearla.",
+        "pt": "O {cartao} está encerrado no banco: não precisa bloquear.",
+    },
     "POL-BLQ-04": {
         "es": "¿Confirmas que quieres deshacer el bloqueo de tu {cartao} (referencia {bloqueio})? "
         "Responde sí o no.",
@@ -384,6 +388,7 @@ class TransacaoVerificada:
     currency: str
     merchant_name: str | None
     transaction_status: str
+    transaction_type: str | None = None
 
 
 def valor(quantia: Decimal, moeda: str) -> str:
@@ -395,10 +400,25 @@ def valor(quantia: Decimal, moeda: str) -> str:
 PREPOSICAO: dict[Idioma, str] = {"es": "en", "pt": "em"}
 
 
+# Sem comércio (saque, pagamento, transferência), o tipo diz o que foi: o identificador interno
+# nunca vai para o cliente (ACH-167).
+TIPO_DE_TRANSACAO: dict[str, dict[Idioma, str]] = {
+    "Purchase": {"es": "de compra", "pt": "de compra"},
+    "Withdrawal": {"es": "de retiro", "pt": "de saque"},
+    "Transfer": {"es": "de transferencia", "pt": "de transferência"},
+    "Payment": {"es": "de pago", "pt": "de pagamento"},
+    "Deposit": {"es": "de depósito", "pt": "de depósito"},
+    "Adjustment": {"es": "de ajuste", "pt": "de ajuste"},
+}
+
+
 def descrever(t: TransacaoVerificada, idioma: Idioma) -> str:
-    """Identifica a transação na língua da resposta: onde, quanto e quando (fatos da curada)."""
-    onde = f"{PREPOSICAO[idioma]} {t.merchant_name}" if t.merchant_name else t.transaction_id
-    return f"{onde} de {valor(t.amount, t.currency)} ({t.transaction_date:%d/%m/%Y})"
+    """Identifica a transação na língua da resposta: onde (ou o tipo), quanto e quando."""
+    if t.merchant_name:
+        onde = f"{PREPOSICAO[idioma]} {t.merchant_name}"
+    else:
+        onde = TIPO_DE_TRANSACAO.get(t.transaction_type or "", {}).get(idioma, "")
+    return f"{onde} de {valor(t.amount, t.currency)} ({t.transaction_date:%d/%m/%Y})".lstrip()
 
 
 # Cartão dito ao cliente: o tipo e os 4 últimos dígitos (o número inteiro nem sai da curada).

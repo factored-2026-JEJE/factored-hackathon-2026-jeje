@@ -279,6 +279,16 @@ def test_o_dia_do_registro_e_o_do_fuso_local_e_nao_o_de_utc(cenario):
     assert "se registró el 10/03/2025" in resposta["resposta"]
 
 
+def test_so_meu_pedido_responde_o_status_do_pre_caso(cenario):
+    """ACH-161: "Meu pedido" sozinho, em PT, pede o status do pedido de revisão."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        protocolo = registrar(http, auth, NORMAL["es"]["pedido"])
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "pt"), "Meu pedido")
+    assert (resposta["regra"], resposta["transaction_id"]) == ("POL-CASO-01", "TRX-A1")
+    assert protocolo in resposta["resposta"]
+
+
 def test_status_do_caso_lista_os_do_cliente_e_protocolo_digitado_nao_busca(cenario):
     """O protocolo de outro cliente digitado no chat não é buscado nem revelado: a resposta é a
     lista dos pré-casos do cliente da sessão (POL-ID-02)."""

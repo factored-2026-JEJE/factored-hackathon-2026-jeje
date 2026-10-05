@@ -134,6 +134,14 @@ def test_valor_de_cabeca_so_casa_pelo_arredondamento_da_transacao():
     assert not concorda(em("46.10"), Pista(Decimal("42")))  # a até 10%, mas não é o arredondamento
 
 
+def test_valor_marcado_que_nao_bate_nao_entra_so_pela_data():
+    """ACH-163: "464,08 del 10/06" não pode virar o Cine Premium de 113,65 de 04/06 só porque a data
+    fica a 6 dias; o número solto, sem moeda nem centavos, ainda pode."""
+    cine = Candidata("T", Decimal("113.65"), datetime(2025, 6, 4), None)
+    assert not concorda(cine, Pista(Decimal("464.08"), date(2025, 6, 10), valor_marcado=True))
+    assert concorda(cine, Pista(Decimal("464"), date(2025, 6, 10)))
+
+
 def test_proposta_direta_so_quando_a_transacao_casa_com_todas_as_pistas():
     """ACH-152, regra R2 do QT-04: a garantia do conjunto supõe que a descrita está entre as
     candidatas; quando o cliente descreve uma que não existe, a única possível só segue direto se
