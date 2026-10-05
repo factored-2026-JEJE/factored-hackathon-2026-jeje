@@ -27,7 +27,7 @@ import json
 import secrets
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field, replace
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal
 from functools import cached_property
 from typing import Literal
@@ -157,6 +157,11 @@ class ResultadoDoTurno:
     @property
     def efeito(self) -> str | None:
         return _efeito(self.saida)
+
+
+# O dia do registro dito ao cliente é o do fuso da publicação (UTC-4, sem horário de verão), não o
+# de UTC: às 21h daqui o registro já seria o dia seguinte (ACH-167).
+FUSO_LOCAL = timezone(timedelta(hours=-4))
 
 
 def verificada(t: consultas.Transacao) -> TransacaoVerificada:
@@ -795,7 +800,7 @@ class _Turno:
         t = self._do_cliente(caso.transaction_id)
         fatos = {
             "protocolo": caso.protocolo,
-            "registro": f"{caso.criado_em:%d/%m/%Y}",
+            "registro": f"{caso.criado_em.astimezone(FUSO_LOCAL):%d/%m/%Y}",
             "estado_caso": ESTADO_DO_CASO[caso.estado][self.idioma],
         }
         if t is None:
