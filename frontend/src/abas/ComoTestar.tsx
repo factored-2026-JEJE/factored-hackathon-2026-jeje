@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { listarPersonas } from "../api/cliente";
+import { listarPersonas, type PersonaDaDemo } from "../api/cliente";
 import { useLingua } from "../app/LinguaDoApp";
+import { useSessao } from "../app/sessao";
 import { frasesDoExemplo } from "../frasesDoCliente";
 import { escolherPersona } from "../personas";
 import type { PropsDaArea } from "./area";
@@ -9,17 +10,20 @@ import "./console.css";
 /** O guia dos jurados, #how-to-test (DEV-032b, 2.10), como no design: os três caminhos em ES e PT,
  * cada um com o "Try in ES/PT" (a casca entra, vai à conversa e manda a frase), e o que conferir.
  * O caminho normal usa a frase do exemplo da persona que a casca escolhe (DEV-073): a frase fixa do
- * design ("45,90 del 10/03") não acha transação nenhuma nos dados de verdade. */
+ * design ("45,90 del 10/03") não acha transação nenhuma nos dados de verdade. Com uma sessão já aberta,
+ * o "Try" vai para a persona dela, então a frase é a do exemplo dela (ACH-167). */
 export function AreaComoTestar({ experimentar }: PropsDaArea) {
   const { t } = useLingua();
-  const [exemplo, setExemplo] = useState<[string, string] | null>(null);
+  const { sessao } = useSessao();
+  const [personas, setPersonas] = useState<PersonaDaDemo[]>([]);
+  const persona = sessao ? personas.find((p) => p.customer_id === sessao.cliente.customer_id) : escolherPersona(personas);
+  const exemplo = persona?.exemplo ? frasesDoExemplo(persona.exemplo) : null;
 
   useEffect(() => {
     let ativo = true;
     listarPersonas()
       .then((lista) => {
-        const persona = escolherPersona(lista);
-        if (ativo && persona?.exemplo) setExemplo(frasesDoExemplo(persona.exemplo));
+        if (ativo) setPersonas(lista);
       })
       .catch(() => {});
     return () => {
