@@ -2471,7 +2471,7 @@
       "trocas": [
         {
           "arquivo": "src/Atendimento.tsx",
-          "de": "<span className=\"cartao-st\">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : t.side.active}</span>",
+          "de": "<span className=\"cartao-st\">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : encerrado ? t.side.closed : t.side.active}</span>",
           "para": "<span className=\"cartao-st\">{t.side.active}</span>"
         }
       ],
@@ -3733,6 +3733,21 @@
       ],
       "testes": [
         "src/Atendimento.test.tsx > a volta à página (o console noutra aba do navegador) relê os cartões"
+      ]
+    },
+    {
+      "id": "M-WEB-452",
+      "requisito": "R03",
+      "descricao": "O cartão encerrado na base aparece como ativo no painel (ACH-165)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "          const encerrado = !c.bloqueio && c.status !== \"Active\";\n",
+          "para": "          const encerrado = false;\n"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > os cartões vêm da API: ativo, ou bloqueado com a etiqueta e a nota do design"
       ]
     }
   ]
