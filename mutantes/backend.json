@@ -15762,6 +15762,21 @@
       "testes": [
         "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
       ]
+    },
+    {
+      "id": "M-QT-37",
+      "requisito": "R02",
+      "descricao": "O valor marcado que não bate deixa a transação entrar pela data, e a única candidata sai com probabilidade 1 (ACH-163)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    if pista.valor_marcado and pista.valor is not None and pista.valor > 0 and not valor:\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_valor_marcado_que_nao_bate_nao_entra_so_pela_data"
+      ]
     }
   ]
 }
