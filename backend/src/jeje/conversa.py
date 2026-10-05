@@ -1034,7 +1034,16 @@ class _Turno:
             return Saida("CANCELADO", "responder", (cancelado,), "livre", {})
         if self.lida.intencao not in ("bloquear", "desconhecida") or self.lida.caso:
             return None
-        return self._perguntar_cartao(mostrados, "pedido")
+        pergunta = self._perguntar_cartao(mostrados, "pedido")
+        # O final de um cartão encerrado na base não é recusado sem motivo (ACH-165): a conversa diz
+        # que ele está encerrado e pergunta de novo, com as opções que valem.
+        fechados = [c for c in self._cartoes() if c.status != "Active" and c.bloqueio is None]
+        fechado = self._citado(fechados)
+        if pergunta.estado == "escolhendo_cartao" and fechado is not None:
+            dito = descrever_cartao(fechado.produto, fechado.ultimos4, self.idioma)
+            aviso = texto("CARTAO-ENCERRADO", self.idioma, cartao=dito)
+            return replace(pergunta, textos=(aviso, *pergunta.textos))
+        return pergunta
 
     def _bloquear(
         self, cartao: politica.Cartao, motivo: str, regra: str, evento: bool

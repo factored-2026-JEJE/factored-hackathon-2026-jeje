@@ -15764,6 +15764,97 @@
       ]
     },
     {
+      "id": "M-ITP-302",
+      "requisito": "R02",
+      "descricao": "Sem as marcas do pedido de reembolso, 'Me devolvam o dinheiro agora' fica na língua anterior (ACH-162)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "           \"uma\", \"estou\", \"tenho\", \"voces\", \"agora\", \"devolvam\", \"devolva\"),\n",
+          "para": "           \"uma\", \"estou\", \"tenho\", \"voces\"),\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_idioma_da_mensagem_e_empate_mantem_o_anterior"
+      ]
+    },
+    {
+      "id": "M-ITP-301",
+      "requisito": "R02",
+      "descricao": "\"Meu pedido\" sozinho volta a não ser a pergunta pelo pedido de revisão (ACH-161)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "        or SO_O_PEDIDO.fullmatch(limpo.strip()) is not None\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo",
+        "tests/test_conversa.py::test_so_meu_pedido_responde_o_status_do_pre_caso"
+      ]
+    },
+    {
+      "id": "M-ITP-303",
+      "requisito": "R02",
+      "descricao": "O andamento do pedido ('como anda minha solicitação') não pergunta pelo pré-caso (ACH-161)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                _casou(ANDAMENTO_DO_PEDIDO, limpo) is not None\n",
+          "para": "                False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo"
+      ]
+    },
+    {
+      "id": "M-ITP-304",
+      "requisito": "R02",
+      "descricao": "A encomenda da loja e a solicitação de saque viram pergunta pelo pré-caso (ACH-161)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            OUTRO_PEDIDO.search(limpo) is None\n",
+          "para": "            True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo"
+      ]
+    },
+    {
+      "id": "M-CONV-124",
+      "requisito": "R03",
+      "descricao": "O final de um cartão encerrado volta a ser recusado sem dizer por quê (ACH-165)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if pergunta.estado == \"escolhendo_cartao\" and fechado is not None:\n",
+          "para": "        if False and fechado is not None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_o_final_de_um_cartao_encerrado_diz_que_esta_encerrado_e_pergunta_de_novo"
+      ]
+    },
+    {
+      "id": "M-QT-37",
+      "requisito": "R02",
+      "descricao": "O valor marcado que não bate deixa a transação entrar pela data, e a única candidata sai com probabilidade 1 (ACH-163)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    if pista.valor_marcado and pista.valor is not None and pista.valor > 0 and not valor:\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_valor_marcado_que_nao_bate_nao_entra_so_pela_data"
+      ]
+    },
+    {
       "id": "M-MSG-15",
       "requisito": "R07",
       "descricao": "A transação sem comércio volta a sair com o identificador interno (TRX-…) para o cliente (ACH-167)",
