@@ -15838,6 +15838,21 @@
       "testes": [
         "tests/test_bloqueio_conversa.py::test_o_final_de_um_cartao_encerrado_diz_que_esta_encerrado_e_pergunta_de_novo"
       ]
+    },
+    {
+      "id": "M-QT-37",
+      "requisito": "R02",
+      "descricao": "O valor marcado que não bate deixa a transação entrar pela data, e a única candidata sai com probabilidade 1 (ACH-163)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/qual_transacao.py",
+          "de": "    if pista.valor_marcado and pista.valor is not None and pista.valor > 0 and not valor:\n",
+          "para": "    if False:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_qual_transacao.py::test_valor_marcado_que_nao_bate_nao_entra_so_pela_data"
+      ]
     }
   ]
 }
