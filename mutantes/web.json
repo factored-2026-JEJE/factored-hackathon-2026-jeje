@@ -3691,6 +3691,21 @@
       ]
     },
     {
+      "id": "M-WEB-387",
+      "requisito": "DEV-032a",
+      "descricao": "O Esc com o foco dentro do app não fecha a janela (ACH-166)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "onLoad={v.ouvirEscNoApp} ",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > o Esc com o foco dentro do app fecha a janela (ACH-166)"
+      ]
+    },
+    {
       "id": "M-WEB-385",
       "requisito": "R02",
       "descricao": "Os cartões não seguem a versão do app: o desbloqueio pelo console não aparece (ACH-164)",
