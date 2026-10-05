@@ -5,6 +5,7 @@ fixture), e o efeito é conferido no banco, não só na resposta."""
 
 import json
 from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta, timezone
 from pathlib import Path
 
 import httpx2 as httpx
@@ -222,7 +223,8 @@ def registrar(http, auth, pedido: str) -> str:
 def registrado_em(settings, protocolo: str) -> str:
     with conexao(settings) as con:
         consulta = "SELECT criado_em FROM app.pre_casos WHERE protocolo = :p"
-        return f"{con.execute(text(consulta), {'p': protocolo}).scalar_one():%d/%m/%Y}"
+        criado = con.execute(text(consulta), {"p": protocolo}).scalar_one()
+        return f"{criado.astimezone(timezone(timedelta(hours=-4))):%d/%m/%Y}"
 
 
 A8 = {
@@ -257,6 +259,24 @@ def test_status_do_caso_responde_o_pre_caso_registrado(cenario, idioma):
     d = registrado_em(cenario, protocolo)
     assert resposta["resposta"] == esperado.format(p=protocolo, t=A1[idioma], d=d)
     assert len(pre_casos(cenario)) == 1  # só leu
+
+
+def test_o_dia_do_registro_e_o_do_fuso_local_e_nao_o_de_utc(cenario):
+    """ACH-167: registrado às 21h30 daqui (01h30 UTC do dia seguinte), o dia dito é o daqui."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        protocolo = registrar(http, auth, NORMAL["es"]["pedido"])
+        with conexao(cenario) as con:
+            con.execute(
+                text(
+                    "UPDATE app.pre_casos SET criado_em = '2025-03-11 01:30+00'"
+                    " WHERE protocolo = :p"
+                ),
+                {"p": protocolo},
+            )
+        conversa = abrir_conversa(http, auth, "es")
+        resposta = dizer(http, auth, conversa, "¿Cómo va mi solicitud de revisión?")
+    assert "se registró el 10/03/2025" in resposta["resposta"]
 
 
 def test_status_do_caso_lista_os_do_cliente_e_protocolo_digitado_nao_busca(cenario):
