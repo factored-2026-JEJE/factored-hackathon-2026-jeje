@@ -837,8 +837,8 @@
       "trocas": [
         {
           "arquivo": "frontend/src/app/app.css",
-          "de": "  .app-abas { order: 3; flex: 1 0 100%; border-top: 1px solid #16150F; }\n",
-          "para": ""
+          "de": "@media (max-width: 599px) {\n  .app-topo { height: auto; flex-wrap: wrap; }",
+          "para": "@media (max-width: 1px) {\n  .app-topo { height: auto; flex-wrap: wrap; }"
         }
       ],
       "testes": [
