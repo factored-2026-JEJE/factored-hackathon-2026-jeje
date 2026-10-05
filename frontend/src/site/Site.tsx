@@ -1697,7 +1697,8 @@ export class Site extends Component<object, Estado> {
     return {
       L,
       t,
-      appUrl: C.appUrl,
+      // O "New tab" abre o app na língua do site, como a janela (ACH-167).
+      appUrl: C.appUrl.replace("/#", "/?lang=" + this.state.lang + "#"),
       guideUrl: C.guideUrl,
       mapCardRef: this.mapCardRef,
       dockBarRef: this.dockBarRef,

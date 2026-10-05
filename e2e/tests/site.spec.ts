@@ -40,7 +40,7 @@ test("o site abre em /site/, ao lado do app, e leva ao app e ao guia", async ({ 
   const janela = page.getByRole("dialog", { name: "JEJE app" });
   const app = page.frameLocator('iframe[title="JEJE app"]');
   await expect(app.getByRole("tab", { name: "Cliente" })).toHaveAttribute("aria-selected", "true");
-  await expect(janela.getByRole("link", { name: /Nova aba/ })).toHaveAttribute("href", "/#customer");
+  await expect(janela.getByRole("link", { name: /Nova aba/ })).toHaveAttribute("href", "/?lang=pt#customer");
   // Trocar de aba no app muda o endereço na barra da janela (jeje-app-route).
   await app.getByRole("tab", { name: "Atendente" }).click();
   await expect(janela.getByText("#agent", { exact: true })).toBeVisible();

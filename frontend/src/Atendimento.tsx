@@ -14,7 +14,7 @@ import {
   SessaoExpirada,
   type Transacao,
 } from "./api/cliente";
-import type { Lingua, Textos } from "./app/conteudo";
+import type { Lingua, Textos, Traducao } from "./app/conteudo";
 import { useLingua } from "./app/LinguaDoApp";
 import { useSessao } from "./app/sessao";
 import { traduzir } from "./app/textos";
@@ -252,6 +252,13 @@ const ESPERA_DA_NOVA_TENTATIVA_MS = 1500;
 /** Os cartões do cliente (GET /minhas/cartoes, 2.1 do fechamento): ativo, ou bloqueado por aqui
  * (completo ou preventivo), com a nota do design. Relidos a cada efeito da conversa (um bloqueio, um
  * desbloqueio ou um relato de fraude). */
+// O produto vem da base em espanhol ("Tarjeta Crédito"); os dois cartões têm nome na língua da tela (ACH-167).
+const PRODUTOS: Readonly<Record<string, Traducao>> = { "Tarjeta Crédito": CLIENTE.credito, "Tarjeta Débito": CLIENTE.debito };
+export const nomeDoProduto = (produto: string, lingua: Lingua) => {
+  const nome = PRODUTOS[produto];
+  return nome ? traduzir(nome, lingua) : produto;
+};
+
 function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: number; aoExpirar: () => void }) {
   const { lingua, t } = useLingua();
   const [cartoes, setCartoes] = useState<CartaoDoCliente[] | null>(null);
@@ -295,7 +302,7 @@ function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: numb
           return (
             <li key={c.product_id} className="cli-cartao" data-situacao={situacao}>
               <span className="cartao-final">•••• {c.ultimos4 ?? "—"}</span>
-              <span className="cartao-produto">{c.produto}</span>
+              <span className="cartao-produto">{nomeDoProduto(c.produto, lingua)}</span>
               <span className="cartao-st">{c.bloqueio ? (preventivo ? t.side.blockedPrev : t.side.blockedFull) : encerrado ? t.side.closed : t.side.active}</span>
               {c.bloqueio && <span className="cartao-nota">{preventivo ? t.side.prevNote : t.side.undoNote}</span>}
             </li>

@@ -422,7 +422,7 @@ problem: {
     { v: T('35,0%', '35,0%', '35.0%'), l: T('dos 686.296 atendimentos têm motivo transacional', 'de las 686.296 atenciones tienen motivo transaccional', 'of 686,296 contacts have a transactional reason'), s: 'DADOS-08' },
     { v: T('24,0%', '24,0%', '24.0%'), l: T('do tempo total de atendimento', 'del tiempo total de atención', 'of total handling time'), s: 'DADOS-08' },
     { v: T('91,5%', '91,5%', '91.5%'), l: T('deles se resolvem no primeiro contato', 'de ellas se resuelven en el primer contacto', 'of them are solved on first contact'), s: 'DADOS-08' },
-    { v: T('90,6%', '90,6%', '90.6%'), l: T('das reclamações sobre transações são “Cargo no reconocido”', 'de los reclamos sobre transacciones son “Cargo no reconocido”', 'of transaction complaints are “Cargo no reconocido” (unrecognized charge)'), s: 'DADOS-08' }
+    { v: T('90,6%', '90,6%', '90.6%'), l: T('das reclamações sobre transações são “Cargo no reconocido” (cobrança não reconhecida, a categoria da base)', 'de los reclamos sobre transacciones son “Cargo no reconocido”', 'of transaction complaints are “Cargo no reconocido” (unrecognized charge)'), s: 'DADOS-08' }
   ],
   note: T('Medido na base do desafio. Cada número leva à consulta SQL que o produziu.', 'Medido en la base del desafío. Cada número lleva a la consulta SQL que lo produjo.', 'Measured on the challenge dataset. Each number links to the SQL query that produced it.')
 },

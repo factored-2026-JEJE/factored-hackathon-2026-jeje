@@ -3,6 +3,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { PersonaDaDemo } from "../api/cliente";
+import { SessaoProvider } from "../app/sessao";
 import { AreaComoTestar } from "./ComoTestar";
 
 const COM_EXEMPLO: PersonaDaDemo = {
@@ -22,12 +23,15 @@ function servidor(personas: PersonaDaDemo[]) {
   );
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  sessionStorage.clear();
+});
 
 test("o caminho normal com a frase do exemplo da persona, e o Try manda cada frase à conversa", async () => {
   servidor([COM_EXEMPLO]);
   const experimentar = vi.fn();
-  render(<AreaComoTestar versao={0} aoMudar={() => {}} experimentar={experimentar} />);
+  render(<SessaoProvider><AreaComoTestar versao={0} aoMudar={() => {}} experimentar={experimentar} /></SessaoProvider>);
   const normal = within(screen.getByRole("article", { name: "Normal: dispute a charge" }));
   expect(await normal.findByText("No reconozco el cobro de 1.234,50 del 14/03")).toBeInTheDocument();
   expect(normal.getByText("Não reconheço a cobrança de 1.234,50 do dia 14/03")).toBeInTheDocument();
@@ -44,7 +48,7 @@ test("o caminho normal com a frase do exemplo da persona, e o Try manda cada fra
 
 test("sem persona com exemplo, as frases do design; e o que conferir", async () => {
   servidor([{ ...COM_EXEMPLO, exemplo: null }]);
-  render(<AreaComoTestar versao={0} aoMudar={() => {}} experimentar={() => {}} />);
+  render(<SessaoProvider><AreaComoTestar versao={0} aoMudar={() => {}} experimentar={() => {}} /></SessaoProvider>);
   const ambiguo = within(screen.getByRole("article", { name: "Ambiguous: a declined purchase" }));
   expect(ambiguo.getByText("¿Por qué rechazaron mi compra?")).toBeInTheDocument();
   const normal = within(screen.getByRole("article", { name: "Normal: dispute a charge" }));
@@ -52,4 +56,20 @@ test("sem persona com exemplo, as frases do design; e o que conferir", async () 
   const conferir = within(screen.getByRole("region", { name: "What to check" }));
   expect(conferir.getAllByRole("listitem")).toHaveLength(3);
   expect(screen.getAllByRole("article")).toHaveLength(3);
+});
+
+test("com a sessão de outra persona aberta, o caminho normal usa a frase do exemplo dela (ACH-167)", async () => {
+  const OUTRA: PersonaDaDemo = { ...COM_EXEMPLO, customer_id: "CLI-B", nome: "Bia", exemplo: { valor: "64.5", moeda: "USD", data: "2025-03-09" } };
+  sessionStorage.setItem("jeje.sessao", "tok-b");
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) =>
+      url === "/api/sessao"
+        ? new Response(JSON.stringify({ customer_id: "CLI-B", nome: "Bia", dispositivo: "cadastrado" }), { status: 200 })
+        : new Response(JSON.stringify([COM_EXEMPLO, OUTRA]), { status: 200 }),
+    ),
+  );
+  render(<SessaoProvider><AreaComoTestar versao={0} aoMudar={() => {}} experimentar={() => {}} /></SessaoProvider>);
+  const normal = within(screen.getByRole("article", { name: "Normal: dispute a charge" }));
+  expect(await normal.findByText("No reconozco el cobro de 64,50 del 09/03")).toBeInTheDocument();
 });
