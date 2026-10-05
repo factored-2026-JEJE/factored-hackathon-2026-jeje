@@ -15762,6 +15762,21 @@
       "testes": [
         "tests/test_interpretacao.py::test_mensagens_comuns_com_os_termos_de_golpe_nao_sao_fraude"
       ]
+    },
+    {
+      "id": "M-CONV-125",
+      "requisito": "R07",
+      "descricao": "O dia do registro do pré-caso volta a sair em UTC (ACH-167)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "            \"registro\": f\"{caso.criado_em.astimezone(FUSO_LOCAL):%d/%m/%Y}\",\n",
+          "para": "            \"registro\": f\"{caso.criado_em:%d/%m/%Y}\",\n"
+        }
+      ],
+      "testes": [
+        "tests/test_conversa.py::test_o_dia_do_registro_e_o_do_fuso_local_e_nao_o_de_utc"
+      ]
     }
   ]
 }
