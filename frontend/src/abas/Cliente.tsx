@@ -3,6 +3,7 @@ import type { PropsDaArea } from "./area";
 
 /** A aba do cliente: o acesso por persona e, com a sessão, a conversa e o painel (Agente 1, 1.3). */
 export function AreaDoCliente({
+  versao,
   aoMudar,
   pergunta,
   aoPerguntar,
@@ -13,5 +14,5 @@ export function AreaDoCliente({
   readonly aoPerguntar: (pergunta: string) => void;
   readonly aoPerguntado: () => void;
 }) {
-  return <Atendimento aoMudar={aoMudar} pergunta={pergunta} aoPerguntar={aoPerguntar} aoPerguntado={aoPerguntado} />;
+  return <Atendimento versao={versao} aoMudar={aoMudar} pergunta={pergunta} aoPerguntar={aoPerguntar} aoPerguntado={aoPerguntado} />;
 }

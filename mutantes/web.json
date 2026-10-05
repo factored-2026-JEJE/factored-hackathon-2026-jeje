@@ -3764,6 +3764,51 @@
       "testes": [
         "src/abas/ComoTestar.test.tsx > com a sessão de outra persona aberta, o caminho normal usa a frase do exemplo dela (ACH-167)"
       ]
+    },
+    {
+      "id": "M-WEB-387",
+      "requisito": "DEV-032a",
+      "descricao": "O Esc com o foco dentro do app não fecha a janela (ACH-166)",
+      "trocas": [
+        {
+          "arquivo": "src/site/Site.tsx",
+          "de": "onLoad={v.ouvirEscNoApp} ",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/site/Site.test.tsx > sem a API (o site público) > o Esc com o foco dentro do app fecha a janela (ACH-166)"
+      ]
+    },
+    {
+      "id": "M-WEB-385",
+      "requisito": "R02",
+      "descricao": "Os cartões não seguem a versão do app: o desbloqueio pelo console não aparece (ACH-164)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "versao={versaoPreCasos + versao + voltas}",
+          "para": "versao={versaoPreCasos + voltas}"
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > o desbloqueio feito fora da aba (o console, a versão do app) relê os cartões"
+      ]
+    },
+    {
+      "id": "M-WEB-386",
+      "requisito": "R02",
+      "descricao": "A volta à página não relê os cartões (o console noutra aba do navegador, ACH-164)",
+      "trocas": [
+        {
+          "arquivo": "src/Atendimento.tsx",
+          "de": "    window.addEventListener(\"focus\", voltou);\n",
+          "para": ""
+        }
+      ],
+      "testes": [
+        "src/Atendimento.test.tsx > a volta à página (o console noutra aba do navegador) relê os cartões"
+      ]
     }
   ]
 }
