@@ -259,6 +259,16 @@ def test_status_do_caso_responde_o_pre_caso_registrado(cenario, idioma):
     assert len(pre_casos(cenario)) == 1  # só leu
 
 
+def test_so_meu_pedido_responde_o_status_do_pre_caso(cenario):
+    """ACH-161: em PT, "Meu pedido" sozinho pergunta pelo pedido de revisão (como "mi solicitud")."""
+    with cliente(cenario) as http:
+        auth = autenticar(http, "CLI-A")
+        protocolo = registrar(http, auth, NORMAL["es"]["pedido"])
+        resposta = dizer(http, auth, abrir_conversa(http, auth, "pt"), "Meu pedido")
+    assert (resposta["regra"], resposta["transaction_id"]) == ("POL-CASO-01", "TRX-A1")
+    assert protocolo in resposta["resposta"]
+
+
 def test_status_do_caso_lista_os_do_cliente_e_protocolo_digitado_nao_busca(cenario):
     """O protocolo de outro cliente digitado no chat não é buscado nem revelado: a resposta é a
     lista dos pré-casos do cliente da sessão (POL-ID-02)."""

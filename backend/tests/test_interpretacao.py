@@ -448,6 +448,10 @@ def test_ultima_e_a_mais_recente_e_nao_a_ultima_vez(texto, ultima):
         ("quiero ver el pre-caso", True),
         ("cadê o protocolo?", True),
         ("¿cómo va el PC-00000003?", True),
+        # Só o pedido, em PT, é o de revisão, como "mi solicitud" (ACH-161); o da loja não é.
+        ("Meu pedido", True),
+        ("e meu pedido?", True),
+        ("não recebi meu pedido", False),
         # Pedir uma revisão nova é contestação, não pergunta pela registrada.
         ("quiero abrir una disputa", False),
         ("quero fazer um pedido de revisão", False),
