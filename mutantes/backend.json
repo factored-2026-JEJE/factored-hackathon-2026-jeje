@@ -15778,6 +15778,36 @@
         "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo",
         "tests/test_conversa.py::test_so_meu_pedido_responde_o_status_do_pre_caso"
       ]
+    },
+    {
+      "id": "M-ITP-303",
+      "requisito": "R02",
+      "descricao": "O andamento do pedido ('como anda minha solicitação') não pergunta pelo pré-caso (ACH-161)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "                _casou(ANDAMENTO_DO_PEDIDO, limpo) is not None\n",
+          "para": "                False\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo"
+      ]
+    },
+    {
+      "id": "M-ITP-304",
+      "requisito": "R02",
+      "descricao": "A encomenda da loja e a solicitação de saque viram pergunta pelo pré-caso (ACH-161)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/interpretacao.py",
+          "de": "            OUTRO_PEDIDO.search(limpo) is None\n",
+          "para": "            True\n"
+        }
+      ],
+      "testes": [
+        "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo"
+      ]
     }
   ]
 }
