@@ -310,11 +310,14 @@ function MeusCartoes({ token, versao, aoExpirar }: { token: string; versao: numb
  * é a frase que vai para a conversa como mensagem do cliente: a do "Ask about this one" ou a do "Try in
  * ES/PT" das outras abas (`experimentar` do App). */
 export function Atendimento({
+  versao = 0,
   aoMudar = () => {},
   pergunta = null,
   aoPerguntar,
   aoPerguntado = () => {},
 }: {
+  /** A versão do app: muda a cada efeito de outra área (o desbloqueio pelo console do atendente, ACH-164). */
+  versao?: number;
   aoMudar?: () => void;
   pergunta?: string | null;
   aoPerguntar?: (pergunta: string) => void;
@@ -323,6 +326,20 @@ export function Atendimento({
   const { lingua, t } = useLingua();
   const { sessao, aviso, expirou } = useSessao();
   const [versaoPreCasos, setVersaoPreCasos] = useState(0);
+  // Os cartões mudam também fora desta aba: pelo console do atendente nesta janela (a versão do app) ou
+  // noutra janela (o console aberto noutra aba do navegador): a volta à página relê (ACH-164).
+  const [voltas, setVoltas] = useState(0);
+  useEffect(() => {
+    const voltou = () => {
+      if (document.visibilityState === "visible") setVoltas((n) => n + 1);
+    };
+    window.addEventListener("focus", voltou);
+    document.addEventListener("visibilitychange", voltou);
+    return () => {
+      window.removeEventListener("focus", voltou);
+      document.removeEventListener("visibilitychange", voltou);
+    };
+  }, []);
   const [painel, setPainel] = useState(0);
   // "Ask about this one": a frase vai na língua da conversa aberta (ou na da interface).
   const [idiomaDaConversa, setIdiomaDaConversa] = useState<Idioma | null>(null);
@@ -416,7 +433,7 @@ export function Atendimento({
           </div>
           <div className="cli-pedidos">
             <MeusPedidos preCasos={preCasos} transacoes={transacoes} />
-            <MeusCartoes token={sessao.token} versao={versaoPreCasos} aoExpirar={expirou} />
+            <MeusCartoes token={sessao.token} versao={versaoPreCasos + versao + voltas} aoExpirar={expirou} />
           </div>
         </aside>
       </div>
