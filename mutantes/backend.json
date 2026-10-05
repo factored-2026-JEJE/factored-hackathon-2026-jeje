@@ -15823,6 +15823,21 @@
       "testes": [
         "tests/test_interpretacao.py::test_pergunta_pelo_pedido_registrado_so_com_possessivo_andamento_ou_protocolo"
       ]
+    },
+    {
+      "id": "M-CONV-124",
+      "requisito": "R03",
+      "descricao": "O final de um cartão encerrado volta a ser recusado sem dizer por quê (ACH-165)",
+      "trocas": [
+        {
+          "arquivo": "src/jeje/conversa.py",
+          "de": "        if pergunta.estado == \"escolhendo_cartao\" and fechado is not None:\n",
+          "para": "        if False and fechado is not None:\n"
+        }
+      ],
+      "testes": [
+        "tests/test_bloqueio_conversa.py::test_o_final_de_um_cartao_encerrado_diz_que_esta_encerrado_e_pergunta_de_novo"
+      ]
     }
   ]
 }

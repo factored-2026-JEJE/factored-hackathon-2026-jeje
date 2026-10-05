@@ -282,6 +282,22 @@ def test_a_compra_fraudulenta_depois_do_bloqueio_vai_ao_atendente(cenario):
     assert registro["regra"] == "POL-HUM-01"
 
 
+def test_o_final_de_um_cartao_encerrado_diz_que_esta_encerrado_e_pergunta_de_novo(cenario):
+    """ACH-165: o cartão fechado na base não é opção, mas o cliente que digita o final dele ouve o
+    porquê, em vez de só a mesma pergunta."""
+    with cliente(cenario) as http:
+        auth = entrar(http, "CLI-A", "cadastrado")
+        conversa = abrir_conversa(http, auth, "es")
+        dizer(http, auth, conversa, "quiero bloquear mi tarjeta")
+        resposta = dizer(http, auth, conversa, "0000")
+    assert (resposta["regra"], resposta["estado"]) == ("POL-BLQ-06", "escolhendo_cartao")
+    assert resposta["resposta"].startswith(
+        "La tarjeta de crédito terminada en 0000 está cerrada en el banco:"
+        " no hace falta bloquearla."
+    )
+    assert bloqueios(cenario) == []
+
+
 def test_quem_pergunta_como_evitar_fraude_vai_ao_atendente_sem_bloquear(cenario):
     """ACH-144 (P3 do NOV-35): a pergunta de prevenção lida como fraude vai ao atendente pela
     POL-HUM-01, mas não bloqueia o cartão; o relato de vítima continua bloqueando."""

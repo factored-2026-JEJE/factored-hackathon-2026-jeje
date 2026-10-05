@@ -49,7 +49,7 @@ export const UI = {
     askNote: E('Sends the row’s clues to the chat, never its identifier.', 'Envía las pistas de la fila al chat, nunca su identificador.', 'Manda as pistas da linha para a conversa, nunca o identificador.'),
     st: { aprovada: E('approved', 'aprobada', 'aprovada'), recusada: E('declined', 'rechazada', 'recusada'), pendente: E('pending', 'pendiente', 'pendente'), estornada: E('reversed', 'revertida', 'estornada') },
     reqs: E('My requests', 'Mis solicitudes', 'Meus pedidos'), reqNone: E('No review requests yet.', 'Aún no hay solicitudes de revisión.', 'Ainda não há pedidos de revisão.'),
-    inReview: E('in review', 'en revisión', 'em revisão'), cards: E('Cards', 'Tarjetas', 'Cartões'), active: E('active', 'activa', 'ativo'),
+    inReview: E('in review', 'en revisión', 'em revisão'), cards: E('Cards', 'Tarjetas', 'Cartões'), active: E('active', 'activa', 'ativo'), closed: E('closed', 'cerrada', 'encerrado'),
     blockedFull: E('blocked · full', 'bloqueada · completo', 'bloqueado · completo'), blockedPrev: E('blocked · preventive', 'bloqueada · preventivo', 'bloqueado · preventivo'),
     undoNote: E('Can be undone in the chat within 7 days.', 'Se puede deshacer por el chat en hasta 7 días.', 'Pode ser desfeito pela conversa em até 7 dias.'),
     prevNote: E('An agent confirms or undoes this block.', 'Un agente confirma o deshace este bloqueo.', 'Um atendente confirma ou desfaz este bloqueio.'),
