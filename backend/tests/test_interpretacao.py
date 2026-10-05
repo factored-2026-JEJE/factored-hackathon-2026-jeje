@@ -348,6 +348,9 @@ def test_status_citado_so_quando_e_um(texto, status):
         ("ok", "es", "es"),
         ("não", "es", "pt"),
         ("sí", "pt", "es"),
+        # O pedido de reembolso curto (ACH-162): sem estas marcas, empatava e ficava na anterior.
+        ("Me devolvam o dinheiro agora", "es", "pt"),
+        ("Devuélvanme el dinero ahora", "pt", "es"),
     ],
 )
 def test_idioma_da_mensagem_e_empate_mantem_o_anterior(texto, anterior, idioma):
